@@ -1,0 +1,22 @@
+{
+  "name": "@lg/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest run --passWithNoTests",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@lg/contracts": "workspace:*",
+    "@lg/ui-core": "workspace:*",
+    "@lg/ui-web": "workspace:*",
+    "@lg/i18n": "workspace:*"
+  },
+  "devDependencies": {
+    "@lg/config": "workspace:*"
+  }
+}

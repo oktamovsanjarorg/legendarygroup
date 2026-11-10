@@ -1,0 +1,21 @@
+{
+  "name": "@lg/bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run --passWithNoTests",
+    "dev": "node dist/index.js"
+  },
+  "dependencies": {
+    "@lg/contracts": "workspace:*",
+    "@lg/domain": "workspace:*",
+    "@lg/i18n": "workspace:*"
+  },
+  "devDependencies": {
+    "@lg/config": "workspace:*"
+  }
+}
