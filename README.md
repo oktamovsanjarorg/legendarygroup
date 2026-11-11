@@ -4,36 +4,36 @@ Oʻquv markaz boshqaruv tizimi (ERP/CRM). Barcha ilovalar, umumiy paketlar, infr
 
 ## Talablar
 
-- **Node.js**: `>= 22.0.0` (Active LTS tavsiya etiladi)
-- **pnpm**: `>= 9.15.0`
-- **Docker & Docker Compose**: lokal xizmatlar (Postgres, Redis, MinIO) uchun
+- **Node.js** `26` (Active LTS, `.nvmrc`)
+- **pnpm** `12` (aniq versiya `package.json` → `packageManager`; `corepack enable` yoki global pnpm 12)
+- **Docker & Docker Compose** — lokal xizmatlar (Postgres 18, Redis, MinIO)
 
-## Tezkor ishga tushirish
+## Tezkor ishga tushirish (toza kompyuter)
 
-1. **Bogʻliqliklarni oʻrnatish:**
-
-   ```bash
-   pnpm install
-   ```
-
-2. **Lokal infratuzilmani ishga tushirish (Docker):**
-
-   ```bash
-   docker compose -f infra/docker/compose.dev.yml up -d
-   ```
-
-3. **Barcha ilovalarni ishlab chiqish rejimida ishga tushirish:**
-   ```bash
-   pnpm dev
-   ```
+```bash
+cp .env.example .env          # lokal qiymatlar tayyor
+pnpm install
+pnpm docker:dev               # Postgres, Redis, MinIO (+ bucket yaratish)
+pnpm --filter @lg/db db:migrate
+pnpm --filter @lg/db db:seed  # 4 rol, ruxsatlar, test Direktor (+998900000001)
+pnpm dev                      # barcha ilovalar hot-reload bilan
+```
 
 ## Asosiy buyruqlar
 
-- `pnpm build` — barcha paket va ilovalarni kompilyatsiya qilish (Turborepo)
-- `pnpm test` — barcha unit va integratsiya testlarini ishga tushirish (Vitest)
-- `pnpm typecheck` — TypeScript qatʼiy tip tekshiruvi (`tsc -b --noEmit`)
-- `pnpm lint` — kod sifatini tekshirish (ESLint)
-- `pnpm format` — kod formatini tekshirish va toʻgʻrilash (Prettier)
+- `pnpm lint` — ESLint (typescript-eslint strict, paket chegaralari, fayl ≤ 300 / funksiya ≤ 60 qator)
+- `pnpm typecheck` — TypeScript strict tekshiruvi
+- `pnpm test` — unit testlar (Vitest)
+- `pnpm test:int` — integratsiya testlari (ishlab turgan Postgres kerak: `pnpm docker:dev`)
+- `pnpm build` — barcha paket va ilovalar (Turborepo)
+- `pnpm format` — Prettier
+- `pnpm --filter @lg/db db:generate --name <nom>` — sxemadan yangi migratsiya
+
+**Bogʻliqliklar xavfsizligi:** pnpm 7 kundan yangi versiyani oʻrnatmaydi (`minimumReleaseAge`), build skriptlari faqat `allowBuilds` roʻyxatidagi paketlarga ruxsat etilgan. Yangilashlar — Renovate orqali, haftalik.
+
+## AI agentlar bilan ishlash
+
+Vazifa: `/task T-XXX` (Claude Code) yoki [docs/12-ai-playbook.md](docs/12-ai-playbook.md) §3 shablonlari (istalgan AI). Boshqa AI yozgan kodni tekshirish: `/review-ai`.
 
 ## Monorepo tuzilishi
 

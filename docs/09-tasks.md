@@ -20,11 +20,13 @@
   - `pnpm dev | build | test | lint | typecheck` ildizdan ishlaydi.
   - `.editorconfig`, `.nvmrc`, `.gitignore`, `README.md` (ishga tushirish yo'riqnomasi).
   - Barcha bog'liqliklar eng so'nggi stable, aniq versiyalar bilan.
+- **Aniqlik:** "eng so'nggi" = `minimumReleaseAge` (7 kun) dan o'tgan eng yangi barqaror versiya. Node 26 (Active LTS), pnpm 12; paket chegaralari ESLint `no-restricted-imports` bilan (domain/contracts/bot/UI → DB yo'q); typescript-eslint `strict`; Renovate (`renovate.json`).
 
 ### ✅ T-002 · Lokal muhit (Docker Compose dev)
 
 - **Bog'liq:** T-001
 - **AC:** `compose.dev.yml`: Postgres, Redis, MinIO (S3 emulyatsiya), Mailpit shart emas. `pnpm dev` — barcha ilovalar hot-reload bilan. `.env.example` to'liq izohlangan. Toza kompyuterda 10 daqiqada ishga tushadi.
+- **Aniqlik:** Postgres 18 (prod RDS bilan bir xil major), MinIO bucket — faqat private (presigned URL), image'lar aniq tegga qotirilgan (`latest` yo'q). MinIO community image'lari 2025-09 dan to'xtatilgan — oxirgi relizda qotirilgan; yangilash kerak bo'lsa muqobil (SeaweedFS/Garage) ADR bilan.
 
 ### ✅ T-003 · DB paketi va birinchi migratsiya
 
@@ -36,7 +38,7 @@
 
 - **Bog'liq:** T-003
 - **AC:** Fastify adapter; config modul (Zod bilan env validatsiyasi — noto'g'ri env'da ishga tushmaydi); pino logger + requestId; global xato filtri (yagona format); `/health/live`, `/health/ready` (DB, Redis); OpenAPI `/docs` (faqat staging/local); Zod validatsiya pipe; graceful shutdown.
-- **Aniqlik:** `Clock` interfeysi `packages/domain/src/clock.ts` (`SystemClock`, testda `FixedClock`) DI orqali; `Idempotency-Key` interceptor (`idempotency_keys` jadvali); ichki API `/internal/*` (`INTERNAL_API_TOKEN`, faqat Docker tarmog'i) — bot uchun; `@lg/api` paketi `bootstrapWorker()` eksport qiladi (apps/worker shuni chaqiradi); DB ulanishi `createDb`/`closeDb` (`@lg/db`).
+- **Aniqlik:** `Clock` interfeysi `packages/domain/src/clock.ts` (`SystemClock`, testda `FixedClock`) DI orqali; `Idempotency-Key` interceptor (`idempotency_keys` jadvali); ichki API `/internal/*` (`INTERNAL_API_TOKEN`, faqat Docker tarmog'i) — bot uchun; `@lg/api` paketi `bootstrapWorker()` eksport qiladi (apps/worker shuni chaqiradi); DB ulanishi `createDb`/`closeDb` (`@lg/db`). Modullar chegarasi: `eslint-plugin-boundaries` (`apps/api/src/modules/*` — boshqa modulning `*.repository`/ichki fayllarini import qilish taqiqlangan, faqat `index.ts` public API) + import resolver sozlanadi.
 
 ### ⬜ T-005 · Worker skeleti + outbox
 
@@ -48,7 +50,7 @@
 
 - **Bog'liq:** T-004 · **Talablar:** FR-AUTH-3, 4, 7
 - **AC:** telefon+parol login (Argon2id), TOTP 2FA (Director/Admin majburiy, QR bilan sozlash, zaxira kodlar), JWT access 15 daq + refresh rotatsiya (httpOnly, Secure, SameSite=Strict), refresh qayta ishlatilsa — oila bekor, sessiyalar ro'yxati/bekor qilish, rate limit. Testlar: muvaffaqiyatli, noto'g'ri parol, 2FA, token o'g'irlash ssenariysi.
-- **Aniqlik:** zaxira kodlar — 10 ta, `user_backup_codes` (hash); "Telegram orqali kirish" — Redis'da 5 daqiqalik challenge, bot tasdiq tugmasi; TOTP sirri AES-256-GCM (`TOTP_ENC_KEY` env) bilan shifrlanadi.
+- **Aniqlik:** zaxira kodlar — 10 ta, `user_backup_codes` (hash); "Telegram orqali kirish" — Redis'da 5 daqiqalik challenge, bot tasdiq tugmasi; TOTP sirri AES-256-GCM (`TOTP_ENCRYPTION_KEY` env) bilan shifrlanadi.
 
 ### ⬜ T-007 · Auth: Telegram (Mini App + bot)
 

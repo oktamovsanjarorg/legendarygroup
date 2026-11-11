@@ -1,3 +1,10 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Supply chain (07 §3): yangi versiya 7 kun kutadi (daqiqada).
+minimumReleaseAge: 10080
+
+# Faqat ishonchli paketlarga build skript ruxsati (pnpm standart holatda bloklaydi).
+allowBuilds:
+  esbuild: true

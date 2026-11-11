@@ -131,20 +131,25 @@ Fayl 300 ga yaqinlashsa — **ma'no bo'yicha bo'ling**, raqam bo'yicha emas: `pa
 
 ## 7. Uchragan xatolar (shularni takrorlamang)
 
-T-003 da boshqa AI yozgan kodni tekshirishda topilgan, keyin tuzatilgan xatolar:
+T-001–T-003 da boshqa AI yozgan kodni tekshirishda topilgan, keyin tuzatilgan xatolar:
 
-| Xato                                                                                                                         | To'g'risi                                                           |
-| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Rol→ruxsat matritsasi seed ichida, hujjatga zid (ota-onada `billing.view` yo'q, Admin'da delegatsiya ruxsatlari bor)         | Matritsa `@lg/contracts`da, hujjat jadvali bilan qatorma-qator test |
-| `process.env.DATABASE_URL \|\| 'postgres://...localhost'` 3 joyda                                                            | `requireDatabaseUrl()` — yo'q bo'lsa xato                           |
-| `dotenv` paket papkasidan `.env` qidiradi (ildizdagini topmaydi)                                                             | `loadRootEnv()` (Node `process.loadEnvFile`)                        |
-| Seed'da N+1 (har ruxsat alohida INSERT), tranzaksiyasiz                                                                      | Bitta tranzaksiya, ommaviy `INSERT ... ON CONFLICT`                 |
-| Seed productionda test foydalanuvchi yaratadi                                                                                | `withTestDirector` faqat `NODE_ENV !== 'production'`                |
-| Audit himoyasi generatsiya qilingan migratsiyaga qo'lda qo'shilgan; `REVOKE FROM PUBLIC` hech narsa qilmaydi; TRUNCATE ochiq | Alohida `--custom` migratsiya, `lg_app` roli, statement-trigger     |
-| `audit_logs.actor_id ON DELETE SET NULL` — o'zgarmas jadvalda UPDATE talab qiladi                                            | `ON DELETE RESTRICT`                                                |
-| `$onUpdate(() => new Date())`                                                                                                | `$onUpdate(() => sql\`now()\`)`                                     |
-| `relations()`ning bir tomoni yo'q (`settings`)                                                                               | Har `many()` uchun qarshi `one()`                                   |
-| Global singleton `getDb()`, ulanishni yopib bo'lmaydi                                                                        | `createDb()` + `closeDb()`, DI orqali                               |
-| FK ustunlarida indeks yo'q, outbox uchun indeks yo'q                                                                         | Har FK/filtr ustuniga indeks; navbat — qisman indeks                |
-| `import.meta.url === \`file://${argv[1]}\``                                                                                  | `pathToFileURL(argv[1]).href` (`isMain()`)                          |
-| Lint umuman ishlamagan (19 xato), test yo'q                                                                                  | PR'dan oldin `lint/typecheck/test/test:int` natijasi ko'rsatiladi   |
+| Xato                                                                                                                         | To'g'risi                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Rol→ruxsat matritsasi seed ichida, hujjatga zid (ota-onada `billing.view` yo'q, Admin'da delegatsiya ruxsatlari bor)         | Matritsa `@lg/contracts`da, hujjat jadvali bilan qatorma-qator test     |
+| `process.env.DATABASE_URL \|\| 'postgres://...localhost'` 3 joyda                                                            | `requireDatabaseUrl()` — yo'q bo'lsa xato                               |
+| `dotenv` paket papkasidan `.env` qidiradi (ildizdagini topmaydi)                                                             | `loadRootEnv()` (Node `process.loadEnvFile`)                            |
+| Seed'da N+1 (har ruxsat alohida INSERT), tranzaksiyasiz                                                                      | Bitta tranzaksiya, ommaviy `INSERT ... ON CONFLICT`                     |
+| Seed productionda test foydalanuvchi yaratadi                                                                                | `withTestDirector` faqat `NODE_ENV !== 'production'`                    |
+| Audit himoyasi generatsiya qilingan migratsiyaga qo'lda qo'shilgan; `REVOKE FROM PUBLIC` hech narsa qilmaydi; TRUNCATE ochiq | Alohida `--custom` migratsiya, `lg_app` roli, statement-trigger         |
+| `audit_logs.actor_id ON DELETE SET NULL` — o'zgarmas jadvalda UPDATE talab qiladi                                            | `ON DELETE RESTRICT`                                                    |
+| `$onUpdate(() => new Date())`                                                                                                | `$onUpdate(() => sql\`now()\`)`                                         |
+| `relations()`ning bir tomoni yo'q (`settings`)                                                                               | Har `many()` uchun qarshi `one()`                                       |
+| Global singleton `getDb()`, ulanishni yopib bo'lmaydi                                                                        | `createDb()` + `closeDb()`, DI orqali                                   |
+| FK ustunlarida indeks yo'q, outbox uchun indeks yo'q                                                                         | Har FK/filtr ustuniga indeks; navbat — qisman indeks                    |
+| `import.meta.url === \`file://${argv[1]}\``                                                                                  | `pathToFileURL(argv[1]).href` (`isMain()`)                              |
+| Bog'liqlik versiyalari 7 kunlik qoidani buzgan (`vite` — chiqqan kuni)                                                       | `minimumReleaseAge` dan o'tgan eng yangi versiya; pnpm o'zi tekshiradi  |
+| `eslint-plugin-boundaries` o'rnatilgan, lekin sozlanmagan; `recommended` (hujjat: `strict`)                                  | Qoida faqat sozlansa va sinalsa ishlaydi — stdin probe bilan tekshiring |
+| `minio:latest`, bucket'ga ommaviy o'qish huquqi                                                                              | Aniq teg; bucket private, faqat presigned URL                           |
+| `.env.example` hujjatga zid (refresh 7 kun vs 30 kun), ishlatilmaydigan sirlar                                               | Har env o'zgaruvchi — hujjatdagi qiymat va iste'molchi bilan            |
+| CLAUDE.md'da va'da qilingan tekshiruv (i18n apostrof lint) yo'q edi                                                          | Qoida yozilsa — shu PR'da avtomatik tekshiruvi ham                      |
+| Lint umuman ishlamagan (19 xato), test yo'q                                                                                  | PR'dan oldin `lint/typecheck/test/test:int` natijasi ko'rsatiladi       |

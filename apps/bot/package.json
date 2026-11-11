@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@lg/contracts": "workspace:*",
-    "@lg/domain": "workspace:*",
     "@lg/i18n": "workspace:*"
   },
   "devDependencies": {

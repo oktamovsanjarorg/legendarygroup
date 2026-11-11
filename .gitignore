@@ -44,3 +44,6 @@ coverage/
 *.tsbuildinfo
 tmp/
 temp/
+
+# Claude Code shaxsiy sozlamalari
+.claude/settings.local.json

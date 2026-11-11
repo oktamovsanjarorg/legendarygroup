@@ -48,7 +48,7 @@
 
 ### Bog'liqliklar (supply chain)
 
-- `pnpm` lockfile, `minimumReleaseAge` (yangi versiyalar 7 kun kutadi), Renovate, `pnpm audit`, CodeQL, Trivy.
+- `pnpm` lockfile, `minimumReleaseAge: 10080` (yangi versiyalar 7 kun kutadi — `pnpm-workspace.yaml`), build skriptlari faqat `allowBuilds` ro'yxatiga, Renovate (`renovate.json`, haftalik, 7 kun), `pnpm audit`, CodeQL, Trivy.
 - GitHub: branch protection, majburiy CI, secret scanning, Dependabot alerts.
 
 ### Shaxsiy ma'lumotlar
