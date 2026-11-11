@@ -4,6 +4,9 @@ import { errorMessages } from './errors.js';
 
 export * from './bot.js';
 export * from './errors.js';
+export * from './format.js';
+export * from './normalize.js';
+export * from './words.js';
 
 export const I18N_DEFAULT_LOCALE = 'uz-Latn';
 

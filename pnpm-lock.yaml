@@ -458,6 +458,9 @@ importers:
       '@lg/config':
         specifier: workspace:*
         version: link:../config
+      fast-check:
+        specifier: 4.10.2
+        version: 4.10.2
 
   packages/ui-core:
     devDependencies:

@@ -76,11 +76,12 @@
 - **Bajarildi (2026-11-11):** ADR 0007; `@RequirePermission`/`@Authenticated`/`@Public` + `PermissionsGuard` (Redis kesh `pv` bo'yicha); CI: `access-rules.test.ts` (dekoratorsiz endpoint va audit'siz yozish amali yiqiladi), `roles.test.ts` hujjat jadvalini to'g'ridan-to'g'ri o'qiydi; 140 holatli rol×ruxsat matritsa testi; override (delegatsiya qoidalari), bloklash, oxirgi Director, rol almashtirish; `@Audit`/`@NoAudit` interceptor; `packages/domain/policies` (BR-13/16/18/27/30/37); `pnpm cli director:create`; dev seed test Direktor taklif havolasini chiqaradi.
 - **Ko'chirildi (jadvallar yo'q):** scope qoidalari va field-level filtr — o'z jadvallari bilan: ustoz scope'i (`group_teachers`) → T-103, ota-ona scope'i (`student_guardians`) va field-level (§3) → T-105, o'rinbosar scope'i → T-104; har biri o'z/begona obyekt matritsa testi bilan.
 
-### ⬜ T-009 · i18n paketi va UI poydevori
+### 🟨 T-009 · i18n paketi va UI poydevori
 
 - **Bog'liq:** T-001
 - **AC:** `packages/i18n` (tiplangan kalitlar, pul/sana formatlash `1 250 000 so'm`, `10-noyabr, 2026`), `packages/ui-core|ui-tg|ui-web` (T-017b tokenlari asosida) + Storybook; `apps/web` — shadcn/ui, Tailwind, layout, login, ruxsatga qarab menyu (11-ux.md §2); `apps/miniapp` — Telegram SDK, tema (light/dark/custom + kontrast fallback), BackButton/MainButton/SecondaryButton, haptic, closing confirmation, safe-area, rolga qarab pastki tablar, rol almashtirish, deep link (`startapp`) router.
 - **Aniqlik:** i18n'da: pul formatlash (U+00A0 ajratuvchi), summani so'z bilan yozish (chek uchun, `toWordsUz(bigint)` + testlar), qidiruv normalizatsiyasi `normalizeUz()` — `' ‘ ’ ʻ ʼ \`` → bitta kanonik belgi, kichik harf.
+- **1-qism bajarildi (2026-11-11):** `@lg/i18n`: `formatMoney`/`parseMoney` (U+00A0, `soʻm`, property test), `formatDate` (`10-noyabr, 2026`, Toshkent), `formatDateShort`, `formatTime`, `formatPhone`, `toWordsUz`/`amountInWords`, `normalizeUz`. Qolgan: web va Mini App poydevori.
 - **Bog'liq (qo'shimcha):** T-017b
 
 ### ✅ T-010 · Bot skeleti
