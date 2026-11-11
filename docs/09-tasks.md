@@ -40,11 +40,11 @@
 - **AC:** Fastify adapter; config modul (Zod bilan env validatsiyasi — noto'g'ri env'da ishga tushmaydi); pino logger + requestId; global xato filtri (yagona format); `/health/live`, `/health/ready` (DB, Redis); OpenAPI `/docs` (faqat staging/local); Zod validatsiya pipe; graceful shutdown.
 - **Aniqlik:** `Clock` interfeysi `packages/domain/src/clock.ts` (`SystemClock`, testda `FixedClock`) DI orqali; `Idempotency-Key` interceptor (`idempotency_keys` jadvali); ichki API `/internal/*` (`INTERNAL_API_TOKEN`, faqat Docker tarmog'i) — bot uchun; `@lg/api` paketi `bootstrapWorker()` eksport qiladi (apps/worker shuni chaqiradi); DB ulanishi `createDb`/`closeDb` (`@lg/db`). **Bajarildi (2026-11-11, review'dan keyin):** marshrutlar `/api/*`, `/internal/*` prefiksiz; `@Public()`; `@ZodBody`/`@ZodQuery` (validatsiya + OpenAPI Zod'dan); xato matnlari `@lg/i18n`da; idempotency band qilish orqali (ADR 0004); integratsiya testlari vaqtinchalik DB'da (`@lg/db/testing`); DI `@Inject` bilan, metadata'siz. Modullar chegarasi: `eslint-plugin-boundaries` (`apps/api/src/modules/*` — boshqa modulning `*.repository`/ichki fayllarini import qilish taqiqlangan, faqat `index.ts` public API) + import resolver sozlanadi.
 
-### ⬜ T-005 · Worker skeleti + outbox
+### ✅ T-005 · Worker skeleti + outbox
 
 - **Bog'liq:** T-004
 - **AC:** BullMQ ulanishi; repeatable job registratsiyasi; outbox poller (har 1 s, `FOR UPDATE SKIP LOCKED`); retry + exponential backoff + dead-letter; Bull Board (faqat ichki, auth bilan).
-- **Aniqlik:** `outbox_events`ga yangi migratsiya: `next_attempt_at`, `last_error`, `failed_at` + qisman indeks; backoff 1s·2ⁿ, maks. 10 urinish → dead-letter + alert. Iste'molchilar idempotent (event `id` bo'yicha dedup).
+- **Aniqlik:** `outbox_events`ga yangi migratsiya: `next_attempt_at`, `last_error`, `failed_at` + qisman indeks; backoff 1s·2ⁿ, maks. 10 urinish → dead-letter + alert. Iste'molchilar idempotent (event `id` bo'yicha dedup). **Bajarildi (2026-11-11):** ADR 0005; `OutboxService`/`EventHandlers`/`CronJobs`; `outbox_consumptions` jadvali; Bull Board worker'ning ichki portida (`/queues`, basic auth); dev — `development` export sharti.
 
 ### ⬜ T-006 · Auth: xodimlar (web)
 

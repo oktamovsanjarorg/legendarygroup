@@ -116,6 +116,9 @@ Fayl 300 ga yaqinlashsa — **ma'no bo'yicha bo'ling**, raqam bo'yicha emas: `pa
 - **NestJS DI:** har konstruktor parametri `@Inject(Token|Class)` bilan — decorator metadata ishlatilmaydi (`tsx` uni chiqarmaydi; `emitDecoratorMetadata: false`). Xatolar — `throw new AppException(status, 'CODE', details?)`, matn faqat `@lg/i18n` `errorMessages`da (yangi kod → shu katalogga).
 - **Validatsiya:** `@ZodBody(schema)` / `@ZodQuery(schema)` (`apps/api/src/common/decorators`) — validatsiya + OpenAPI bitta joydan; global pipe yo'q. Auth talab qilmaydigan endpoint — `@Public()`.
 - **Integratsiya testi:** `createModuleTestApp()` / `createRealTestApp()` (`apps/api/src/test`) — vaqtinchalik DB (`@lg/db/testing`), dev bazaga yozilmaydi; unit testlar `.env`ga bog'liq emas (`testEnv()`).
+- **Event'lar (ADR 0005):** yangi tur → `@lg/contracts/src/events.ts` (`EVENT_TYPES` + `EventPayloads`); nashr — `outbox.publish(type, payload, tx)` **biznes tranzaksiyasi ichida**; iste'mol — modul `onModuleInit`da `handlers.on(type, '<modul>.<nima>', (e, tx) => …)`, DB yozuvlari `tx` orqali. Modul boshqa modul jadvaliga yozmaydi — event chiqaradi.
+- **Cron:** `cron.register({ id: '<modul>.<nima>', pattern, run })` (`Asia/Tashkent`); `run` qayta ishga tushirishga xavfsiz.
+- **Yangi bog'liqlik:** qo'shgach `pnpm deps:pin` (7 kunlik qoida bo'yicha aniq versiya); build skripti so'rasa — `pnpm-workspace.yaml` `allowBuilds`ga ongli qaror (`true`/`false` + izoh).
 - **Env:** yangi o'zgaruvchi → `.env.example`ga izoh bilan + Zod env sxemasiga; standart qiymat yashirin bo'lmasin (yo'q bo'lsa ishga tushmaydi).
 
 ## 6. O'z-o'zini review (PR'dan oldin)
@@ -163,4 +166,6 @@ T-001–T-004 da boshqa AI yozgan kodni tekshirishda topilgan, keyin tuzatilgan 
 | Integratsiya testlari dev bazaga yozadi; unit test `.env` fayliga bog'liq (CI'da yiqiladi)                                                 | Vaqtinchalik DB, `testEnv()`                                                                                      |
 | Testlar `dist/`ga kompilyatsiya qilinadi va qayta ishga tushadi                                                                            | `tsconfig.build.json` testlarni chiqarib tashlaydi                                                                |
 | Commit xabarida bajarilmagan narsa "bajarildi" deb yozilgan ("yashirin standartsiz")                                                       | Har da'vo — kod/test bilan tasdiqlangan bo'lsin                                                                   |
+| `bufferLogs: true` — worker loglari (alert'lar ham) hech qachon chiqmagan                                                                  | `createNestLogger(env)` (prod'da JSON), buffer yo'q                                                               |
+| Ilova `dist`dan import qiladi — dev'da paket o'zgarishi build'siz ko'rinmaydi                                                              | `development` export sharti + `tsx --conditions=development`                                                      |
 | Lint umuman ishlamagan (19 xato), test yo'q                                                                                                | PR'dan oldin `lint/typecheck/test/test:int` natijasi ko'rsatiladi                                                 |

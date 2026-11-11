@@ -11,6 +11,16 @@ export const envSchema = z.object({
   REDIS_URL: z.url({ protocol: /^rediss?$/ }),
   INTERNAL_API_TOKEN: z.string().min(32, 'kamida 32 belgi'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  /** BullMQ kalitlari prefiksi (testlarda izolyatsiya uchun o'zgartiriladi). */
+  QUEUE_PREFIX: z
+    .string()
+    .regex(/^[a-z0-9_-]{1,32}$/)
+    .default('lg'),
+  /** Worker: Bull Board va monitoring porti (faqat ichki tarmoq). */
+  WORKER_PORT: z.coerce.number().int().min(0).max(65535).default(3001),
+  /** Worker'da majburiy (`requireWorkerEnv`); API jarayoniga kerak emas. */
+  BULL_BOARD_USER: z.string().min(3).optional(),
+  BULL_BOARD_PASSWORD: z.string().min(16, 'kamida 16 belgi').optional(),
   /** Vergul bilan ajratilgan originlar ro'yxati. */
   CORS_ORIGINS: z
     .string()

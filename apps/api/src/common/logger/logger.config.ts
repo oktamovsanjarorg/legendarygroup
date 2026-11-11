@@ -1,3 +1,4 @@
+import { ConsoleLogger, type LogLevel } from '@nestjs/common';
 import type { FastifyServerOptions } from 'fastify';
 import type { EnvService } from '../../config/env.service.js';
 import { genRequestId } from './request-id.js';
@@ -29,4 +30,25 @@ export function createFastifyOptions(env: EnvService): FastifyServerOptions {
       }),
     },
   };
+}
+
+const NEST_LEVELS: Record<string, LogLevel[]> = {
+  fatal: ['fatal'],
+  error: ['fatal', 'error'],
+  warn: ['fatal', 'error', 'warn'],
+  info: ['fatal', 'error', 'warn', 'log'],
+  debug: ['fatal', 'error', 'warn', 'log', 'debug'],
+  trace: ['fatal', 'error', 'warn', 'log', 'debug', 'verbose'],
+  silent: [],
+};
+
+/**
+ * Nest ilova logger'i: development'da o'qiladigan matn, boshqa muhitlarda JSON (06 §6: Loki).
+ * `bufferLogs` ishlatilmaydi — ishga tushish xatolari va alert'lar yo'qolmasligi uchun.
+ */
+export function createNestLogger(env: EnvService): ConsoleLogger {
+  return new ConsoleLogger({
+    json: env.get('NODE_ENV') !== 'development',
+    logLevels: NEST_LEVELS[env.get('LOG_LEVEL')] ?? NEST_LEVELS['info'],
+  });
 }

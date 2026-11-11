@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   unique,
   uuid,
@@ -28,6 +29,11 @@ export const featureFlags = pgTable('feature_flags', {
   updatedAt: updatedAt(),
 });
 
+/**
+ * Transactional outbox (03 §4): event biznes tranzaksiyasi bilan birga yoziladi, worker relay
+ * uni navbatga (BullMQ, `jobId = id`) uzatadi. Relay xatosida backoff `next_attempt_at` bilan;
+ * 10 urinishdan keyin `failed_at` (dead-letter) + alert.
+ */
 export const outboxEvents = pgTable(
   'outbox_events',
   {
@@ -37,12 +43,34 @@ export const outboxEvents = pgTable(
     createdAt: createdAt(),
     processedAt: tstz('processed_at'),
     attempts: integer('attempts').notNull().default(0),
+    nextAttemptAt: tstz('next_attempt_at').defaultNow().notNull(),
+    lastError: text('last_error'),
+    failedAt: tstz('failed_at'),
   },
   (t) => [
-    // Worker faqat ishlanmaganlarni oladi — qisman indeks kichik va tez.
-    index('outbox_events_pending_idx')
-      .on(t.createdAt)
-      .where(sql`${t.processedAt} IS NULL`),
+    // Relay faqat navbatdagilarni oladi — qisman indeks kichik va tez.
+    index('outbox_events_due_idx')
+      .on(t.nextAttemptAt)
+      .where(sql`${t.processedAt} IS NULL AND ${t.failedAt} IS NULL`),
+  ],
+);
+
+/**
+ * Iste'molchi dedup'i (T-005): (consumer, event_id) bir marta. Handler o'z yozuvlarini shu
+ * belgi bilan bitta tranzaksiyada qiladi — qayta yetkazilgan event ikki marta ishlanmaydi.
+ */
+export const outboxConsumptions = pgTable(
+  'outbox_consumptions',
+  {
+    consumer: text('consumer').notNull(),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => outboxEvents.id, { onDelete: 'cascade' }),
+    processedAt: tstz('processed_at').defaultNow().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.consumer, t.eventId] }),
+    index('outbox_consumptions_event_idx').on(t.eventId),
   ],
 );
 
@@ -95,6 +123,7 @@ export type FeatureFlag = typeof featureFlags.$inferSelect;
 export type NewFeatureFlag = typeof featureFlags.$inferInsert;
 export type OutboxEvent = typeof outboxEvents.$inferSelect;
 export type NewOutboxEvent = typeof outboxEvents.$inferInsert;
+export type OutboxConsumption = typeof outboxConsumptions.$inferSelect;
 export type FileRecord = typeof files.$inferSelect;
 export type NewFileRecord = typeof files.$inferInsert;
 export type IdempotencyKey = typeof idempotencyKeys.$inferSelect;

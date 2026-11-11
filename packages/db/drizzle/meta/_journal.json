@@ -29,6 +29,13 @@
       "when": 1794394045072,
       "tag": "0003_idempotency_keys_user_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794408988068,
+      "tag": "0004_outbox_retry_and_consumptions",
+      "breakpoints": true
     }
   ]
 }

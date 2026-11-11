@@ -13,5 +13,12 @@
   },
   "devDependencies": {
     "@lg/config": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
   }
 }

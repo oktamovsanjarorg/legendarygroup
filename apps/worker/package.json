@@ -8,13 +8,15 @@
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint src --ext .ts",
     "test": "vitest run --passWithNoTests",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch --tsconfig tsconfig.dev.json --conditions=development src/main.ts",
+    "start": "node dist/main.js"
   },
   "dependencies": {
     "@lg/api": "workspace:*",
     "@lg/contracts": "workspace:*",
+    "@lg/db": "workspace:*",
     "@lg/domain": "workspace:*",
-    "@lg/db": "workspace:*"
+    "@nestjs/common": "12.3.3"
   },
   "devDependencies": {
     "@lg/config": "workspace:*"

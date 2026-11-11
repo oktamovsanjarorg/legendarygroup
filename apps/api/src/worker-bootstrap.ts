@@ -1,6 +1,7 @@
 import type { INestApplicationContext } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module.js';
+import { AppModule, type AppModuleOptions } from './app.module.js';
+import { createNestLogger } from './common/logger/logger.config.js';
 import { EnvService } from './config/env.service.js';
 
 /**
@@ -9,11 +10,15 @@ import { EnvService } from './config/env.service.js';
  */
 export async function bootstrapWorker(
   env: EnvService = new EnvService(process.env),
+  extra: AppModuleOptions['extra'] = [],
 ): Promise<INestApplicationContext> {
-  const context = await NestFactory.createApplicationContext(AppModule.forRoot(env), {
-    bufferLogs: true,
-    abortOnError: false,
-  });
+  const context = await NestFactory.createApplicationContext(
+    AppModule.forRoot(env, { role: 'worker', extra }),
+    {
+      logger: createNestLogger(env),
+      abortOnError: false,
+    },
+  );
   context.enableShutdownHooks();
   return context;
 }

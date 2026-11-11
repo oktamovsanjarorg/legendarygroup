@@ -28,6 +28,9 @@ pnpm dev                      # barcha ilovalar hot-reload bilan
 - `pnpm build` — barcha paket va ilovalar (Turborepo)
 - `pnpm format` — Prettier
 - `pnpm --filter @lg/db db:generate --name <nom>` — sxemadan yangi migratsiya
+- `pnpm deps:pin` / `pnpm deps:check` — bog'liqliklarni 7 kundan eski eng yangi versiyaga qotirish
+
+**Lokal manzillar:** API — http://localhost:3000/api (docs: `/api/docs`), Bull Board — http://localhost:3001/queues (`.env`dagi `BULL_BOARD_USER/PASSWORD`).
 
 **Bogʻliqliklar xavfsizligi:** pnpm 7 kundan yangi versiyani oʻrnatmaydi (`minimumReleaseAge`), build skriptlari faqat `allowBuilds` roʻyxatidagi paketlarga ruxsat etilgan. Yangilashlar — Renovate orqali, haftalik.
 

@@ -168,3 +168,5 @@ Har bir muhim qaror `docs/adr/NNNN-nom.md` faylida: kontekst → qaror → oqiba
 - [0001 — TypeScript monorepo, modulli monolit](adr/0001-typescript-modular-monolith.md)
 - [0002 — Ledger asosidagi billing](adr/0002-ledger-billing.md)
 - [0003 — Bitta EC2 + Docker Compose, RDS](adr/0003-single-host-compose.md)
+- [0004 — API freymvorki, OpenAPI, idempotency](adr/0004-api-framework-openapi.md)
+- [0005 — Transactional outbox → BullMQ, worker](adr/0005-outbox-bullmq-worker.md)

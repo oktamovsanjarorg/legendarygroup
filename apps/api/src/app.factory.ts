@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module.js';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter.js';
-import { createFastifyOptions } from './common/logger/logger.config.js';
+import { createFastifyOptions, createNestLogger } from './common/logger/logger.config.js';
 import { EnvService } from './config/env.service.js';
 import { setupOpenApi } from './openapi.js';
 
@@ -16,7 +16,7 @@ export async function createApp(
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule.forRoot(env),
     new FastifyAdapter(createFastifyOptions(env)),
-    { bufferLogs: true, abortOnError: false },
+    { logger: createNestLogger(env), abortOnError: false },
   );
 
   app.setGlobalPrefix(API_PREFIX, {

@@ -19,7 +19,9 @@
     "docker:dev": "docker compose -f compose.dev.yml up -d",
     "docker:dev:down": "docker compose -f compose.dev.yml down",
     "docker:dev:logs": "docker compose -f compose.dev.yml logs -f",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deps:pin": "node scripts/pin-mature-deps.mjs",
+    "deps:check": "node scripts/pin-mature-deps.mjs --check"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",

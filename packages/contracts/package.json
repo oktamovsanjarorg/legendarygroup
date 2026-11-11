@@ -16,5 +16,12 @@
   },
   "dependencies": {
     "zod": "4.6.7"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
   }
 }

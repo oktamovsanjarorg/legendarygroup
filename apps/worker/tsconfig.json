@@ -2,7 +2,9 @@
   "extends": "@lg/config/tsconfig.node.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": false
   },
   "include": ["src/**/*"]
 }

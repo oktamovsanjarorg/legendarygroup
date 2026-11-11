@@ -9,3 +9,5 @@ minimumReleaseAge: 10080
 allowBuilds:
   '@scarf/scarf': false
   esbuild: true
+  # BullMQ'ning ixtiyoriy native tezlatgichi — prebuilt binar yoki JS fallback, build kerak emas
+  msgpackr-extract: false
