@@ -12,6 +12,8 @@ export const envSchema = z.object({
   INTERNAL_API_TOKEN: z.string().min(32, 'kamida 32 belgi'),
   /** Bot tokeni — Mini App `initData` imzosini tekshirish (FR-AUTH-2) va bot (T-010). */
   TELEGRAM_BOT_TOKEN: z.string().regex(/^[0-9]+:[A-Za-z0-9_-]{20,}$/, 'BotFather tokeni formatida'),
+  /** Bot API manzili (testlarda soxta server). */
+  TELEGRAM_API_URL: z.url().default('https://api.telegram.org'),
   /** Access JWT imzosi (HS256). */
   JWT_ACCESS_SECRET: z.string().min(32, 'kamida 32 belgi'),
   /** TOTP sirlarini shifrlash (AES-256-GCM): 32 bayt, hex. */

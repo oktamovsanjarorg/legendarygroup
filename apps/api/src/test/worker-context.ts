@@ -32,6 +32,7 @@ async function obliterate(prefix: string): Promise<void> {
 export async function createWorkerTestContext(
   extra: (Type | DynamicModule)[] = [],
   before?: (prefix: string) => Promise<void>,
+  overrides: Record<string, string> = {},
 ): Promise<WorkerTestContext> {
   const db = await createTempDb();
   const prefix = `lgtest${process.pid}${Date.now() % 1e6}`;
@@ -43,6 +44,7 @@ export async function createWorkerTestContext(
     WORKER_PORT: '0',
     BULL_BOARD_USER: TEST_BOARD.user,
     BULL_BOARD_PASSWORD: TEST_BOARD.password,
+    ...overrides,
   });
   const ctx = await bootstrapWorker(env, extra);
   return {

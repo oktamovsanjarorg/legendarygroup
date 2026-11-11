@@ -83,11 +83,11 @@
 - **Aniqlik:** i18n'da: pul formatlash (U+00A0 ajratuvchi), summani so'z bilan yozish (chek uchun, `toWordsUz(bigint)` + testlar), qidiruv normalizatsiyasi `normalizeUz()` — `' ‘ ’ ʻ ʼ \`` → bitta kanonik belgi, kichik harf.
 - **Bog'liq (qo'shimcha):** T-017b
 
-### ⬜ T-010 · Bot skeleti
+### ✅ T-010 · Bot skeleti
 
 - **Bog'liq:** T-004
 - **AC:** grammY, webhook (`secret_token`), lokal — long polling; `/start`, `/help`, menyu tugmasi → Mini App; xatolarni Sentry'ga; xabar yuborish faqat worker navbati orqali (25 msg/s limiter, 429 `retry_after`, bloklangan foydalanuvchini belgilash).
-- **Aniqlik:** webhook `update_id` Redis'da 24 soat saqlanadi — takroriy update e'tiborsiz qoldiriladi.
+- **Aniqlik:** webhook `update_id` Redis'da 24 soat saqlanadi — takroriy update e'tiborsiz qoldiriladi. **Bajarildi (2026-11-11):** `apps/bot` (grammY, `BOT_MODE` polling/webhook, `secret_token`, `/start` `/help`, menyu tugmasi — faqat HTTPS URL'da, lokal http'da oddiy havola); chiquvchi xabarlar — `TelegramOutbox.enqueue()` → worker `TelegramSender` (25/s, chatga 1/s, 429 `retry_after`, 403 → `TelegramChatBlocked` event, 4xx → dead-letter). Sentry — T-016 (hozircha strukturali log). Haqiqiy ishga tushirish uchun BotFather tokeni kerak (10-open-questions: egasidan).
 
 ### ⬜ T-011 · Dockerfile'lar va compose (staging/prod)
 

@@ -10,6 +10,8 @@ export const EVENT_TYPES = [
   'StaffTelegramLoginRequested',
   // T-006: refresh token qayta ishlatildi (o'g'irlik belgisi) — xodimga ogohlantirish.
   'StaffSessionReuseDetected',
+  // T-010: foydalanuvchi botni bloklagan (403) — T-109 bildirishnomani `blocked` qiladi, Admin ko'radi.
+  'TelegramChatBlocked',
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
@@ -18,6 +20,7 @@ export interface EventPayloads {
   SystemHeartbeat: { at: string };
   StaffTelegramLoginRequested: { challengeId: string; userId: string; expiresAt: string };
   StaffSessionReuseDetected: { userId: string; familyId: string };
+  TelegramChatBlocked: { chatId: string; description: string };
 }
 
 /** Navbatdagi job ma'lumoti — outbox qatoridan. */

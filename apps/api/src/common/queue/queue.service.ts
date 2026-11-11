@@ -11,6 +11,8 @@ export const QUEUES = {
   deadLetter: 'dead-letter',
   /** Takrorlanuvchi (cron) vazifalar. */
   cron: 'cron',
+  /** Telegram'ga chiquvchi xabarlar (T-010): limit 25/s, 429 retry_after, bloklash. */
+  telegram: 'telegram',
 } as const;
 
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];

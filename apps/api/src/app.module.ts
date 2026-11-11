@@ -16,6 +16,7 @@ import { HealthModule } from './modules/health/health.module.js';
 import { InternalModule } from './modules/internal/internal.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
 import { RbacModule } from './modules/rbac/rbac.module.js';
+import { TelegramModule } from './modules/telegram/telegram.module.js';
 import { WorkerModule } from './worker/worker.module.js';
 
 export interface AppModuleOptions {
@@ -38,6 +39,7 @@ export class AppModule {
         QueueModule,
         SchedulerModule,
         OutboxModule,
+        TelegramModule,
         AuditModule,
         RateLimitModule,
         StorageModule,

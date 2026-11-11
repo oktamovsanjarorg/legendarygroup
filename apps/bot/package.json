@@ -4,17 +4,29 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint src --ext .ts",
     "test": "vitest run --passWithNoTests",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch --conditions=development src/main.ts",
+    "start": "node dist/main.js"
   },
   "dependencies": {
     "@lg/contracts": "workspace:*",
-    "@lg/i18n": "workspace:*"
+    "@lg/i18n": "workspace:*",
+    "fastify": "5.12.8",
+    "grammy": "1.46.0",
+    "ioredis": "6.0.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@lg/config": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
   }
 }

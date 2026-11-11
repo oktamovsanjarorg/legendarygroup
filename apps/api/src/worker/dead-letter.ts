@@ -17,7 +17,10 @@ export interface DeadLetterData {
  */
 export function attachDeadLetter(worker: Worker, queues: QueueService, logger: Logger): void {
   worker.on('failed', (job: Job | undefined, err: Error) => {
-    if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
+    if (!job) return;
+    // Urinishlar tugadi YOKI qayta urinib bo'lmaydigan xato (UnrecoverableError — darhol tugaydi).
+    const exhausted = job.attemptsMade >= (job.opts.attempts ?? 1);
+    if (!exhausted && err.name !== 'UnrecoverableError') return;
     const data: DeadLetterData = {
       queue: worker.name,
       name: job.name,
