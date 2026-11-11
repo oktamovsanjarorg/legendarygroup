@@ -7,4 +7,5 @@ minimumReleaseAge: 10080
 
 # Faqat ishonchli paketlarga build skript ruxsati (pnpm standart holatda bloklaydi).
 allowBuilds:
+  '@scarf/scarf': false
   esbuild: true

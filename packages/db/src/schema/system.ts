@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   uuid,
 } from 'drizzle-orm/pg-core';
@@ -64,6 +65,25 @@ export const files = pgTable(
   ],
 );
 
+export const idempotencyKeys = pgTable(
+  'idempotency_keys',
+  {
+    key: text('key').notNull(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    route: text('route').notNull(),
+    requestHash: text('request_hash').notNull(),
+    responseStatus: integer('response_status').notNull(),
+    responseBody: jsonb('response_body').$type<unknown>(),
+    createdAt: createdAt(),
+    expiresAt: tstz('expires_at').notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.key, t.route] }),
+    index('idempotency_keys_expires_at_idx').on(t.expiresAt),
+    index('idempotency_keys_user_id_idx').on(t.userId),
+  ],
+);
+
 export type Setting = typeof settings.$inferSelect;
 export type NewSetting = typeof settings.$inferInsert;
 export type FeatureFlag = typeof featureFlags.$inferSelect;
@@ -72,3 +92,5 @@ export type OutboxEvent = typeof outboxEvents.$inferSelect;
 export type NewOutboxEvent = typeof outboxEvents.$inferInsert;
 export type FileRecord = typeof files.$inferSelect;
 export type NewFileRecord = typeof files.$inferInsert;
+export type IdempotencyKey = typeof idempotencyKeys.$inferSelect;
+export type NewIdempotencyKey = typeof idempotencyKeys.$inferInsert;

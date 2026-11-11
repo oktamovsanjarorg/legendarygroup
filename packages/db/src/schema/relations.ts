@@ -3,7 +3,7 @@ import { users } from './users.js';
 import { permissions, rolePermissions, roles, userRoles } from './roles.js';
 import { sessions } from './sessions.js';
 import { auditLogs } from './audit.js';
-import { files, settings } from './system.js';
+import { files, idempotencyKeys, settings } from './system.js';
 
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
@@ -11,6 +11,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   auditLogs: many(auditLogs),
   files: many(files),
   updatedSettings: many(settings),
+  idempotencyKeys: many(idempotencyKeys),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
@@ -68,6 +69,13 @@ export const settingsRelations = relations(settings, ({ one }) => ({
 export const filesRelations = relations(files, ({ one }) => ({
   uploader: one(users, {
     fields: [files.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
+export const idempotencyKeysRelations = relations(idempotencyKeys, ({ one }) => ({
+  user: one(users, {
+    fields: [idempotencyKeys.userId],
     references: [users.id],
   }),
 }));

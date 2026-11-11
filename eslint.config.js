@@ -48,6 +48,7 @@ export default [
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
       '@typescript-eslint/consistent-type-imports': 'error',
+      '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
       // TypeScript o'zi aniqlanmagan nomlarni tekshiradi; `no-undef` TS'da noto'g'ri xato beradi.
       'no-undef': 'off',
@@ -83,6 +84,11 @@ export default [
     ],
     [...DB_LAYER, '@lg/domain'],
     'Bot va UI DB yoki domen mantiqiga murojaat qilmaydi — faqat API orqali (03 §2).',
+  ),
+  forbid(
+    ['apps/api/src/modules/*/**/*.ts'],
+    ['../*/*', '!../*/index.js', '!../*/index.ts', '!../../**'],
+    'Modul boshqa modulning ichki fayllarini import qilishi taqiqlangan — faqat public API (index.ts) orqali (03 §4).',
   ),
   {
     // Testlar uchun funksiya uzunligi cheklanmaydi, `!` (non-null) ruxsat.

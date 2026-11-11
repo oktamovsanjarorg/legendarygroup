@@ -15,6 +15,13 @@
       "when": 1794386582301,
       "tag": "0001_audit_logs_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794390806960,
+      "tag": "0002_add_idempotency_keys",
+      "breakpoints": true
     }
   ]
 }

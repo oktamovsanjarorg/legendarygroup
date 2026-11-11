@@ -34,7 +34,7 @@
 - **AC:** Drizzle sozlangan; `users, roles, permissions, role_permissions, user_roles, sessions, audit_logs, settings, outbox_events, files, feature_flags` jadvallari; UUIDv7; seed skripti (4 rol + permission ro'yxati + test Director). `audit_logs`ga UPDATE/DELETE DB grant bilan taqiqlangan.
 - **Aniqlik:** rol→ruxsat matritsasi `@lg/contracts/roles.ts`da; seed idempotent va matritsani sinxronlaydi; `lg_app` roli + `forbid_mutation()` trigger (0001); integratsiya testlari `pnpm test:int`.
 
-### ⬜ T-004 · API skeleti (NestJS)
+### ✅ T-004 · API skeleti (NestJS)
 
 - **Bog'liq:** T-003
 - **AC:** Fastify adapter; config modul (Zod bilan env validatsiyasi — noto'g'ri env'da ishga tushmaydi); pino logger + requestId; global xato filtri (yagona format); `/health/live`, `/health/ready` (DB, Redis); OpenAPI `/docs` (faqat staging/local); Zod validatsiya pipe; graceful shutdown.
