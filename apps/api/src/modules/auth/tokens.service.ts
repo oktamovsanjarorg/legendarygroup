@@ -13,7 +13,8 @@ const ISSUER = 'lg-api';
 export interface AccessClaims {
   sub: string;
   role: RoleCode;
-  sid: string;
+  /** Web sessiyasi; Mini App tokenida `null` (sessiyasiz, initData bilan qayta olinadi). */
+  sid: string | null;
   /** `users.permissions_version` — o'zgarsa token darhol yaroqsiz (02 §1). */
   pv: number;
 }
@@ -35,7 +36,7 @@ export class TokensService {
     this.key = new TextEncoder().encode(env.get('JWT_ACCESS_SECRET'));
   }
 
-  signAccess(claims: AccessClaims): Promise<string> {
+  signAccess(claims: AccessClaims & { sid: string }): Promise<string> {
     return this.sign(
       { role: claims.role, sid: claims.sid, pv: claims.pv, typ: 'access' },
       claims.sub,
@@ -43,10 +44,17 @@ export class TokensService {
     );
   }
 
+  /** Mini App (T-007): sessiyasiz access token, 15 daq. */
+  signMiniApp(claims: { sub: string; role: RoleCode; pv: number }): Promise<string> {
+    return this.sign({ role: claims.role, pv: claims.pv, typ: 'tg' }, claims.sub, ACCESS_TTL_S);
+  }
+
   async verifyAccess(token: string): Promise<AccessClaims | null> {
-    const p = await this.verify(token, 'access');
-    if (!p || typeof p['sid'] !== 'string' || typeof p['pv'] !== 'number') return null;
-    return { sub: String(p.sub), role: p['role'] as RoleCode, sid: p['sid'], pv: p['pv'] };
+    const p = (await this.verify(token, 'access')) ?? (await this.verify(token, 'tg'));
+    if (!p || typeof p['pv'] !== 'number' || typeof p['role'] !== 'string') return null;
+    const sid = p['typ'] === 'access' && typeof p['sid'] === 'string' ? p['sid'] : null;
+    if (p['typ'] === 'access' && !sid) return null;
+    return { sub: String(p.sub), role: p['role'] as RoleCode, sid, pv: p['pv'] };
   }
 
   signMfa(claims: MfaClaims): Promise<string> {

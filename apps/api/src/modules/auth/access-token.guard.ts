@@ -12,12 +12,13 @@ import type { FastifyRequest } from 'fastify';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { SessionsService } from './sessions.service.js';
-import { TokensService } from './tokens.service.js';
+import { type AccessClaims, TokensService } from './tokens.service.js';
 
 export interface RequestUser {
   id: string;
   role: RoleCode;
-  sessionId: string;
+  /** Web sessiyasi; Mini App'da `null`. */
+  sessionId: string | null;
   /** `permissions_version` — ruxsatlar keshi kaliti. */
   pv: number;
 }
@@ -49,14 +50,18 @@ export class AccessTokenGuard implements CanActivate {
     const claims = header?.startsWith('Bearer ')
       ? await this.tokens.verifyAccess(header.slice(7))
       : null;
-    if (
-      !claims ||
-      !(await this.sessions.isAccessValid(claims.sid, claims.sub, claims.pv, claims.role))
-    ) {
+    if (!claims || !(await this.isValid(claims))) {
       throw new AppException(HttpStatus.UNAUTHORIZED, 'UNAUTHORIZED');
     }
     request.user = { id: claims.sub, role: claims.role, sessionId: claims.sid, pv: claims.pv };
     return true;
+  }
+
+  /** Web — sessiya bo'yicha; Mini App (sessiyasiz) — foydalanuvchi va rol bo'yicha. */
+  private isValid(c: AccessClaims): Promise<boolean> {
+    return c.sid
+      ? this.sessions.isAccessValid(c.sid, c.sub, c.pv, c.role)
+      : this.sessions.isUserAccessValid(c.sub, c.pv, c.role);
   }
 }
 

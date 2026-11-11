@@ -52,11 +52,11 @@
 - **AC:** telefon+parol login (Argon2id), TOTP 2FA (Director/Admin majburiy, QR bilan sozlash, zaxira kodlar), JWT access 15 daq + refresh rotatsiya (httpOnly, Secure, SameSite=Strict), refresh qayta ishlatilsa — oila bekor, sessiyalar ro'yxati/bekor qilish, rate limit. Testlar: muvaffaqiyatli, noto'g'ri parol, 2FA, token o'g'irlash ssenariysi.
 - **Aniqlik:** zaxira kodlar — 10 ta, `user_backup_codes` (hash); "Telegram orqali kirish" — Redis'da 5 daqiqalik challenge, bot tasdiq tugmasi; TOTP sirri AES-256-GCM (`TOTP_ENCRYPTION_KEY` env) bilan shifrlanadi. **Bajarildi (2026-11-11):** ADR 0006; global `AccessTokenGuard` (`@Public()` istisno); o'g'irlik — faqat almashtirilgan token (`sessions.replaced_at`); Telegram kirish — API tomoni tayyor, bot tugmasi T-010/T-109 da (`StaffTelegramLoginRequested`).
 
-### ⬜ T-007 · Auth: Telegram (Mini App + bot)
+### ✅ T-007 · Auth: Telegram (Mini App + bot)
 
 - **Bog'liq:** T-006 · **Talablar:** FR-AUTH-1, 2, 5
 - **AC:** `initData` HMAC tekshiruvi (server), `auth_date` ≤ 24 soat; telegram_id → user; bir nechta rol bo'lsa rol tanlash; "Telegram orqali web'ga kirish" (bot tasdiq tugmasi). Testlar: soxta initData rad etiladi, eskirgan rad etiladi.
-- **Aniqlik:** Mini App `sessions` ishlatmaydi: `POST /api/auth/telegram` (initData) → access JWT 15 daq (xotirada saqlanadi, cookie yo'q); muddati o'tsa joriy initData bilan qayta almashtiriladi. Faol rol token ichida.
+- **Aniqlik:** Mini App `sessions` ishlatmaydi: `POST /api/auth/telegram` (initData) → access JWT 15 daq (xotirada saqlanadi, cookie yo'q); muddati o'tsa joriy initData bilan qayta almashtiriladi. Faol rol token ichida. **Bajarildi (2026-11-11):** `verifyInitData` (HMAC, ≤ 24 soat, kelajakdagi `auth_date` rad), `POST /api/auth/telegram` (`choose_role` → `role` bilan qayta), sessiyasiz token har so'rovda foydalanuvchi/rol/pv bo'yicha tekshiriladi; bog'lanmagan Telegram — `TELEGRAM_NOT_LINKED` (ro'yxatdan o'tish — T-110); bot tasdiq tugmasi — T-010 (`StaffTelegramLoginRequested`).
 
 ### ✅ T-008 · RBAC + scope + policy + audit
 

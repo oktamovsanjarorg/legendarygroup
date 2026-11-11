@@ -57,21 +57,23 @@ export class SessionsController {
     @Req() req: FastifyRequest,
   ) {
     const u = await this.staff.byId(user.id);
-    if (!u || !u.roles.includes(body.role) || !WEB_ROLES.includes(body.role)) {
+    // Mini App (sessiyasiz) rolni initData bilan yangi token olib almashtiradi.
+    if (!user.sessionId || !u || !u.roles.includes(body.role) || !WEB_ROLES.includes(body.role)) {
       throw new AppException(HttpStatus.FORBIDDEN, 'ROLE_NOT_ASSIGNED');
     }
-    await this.sessions.switchRole(user.sessionId, body.role);
+    const sessionId = user.sessionId;
+    await this.sessions.switchRole(sessionId, body.role);
     await this.audit.record(auditContext(req), {
       action: 'auth.role_switched',
       entity: 'session',
-      entityId: user.sessionId,
+      entityId: sessionId,
       before: { role: user.role },
       after: { role: body.role },
     });
     const accessToken = await this.tokens.signAccess({
       sub: u.id,
       role: body.role,
-      sid: user.sessionId,
+      sid: sessionId,
       pv: u.permissionsVersion,
     });
     return { accessToken, user: toAuthUser(u, body.role) };

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { RoleCode } from '@lg/contracts';
-import { type Database, sessions, users } from '@lg/db';
+import { type Database, roles, sessions, userRoles, users } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { and, desc, eq, gt, isNull } from 'drizzle-orm';
 import { uuidv7 } from 'uuidv7';
@@ -173,6 +173,17 @@ export class SessionsService {
   }
 
   /** Access token tekshiruvi: sessiya faol, foydalanuvchi faol, ruxsatlar versiyasi mos. */
+  /** Sessiyasiz (Mini App) token: foydalanuvchi faol, `pv` mos, rol hali ham tayinlangan. */
+  async isUserAccessValid(userId: string, pv: number, role: RoleCode): Promise<boolean> {
+    const [row] = await this.db
+      .select({ pv: users.permissionsVersion })
+      .from(users)
+      .innerJoin(userRoles, eq(userRoles.userId, users.id))
+      .innerJoin(roles, eq(roles.id, userRoles.roleId))
+      .where(and(eq(users.id, userId), eq(users.status, 'active'), eq(roles.code, role)));
+    return row?.pv === pv;
+  }
+
   /** Faol rolni almashtirish (02 §1: ruxsatlar birlashtirilmaydi) — sessiyaning o'zida. */
   async switchRole(sessionId: string, role: RoleCode): Promise<void> {
     await this.db.update(sessions).set({ activeRole: role }).where(eq(sessions.id, sessionId));

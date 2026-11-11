@@ -6,6 +6,7 @@ const valid = {
   DATABASE_URL: 'postgres://u:p@localhost:5434/db',
   REDIS_URL: 'redis://localhost:6380',
   INTERNAL_API_TOKEN: 'x'.repeat(32),
+  TELEGRAM_BOT_TOKEN: '1:' + 'a'.repeat(30),
   JWT_ACCESS_SECRET: 'j'.repeat(32),
   TOTP_ENCRYPTION_KEY: 'a'.repeat(64),
   CORS_ORIGINS: 'http://localhost:5173, http://localhost:5174',

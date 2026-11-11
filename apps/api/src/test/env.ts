@@ -6,6 +6,7 @@ export const TEST_ENV = {
   DATABASE_URL: 'postgres://postgres:postgres@localhost:5434/lg_unit_unused',
   REDIS_URL: 'redis://localhost:6380',
   INTERNAL_API_TOKEN: 'test_internal_token_0123456789abcdef',
+  TELEGRAM_BOT_TOKEN: '123456789:TEST_bot_token_for_tests_only_x',
   JWT_ACCESS_SECRET: 'test_jwt_access_secret_0123456789abcdef',
   TOTP_ENCRYPTION_KEY: '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff',
   CORS_ORIGINS: 'http://localhost:5173',

@@ -29,6 +29,12 @@ export const InviteAcceptRequest = z.object({
 export const TelegramLoginStartRequest = z.object({ phone: PhoneSchema });
 export const TelegramLoginPollRequest = z.object({ challengeId: z.string().uuid() });
 
+/** Mini App (T-007): Telegram `initData` → access token. Bir nechta rol bo'lsa `role` bilan qayta. */
+export const TelegramAuthRequest = z.object({
+  initData: z.string().min(10).max(4096),
+  role: z.enum(ROLES).optional(),
+});
+
 export const SwitchRoleRequest = z.object({ role: z.enum(ROLES) });
 
 export const AuthUser = z.object({
@@ -44,6 +50,11 @@ export const LoginResult = z.discriminatedUnion('next', [
   z.object({ next: z.literal('done'), accessToken: z.string(), user: AuthUser }),
   z.object({ next: z.literal('totp'), mfaToken: z.string() }),
   z.object({ next: z.literal('totp_setup'), mfaToken: z.string() }),
+]);
+
+export const TelegramAuthResult = z.discriminatedUnion('next', [
+  z.object({ next: z.literal('done'), accessToken: z.string(), user: AuthUser }),
+  z.object({ next: z.literal('choose_role'), roles: z.array(z.enum(ROLES)) }),
 ]);
 
 export const TotpSetupResult = z.object({ otpauthUrl: z.string(), secret: z.string() });

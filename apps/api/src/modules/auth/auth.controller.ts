@@ -5,6 +5,7 @@ import {
   LoginRequest,
   type LoginResult,
   MfaRequest,
+  TelegramAuthRequest,
   TelegramLoginPollRequest,
   TelegramLoginStartRequest,
   TotpEnableRequest,
@@ -20,6 +21,7 @@ import { auditContext, clientMeta } from './access-token.guard.js';
 import { AuthService, type Issued } from './auth.service.js';
 import { REFRESH_TTL_MS, SessionsService } from './sessions.service.js';
 import { StaffUsers, toAuthUser } from './staff-users.js';
+import { TelegramAuthService } from './telegram-auth.service.js';
 import { TelegramLoginService } from './telegram-login.service.js';
 import { TokensService } from './tokens.service.js';
 
@@ -52,6 +54,7 @@ export class AuthController {
     @Inject(TokensService) private readonly tokens: TokensService,
     @Inject(StaffUsers) private readonly staff: StaffUsers,
     @Inject(TelegramLoginService) private readonly telegram: TelegramLoginService,
+    @Inject(TelegramAuthService) private readonly miniApp: TelegramAuthService,
   ) {}
 
   @Post('login')
@@ -62,6 +65,17 @@ export class AuthController {
     @Req() req: FastifyRequest,
   ): Promise<LoginResult> {
     return this.auth.login(body.phone, body.password, auditContext(req));
+  }
+
+  /** Mini App (T-007): initData → access token (sessiyasiz, 15 daq). */
+  @Post('telegram')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mini App: Telegram initData → access token' })
+  telegramMiniApp(
+    @ZodBody(TelegramAuthRequest) body: z.output<typeof TelegramAuthRequest>,
+    @Req() req: FastifyRequest,
+  ) {
+    return this.miniApp.exchange(body.initData, body.role, auditContext(req));
   }
 
   @Post('invite/accept')

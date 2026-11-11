@@ -30,6 +30,10 @@
    Havolani T-008 (`pnpm cli director:create`) va T-101 (xodim qo'shish) yaratadi.
 8. **Rate limit** (Redis): login — telefon 5/daq + IP 30/daq; TOTP — 5/daq; Telegram start — 5/daq.
 
+9. **Mini App (T-007):** `initData` HMAC (`WebAppData` → bot token), `auth_date` ≤ 24 soat →
+   sessiyasiz access token (`typ: tg`, 15 daq), har so'rovda foydalanuvchi faol, rol tayinlangan,
+   `pv` mos. Rol tanlash/almashtirish — shu endpoint `role` bilan.
+
 ## Oqibatlar
 
 - (+) Parol/2FA/sessiya bitta joyda, barcha amallar audit'da (`auth.*`).

@@ -8,6 +8,7 @@ import { InternalAuthController } from './internal-auth.controller.js';
 import { SessionsController } from './sessions.controller.js';
 import { SessionsService } from './sessions.service.js';
 import { StaffUsers } from './staff-users.js';
+import { TelegramAuthService } from './telegram-auth.service.js';
 import { TelegramLoginService } from './telegram-login.service.js';
 import { TokensService } from './tokens.service.js';
 import { TotpService } from './totp.service.js';
@@ -20,6 +21,7 @@ import { TotpService } from './totp.service.js';
     SessionsService,
     StaffUsers,
     TelegramLoginService,
+    TelegramAuthService,
     TokensService,
     TotpService,
     InternalTokenGuard,
