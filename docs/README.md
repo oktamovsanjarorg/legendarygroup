@@ -20,6 +20,7 @@
 | 09  | [09-tasks.md](09-tasks.md)                         | Aniq vazifalar ro'yxati (ID, bog'liqlik, qabul mezonlari)                         |
 | 10  | [10-open-questions.md](10-open-questions.md)       | Hali tasdiqlanmagan savollar                                                      |
 | 11  | [11-ux.md](11-ux.md)                               | UI/UX printsiplari, kanallar chegarasi, ekranlar xaritasi, o'lchanadigan mezonlar |
+| —   | [ux/design-system.md](ux/design-system.md)         | Tokenlar (kod: ui-core), komponentlar katalogi, ikonlar, bot shablonlari          |
 | —   | [ux/screens.md](ux/screens.md)                     | Ekranlar xaritasi (ID), FR qamrovi, oqimlar, deep link'lar                        |
 | 12  | [12-ai-playbook.md](12-ai-playbook.md)             | AI agent ish tartibi: prompt shablonlari, kod tuzilishi, qaror qoidalari          |
 | —   | [../CLAUDE.md](../CLAUDE.md)                       | Kod yozuvchi AI agentlar uchun qat'iy qoidalar                                    |

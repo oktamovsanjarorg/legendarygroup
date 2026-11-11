@@ -1,2 +1,2 @@
-// UI Core package (tokens, icons, formatting)
-export const UI_CORE_VERSION = '0.1.0';
+// UI Core: dizayn tokenlari, tema, formatlash (11-ux §3, T-017b)
+export * from './tokens/index.js';

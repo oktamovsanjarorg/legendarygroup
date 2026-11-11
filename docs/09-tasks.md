@@ -123,12 +123,13 @@
 
 - **Bog'liq:** — (F0 bilan parallel)
 - **AC:** [11-ux.md](11-ux.md) §2 asosida har rol × kanal uchun to'liq ekranlar ro'yxati (`docs/ux/screens.md`); har ekran: maqsad, ma'lumotlar, amallar, kerakli ruxsat kodi (02-roles-permissions.md §4), 5 holat; har FR uchun qaysi ekranda bajarilishi (bog'lanmagan FR qolmasligi kerak); asosiy oqimlar diagrammasi (davomat, chek yuborish → tasdiqlash, to'lov kiritish, ota-ona onboarding, tasdiqlash so'rovi, Excel import); barcha deep link'lar ro'yxati.
-- **Bajarildi (2026-11-11):** [docs/ux/screens.md](ux/screens.md) — 61 ekran (C/MT/MG/MS/W/B ID'lari), 69 FR qamrovi, 6 oqim (mermaid), 13 deep link prefiksi; CI: `packages/contracts/src/ux-coverage.test.ts` (bog'lanmagan FR, noma'lum ekran ID yoki ruxsat kodi — yiqiladi).
+- **Bajarildi (2026-11-11):** [docs/ux/screens.md](ux/screens.md) — 73 ekran (C/MT/MG/MS/W/B ID'lari), 69 FR qamrovi, 6 oqim (mermaid), 13 deep link prefiksi; CI: `packages/contracts/src/ux-coverage.test.ts` (bog'lanmagan FR, noma'lum ekran ID yoki ruxsat kodi — yiqiladi).
 
-### ⬜ T-017b · UX: dizayn tokenlari va komponentlar katalogi
+### ✅ T-017b · UX: dizayn tokenlari va komponentlar katalogi
 
 - **Bog'liq:** T-017a
 - **AC:** tokenlar (rang, tipografiya, oraliq, radius, soya) light/dark + Telegram `themeParams` xaritasi va kontrast fallback; `ui-tg` va `ui-web` komponentlar ro'yxati (har biri holatlari bilan); ikon to'plami; bot xabar shablonlari katalogi (11-ux.md §6).
+- **Bajarildi (2026-11-11):** tokenlar kodda — `packages/ui-core/src/tokens` (palitra light/dark, `resolveTelegramTheme` + WCAG kontrast fallback, CSS o'zgaruvchilar; palitraning har matn jufti AA testda); katalog — [docs/ux/design-system.md](ux/design-system.md) (ikonlar — Lucide, ui-tg/ui-web komponentlari holatlari bilan, 19 bot shabloni). Qaror: tugma yozuvi — WCAG katta matn (19 px qalin, 3:1) — Telegram standart temasi native qoladi.
 
 ### ⬜ T-017c · UX: barcha ekranlar maketi (hi-fi)
 
