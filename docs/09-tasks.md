@@ -119,10 +119,11 @@
 - **Bog'liq:** T-011
 - **AC:** Sentry (api, worker, bot, web, miniapp — source map'lar bilan); OTel → Grafana Cloud; asosiy dashboard (RPS, p95, xatolar, navbatlar, DB); uptime tekshiruvlari; 06-infrastructure.md §6 dagi barcha alertlar texnik Telegram guruhiga.
 
-### ⬜ T-017a · UX: ekranlar xaritasi va oqimlar
+### ✅ T-017a · UX: ekranlar xaritasi va oqimlar
 
 - **Bog'liq:** — (F0 bilan parallel)
 - **AC:** [11-ux.md](11-ux.md) §2 asosida har rol × kanal uchun to'liq ekranlar ro'yxati (`docs/ux/screens.md`); har ekran: maqsad, ma'lumotlar, amallar, kerakli ruxsat kodi (02-roles-permissions.md §4), 5 holat; har FR uchun qaysi ekranda bajarilishi (bog'lanmagan FR qolmasligi kerak); asosiy oqimlar diagrammasi (davomat, chek yuborish → tasdiqlash, to'lov kiritish, ota-ona onboarding, tasdiqlash so'rovi, Excel import); barcha deep link'lar ro'yxati.
+- **Bajarildi (2026-11-11):** [docs/ux/screens.md](ux/screens.md) — 61 ekran (C/MT/MG/MS/W/B ID'lari), 69 FR qamrovi, 6 oqim (mermaid), 13 deep link prefiksi; CI: `packages/contracts/src/ux-coverage.test.ts` (bog'lanmagan FR, noma'lum ekran ID yoki ruxsat kodi — yiqiladi).
 
 ### ⬜ T-017b · UX: dizayn tokenlari va komponentlar katalogi
 
