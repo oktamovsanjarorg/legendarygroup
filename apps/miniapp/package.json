@@ -12,11 +12,12 @@
   },
   "dependencies": {
     "@lg/contracts": "workspace:*",
+    "@lg/i18n": "workspace:*",
     "@lg/ui-core": "workspace:*",
-    "@lg/ui-tg": "workspace:*",
-    "@lg/i18n": "workspace:*"
+    "@lg/ui-tg": "workspace:*"
   },
   "devDependencies": {
-    "@lg/config": "workspace:*"
+    "@lg/config": "workspace:*",
+    "vite": "8.3.8"
   }
 }

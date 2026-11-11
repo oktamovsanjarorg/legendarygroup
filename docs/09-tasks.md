@@ -18,7 +18,7 @@
   - `.editorconfig`, `.nvmrc`, `.gitignore`, `README.md` (ishga tushirish yo'riqnomasi).
   - Barcha bog'liqliklar eng so'nggi stable, aniq versiyalar bilan.
 
-### ⬜ T-002 · Lokal muhit (Docker Compose dev)
+### ✅ T-002 · Lokal muhit (Docker Compose dev)
 
 - **Bog'liq:** T-001
 - **AC:** `compose.dev.yml`: Postgres, Redis, MinIO (S3 emulyatsiya), Mailpit shart emas. `pnpm dev` — barcha ilovalar hot-reload bilan. `.env.example` to'liq izohlangan. Toza kompyuterda 10 daqiqada ishga tushadi.
