@@ -36,6 +36,19 @@ export default [
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+      // TypeScript o'zi aniqlanmagan nomlarni tekshiradi; `no-undef` TS'da noto'g'ri xato beradi.
+      'no-undef': 'off',
+      // Fayl hajmi chegarasi: katta fayl — bo'lish signali (docs/12-ai-playbook.md §4).
+      'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['error', { max: 60, skipBlankLines: true, skipComments: true }],
+      complexity: ['error', 12],
+      'max-depth': ['error', 3],
+      'max-params': ['error', 4],
     },
+  },
+  {
+    // Testlar va generatsiya qilingan/ma'lumot fayllari uchun funksiya uzunligi cheklanmaydi.
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.stories.tsx'],
+    rules: { 'max-lines-per-function': 'off', 'max-lines': ['error', 500] },
   },
 ];

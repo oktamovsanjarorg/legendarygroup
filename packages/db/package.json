@@ -9,9 +9,31 @@
     "build": "tsc -b",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint src --ext .ts",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:int": "vitest run -c vitest.int.config.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/migrate.ts",
+    "db:seed": "tsx src/seed.ts",
+    "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
-    "@lg/config": "workspace:*"
-  }
+    "@lg/config": "workspace:*",
+    "drizzle-kit": "0.31.11"
+  },
+  "dependencies": {
+    "@lg/contracts": "workspace:*",
+    "drizzle-orm": "0.45.4",
+    "postgres": "4.1.0",
+    "uuidv7": "1.2.1"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "drizzle"
+  ]
 }
