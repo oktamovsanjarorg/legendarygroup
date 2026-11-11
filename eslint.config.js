@@ -52,12 +52,25 @@ export default [
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
       // TypeScript o'zi aniqlanmagan nomlarni tekshiradi; `no-undef` TS'da noto'g'ri xato beradi.
       'no-undef': 'off',
+      // TS'da bir xil nomli tip va qiymat (Zod sxema + `z.infer` tipi) — qonuniy; haqiqiy
+      // qayta e'lonni kompilyator ushlaydi.
+      'no-redeclare': 'off',
       // Fayl hajmi chegarasi: katta fayl — bo'lish signali (docs/12-ai-playbook.md §4).
       'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
       'max-lines-per-function': ['error', { max: 60, skipBlankLines: true, skipComments: true }],
       complexity: ['error', 12],
       'max-depth': ['error', 3],
-      'max-params': ['error', 4],
+      // Parametrlar ≤ 4 (ko'p bo'lsa — obyekt). NestJS DI konstruktorlari bundan mustasno:
+      // ular bog'liqliklar ro'yxati, chaqiriladigan funksiya emas.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            ':matches(FunctionDeclaration, ArrowFunctionExpression, MethodDefinition[kind!="constructor"] > FunctionExpression)[params.length>4]',
+          message:
+            "Funksiyada 4 tadan ko'p parametr — obyekt parametrga o'tkazing (12-ai-playbook.md §4).",
+        },
+      ],
     },
   },
   forbid(

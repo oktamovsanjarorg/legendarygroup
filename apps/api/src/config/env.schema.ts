@@ -10,6 +10,10 @@ export const envSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   REDIS_URL: z.url({ protocol: /^rediss?$/ }),
   INTERNAL_API_TOKEN: z.string().min(32, 'kamida 32 belgi'),
+  /** Access JWT imzosi (HS256). */
+  JWT_ACCESS_SECRET: z.string().min(32, 'kamida 32 belgi'),
+  /** TOTP sirlarini shifrlash (AES-256-GCM): 32 bayt, hex. */
+  TOTP_ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/i, '64 belgili hex (32 bayt)'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   /** BullMQ kalitlari prefiksi (testlarda izolyatsiya uchun o'zgartiriladi). */
   QUEUE_PREFIX: z

@@ -1,12 +1,15 @@
 import { type DynamicModule, Module, type Type } from '@nestjs/common';
+import { AuditModule } from './common/audit/audit.module.js';
 import { ClockModule } from './common/clock/clock.module.js';
 import { DbModule } from './common/db/db.module.js';
 import { IdempotencyModule } from './common/idempotency/idempotency.module.js';
 import { QueueModule } from './common/queue/queue.module.js';
+import { RateLimitModule } from './common/rate-limit/rate-limit.module.js';
 import { RedisModule } from './common/redis/redis.module.js';
 import { SchedulerModule } from './common/scheduler/scheduler.module.js';
 import { ConfigModule } from './config/config.module.js';
 import type { EnvService } from './config/env.service.js';
+import { AuthModule } from './modules/auth/auth.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { InternalModule } from './modules/internal/internal.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
@@ -32,7 +35,10 @@ export class AppModule {
         QueueModule,
         SchedulerModule,
         OutboxModule,
+        AuditModule,
+        RateLimitModule,
         IdempotencyModule,
+        AuthModule,
         HealthModule,
         InternalModule,
         ...(opts.role === 'worker' ? [WorkerModule] : []),

@@ -46,11 +46,11 @@
 - **AC:** BullMQ ulanishi; repeatable job registratsiyasi; outbox poller (har 1 s, `FOR UPDATE SKIP LOCKED`); retry + exponential backoff + dead-letter; Bull Board (faqat ichki, auth bilan).
 - **Aniqlik:** `outbox_events`ga yangi migratsiya: `next_attempt_at`, `last_error`, `failed_at` + qisman indeks; backoff 1s·2ⁿ, maks. 10 urinish → dead-letter + alert. Iste'molchilar idempotent (event `id` bo'yicha dedup). **Bajarildi (2026-11-11):** ADR 0005; `OutboxService`/`EventHandlers`/`CronJobs`; `outbox_consumptions` jadvali; Bull Board worker'ning ichki portida (`/queues`, basic auth); dev — `development` export sharti.
 
-### ⬜ T-006 · Auth: xodimlar (web)
+### ✅ T-006 · Auth: xodimlar (web)
 
 - **Bog'liq:** T-004 · **Talablar:** FR-AUTH-3, 4, 7
 - **AC:** telefon+parol login (Argon2id), TOTP 2FA (Director/Admin majburiy, QR bilan sozlash, zaxira kodlar), JWT access 15 daq + refresh rotatsiya (httpOnly, Secure, SameSite=Strict), refresh qayta ishlatilsa — oila bekor, sessiyalar ro'yxati/bekor qilish, rate limit. Testlar: muvaffaqiyatli, noto'g'ri parol, 2FA, token o'g'irlash ssenariysi.
-- **Aniqlik:** zaxira kodlar — 10 ta, `user_backup_codes` (hash); "Telegram orqali kirish" — Redis'da 5 daqiqalik challenge, bot tasdiq tugmasi; TOTP sirri AES-256-GCM (`TOTP_ENCRYPTION_KEY` env) bilan shifrlanadi.
+- **Aniqlik:** zaxira kodlar — 10 ta, `user_backup_codes` (hash); "Telegram orqali kirish" — Redis'da 5 daqiqalik challenge, bot tasdiq tugmasi; TOTP sirri AES-256-GCM (`TOTP_ENCRYPTION_KEY` env) bilan shifrlanadi. **Bajarildi (2026-11-11):** ADR 0006; global `AccessTokenGuard` (`@Public()` istisno); o'g'irlik — faqat almashtirilgan token (`sessions.replaced_at`); Telegram kirish — API tomoni tayyor, bot tugmasi T-010/T-109 da (`StaffTelegramLoginRequested`).
 
 ### ⬜ T-007 · Auth: Telegram (Mini App + bot)
 

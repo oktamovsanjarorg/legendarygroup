@@ -6,12 +6,18 @@
 export const EVENT_TYPES = [
   // T-005: infratuzilma tekshiruvi (smoke) uchun.
   'SystemHeartbeat',
+  // T-006: "Telegram orqali kirish" — bot xodimga tasdiq tugmasini yuboradi (T-010/T-109).
+  'StaffTelegramLoginRequested',
+  // T-006: refresh token qayta ishlatildi (o'g'irlik belgisi) — xodimga ogohlantirish.
+  'StaffSessionReuseDetected',
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
 
 export interface EventPayloads {
   SystemHeartbeat: { at: string };
+  StaffTelegramLoginRequested: { challengeId: string; userId: string; expiresAt: string };
+  StaffSessionReuseDetected: { userId: string; familyId: string };
 }
 
 /** Navbatdagi job ma'lumoti — outbox qatoridan. */

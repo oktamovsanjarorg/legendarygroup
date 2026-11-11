@@ -1,3 +1,4 @@
+import fastifyCookie from '@fastify/cookie';
 import { RequestMethod } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -19,6 +20,7 @@ export async function createApp(
     { logger: createNestLogger(env), abortOnError: false },
   );
 
+  await app.register(fastifyCookie);
   app.setGlobalPrefix(API_PREFIX, {
     exclude: [{ path: 'internal/*path', method: RequestMethod.ALL }],
   });

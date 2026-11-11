@@ -19,6 +19,8 @@ export const sessions = pgTable(
     ip: text('ip'),
     expiresAt: tstz('expires_at').notNull(),
     revokedAt: tstz('revoked_at'),
+    /** Rotatsiyada almashtirilgan (o'g'irlikni logout'dan farqlash uchun, T-006). */
+    replacedAt: tstz('replaced_at'),
     createdAt: createdAt(),
   },
   (t) => [

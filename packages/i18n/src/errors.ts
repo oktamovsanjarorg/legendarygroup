@@ -19,6 +19,16 @@ export const errorMessages = {
   IDEMPOTENCY_IN_PROGRESS:
     'Soʻrov hali bajarilmoqda. Bir necha soniyadan keyin natijani tekshiring.',
   INVALID_INTERNAL_TOKEN: 'Ichki xizmat tokeni notoʻgʻri.',
+  INVALID_CREDENTIALS: 'Telefon raqam yoki parol notoʻgʻri.',
+  ACCOUNT_BLOCKED: 'Hisobingiz bloklangan. Markaz rahbariyatiga murojaat qiling.',
+  INVALID_MFA_TOKEN: 'Kirish muddati tugadi. Telefon va parolni qayta kiriting.',
+  INVALID_TOTP: 'Tasdiqlash kodi notoʻgʻri. Ilovadagi yangi kodni kiriting.',
+  TOTP_ALREADY_ENABLED: 'Ikki bosqichli himoya allaqachon yoqilgan.',
+  SESSION_EXPIRED: 'Sessiya tugadi. Tizimga qayta kiring.',
+  SESSION_REVOKED: 'Xavfsizlik uchun barcha qurilmalardan chiqarildingiz. Qayta kiring.',
+  INVALID_INVITE: 'Taklif havolasi yaroqsiz yoki muddati oʻtgan. Yangi havola soʻrang.',
+  TELEGRAM_LOGIN_PENDING: 'Telegramdagi tasdiqlash kutilmoqda.',
+  ROLE_NOT_ASSIGNED: 'Sizda bu rol yoʻq.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;
