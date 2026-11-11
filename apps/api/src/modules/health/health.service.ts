@@ -1,9 +1,19 @@
-import { Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
 import type { Redis } from 'ioredis';
 import type { Database } from '@lg/db';
 import type { Clock } from '@lg/domain';
-import { CLOCK_TOKEN, DB_TOKEN, REDIS_TOKEN } from '../../common/index.js';
+import { AppException, CLOCK_TOKEN, DB_TOKEN, REDIS_TOKEN } from '../../common/index.js';
+
+/** Probe tez javob berishi kerak: bog'liq servis osilib qolsa — "down". */
+const CHECK_TIMEOUT_MS = 2000;
+const withTimeout = <T>(p: Promise<T>): Promise<T> =>
+  Promise.race([
+    p,
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('timeout')), CHECK_TIMEOUT_MS).unref();
+    }),
+  ]);
 
 export interface LivenessResult {
   status: 'ok';
@@ -42,13 +52,9 @@ export class HealthService {
     const timestamp = this.clock.now().toISOString();
 
     if (!dbOk || !redisOk) {
-      throw new ServiceUnavailableException({
-        code: 'SERVICE_UNAVAILABLE',
-        message: 'Tizim xizmatlari tayyor emas',
-        details: {
-          database: dbOk ? 'up' : 'down',
-          redis: redisOk ? 'up' : 'down',
-        },
+      throw new AppException(HttpStatus.SERVICE_UNAVAILABLE, 'SERVICE_UNAVAILABLE', {
+        database: dbOk ? 'up' : 'down',
+        redis: redisOk ? 'up' : 'down',
       });
     }
 
@@ -61,7 +67,7 @@ export class HealthService {
 
   private async checkDb(): Promise<boolean> {
     try {
-      await this.db.execute(sql`SELECT 1`);
+      await withTimeout(this.db.execute(sql`SELECT 1`));
       return true;
     } catch {
       return false;
@@ -70,7 +76,7 @@ export class HealthService {
 
   private async checkRedis(): Promise<boolean> {
     try {
-      const pong = await this.redis.ping();
+      const pong = await withTimeout(this.redis.ping());
       return pong === 'PONG';
     } catch {
       return false;

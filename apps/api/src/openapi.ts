@@ -1,23 +1,19 @@
 import type { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import type { EnvService } from './config/env.service.js';
+import { INTERNAL_TOKEN_HEADER } from './common/guards/internal-token.guard.js';
 
-export function setupOpenApi(app: INestApplication, env: EnvService): void {
-  if (env.isProduction) {
-    return;
-  }
+export const DOCS_PATH = 'api/docs';
 
+/** OpenAPI `/api/docs` (+ `/api/docs/json`) — faqat production'dan tashqari (T-004 AC). */
+export function setupOpenApi(app: INestApplication): void {
   const config = new DocumentBuilder()
     .setTitle('Legendary Group API')
-    .setDescription('Oʻquv markazi avtomatlashtirish tizimi API spetsifikatsiyasi')
     .setVersion('0.1.0')
-    .addApiKey({ type: 'apiKey', name: 'X-Internal-Token', in: 'header' }, 'internal-token')
     .addBearerAuth()
+    .addApiKey({ type: 'apiKey', name: INTERNAL_TOKEN_HEADER, in: 'header' }, 'internal-token')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document, {
-    jsonDocumentUrl: 'docs/json',
-    yamlDocumentUrl: 'docs/yaml',
+  SwaggerModule.setup(DOCS_PATH, app, () => SwaggerModule.createDocument(app, config), {
+    jsonDocumentUrl: `${DOCS_PATH}/json`,
   });
 }

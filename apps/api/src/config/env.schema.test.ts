@@ -1,40 +1,44 @@
 import { describe, expect, it } from 'vitest';
 import { validateEnv } from './env.schema.js';
 
-describe('Config env validatsiyasi (T-004 AC)', () => {
-  const validBase = {
-    DATABASE_URL: 'postgres://postgres:postgres@localhost:5434/test_db',
-    REDIS_URL: 'redis://localhost:6380',
-    INTERNAL_API_TOKEN: 'super_secret_token_at_least_16_chars_long',
-  };
+const valid = {
+  NODE_ENV: 'test',
+  DATABASE_URL: 'postgres://u:p@localhost:5434/db',
+  REDIS_URL: 'redis://localhost:6380',
+  INTERNAL_API_TOKEN: 'x'.repeat(32),
+  CORS_ORIGINS: 'http://localhost:5173, http://localhost:5174',
+};
 
-  it('toʻgʻri env qiymatlarini muvaffaqiyatli qabul qiladi', () => {
-    const config = validateEnv(validBase);
-    expect(config.DATABASE_URL).toBe(validBase.DATABASE_URL);
-    expect(config.REDIS_URL).toBe(validBase.REDIS_URL);
-    expect(config.NODE_ENV).toBe('development');
-    expect(config.PORT).toBe(3000);
-    expect(config.TZ).toBe('Asia/Tashkent');
+describe('Config env validatsiyasi (T-004)', () => {
+  it("to'g'ri env qabul qilinadi, standartlar va CORS ro'yxati", () => {
+    const c = validateEnv(valid);
+    expect(c.PORT).toBe(3000);
+    expect(c.LOG_LEVEL).toBe('info');
+    expect(c.CORS_ORIGINS).toEqual(['http://localhost:5173', 'http://localhost:5174']);
   });
 
-  it('DATABASE_URL yoʻq boʻlsa xato tashlaydi', () => {
-    const env = { ...validBase, DATABASE_URL: '' };
-    expect(() => validateEnv(env)).toThrow('DATABASE_URL');
+  it.each(['NODE_ENV', 'DATABASE_URL', 'REDIS_URL', 'INTERNAL_API_TOKEN', 'CORS_ORIGINS'])(
+    "%s yo'q bo'lsa ilova ishga tushmaydi (yashirin standart yo'q)",
+    (key) => {
+      const env = Object.fromEntries(Object.entries(valid).filter(([k]) => k !== key));
+      expect(() => validateEnv(env)).toThrow(key);
+    },
+  );
+
+  it.each([
+    ['DATABASE_URL', 'mysql://localhost/db'],
+    ['REDIS_URL', 'http://localhost:6380'],
+    ['INTERNAL_API_TOKEN', 'short'],
+    ['NODE_ENV', 'prod'],
+    ['PORT', '70000'],
+  ])("%s=%s noto'g'ri", (key, value) => {
+    expect(() => validateEnv({ ...valid, [key]: value })).toThrow(key);
   });
 
-  it('REDIS_URL yoʻq boʻlsa xato tashlaydi', () => {
-    const env = { ...validBase, REDIS_URL: '' };
-    expect(() => validateEnv(env)).toThrow('REDIS_URL');
-  });
-
-  it('INTERNAL_API_TOKEN 16 belgidan qisqa boʻlsa xato tashlaydi', () => {
-    const env = { ...validBase, INTERNAL_API_TOKEN: 'short' };
-    expect(() => validateEnv(env)).toThrow('INTERNAL_API_TOKEN');
-  });
-
-  it('PORT raqamga aylantiriladi', () => {
-    const env = { ...validBase, PORT: '8080' };
-    const config = validateEnv(env);
-    expect(config.PORT).toBe(8080);
+  it('xato xabarida sir qiymati chiqmaydi', () => {
+    const secret = 'S3cr3t-value-that-must-not-leak';
+    expect(() => validateEnv({ ...valid, INTERNAL_API_TOKEN: secret })).toThrow(
+      expect.not.objectContaining({ message: expect.stringContaining(secret) }),
+    );
   });
 });

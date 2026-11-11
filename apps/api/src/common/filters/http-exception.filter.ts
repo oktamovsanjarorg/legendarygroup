@@ -1,14 +1,16 @@
 import {
   type ArgumentsHost,
-  type ExceptionFilter,
   Catch,
+  type ExceptionFilter,
   HttpException,
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { type ErrorCode, errorMessages, isErrorCode } from '@lg/i18n';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
 
+/** Yagona xato formati (07-quality-security.md §2). */
 export interface ApiErrorResponse {
   code: string;
   message: string;
@@ -16,114 +18,81 @@ export interface ApiErrorResponse {
   requestId: string;
 }
 
-interface HttpPayload {
-  code?: string;
-  message?: string | string[];
+const STATUS_CODES: Partial<Record<number, ErrorCode>> = {
+  [HttpStatus.BAD_REQUEST]: 'BAD_REQUEST',
+  [HttpStatus.UNAUTHORIZED]: 'UNAUTHORIZED',
+  [HttpStatus.FORBIDDEN]: 'FORBIDDEN',
+  [HttpStatus.NOT_FOUND]: 'NOT_FOUND',
+  [HttpStatus.CONFLICT]: 'CONFLICT',
+  [HttpStatus.UNPROCESSABLE_ENTITY]: 'UNPROCESSABLE_ENTITY',
+  [HttpStatus.TOO_MANY_REQUESTS]: 'TOO_MANY_REQUESTS',
+  [HttpStatus.SERVICE_UNAVAILABLE]: 'SERVICE_UNAVAILABLE',
+};
+
+interface Resolved {
+  status: number;
+  code: string;
   details?: unknown;
-  error?: string;
 }
 
+const codeOf = (payload: unknown): string | undefined =>
+  typeof payload === 'object' && payload !== null && 'code' in payload
+    ? String((payload as { code: unknown }).code)
+    : undefined;
+
+const detailsOf = (payload: unknown): unknown =>
+  typeof payload === 'object' && payload !== null && 'details' in payload
+    ? (payload as { details: unknown }).details
+    : undefined;
+
+/**
+ * Foydalanuvchiga hech qachon ichki xato matni (Nest/Zod inglizcha xabarlari, stack) chiqmaydi:
+ * `message` faqat `@lg/i18n`dan, kod bo'yicha.
+ */
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost): void {
-    const ctx = host.switchToHttp();
-    const reply = ctx.getResponse<FastifyReply>();
-    const request = ctx.getRequest<FastifyRequest>();
-    const requestId = this.resolveRequestId(request);
+    const http = host.switchToHttp();
+    const reply = http.getResponse<FastifyReply>();
+    const request = http.getRequest<FastifyRequest>();
+    const { status, code, details } = this.resolve(exception);
 
-    const { status, body } = this.buildErrorPayload(exception, requestId);
-
-    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (status >= 500) {
       this.logger.error(
-        `[${requestId}] ${request.method} ${request.url} - ${status} Xatolik:`,
-        exception instanceof Error ? exception.stack : String(exception),
+        { requestId: request.id, err: exception },
+        `${request.method} ${request.url}`,
       );
     }
 
-    reply.status(status).send(body);
+    const message = isErrorCode(code) ? errorMessages[code] : this.fallbackMessage(status, code);
+    const body: ApiErrorResponse = { code, message, requestId: request.id };
+    if (details !== undefined) body.details = details;
+    void reply.status(status).send(body);
   }
 
-  private resolveRequestId(request: FastifyRequest): string {
-    const headerId = request.headers['x-request-id'];
-    if (typeof headerId === 'string' && headerId.length > 0) {
-      return headerId;
-    }
-    return request.id ?? 'unknown-req';
-  }
-
-  private buildErrorPayload(
-    exception: unknown,
-    requestId: string,
-  ): { status: number; body: ApiErrorResponse } {
+  private resolve(exception: unknown): Resolved {
     if (exception instanceof ZodError) {
       return {
         status: HttpStatus.BAD_REQUEST,
-        body: {
-          code: 'VALIDATION_ERROR',
-          message: 'Kiritilgan maʼlumotlar yaroqsiz',
-          details: exception.flatten().fieldErrors,
-          requestId,
-        },
+        code: 'VALIDATION_ERROR',
+        // Tilga bog'liq bo'lmagan tafsilot: UI maydonni belgilaydi, matnni o'zi i18n'dan oladi.
+        details: exception.issues.map((i) => ({ path: i.path.join('.'), code: i.code })),
       };
     }
-
     if (exception instanceof HttpException) {
-      return this.fromHttpException(exception, requestId);
+      const status = exception.getStatus();
+      const payload = exception.getResponse();
+      const fallback =
+        STATUS_CODES[status] ?? (status >= 500 ? 'INTERNAL_SERVER_ERROR' : 'HTTP_ERROR');
+      return { status, code: codeOf(payload) ?? fallback, details: detailsOf(payload) };
     }
-
-    return {
-      status: HttpStatus.INTERNAL_SERVER_ERROR,
-      body: {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Kutilmagan server xatoligi yuz berdi',
-        requestId,
-      },
-    };
+    return { status: HttpStatus.INTERNAL_SERVER_ERROR, code: 'INTERNAL_SERVER_ERROR' };
   }
 
-  private fromHttpException(
-    exception: HttpException,
-    requestId: string,
-  ): { status: number; body: ApiErrorResponse } {
-    const status = exception.getStatus();
-    const response = exception.getResponse();
-    const isObject = typeof response === 'object' && response !== null;
-    const payload = isObject ? (response as HttpPayload) : {};
-
-    const code = payload.code ?? this.defaultCodeForStatus(status);
-    const message = Array.isArray(payload.message)
-      ? payload.message.join('; ')
-      : (payload.message ?? exception.message);
-
-    return {
-      status,
-      body: {
-        code,
-        message,
-        details: payload.details,
-        requestId,
-      },
-    };
-  }
-
-  private defaultCodeForStatus(status: number): string {
-    switch (status) {
-      case HttpStatus.BAD_REQUEST:
-        return 'BAD_REQUEST';
-      case HttpStatus.UNAUTHORIZED:
-        return 'UNAUTHORIZED';
-      case HttpStatus.FORBIDDEN:
-        return 'FORBIDDEN';
-      case HttpStatus.NOT_FOUND:
-        return 'NOT_FOUND';
-      case HttpStatus.CONFLICT:
-        return 'CONFLICT';
-      case HttpStatus.UNPROCESSABLE_ENTITY:
-        return 'UNPROCESSABLE_ENTITY';
-      default:
-        return 'HTTP_ERROR';
-    }
+  private fallbackMessage(status: number, code: string): string {
+    this.logger.warn(`i18n'da xato kodi yo'q: ${code}`);
+    return errorMessages[STATUS_CODES[status] ?? 'HTTP_ERROR'];
   }
 }

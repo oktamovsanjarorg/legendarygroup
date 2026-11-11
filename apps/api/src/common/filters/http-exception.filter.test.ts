@@ -1,112 +1,74 @@
-import { describe, expect, it, vi } from 'vitest';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, HttpStatus, NotFoundException } from '@nestjs/common';
 import type { ArgumentsHost } from '@nestjs/common';
+import { errorMessages } from '@lg/i18n';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { z, type ZodError } from 'zod';
+import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
+import { AppException } from '../errors/app.exception.js';
 import { GlobalExceptionFilter } from './http-exception.filter.js';
 
-describe('GlobalExceptionFilter (T-004 AC)', () => {
-  function makeMockHost(reqId = 'req-123') {
-    let sentStatus = 0;
-    let sentBody: unknown;
+function run(exception: unknown) {
+  const sent: { status?: number; body?: Record<string, unknown> } = {};
+  const reply = {
+    status: vi.fn((s: number) => ((sent.status = s), reply)),
+    send: vi.fn((b: Record<string, unknown>) => ((sent.body = b), reply)),
+  } as unknown as FastifyReply;
+  const request = {
+    id: 'req-1',
+    method: 'GET',
+    url: '/x',
+    headers: {},
+  } as unknown as FastifyRequest;
+  const host = {
+    switchToHttp: () => ({ getResponse: () => reply, getRequest: () => request }),
+  } as unknown as ArgumentsHost;
+  new GlobalExceptionFilter().catch(exception, host);
+  return sent;
+}
 
-    const reply = {
-      status: vi.fn((s: number) => {
-        sentStatus = s;
-        return reply;
-      }),
-      send: vi.fn((b: unknown) => {
-        sentBody = b;
-        return reply;
-      }),
-    } as unknown as FastifyReply;
-
-    const request = {
-      id: reqId,
-      headers: {},
-      method: 'GET',
-      url: '/test',
-    } as unknown as FastifyRequest;
-
-    const host = {
-      switchToHttp: () => ({
-        getResponse: () => reply,
-        getRequest: () => request,
-      }),
-    } as unknown as ArgumentsHost;
-
-    return { host, getResult: () => ({ status: sentStatus, body: sentBody }) };
-  }
-
-  it('HttpException uchun standart formatda xato qaytaradi', () => {
-    const filter = new GlobalExceptionFilter();
-    const { host, getResult } = makeMockHost('req-test-1');
-
-    filter.catch(new NotFoundException('Resurs topilmadi'), host);
-
-    const { status, body } = getResult();
+describe('GlobalExceptionFilter (T-004)', () => {
+  it("Nest'ning inglizcha xabari foydalanuvchiga chiqmaydi — i18n matni", () => {
+    const { status, body } = run(new NotFoundException('Cannot GET /secret-internal-path'));
     expect(status).toBe(404);
     expect(body).toEqual({
       code: 'NOT_FOUND',
-      message: 'Resurs topilmadi',
-      details: undefined,
-      requestId: 'req-test-1',
+      message: errorMessages.NOT_FOUND,
+      requestId: 'req-1',
     });
   });
 
-  it('ZodError uchun 400 va VALIDATION_ERROR qaytaradi', () => {
-    const filter = new GlobalExceptionFilter();
-    const { host, getResult } = makeMockHost('req-test-2');
+  it('AppException: kod, tafsilot va i18n matni', () => {
+    const { status, body } = run(
+      new AppException(HttpStatus.CONFLICT, 'IDEMPOTENCY_IN_PROGRESS', { retryAfter: 2 }),
+    );
+    expect(status).toBe(409);
+    expect(body).toEqual({
+      code: 'IDEMPOTENCY_IN_PROGRESS',
+      message: errorMessages.IDEMPOTENCY_IN_PROGRESS,
+      details: { retryAfter: 2 },
+      requestId: 'req-1',
+    });
+  });
 
-    const schema = z.object({ email: z.string().email() });
-    const parsed = schema.safeParse({ email: 'not-an-email' });
-    expect(parsed.success).toBe(false);
-
-    filter.catch((parsed as { error: ZodError }).error, host);
-
-    const { status, body } = getResult() as {
-      status: number;
-      body: { code: string; requestId: string };
-    };
+  it("ZodError → 400 VALIDATION_ERROR, tafsilot tilga bog'liq emas", () => {
+    const parsed = z.object({ phone: z.string().min(5) }).safeParse({ phone: '1' });
+    if (parsed.success) throw new Error('kutilmagan');
+    const { status, body } = run(parsed.error);
     expect(status).toBe(400);
-    expect(body.code).toBe('VALIDATION_ERROR');
-    expect(body.requestId).toBe('req-test-2');
+    expect(body?.['code']).toBe('VALIDATION_ERROR');
+    expect(body?.['details']).toEqual([{ path: 'phone', code: 'too_small' }]);
   });
 
-  it('Kutilmagan xato uchun 500 va INTERNAL_SERVER_ERROR qaytaradi', () => {
-    const filter = new GlobalExceptionFilter();
-    const { host, getResult } = makeMockHost('req-test-3');
-
-    filter.catch(new Error('Kutilmagan xatolik'), host);
-
-    const { status, body } = getResult();
+  it('kutilmagan xato → 500, ichki matn/stack chiqmaydi', () => {
+    const { status, body } = run(new Error('DB parol: secret123'));
     expect(status).toBe(500);
-    expect(body).toEqual({
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'Kutilmagan server xatoligi yuz berdi',
-      requestId: 'req-test-3',
-    });
+    expect(JSON.stringify(body)).not.toContain('secret123');
+    expect(body?.['code']).toBe('INTERNAL_SERVER_ERROR');
   });
 
-  it('Custom code va details bor HttpException ni toʻgʻri oʻtkazadi', () => {
-    const filter = new GlobalExceptionFilter();
-    const { host, getResult } = makeMockHost('req-test-4');
-
-    const exc = new UnauthorizedException({
-      code: 'CUSTOM_AUTH_ERROR',
-      message: 'Ruxsat berilmadi',
-      details: { reason: 'expired' },
-    });
-
-    filter.catch(exc, host);
-
-    const { status, body } = getResult();
-    expect(status).toBe(401);
-    expect(body).toEqual({
-      code: 'CUSTOM_AUTH_ERROR',
-      message: 'Ruxsat berilmadi',
-      details: { reason: 'expired' },
-      requestId: 'req-test-4',
-    });
+  it("katalogda yo'q kod — kod saqlanadi, matn status bo'yicha", () => {
+    const { body } = run(new ForbiddenException({ code: 'SOME_NEW_CODE' }));
+    expect(body?.['code']).toBe('SOME_NEW_CODE');
+    expect(body?.['message']).toBe(errorMessages.FORBIDDEN);
   });
 });

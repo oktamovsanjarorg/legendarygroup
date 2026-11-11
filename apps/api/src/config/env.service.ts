@@ -1,32 +1,26 @@
-import { Injectable, Optional } from '@nestjs/common';
-import type { EnvConfig } from './env.schema.js';
-import { validateEnv } from './env.schema.js';
+import { type EnvConfig, validateEnv } from './env.schema.js';
 
-@Injectable()
+/**
+ * Tekshirilgan env. DI'ga `ConfigModule` factory orqali beradi
+ * (`new EnvService(process.env)`); testlarda istalgan obyekt bilan yaratiladi.
+ */
 export class EnvService {
   private readonly config: EnvConfig;
 
-  constructor(@Optional() customEnv?: Record<string, unknown>) {
-    this.config = validateEnv(customEnv ?? process.env);
+  constructor(raw: Record<string, unknown>) {
+    this.config = validateEnv(raw);
   }
 
   get<K extends keyof EnvConfig>(key: K): EnvConfig[K] {
     return this.config[key];
   }
 
-  getAll(): Readonly<EnvConfig> {
-    return this.config;
-  }
-
   get isProduction(): boolean {
     return this.config.NODE_ENV === 'production';
   }
 
-  get isDevelopment(): boolean {
-    return this.config.NODE_ENV === 'development';
-  }
-
-  get isTest(): boolean {
-    return this.config.NODE_ENV === 'test';
+  /** OpenAPI `/docs` faqat local/test/staging'da (T-004 AC). */
+  get docsEnabled(): boolean {
+    return this.config.NODE_ENV !== 'production';
   }
 }

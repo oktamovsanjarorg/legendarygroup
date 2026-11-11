@@ -1,57 +1,38 @@
-import { describe, expect, it } from 'vitest';
 import type { ExecutionContext } from '@nestjs/common';
-import type { FastifyRequest } from 'fastify';
-import { EnvService } from '../../config/env.service.js';
+import { describe, expect, it } from 'vitest';
+import { testEnv } from '../../test/env.js';
+import { AppException } from '../errors/app.exception.js';
 import { InternalTokenGuard } from './internal-token.guard.js';
 
-describe('InternalTokenGuard (T-004 AC)', () => {
-  const secret = 'valid_internal_secret_token_12345';
-  const env = new EnvService({
-    DATABASE_URL: 'postgres://localhost:5434/db',
-    REDIS_URL: 'redis://localhost:6380',
-    INTERNAL_API_TOKEN: secret,
-  });
+const env = testEnv();
+const guard = new InternalTokenGuard(env);
+const ctx = (headers: Record<string, string>) =>
+  ({ switchToHttp: () => ({ getRequest: () => ({ headers }) }) }) as unknown as ExecutionContext;
 
-  function makeContext(headers: Record<string, string>): ExecutionContext {
-    const request = { headers } as unknown as FastifyRequest;
-    return {
-      switchToHttp: () => ({
-        getRequest: () => request,
-      }),
-    } as unknown as ExecutionContext;
+const codeOf = (fn: () => unknown): string | undefined => {
+  try {
+    fn();
+  } catch (e) {
+    return e instanceof AppException ? e.code : 'OTHER';
   }
+  return undefined;
+};
 
-  it('token boʻlmasa MISSING_INTERNAL_TOKEN tashlaydi', () => {
-    const guard = new InternalTokenGuard(env);
-    try {
-      guard.canActivate(makeContext({}));
-      expect.fail('Xato tashlanishi kerak edi');
-    } catch (err: unknown) {
-      const response = (err as { getResponse?: () => { code: string } }).getResponse?.();
-      expect(response?.code).toBe('MISSING_INTERNAL_TOKEN');
-    }
+describe('InternalTokenGuard (T-004, 03 §2)', () => {
+  it("to'g'ri X-Internal-Token o'tadi", () => {
+    expect(guard.canActivate(ctx({ 'x-internal-token': env.get('INTERNAL_API_TOKEN') }))).toBe(
+      true,
+    );
   });
 
-  it('notoʻgʻri token boʻlsa INVALID_INTERNAL_TOKEN tashlaydi', () => {
-    const guard = new InternalTokenGuard(env);
-    try {
-      guard.canActivate(makeContext({ 'x-internal-token': 'wrong-token-value' }));
-      expect.fail('Xato tashlanishi kerak edi');
-    } catch (err: unknown) {
-      const response = (err as { getResponse?: () => { code: string } }).getResponse?.();
-      expect(response?.code).toBe('INVALID_INTERNAL_TOKEN');
-    }
-  });
-
-  it('x-internal-token orqali toʻgʻri token oʻtadi', () => {
-    const guard = new InternalTokenGuard(env);
-    const result = guard.canActivate(makeContext({ 'x-internal-token': secret }));
-    expect(result).toBe(true);
-  });
-
-  it('Bearer header orqali toʻgʻri token oʻtadi', () => {
-    const guard = new InternalTokenGuard(env);
-    const result = guard.canActivate(makeContext({ authorization: `Bearer ${secret}` }));
-    expect(result).toBe(true);
+  it.each([
+    ["token yo'q", {}],
+    ["noto'g'ri token", { 'x-internal-token': 'wrong' }],
+    [
+      'Bearer qabul qilinmaydi (JWT uchun band)',
+      { authorization: `Bearer ${env.get('INTERNAL_API_TOKEN')}` },
+    ],
+  ])('%s → INVALID_INTERNAL_TOKEN', (_name, headers) => {
+    expect(codeOf(() => guard.canActivate(ctx(headers)))).toBe('INVALID_INTERNAL_TOKEN');
   });
 });

@@ -1,32 +1,32 @@
-import { randomUUID } from 'node:crypto';
 import type { FastifyServerOptions } from 'fastify';
 import type { EnvService } from '../../config/env.service.js';
+import { genRequestId } from './request-id.js';
 
-export function createFastifyLoggerOptions(env: EnvService): FastifyServerOptions {
-  const isProd = env.isProduction;
+/** Logga tushmasligi kerak bo'lgan maydonlar (sirlar, PII). */
+const REDACT = [
+  'req.headers.authorization',
+  'req.headers.cookie',
+  'req.headers["x-internal-token"]',
+  'req.headers["idempotency-key"]',
+  'res.headers["set-cookie"]',
+];
+
+export function createFastifyOptions(env: EnvService): FastifyServerOptions {
   const level = env.get('LOG_LEVEL');
+  const pretty = env.get('NODE_ENV') === 'development';
 
   return {
-    requestIdHeader: 'x-request-id',
-    genReqId: (req) => {
-      const existing = req.headers['x-request-id'];
-      if (typeof existing === 'string' && existing.length > 0) {
-        return existing;
-      }
-      return randomUUID();
+    genReqId: genRequestId,
+    // Javobda ham shu ID — mijoz xatoni xabar qilganda ishlatadi.
+    requestIdLogLabel: 'requestId',
+    trustProxy: true,
+    bodyLimit: 1024 * 1024,
+    logger: {
+      level,
+      redact: { paths: REDACT, censor: '[yashirilgan]' },
+      ...(pretty && {
+        transport: { target: 'pino-pretty', options: { singleLine: true, colorize: true } },
+      }),
     },
-    logger: isProd
-      ? { level }
-      : {
-          level,
-          transport: {
-            target: 'pino-pretty',
-            options: {
-              colorize: true,
-              singleLine: true,
-              translateTime: 'SYS:yyyy-mm-dd HH:MM:ss',
-            },
-          },
-        },
   };
 }

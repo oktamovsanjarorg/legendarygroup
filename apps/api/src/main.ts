@@ -1,18 +1,17 @@
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { Logger } from '@nestjs/common';
+import { loadRootEnv } from '@lg/db';
 import { createApp } from './app.factory.js';
 
-const ROOT_ENV = fileURLToPath(new URL('../../.env', import.meta.url));
-if (existsSync(ROOT_ENV)) {
-  process.loadEnvFile(ROOT_ENV);
-}
+const logger = new Logger('Bootstrap');
 
 async function bootstrap(): Promise<void> {
+  loadRootEnv(); // lokal: ildiz .env; staging/prod — muhit o'zgaruvchilari (fayl yo'q)
   const { app, env } = await createApp();
-  const port = env.get('PORT');
-
-  await app.listen({ port, host: '0.0.0.0' });
-  console.info(`[api] Legendary Group API http://0.0.0.0:${port} da ishga tushdi`);
+  await app.listen({ port: env.get('PORT'), host: '0.0.0.0' });
+  logger.log(`API ishga tushdi: port ${env.get('PORT')}`);
 }
 
-void bootstrap();
+bootstrap().catch((err: unknown) => {
+  logger.error(err instanceof Error ? err.message : err);
+  process.exitCode = 1;
+});

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FixedClock, SystemClock, formatDateToYmd } from './clock.js';
 
-describe('Clock servisi (BR-04, 03 §2)', () => {
+describe("Clock servisi (CLAUDE.md 'Vaqt', 03 §2)", () => {
   it('formatDateToYmd sana formatini toʻgʻri qaytaradi', () => {
     // 2026-11-10T23:30:00Z UTC -> Toshkentda 2026-11-11 04:30
     const d = new Date('2026-11-10T23:30:00.000Z');

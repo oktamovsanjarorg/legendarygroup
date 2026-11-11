@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint src --ext .ts",
     "test": "vitest run --passWithNoTests",
@@ -30,6 +30,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
     }
   },
   "files": [

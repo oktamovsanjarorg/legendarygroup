@@ -7,8 +7,8 @@ import {
   integer,
   jsonb,
   pgTable,
-  primaryKey,
   text,
+  unique,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { createdAt, primaryUuid, tstz, updatedAt } from './common.js';
@@ -65,6 +65,11 @@ export const files = pgTable(
   ],
 );
 
+/**
+ * `Idempotency-Key` (T-004). Kalit foydalanuvchiga bog'langan: (key, route, user_id) — anonim
+ * so'rovlarda user_id NULL, `NULLS NOT DISTINCT` bilan baribir yagona.
+ * `response_status IS NULL` — so'rov hali bajarilmoqda (band qilingan).
+ */
 export const idempotencyKeys = pgTable(
   'idempotency_keys',
   {
@@ -72,13 +77,13 @@ export const idempotencyKeys = pgTable(
     userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
     route: text('route').notNull(),
     requestHash: text('request_hash').notNull(),
-    responseStatus: integer('response_status').notNull(),
+    responseStatus: integer('response_status'),
     responseBody: jsonb('response_body').$type<unknown>(),
     createdAt: createdAt(),
     expiresAt: tstz('expires_at').notNull(),
   },
   (t) => [
-    primaryKey({ columns: [t.key, t.route] }),
+    unique('idempotency_keys_scope_uq').on(t.key, t.route, t.userId).nullsNotDistinct(),
     index('idempotency_keys_expires_at_idx').on(t.expiresAt),
     index('idempotency_keys_user_id_idx').on(t.userId),
   ],

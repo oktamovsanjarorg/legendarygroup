@@ -1,21 +1,21 @@
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { bootstrapWorker, WORKER_VERSION } from './index.js';
+import { EnvService } from '@lg/api';
+import { bootstrapWorker } from './index.js';
 
-const ROOT_ENV = fileURLToPath(new URL('../../../.env', import.meta.url));
-if (existsSync(ROOT_ENV)) {
-  process.loadEnvFile(ROOT_ENV);
-}
+// `.env` fayliga bog'liq emas (CI). DB/Redis ulanishlari "lazy" — bootstrap tarmoqqa chiqmaydi.
+const env = new EnvService({
+  NODE_ENV: 'test',
+  DATABASE_URL: 'postgres://u:p@127.0.0.1:1/none',
+  REDIS_URL: 'redis://127.0.0.1:1',
+  INTERNAL_API_TOKEN: 'worker_test_token_0123456789abcdef',
+  CORS_ORIGINS: 'http://localhost',
+  LOG_LEVEL: 'silent',
+});
 
-describe('Worker bootstrap (T-004 AC)', () => {
-  it('WORKER_VERSION aniqlangan', () => {
-    expect(WORKER_VERSION).toBe('0.1.0');
-  });
-
-  it('bootstrapWorker NestJS kontekstini muvaffaqiyatli ishga tushiradi', async () => {
-    const context = await bootstrapWorker();
-    expect(context).toBeDefined();
+describe('Worker bootstrap (T-004)', () => {
+  it("HTTP serversiz Nest kontekstini ko'taradi va to'g'ri yopiladi", async () => {
+    const context = await bootstrapWorker(env);
+    expect(context.get(EnvService).get('NODE_ENV')).toBe('test');
     await context.close();
   });
 });

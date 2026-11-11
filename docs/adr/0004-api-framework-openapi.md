@@ -14,18 +14,21 @@
 ## Qaror
 
 1. **NestJS + `@nestjs/platform-fastify` + `fastify`**: Express oʻrniga Fastify adapteri tanlandi (kamroq kechikish, 2-3 barobar yuqori throughput, tabiiy Pino integratsiyasi).
-2. **OpenAPI / Swagger (`@nestjs/swagger` + `@fastify/swagger` + `@fastify/swagger-ui`)**:
-   - `/docs` faqat lokal va staging muhitida ochiladi; productionda registratsiya qilinmaydi;
-   - `/docs/json` va `/docs/yaml` orqali OpenAPI 3.0 spetsifikatsiyasi eksport qilinadi;
-   - Frontend tip-xavfsiz klientlari uchun kontrakt manbasi boʻlib xizmat qiladi.
-3. **Zod validatsiya (`ZodValidationPipe`)**:
-   - Har bir kiruvchi payload Zod sxemalari orqali tekshiriladi;
-   - Xatoliklar yagona standart formatda qaytadi: `{ code: 'VALIDATION_ERROR', message, details, requestId }`.
-4. **Idempotency-Key interceptori**:
-   - Yozish amallarida (POST, PUT, PATCH, DELETE) `Idempotency-Key` boshqariladi;
-   - SHA-256 xesh taqqoslanadi; bir xil body → keshdan 200 + `Idempotent-Replay: true`; boshqa body → 422 `IDEMPOTENCY_CONFLICT`.
+2. **OpenAPI — `@nestjs/swagger` + `@fastify/static`** (UI fayllari uchun; `@fastify/swagger*` ishlatilmaydi — ikkinchi generator keraksiz):
+   - `/api/docs` va `/api/docs/json` faqat production'dan tashqari;
+   - sxema **Zod'dan**: `@ZodBody(schema)` / `@ZodQuery(schema)` bir vaqtda validatsiya qiladi va `z.toJSONSchema()` orqali OpenAPI'ga yozadi (qo'shimcha kutubxonasiz). `bigint` (pul) — `type: string, pattern: ^-?\d+$`.
+3. **Zod 4** (`zod@4`), sxemalar `@lg/contracts`da. Global "sxemasiz" pipe yo'q — har endpoint o'z sxemasini beradi (deny by default).
+   - Xato formati `{ code, message, details, requestId }`; `message` faqat `@lg/i18n`dan kod bo'yicha (Nest/Zod inglizcha matni foydalanuvchiga chiqmaydi); validatsiya `details` — `[{ path, code }]`.
+4. **Idempotency-Key interceptori** (faqat POST/PUT/PATCH/DELETE, kalit ≤ 128 belgi):
+   - kalit handler'dan **oldin** atomar band qilinadi (`INSERT … ON CONFLICT DO NOTHING`), doirasi `(key, route, user_id)` `NULLS NOT DISTINCT`;
+   - parallel ikkinchi so'rov → 409 `IDEMPOTENCY_IN_PROGRESS` (`Retry-After`); tugagach javob va status saqlanadi → takror so'rovga o'sha javob + `Idempotent-Replay: true` (24 soat);
+   - boshqa body → 422 `IDEMPOTENCY_CONFLICT`; handler xatosi → band bekor (qayta urinish mumkin); 5 daqiqadan eski tugallanmagan band qayta egallanadi;
+   - pul amallari bundan tashqari DB'dagi o'z unique kaliti bilan himoyalanadi (`payments.idempotency_key`).
 5. **Worker bootstrap (`bootstrapWorker()`)**:
    - `@lg/api` paketi HTTP tinglamaydigan sof DI kontekstini eksport qiladi; `apps/worker` shundan foydalanadi.
+
+6. **DI decorator metadata'siz.** `tsx` (esbuild) `emitDecoratorMetadata`ni qo'llamaydi, shuning uchun har konstruktor parametri `@Inject(Token|Class)` bilan; `emitDecoratorMetadata: false` (tsc, Vitest ham) — `@Inject` unutilsa test darhol yiqiladi. `abortOnError: false` — DI xatosi jarayonni o'ldirmaydi, log qilinadi.
+7. **Marshrutlar:** tashqi — `/api/*` (06 §1); `/internal/*` prefiksiz (Caddy uni proksilamaydi, faqat Docker tarmog'i), `X-Internal-Token` bilan.
 
 ## Muqobillar
 

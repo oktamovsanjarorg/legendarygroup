@@ -4,8 +4,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "verbatimModuleSyntax": false
+    "emitDecoratorMetadata": false
   },
   "include": ["src/**/*"]
 }
