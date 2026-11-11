@@ -12,7 +12,8 @@
     "test": "vitest run --passWithNoTests",
     "test:int": "vitest run -c vitest.int.config.ts",
     "dev": "tsx watch --conditions=development src/main.ts",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "cli": "tsx --conditions=development src/cli.ts"
   },
   "exports": {
     ".": {

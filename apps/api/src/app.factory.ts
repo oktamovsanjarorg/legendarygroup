@@ -2,7 +2,7 @@ import fastifyCookie from '@fastify/cookie';
 import { RequestMethod } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
-import { AppModule } from './app.module.js';
+import { AppModule, type AppModuleOptions } from './app.module.js';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter.js';
 import { createFastifyOptions, createNestLogger } from './common/logger/logger.config.js';
 import { EnvService } from './config/env.service.js';
@@ -13,9 +13,10 @@ export const API_PREFIX = 'api';
 
 export async function createApp(
   env: EnvService = new EnvService(process.env),
+  extra: AppModuleOptions['extra'] = [],
 ): Promise<{ app: NestFastifyApplication; env: EnvService }> {
   const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule.forRoot(env),
+    AppModule.forRoot(env, { role: 'api', extra }),
     new FastifyAdapter(createFastifyOptions(env)),
     { logger: createNestLogger(env), abortOnError: false },
   );

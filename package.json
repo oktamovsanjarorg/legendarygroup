@@ -21,7 +21,8 @@
     "docker:dev:logs": "docker compose -f compose.dev.yml logs -f",
     "prepare": "husky",
     "deps:pin": "node scripts/pin-mature-deps.mjs",
-    "deps:check": "node scripts/pin-mature-deps.mjs --check"
+    "deps:check": "node scripts/pin-mature-deps.mjs --check",
+    "cli": "pnpm --filter @lg/api cli"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",

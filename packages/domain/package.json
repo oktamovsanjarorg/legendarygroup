@@ -12,7 +12,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
-    "@lg/config": "workspace:*"
+    "@lg/config": "workspace:*",
+    "fast-check": "4.10.2"
   },
   "exports": {
     ".": {
@@ -20,5 +21,8 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     }
+  },
+  "dependencies": {
+    "@lg/contracts": "workspace:*"
   }
 }

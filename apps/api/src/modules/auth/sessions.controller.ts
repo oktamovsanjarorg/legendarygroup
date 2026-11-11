@@ -11,18 +11,25 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { AuthUser, SessionInfo } from '@lg/contracts';
+import { type AuthUser, type SessionInfo, SwitchRoleRequest } from '@lg/contracts';
 import type { FastifyRequest } from 'fastify';
+import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { AuditService } from '../../common/audit/audit.service.js';
+import { Authenticated } from '../../common/decorators/access.decorators.js';
+import { ZodBody } from '../../common/decorators/zod.decorators.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { auditContext, CurrentUser, type RequestUser } from './access-token.guard.js';
 import { SessionsService } from './sessions.service.js';
-import { StaffUsers, toAuthUser } from './staff-users.js';
+import { StaffUsers, toAuthUser, WEB_ROLES } from './staff-users.js';
+import { TokensService } from './tokens.service.js';
+import type { z } from 'zod';
 
 /**
  * O'z sessiyalari (FR-AUTH-7). Faqat autentifikatsiya talab qilinadi: har kim faqat o'zinikini
  * ko'radi/bekor qiladi (scope = joriy foydalanuvchi). Boshqa xodim sessiyasi — T-101 (`staff.manage`).
  */
+@Authenticated()
+@NoAudit('audit service ichida yoziladi')
 @ApiTags('Auth')
 @ApiBearerAuth()
 @Controller('auth')
@@ -31,6 +38,7 @@ export class SessionsController {
     @Inject(SessionsService) private readonly sessions: SessionsService,
     @Inject(StaffUsers) private readonly staff: StaffUsers,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(TokensService) private readonly tokens: TokensService,
   ) {}
 
   @Get('me')
@@ -38,6 +46,35 @@ export class SessionsController {
     const u = await this.staff.byId(user.id);
     if (!u) throw new AppException(HttpStatus.UNAUTHORIZED, 'UNAUTHORIZED');
     return toAuthUser(u, user.role);
+  }
+
+  /** Rol almashtirish (FR-AUTH-5): yangi access token; eski rolli token darhol yaroqsiz. */
+  @Post('role')
+  @HttpCode(HttpStatus.OK)
+  async switchRole(
+    @CurrentUser() user: RequestUser,
+    @ZodBody(SwitchRoleRequest) body: z.output<typeof SwitchRoleRequest>,
+    @Req() req: FastifyRequest,
+  ) {
+    const u = await this.staff.byId(user.id);
+    if (!u || !u.roles.includes(body.role) || !WEB_ROLES.includes(body.role)) {
+      throw new AppException(HttpStatus.FORBIDDEN, 'ROLE_NOT_ASSIGNED');
+    }
+    await this.sessions.switchRole(user.sessionId, body.role);
+    await this.audit.record(auditContext(req), {
+      action: 'auth.role_switched',
+      entity: 'session',
+      entityId: user.sessionId,
+      before: { role: user.role },
+      after: { role: body.role },
+    });
+    const accessToken = await this.tokens.signAccess({
+      sub: u.id,
+      role: body.role,
+      sid: user.sessionId,
+      pv: u.permissionsVersion,
+    });
+    return { accessToken, user: toAuthUser(u, body.role) };
   }
 
   @Get('sessions')

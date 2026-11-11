@@ -58,7 +58,7 @@
 - **AC:** `initData` HMAC tekshiruvi (server), `auth_date` ≤ 24 soat; telegram_id → user; bir nechta rol bo'lsa rol tanlash; "Telegram orqali web'ga kirish" (bot tasdiq tugmasi). Testlar: soxta initData rad etiladi, eskirgan rad etiladi.
 - **Aniqlik:** Mini App `sessions` ishlatmaydi: `POST /api/auth/telegram` (initData) → access JWT 15 daq (xotirada saqlanadi, cookie yo'q); muddati o'tsa joriy initData bilan qayta almashtiriladi. Faol rol token ichida.
 
-### ⬜ T-008 · RBAC + scope + policy + audit
+### ✅ T-008 · RBAC + scope + policy + audit
 
 - **Bog'liq:** T-006 · **Talablar:** 02-roles-permissions.md (to'liq), FR-AUD-1
 - **AC:**
@@ -73,6 +73,8 @@
   - **Avtomatik matritsa testi:** har rol × har ruxsat × scope (o'z/begona obyekt) — kutilgan natija bilan integratsiya testlari.
   - Audit interceptor (before/after, actor, faol rol, ip) har yozish amalida.
   - Birinchi Director CLI buyrug'i: `apps/api/src/cli.ts`, ildizda `pnpm cli director:create --phone --name` → `staff_invites` havolasi (24 soat) chiqaradi; Director allaqachon bo'lsa rad etadi (`--force` yo'q).
+- **Bajarildi (2026-11-11):** ADR 0007; `@RequirePermission`/`@Authenticated`/`@Public` + `PermissionsGuard` (Redis kesh `pv` bo'yicha); CI: `access-rules.test.ts` (dekoratorsiz endpoint va audit'siz yozish amali yiqiladi), `roles.test.ts` hujjat jadvalini to'g'ridan-to'g'ri o'qiydi; 140 holatli rol×ruxsat matritsa testi; override (delegatsiya qoidalari), bloklash, oxirgi Director, rol almashtirish; `@Audit`/`@NoAudit` interceptor; `packages/domain/policies` (BR-13/16/18/27/30/37); `pnpm cli director:create`; dev seed test Direktor taklif havolasini chiqaradi.
+- **Ko'chirildi (jadvallar yo'q):** scope qoidalari va field-level filtr — o'z jadvallari bilan: ustoz scope'i (`group_teachers`) → T-103, ota-ona scope'i (`student_guardians`) va field-level (§3) → T-105, o'rinbosar scope'i → T-104; har biri o'z/begona obyekt matritsa testi bilan.
 
 ### ⬜ T-009 · i18n paketi va UI poydevori
 
@@ -162,7 +164,7 @@
 ### ⬜ T-103 · Guruhlar va jadval
 
 - **Bog'liq:** T-102, T-101 · **Talablar:** FR-ORG-3, 4, 6
-- **AC:** guruh CRUD, ustoz biriktirish (asosiy/yordamchi, sanalar bilan), haftalik jadval sloti; xona va ustoz to'qnashuvi DB darajasida rad etiladi (exclusion constraint) va UI'da tushunarli xabar; guruh holatlari.
+- **AC:** (T-008 dan) ustoz scope servisi: `group_teachers` bo'yicha hozirgi sanada faol guruhlar (02 §3, Q-64) + o'z/begona guruh matritsa testi; guruh CRUD, ustoz biriktirish (asosiy/yordamchi, sanalar bilan), haftalik jadval sloti; xona va ustoz to'qnashuvi DB darajasida rad etiladi (exclusion constraint) va UI'da tushunarli xabar; guruh holatlari.
 
 ### ⬜ T-104 · Darslar generatsiyasi va kalendar
 
@@ -172,7 +174,7 @@
 ### ⬜ T-105 · O'quvchilar va ota-onalar
 
 - **Bog'liq:** T-008 · **Talablar:** FR-STU-1, 2, 5, 6, FR-AUTH-6
-- **AC:** kartochka, o'quvchi `code` (inson o'qiy oladigan raqam) avtomatik beriladi, ota-ona(lar) bog'lash (telefon bo'yicha mavjud ota-onani topish), qidiruv/filtrlar (kod, ism — `normalizeUz()` bilan, T-009; DB'da `pg_trgm` indeks normalizatsiyalangan ustun ustida), arxiv; telefon normalizatsiyasi (+998); dublikat o'quvchi ogohlantirishi (ism + tug'ilgan sana).
+- **AC:** (T-008 dan) ota-ona scope'i (`student_guardians`; arxivlangan farzand tarixi ochiq) va field-level serializer (02 §3 jadvali) + matritsa testi; kartochka, o'quvchi `code` (inson o'qiy oladigan raqam) avtomatik beriladi, ota-ona(lar) bog'lash (telefon bo'yicha mavjud ota-onani topish), qidiruv/filtrlar (kod, ism — `normalizeUz()` bilan, T-009; DB'da `pg_trgm` indeks normalizatsiyalangan ustun ustida), arxiv; telefon normalizatsiyasi (+998); dublikat o'quvchi ogohlantirishi (ism + tug'ilgan sana).
 
 ### ⬜ T-106 · Enrollment (guruhga yozish)
 

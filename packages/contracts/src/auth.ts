@@ -29,6 +29,8 @@ export const InviteAcceptRequest = z.object({
 export const TelegramLoginStartRequest = z.object({ phone: PhoneSchema });
 export const TelegramLoginPollRequest = z.object({ challengeId: z.string().uuid() });
 
+export const SwitchRoleRequest = z.object({ role: z.enum(ROLES) });
+
 export const AuthUser = z.object({
   id: z.string(),
   fullName: z.string(),

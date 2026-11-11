@@ -9,10 +9,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import type { RoleCode } from '@lg/contracts';
 import type { FastifyRequest } from 'fastify';
-import type { AuditContext } from '../../common/audit/audit.service.js';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator.js';
 import { AppException } from '../../common/errors/app.exception.js';
-import type { ClientMeta } from './sessions.service.js';
 import { SessionsService } from './sessions.service.js';
 import { TokensService } from './tokens.service.js';
 
@@ -20,6 +18,8 @@ export interface RequestUser {
   id: string;
   role: RoleCode;
   sessionId: string;
+  /** `permissions_version` — ruxsatlar keshi kaliti. */
+  pv: number;
 }
 
 type AuthedRequest = FastifyRequest & { user?: RequestUser };
@@ -49,10 +49,13 @@ export class AccessTokenGuard implements CanActivate {
     const claims = header?.startsWith('Bearer ')
       ? await this.tokens.verifyAccess(header.slice(7))
       : null;
-    if (!claims || !(await this.sessions.isAccessValid(claims.sid, claims.sub, claims.pv))) {
+    if (
+      !claims ||
+      !(await this.sessions.isAccessValid(claims.sid, claims.sub, claims.pv, claims.role))
+    ) {
       throw new AppException(HttpStatus.UNAUTHORIZED, 'UNAUTHORIZED');
     }
-    request.user = { id: claims.sub, role: claims.role, sessionId: claims.sid };
+    request.user = { id: claims.sub, role: claims.role, sessionId: claims.sid, pv: claims.pv };
     return true;
   }
 }
@@ -64,18 +67,4 @@ export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionC
   return user;
 });
 
-export const clientMeta = (req: FastifyRequest): ClientMeta => ({
-  ip: req.ip ?? null,
-  device: typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : null,
-});
-
-export const auditContext = (req: FastifyRequest): AuditContext => {
-  const user = (req as AuthedRequest).user;
-  return {
-    actorId: user?.id ?? null,
-    actorRole: user?.role ?? null,
-    ip: req.ip ?? null,
-    userAgent: clientMeta(req).device,
-    requestId: req.id,
-  };
-};
+export { auditContext, clientMeta } from '../../common/audit/request-context.js';

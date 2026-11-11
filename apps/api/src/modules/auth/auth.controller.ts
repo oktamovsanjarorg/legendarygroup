@@ -12,6 +12,7 @@ import {
 } from '@lg/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
+import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { ZodBody } from '../../common/decorators/zod.decorators.js';
 import { AppException } from '../../common/errors/app.exception.js';
@@ -41,6 +42,7 @@ const done = (reply: FastifyReply, issued: Issued) => {
 };
 
 @Public()
+@NoAudit('AuthService/TelegramLoginService ichida')
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {

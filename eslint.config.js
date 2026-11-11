@@ -6,6 +6,8 @@ import boundaries from 'eslint-plugin-boundaries';
 /** Paketlar orasidagi chegaralar (03-architecture.md §2, §4). */
 const forbid = (files, patterns, message) => ({
   files,
+  // Testlar (hujjat o'qish, fixture) chegaralardan mustasno — ular ishlab chiqarish kodi emas.
+  ignores: ['**/*.test.ts', '**/*.test.tsx'],
   rules: {
     'no-restricted-imports': ['error', { patterns: [{ group: patterns, message }] }],
   },

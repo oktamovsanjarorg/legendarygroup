@@ -24,13 +24,14 @@ export interface TestApp {
 }
 
 /** Real `createApp()` (prefiks, filtr, OpenAPI) — vaqtinchalik DB bilan. */
-export async function createRealTestApp(): Promise<TestApp> {
+export async function createRealTestApp(extra: (Type | DynamicModule)[] = []): Promise<TestApp> {
   const db = await createTempDb();
   const { app } = await createApp(
     testEnv({
       DATABASE_URL: db.url,
       REDIS_URL: process.env['REDIS_URL'] ?? 'redis://localhost:6380',
     }),
+    extra,
   );
   return ready(app, db);
 }

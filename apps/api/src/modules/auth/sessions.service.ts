@@ -10,10 +10,8 @@ import { randomToken, sha256 } from './crypto.js';
 
 export const REFRESH_TTL_MS = 30 * 24 * 60 * 60 * 1000; // FR-AUTH-4: 30 kun
 
-export interface ClientMeta {
-  ip: string | null;
-  device: string | null;
-}
+export type { ClientMeta } from '../../common/audit/request-context.js';
+import type { ClientMeta } from '../../common/audit/request-context.js';
 
 export interface IssuedSession {
   sessionId: string;
@@ -175,7 +173,21 @@ export class SessionsService {
   }
 
   /** Access token tekshiruvi: sessiya faol, foydalanuvchi faol, ruxsatlar versiyasi mos. */
-  async isAccessValid(sessionId: string, userId: string, pv: number): Promise<boolean> {
+  /** Faol rolni almashtirish (02 §1: ruxsatlar birlashtirilmaydi) — sessiyaning o'zida. */
+  async switchRole(sessionId: string, role: RoleCode): Promise<void> {
+    await this.db.update(sessions).set({ activeRole: role }).where(eq(sessions.id, sessionId));
+  }
+
+  /**
+   * Access token tekshiruvi: sessiya faol, foydalanuvchi faol, ruxsatlar versiyasi va faol rol mos
+   * (rol almashtirilgach eski rolli token ishlamaydi).
+   */
+  async isAccessValid(
+    sessionId: string,
+    userId: string,
+    pv: number,
+    role: RoleCode,
+  ): Promise<boolean> {
     const [row] = await this.db
       .select({ pv: users.permissionsVersion })
       .from(sessions)
@@ -184,6 +196,7 @@ export class SessionsService {
         and(
           eq(sessions.id, sessionId),
           eq(sessions.userId, userId),
+          eq(sessions.activeRole, role),
           isNull(sessions.revokedAt),
           gt(sessions.expiresAt, this.clock.now()),
           eq(users.status, 'active'),

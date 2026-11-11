@@ -29,6 +29,9 @@ export const errorMessages = {
   INVALID_INVITE: 'Taklif havolasi yaroqsiz yoki muddati oʻtgan. Yangi havola soʻrang.',
   TELEGRAM_LOGIN_PENDING: 'Telegramdagi tasdiqlash kutilmoqda.',
   ROLE_NOT_ASSIGNED: 'Sizda bu rol yoʻq.',
+  NON_DELEGABLE_PERMISSION: 'Bu ruxsat faqat Direktorga tegishli, uni Adminga berib boʻlmaydi.',
+  OVERRIDE_NOT_ALLOWED: 'Bu ruxsatni ushbu xodimga berib yoki olib boʻlmaydi.',
+  LAST_DIRECTOR: 'Oxirgi faol Direktorni bloklab yoki rolini olib boʻlmaydi.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

@@ -1,5 +1,5 @@
 import { ROLES } from '@lg/contracts';
-import { check, index, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
+import { boolean, check, index, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
 import { createdAt, oneOf, primaryUuid, updatedAt } from './common.js';
 import { users } from './users.js';
 
@@ -53,9 +53,31 @@ export const userRoles = pgTable(
   ],
 );
 
+/**
+ * Foydalanuvchi bo'yicha ruxsat override'i (02 §4 "Override qoidasi", T-008):
+ * `granted=true` — faqat Admin'ga delegatsiya qilinadiganlar; `granted=false` — cheklash.
+ * Qoidalar `@lg/domain` `overrideError()`da; o'zgarish → `users.permissions_version + 1`.
+ */
+export const userPermissionOverrides = pgTable(
+  'user_permission_overrides',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    permissionCode: text('permission_code')
+      .notNull()
+      .references(() => permissions.code, { onDelete: 'cascade' }),
+    granted: boolean('granted').notNull(),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.permissionCode] })],
+);
+
 export type Role = typeof roles.$inferSelect;
 export type NewRole = typeof roles.$inferInsert;
 export type PermissionRecord = typeof permissions.$inferSelect;
 export type NewPermissionRecord = typeof permissions.$inferInsert;
 export type RolePermission = typeof rolePermissions.$inferSelect;
 export type UserRole = typeof userRoles.$inferSelect;
+export type UserPermissionOverride = typeof userPermissionOverrides.$inferSelect;
