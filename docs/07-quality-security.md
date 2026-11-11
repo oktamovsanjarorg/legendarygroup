@@ -2,21 +2,21 @@
 
 ## 1. Test strategiyasi (piramida)
 
-| Daraja         | Vosita                                                | Nima                                                                                                    | Qoplash talabi                                           |
-| -------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Unit           | **Vitest**                                            | `packages/domain` (invoice, jarima, oylik, taqsimlash, churn), util'lar, Zod sxemalar                   | domain ≥ 95%, umumiy ≥ 80%                               |
-| Property-based | **fast-check**                                        | Pul hisobi: taqsimlash yig'indisi = to'lov; balans = ledger yig'indisi; proporsional narx ≤ to'liq narx | barcha pul funksiyalari                                  |
-| Integratsiya   | Vitest + **Testcontainers** (haqiqiy Postgres, Redis) | Repository, service, tranzaksiyalar, RBAC scope, outbox                                                 | har endpoint kamida 1 happy + 1 forbidden + 1 validation |
-| Kontrakt       | OpenAPI snapshot                                      | API buzilish o'zgarishlari (breaking change) aniqlash                                                   | CI'da                                                    |
-| Bot            | grammY test (mock API)                                | Suhbat oqimlari: ro'yxatdan o'tish, chek yuborish                                                       | asosiy oqimlar                                           |
-| E2E            | **Playwright**                                        | Web: to'lov kiritish→chek; tasdiqlash navbati; guruh yaratish. Mini App: davomat (mock initData)        | kritik 10–15 ssenariy                                    |
-| Yuklama        | **k6**                                                | 200 bir vaqtdagi foydalanuvchi, oy boshi invoice generatsiyasi, ommaviy xabar                           | relizdan oldin (faza oxirida)                            |
-| Vizual         | Playwright screenshot                                 | Mini App asosiy ekranlar (light/dark tema)                                                              | ixtiyoriy                                                |
+| Daraja         | Vosita                                                                                                                                                                                 | Nima                                                                                                    | Qoplash talabi                                           |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Unit           | **Vitest**                                                                                                                                                                             | `packages/domain` (invoice, jarima, oylik, taqsimlash, churn), util'lar, Zod sxemalar                   | domain ≥ 95%, umumiy ≥ 80%                               |
+| Property-based | **fast-check**                                                                                                                                                                         | Pul hisobi: taqsimlash yig'indisi = to'lov; balans = ledger yig'indisi; proporsional narx ≤ to'liq narx | barcha pul funksiyalari                                  |
+| Integratsiya   | Vitest + haqiqiy Postgres/Redis (lokal — `compose.dev.yml`, CI — service container); har test fayli o'z vaqtinchalik bazasini yaratadi va o'chiradi (`*.int.test.ts`, `pnpm test:int`) | Repository, service, tranzaksiyalar, RBAC scope, outbox                                                 | har endpoint kamida 1 happy + 1 forbidden + 1 validation |
+| Kontrakt       | OpenAPI snapshot                                                                                                                                                                       | API buzilish o'zgarishlari (breaking change) aniqlash                                                   | CI'da                                                    |
+| Bot            | grammY test (mock API)                                                                                                                                                                 | Suhbat oqimlari: ro'yxatdan o'tish, chek yuborish                                                       | asosiy oqimlar                                           |
+| E2E            | **Playwright**                                                                                                                                                                         | Web: to'lov kiritish→chek; tasdiqlash navbati; guruh yaratish. Mini App: davomat (mock initData)        | kritik 10–15 ssenariy                                    |
+| Yuklama        | **k6**                                                                                                                                                                                 | 200 bir vaqtdagi foydalanuvchi, oy boshi invoice generatsiyasi, ommaviy xabar                           | relizdan oldin (faza oxirida)                            |
+| Vizual         | Playwright screenshot                                                                                                                                                                  | Mini App asosiy ekranlar (light/dark tema)                                                              | ixtiyoriy                                                |
 
 **Qoidalar:**
 
 - Har bir bug fix — avval uni takrorlovchi test, keyin tuzatish.
-- Har bir `BR-*` qoidasi uchun test nomida ID: `it('BR-12: to'lov eng eski qarzga taqsimlanadi')`.
+- Har bir `BR-*` qoidasi uchun test nomida ID: `it("BR-12: to'lov eng eski qarzga taqsimlanadi")`.
 - Testlarda vaqt muzlatiladi (`vi.useFakeTimers`), `Asia/Tashkent` zonasi.
 - Seed/fixture'lar — factory funksiyalar (`makeStudent()`), haqiqiy shaxsiy ma'lumot yo'q.
 
@@ -24,7 +24,7 @@
 
 - TypeScript `strict: true`, `noUncheckedIndexedAccess`, `any` taqiqlangan (ESLint error).
 - ESLint (typescript-eslint strict) + Prettier; `eslint-plugin-boundaries` — modullar chegarasini majburlaydi.
-- Fayl ≤ 400 qator, funksiya ≤ 60 qator (tavsiya).
+- **ESLint majburlaydi (CI yiqiladi):** fayl ≤ 300 qator, funksiya ≤ 60 qator, `complexity` ≤ 12, ichma-ichlik ≤ 3, parametrlar ≤ 4 (testlar: fayl ≤ 500). Chegara yetganda — faylni ma'no bo'yicha bo'lish ([12-ai-playbook.md](12-ai-playbook.md) §4), qoidani o'chirish (`eslint-disable`) taqiqlangan.
 - Nomlash: kod — inglizcha; foydalanuvchiga ko'rinadigan matnlar — faqat `packages/i18n` orqali o'zbekcha.
 - Xatolar: domen xatolari tiplangan (`PaymentAlreadyConfirmedError`), API — yagona xato formati `{ code, message, details, requestId }`.
 - Commit: Conventional Commits; PR — kichik (≤ 400 qator o'zgarish tavsiya), shablon bilan (nima, nega, test, skrinshot).
@@ -67,4 +67,4 @@
 - [ ] Matnlar `i18n`da, o'zbekcha, imlo tekshirilgan
 - [ ] Migratsiya orqaga mos
 - [ ] Hujjat yangilandi (agar qoida/API o'zgargan bo'lsa)
-- [ ] Staging'da qo'lda tekshirildi (UI vazifalari — skrinshot PR'da)
+- [ ] UI vazifalari — Playwright skrinshotlari (light/dark, 5 holat) PR'da; staging'da qo'lda tekshiruvni loyiha egasi qiladi

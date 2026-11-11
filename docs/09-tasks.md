@@ -3,6 +3,9 @@
 > Format: `ID` · nomi · **Bog'liq** (avval bajarilishi kerak) · **Talablar** (FR/BR) · **Qabul mezonlari (AC)**.
 > Har vazifa = 1 PR (katta bo'lsa — kichik qismlarga bo'linadi). Har vazifa [Definition of Done](07-quality-security.md#4-definition-of-done-har-vazifa-uchun)ga javob berishi shart.
 > Holat: ⬜ boshlanmagan · 🟨 jarayonda · ✅ tayyor
+> **Yashirin bog'liqlik:** ekran yaratadigan har vazifa (web/Mini App) T-009 va tegishli T-017c maketiga bog'liq, hatto "Bog'liq"da yozilmagan bo'lsa ham.
+> **Ish tartibi:** har vazifa [12-ai-playbook.md](12-ai-playbook.md) bo'yicha bajariladi (`/task T-XXX`). "Aniqlik" qatorlari — hujjatlar auditida (2026-11-11) qabul qilingan qarorlar, savol bermasdan shularga amal qilinadi.
+> T-108 ataylab yo'q (mavjud ma'lumot importi kerak emas — 10-open-questions.md).
 
 ---
 
@@ -23,30 +26,35 @@
 - **Bog'liq:** T-001
 - **AC:** `compose.dev.yml`: Postgres, Redis, MinIO (S3 emulyatsiya), Mailpit shart emas. `pnpm dev` — barcha ilovalar hot-reload bilan. `.env.example` to'liq izohlangan. Toza kompyuterda 10 daqiqada ishga tushadi.
 
-### ⬜ T-003 · DB paketi va birinchi migratsiya
+### ✅ T-003 · DB paketi va birinchi migratsiya
 
 - **Bog'liq:** T-002
 - **AC:** Drizzle sozlangan; `users, roles, permissions, role_permissions, user_roles, sessions, audit_logs, settings, outbox_events, files, feature_flags` jadvallari; UUIDv7; seed skripti (4 rol + permission ro'yxati + test Director). `audit_logs`ga UPDATE/DELETE DB grant bilan taqiqlangan.
+- **Aniqlik:** rol→ruxsat matritsasi `@lg/contracts/roles.ts`da; seed idempotent va matritsani sinxronlaydi; `lg_app` roli + `forbid_mutation()` trigger (0001); integratsiya testlari `pnpm test:int`.
 
 ### ⬜ T-004 · API skeleti (NestJS)
 
 - **Bog'liq:** T-003
 - **AC:** Fastify adapter; config modul (Zod bilan env validatsiyasi — noto'g'ri env'da ishga tushmaydi); pino logger + requestId; global xato filtri (yagona format); `/health/live`, `/health/ready` (DB, Redis); OpenAPI `/docs` (faqat staging/local); Zod validatsiya pipe; graceful shutdown.
+- **Aniqlik:** `Clock` interfeysi `packages/domain/src/clock.ts` (`SystemClock`, testda `FixedClock`) DI orqali; `Idempotency-Key` interceptor (`idempotency_keys` jadvali); ichki API `/internal/*` (`INTERNAL_API_TOKEN`, faqat Docker tarmog'i) — bot uchun; `@lg/api` paketi `bootstrapWorker()` eksport qiladi (apps/worker shuni chaqiradi); DB ulanishi `createDb`/`closeDb` (`@lg/db`).
 
 ### ⬜ T-005 · Worker skeleti + outbox
 
 - **Bog'liq:** T-004
 - **AC:** BullMQ ulanishi; repeatable job registratsiyasi; outbox poller (har 1 s, `FOR UPDATE SKIP LOCKED`); retry + exponential backoff + dead-letter; Bull Board (faqat ichki, auth bilan).
+- **Aniqlik:** `outbox_events`ga yangi migratsiya: `next_attempt_at`, `last_error`, `failed_at` + qisman indeks; backoff 1s·2ⁿ, maks. 10 urinish → dead-letter + alert. Iste'molchilar idempotent (event `id` bo'yicha dedup).
 
 ### ⬜ T-006 · Auth: xodimlar (web)
 
 - **Bog'liq:** T-004 · **Talablar:** FR-AUTH-3, 4, 7
 - **AC:** telefon+parol login (Argon2id), TOTP 2FA (Director/Admin majburiy, QR bilan sozlash, zaxira kodlar), JWT access 15 daq + refresh rotatsiya (httpOnly, Secure, SameSite=Strict), refresh qayta ishlatilsa — oila bekor, sessiyalar ro'yxati/bekor qilish, rate limit. Testlar: muvaffaqiyatli, noto'g'ri parol, 2FA, token o'g'irlash ssenariysi.
+- **Aniqlik:** zaxira kodlar — 10 ta, `user_backup_codes` (hash); "Telegram orqali kirish" — Redis'da 5 daqiqalik challenge, bot tasdiq tugmasi; TOTP sirri AES-256-GCM (`TOTP_ENC_KEY` env) bilan shifrlanadi.
 
 ### ⬜ T-007 · Auth: Telegram (Mini App + bot)
 
 - **Bog'liq:** T-006 · **Talablar:** FR-AUTH-1, 2, 5
 - **AC:** `initData` HMAC tekshiruvi (server), `auth_date` ≤ 24 soat; telegram_id → user; bir nechta rol bo'lsa rol tanlash; "Telegram orqali web'ga kirish" (bot tasdiq tugmasi). Testlar: soxta initData rad etiladi, eskirgan rad etiladi.
+- **Aniqlik:** Mini App `sessions` ishlatmaydi: `POST /api/auth/telegram` (initData) → access JWT 15 daq (xotirada saqlanadi, cookie yo'q); muddati o'tsa joriy initData bilan qayta almashtiriladi. Faol rol token ichida.
 
 ### ⬜ T-008 · RBAC + scope + policy + audit
 
@@ -62,18 +70,20 @@
   - Policy funksiyalari `packages/domain/policies` (§6) + unit testlar.
   - **Avtomatik matritsa testi:** har rol × har ruxsat × scope (o'z/begona obyekt) — kutilgan natija bilan integratsiya testlari.
   - Audit interceptor (before/after, actor, faol rol, ip) har yozish amalida.
-  - Birinchi Director CLI buyrug'i.
+  - Birinchi Director CLI buyrug'i: `apps/api/src/cli.ts`, ildizda `pnpm cli director:create --phone --name` → `staff_invites` havolasi (24 soat) chiqaradi; Director allaqachon bo'lsa rad etadi (`--force` yo'q).
 
 ### ⬜ T-009 · i18n paketi va UI poydevori
 
 - **Bog'liq:** T-001
 - **AC:** `packages/i18n` (tiplangan kalitlar, pul/sana formatlash `1 250 000 so'm`, `10-noyabr, 2026`), `packages/ui-core|ui-tg|ui-web` (T-017b tokenlari asosida) + Storybook; `apps/web` — shadcn/ui, Tailwind, layout, login, ruxsatga qarab menyu (11-ux.md §2); `apps/miniapp` — Telegram SDK, tema (light/dark/custom + kontrast fallback), BackButton/MainButton/SecondaryButton, haptic, closing confirmation, safe-area, rolga qarab pastki tablar, rol almashtirish, deep link (`startapp`) router.
+- **Aniqlik:** i18n'da: pul formatlash (U+00A0 ajratuvchi), summani so'z bilan yozish (chek uchun, `toWordsUz(bigint)` + testlar), qidiruv normalizatsiyasi `normalizeUz()` — `' ‘ ’ ʻ ʼ \`` → bitta kanonik belgi, kichik harf.
 - **Bog'liq (qo'shimcha):** T-017b
 
 ### ⬜ T-010 · Bot skeleti
 
 - **Bog'liq:** T-004
 - **AC:** grammY, webhook (`secret_token`), lokal — long polling; `/start`, `/help`, menyu tugmasi → Mini App; xatolarni Sentry'ga; xabar yuborish faqat worker navbati orqali (25 msg/s limiter, 429 `retry_after`, bloklangan foydalanuvchini belgilash).
+- **Aniqlik:** webhook `update_id` Redis'da 24 soat saqlanadi — takroriy update e'tiborsiz qoldiriladi.
 
 ### ⬜ T-011 · Dockerfile'lar va compose (staging/prod)
 
@@ -119,11 +129,17 @@
 
 - **Bog'liq:** T-017b
 - **AC:** T-017a dagi har bir ekran light/dark, 5 holat bilan; Mini App 360/390/430 px va desktop Telegram kengliklari; web 1280/1440 px; o'lchanadigan mezonlar (11-ux.md §5) bo'yicha teginish sonlari hisoblangan; loyiha egasi qabul qilgan. Har UI vazifasi boshlanishidan oldin tegishli maket tayyor bo'lishi shart.
+- **Aniqlik:** maket formati — Figma emas: `ui-tg`/`ui-web` komponentlaridan mock ma'lumot bilan yig'ilgan **Storybook ekran story'lari** (`*.screen.stories.tsx`) + Playwright skrinshotlari `docs/ux/screens/`ga; egasi skrinshotlar bo'yicha qabul qiladi. Maket kodi keyin haqiqiy ekranda qayta ishlatiladi.
 
 ### ⬜ T-018 · Staging uchun anonimlashtirish
 
 - **Bog'liq:** T-015
 - **AC:** prod dump → ism, telefon, telegram_id, rasm, izohlar soxtalashtiriladi (deterministik, bog'lanishlar saqlanadi) → staging'ga; haftalik avtomatik; anonimlashtirilmagan ma'lumot staging'ga tushishi CI testida tekshiriladi (namunaviy qatorlar).
+
+### ⬜ T-019 · Fayllar moduli (S3)
+
+- **Bog'liq:** T-004 · **Talablar:** FR-SYS-2, 07-quality-security.md §3 (fayl yuklash)
+- **AC:** `files` moduli: presigned POST (maks. 10 MB, ruxsat etilgan MIME ro'yxati `purpose` bo'yicha), yuklangandan keyin tasdiqlash endpoint'i — magic bytes tekshiruvi, SHA-256, rasm qayta kodlanadi (EXIF olib tashlanadi, `sharp`); presigned GET (5 daq); lokal — MinIO; `files` yozuvi + audit; bot orqali kelgan fayl uchun ichki endpoint (bot Telegram'dan yuklab, shu oqimga beradi). Testlar: noto'g'ri MIME, katta fayl, soxta kengaytma.
 
 ---
 
@@ -133,11 +149,13 @@
 
 - **Bog'liq:** T-008 · **Talablar:** FR-AUTH-5
 - **AC:** Director Admin/Ustoz qo'shadi (telefon, ism, rol), taklif havolasi botga; bloklash; ruxsat override UI.
+- **Aniqlik:** taklif = `staff_invites` (24 soat, bir martalik). Admin/Director havola orqali parol + TOTP o'rnatadi; Ustoz paroli yo'q — havola botni ochadi, telefon ulashganda `telegram_id` bog'lanadi. Override qoidasi — 02 §4. Bloklash → barcha sessiyalar bekor, `permissions_version + 1`.
 
 ### ⬜ T-102 · Kurslar va xonalar
 
 - **Bog'liq:** T-008 · **Talablar:** FR-ORG-1, 2
 - **AC:** CRUD (web), arxivlash, validatsiya, audit.
+- **Aniqlik:** shu vazifa `branches` jadvalini (id, name) bitta seed qatori bilan yaratadi; keyingi biznes jadvallar `branch_id` FK oladi (standart — yagona filial).
 
 ### ⬜ T-103 · Guruhlar va jadval
 
@@ -147,12 +165,12 @@
 ### ⬜ T-104 · Darslar generatsiyasi va kalendar
 
 - **Bog'liq:** T-103, T-005 · **Talablar:** FR-ORG-5, BR-5
-- **AC:** worker har kuni 4 hafta oldinga darslarni generatsiya qiladi (idempotent); bayramlar jadvali; dars bekor qilish (sabab), ko'chirish, qo'shimcha dars; ustoz uchun kalendar ko'rinishi (web + miniapp); jadval o'zgarsa kelajakdagi darslar qayta hisoblanadi (o'tganlari o'zgarmaydi).
+- **AC:** worker har kuni darslarni gorizontgacha generatsiya qiladi — kamida 4 hafta va keyingi kalendar oyining oxirigacha (FR-ORG-5; idempotent: unique(group_id, date, start_time)); bayramlar jadvali; dars bekor qilish (sabab), ko'chirish, qo'shimcha dars; ustoz uchun kalendar ko'rinishi (web + miniapp); jadval o'zgarsa kelajakdagi darslar qayta hisoblanadi (o'tganlari o'zgarmaydi).
 
 ### ⬜ T-105 · O'quvchilar va ota-onalar
 
 - **Bog'liq:** T-008 · **Talablar:** FR-STU-1, 2, 5, 6, FR-AUTH-6
-- **AC:** kartochka, o'quvchi `code` (inson o'qiy oladigan raqam) avtomatik beriladi, ota-ona(lar) bog'lash (telefon bo'yicha mavjud ota-onani topish), qidiruv/filtrlar (kod, ism — `oʻ`/`o'` normalizatsiyasi bilan), arxiv; telefon normalizatsiyasi (+998); dublikat o'quvchi ogohlantirishi (ism + tug'ilgan sana).
+- **AC:** kartochka, o'quvchi `code` (inson o'qiy oladigan raqam) avtomatik beriladi, ota-ona(lar) bog'lash (telefon bo'yicha mavjud ota-onani topish), qidiruv/filtrlar (kod, ism — `normalizeUz()` bilan, T-009; DB'da `pg_trgm` indeks normalizatsiyalangan ustun ustida), arxiv; telefon normalizatsiyasi (+998); dublikat o'quvchi ogohlantirishi (ism + tug'ilgan sana).
 
 ### ⬜ T-106 · Enrollment (guruhga yozish)
 
@@ -173,6 +191,7 @@
 
 - **Bog'liq:** T-007, T-105, T-109 · **Talablar:** FR-AUTH-1
 - **AC:** `/start` → maxfiylik roziligi → "Raqamni ulashish" (faqat o'z kontakti qabul qilinadi — `contact.user_id == from.id`) → mos ota-ona topilsa bog'lanadi va farzand(lar) ko'rsatiladi; topilmasa — Admin'ga so'rov; bir nechta farzand; qayta `/start` xavfsiz.
+- **Aniqlik:** so'rovlar web'da "Bog'lanish so'rovlari" ro'yxatida (O'quvchilar bo'limi); Admin ota-onani tanlab bog'laydi yoki rad etadi → botga natija.
 
 ### ⬜ T-111 · Davomat (Mini App, Ustoz)
 
@@ -187,7 +206,7 @@
 ### ⬜ T-113 · "Kelmadi/kech qoldi" xabari ota-onaga
 
 - **Bog'liq:** T-111, T-109, T-110 · **Talablar:** FR-ATT-3, BR-31
-- **AC:** `AttendanceMarked` event → ≤ 1 daq ichida xabar; ko'p marta saqlash — bitta xabar (dedup); xato tuzatilsa tuzatish xabari (BR-31 tasdiqlangan varianti); integratsiya testi event → xabar.
+- **AC:** `AttendanceMarked` event → BR-31 tuzatish oynasi (3 daq, sozlanadi) tugagach ≤ 1 daq ichida xabar (jami ≤ 5 daq); kech qolish — faqat ≥ 15 daq (BR-10); ko'p marta saqlash — bitta xabar (dedup); xato tuzatilsa tuzatish xabari (BR-31 tasdiqlangan varianti); integratsiya testi event → xabar.
 
 ### ⬜ T-114 · Ustoz Mini App (to'liq)
 
@@ -201,13 +220,13 @@
 
 ### ⬜ T-120 · Director/Admin Mini App xodim rejimi
 
-- **Bog'liq:** T-007, T-017c
+- **Bog'liq:** T-007, T-008, T-009, T-017c
 - **AC:** 11-ux.md §2: Bugun, Navbat (F2 da to'ldiriladi), So'rovlar (T-119), Qidiruv (o'quvchi kartochkasi, qo'ng'iroq tugmasi); ruxsatga qarab tablar.
 
 ### ⬜ T-115 · Tizim sozlamalari
 
 - **Bog'liq:** T-008 · **Talablar:** FR-SYS-1
-- **AC:** Director uchun sozlamalar sahifasi: markaz ma'lumotlari, logo, karta rekvizitlari (bir nechta), hisob kuni/to'lov muddati, jarima va kech qolish qoidalari, bildirishnoma vaqtlari, bayramlar, Admin chegirma limiti; har o'zgarish audit'da; sozlama tiplangan (Zod) va standart qiymatlar `10-open-questions.md` takliflariga mos.
+- **AC:** Director uchun sozlamalar sahifasi: markaz ma'lumotlari, logo, karta rekvizitlari (bir nechta), to'lov muddati kuni (1–28, standart 10), jarima va kech qolish qoidalari, bildirishnoma vaqtlari, bayramlar, Admin chegirma limiti; har o'zgarish audit'da; sozlama tiplangan (Zod) va standart qiymatlar `10-open-questions.md` takliflariga mos.
 
 ### ⬜ T-116 · Ota-ona Mini App bosh sahifasi
 
@@ -235,8 +254,8 @@
 
 ### ⬜ T-202 · Ledger, invoice jadvallari va avto-generatsiya
 
-- **Bog'liq:** T-201, T-106, T-005 · **Talablar:** FR-PAY-1, BR-2, 3, 5, 6
-- **AC:** migratsiyalar (invoices, invoice_lines, ledger_entries, payments, allocations, receipts); oyning 1-sanasi 00:05 job — idempotent (qayta ishga tushsa dublikat yo'q), bekor qilingan darslar krediti, yangi enrollment uchun proporsional invoice darhol; job ishlamasa alert.
+- **Bog'liq:** T-201, T-106, T-005, T-115 · **Talablar:** FR-PAY-1, BR-2, 3, 5, 6
+- **AC:** migratsiyalar (invoices, invoice_lines, ledger_entries, payments, allocations, receipts, receipt_cancellations, receipt_counters — 05-data-model.md; o'zgarmaslar `forbid_mutation()` trigger + `lg_app` grant bilan); oyning 1-sanasi 00:05 job — idempotent (qayta ishga tushsa dublikat yo'q), bekor qilingan darslar krediti, yangi enrollment uchun proporsional invoice darhol; job ishlamasa alert.
 
 ### ⬜ T-203 · Chegirma, muzlatish, jarima
 
@@ -255,7 +274,7 @@
 
 ### ⬜ T-206 · Ota-ona: o'tkazma cheki yuborish (bot + Mini App)
 
-- **Bog'liq:** T-110, T-202 · **Talablar:** FR-PAY-3, BR-13
+- **Bog'liq:** T-110, T-202, T-019 · **Talablar:** FR-PAY-3, BR-13
 - **AC:** "To'lov qilish" → farzand tanlash → qarz summasi + karta rekvizitlari (nusxalash) → rasm/PDF yuklash + summa + izoh → "Tekshirilmoqda" xabari; fayl tekshiruvi (tur, hajm), S3; perceptual hash; holatni kuzatish.
 
 ### ⬜ T-207 · Tasdiqlash navbati (Admin)
@@ -284,7 +303,7 @@
 
 ### ⬜ T-302 · Testlar va Excel import
 
-- **Bog'liq:** T-301 · **Talablar:** FR-GRD-3, 4, 6, BR-34, 35
+- **Bog'liq:** T-301, T-019 · **Talablar:** FR-GRD-3, 4, 6, BR-34, 35
 - **AC:** test yaratish (bo'limlar), shablon yuklab olish (botdan ham), `.xlsx` — ustoz faylni **botga yuboradi** yoki Mini App'da yuklaydi → Mini App ko'rib chiqish ekrani ochiladi → ustun moslashtirish (eslab qolinadi) → moslashtirish (ID → aniq ism → fuzzy taklif) → oldindan ko'rish va xatolar → atomar import → versiya; e'lon qilish → ota-onaga xabar. 500 qatorli fayl ≤ 10 s.
 
 ### ⬜ T-303 · O'quvchi progressi va reyting
@@ -328,12 +347,12 @@
 
 ### ⬜ T-404 · Audit UI va shubhali harakatlar
 
-- **Bog'liq:** T-008 · **Talablar:** FR-AUD-2, 3
+- **Bog'liq:** T-008, T-009 · **Talablar:** FR-AUD-2, 3
 - **AC:** filtrlanadigan audit jurnali (kim/nima/qachon, diff ko'rinishi), shubhali harakatlar qoidalari va Director'ga bot ogohlantirishi, xodim faolligi hisoboti.
 
 ### ⬜ T-405 · Director dashboard
 
-- **Bog'liq:** T-208, T-112 · **Talablar:** FR-DASH-1, 5
+- **Bog'liq:** T-208, T-112, T-207 · **Talablar:** FR-DASH-1, 5
 - **AC:** web bosh sahifa KPI'lar + Mini App ixcham versiya; ma'lumotlar ≤ 5 daq kesh; kunlik xulosa botga (21:00).
 
 ---

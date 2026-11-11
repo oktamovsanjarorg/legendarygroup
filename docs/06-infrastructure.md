@@ -2,13 +2,14 @@
 
 ## 1. Muhitlar
 
-| Muhit        | Maqsad                                                                | Domen (misol)                | Bot                                 | Ma'lumot                                            |
-| ------------ | --------------------------------------------------------------------- | ---------------------------- | ----------------------------------- | --------------------------------------------------- |
-| `local`      | Dasturchi kompyuteri                                                  | localhost                    | `@legendary_dev_bot` (long polling) | Test ma'lumotlari (seed)                            |
-| `staging`    | Relizdan oldingi to'liq tekshiruv (prod bilan bir xil konfiguratsiya) | `staging.<domen>`            | `@legendary_staging_bot`            | Test ma'lumotlari + anonimlashtirilgan prod nusxasi |
-| `production` | Haqiqiy ishlash                                                       | `app.<domen>`, `api.<domen>` | `@legendary_bot` (asosiy)           | Haqiqiy                                             |
+| Muhit        | Maqsad                                                                | Domen (misol)                 | Bot                                 | Ma'lumot                                            |
+| ------------ | --------------------------------------------------------------------- | ----------------------------- | ----------------------------------- | --------------------------------------------------- |
+| `local`      | Dasturchi kompyuteri                                                  | localhost                     | `@legendary_dev_bot` (long polling) | Test ma'lumotlari (seed)                            |
+| `staging`    | Relizdan oldingi to'liq tekshiruv (prod bilan bir xil konfiguratsiya) | `staging.<domen>`             | `@legendary_staging_bot`            | Test ma'lumotlari + anonimlashtirilgan prod nusxasi |
+| `production` | Haqiqiy ishlash                                                       | `app.<domen>` (yo'llar bilan) | `@legendary_bot` (asosiy)           | Haqiqiy                                             |
 
 - Har muhit uchun **alohida bot token, alohida AWS resurslari, alohida S3 bucket, alohida sirlar**.
+- **Marshrutlash (bitta host, yo'llar bilan — CORS va `SameSite=Strict` cookie oddiy qoladi):** `/api/*` → api · `/bot/webhook` → bot · `/app/*` → miniapp · `/verify/*` va `/` → web. Landing (Faza 4) — apex domen `<domen>`. Staging: `staging.<domen>` xuddi shu yo'llar bilan.
 - Staging'dan prod'ga hech qachon haqiqiy xabar yuborilmaydi (staging bot faqat test foydalanuvchilari allowlist'iga yozadi).
 
 ## 2. AWS arxitekturasi
@@ -95,17 +96,17 @@ Reliz tegi (vX.Y.Z):
 
 ## 5. Backup va tiklash
 
-| Nima                   | Qanday                                               | Qayerga                            | Saqlash muddati                |
-| ---------------------- | ---------------------------------------------------- | ---------------------------------- | ------------------------------ |
-| PostgreSQL (uzluksiz)  | RDS automated backups + PITR                         | AWS ichki                          | 14 kun                         |
-| PostgreSQL (mantiqiy)  | Har kuni 02:00 `pg_dump -Fc` → shifrlangan (age/KMS) | `s3://lg-prod-backups/db/daily/`   | 35 kun → keyin Glacier         |
-| PostgreSQL (oylik)     | Har oy 1-sanasi                                      | `s3://lg-prod-backups/db/monthly/` | 1–3 yil (Glacier Deep Archive) |
-| Fayllar (cheklar, PDF) | S3 versioning + Cross-Region Replication             | boshqa region bucket               | 1 yil eski versiyalar          |
-| Konfiguratsiya         | Terraform kodi git'da; sirlar SSM'da                 | —                                  | —                              |
+| Nima                   | Qanday                                               | Qayerga                            | Saqlash muddati              |
+| ---------------------- | ---------------------------------------------------- | ---------------------------------- | ---------------------------- |
+| PostgreSQL (uzluksiz)  | RDS automated backups + PITR                         | AWS ichki                          | 14 kun                       |
+| PostgreSQL (mantiqiy)  | Har kuni 02:00 `pg_dump -Fc` → shifrlangan (age/KMS) | `s3://lg-prod-backups/db/daily/`   | 35 kun → keyin Glacier       |
+| PostgreSQL (oylik)     | Har oy 1-sanasi                                      | `s3://lg-prod-backups/db/monthly/` | 1 yil (Glacier Deep Archive) |
+| Fayllar (cheklar, PDF) | S3 versioning + Cross-Region Replication             | boshqa region bucket               | 1 yil eski versiyalar        |
+| Konfiguratsiya         | Terraform kodi git'da; sirlar SSM'da                 | —                                  | —                            |
 
 - Backup bucket: **Object Lock (compliance mode)** — hatto admin ham o'chira olmaydi (ransomware'dan himoya), versioning, faqat yozish huquqi bilan alohida IAM rol.
 - **Tiklash sinovi (restore drill):** har oy avtomatik job — oxirgi dump'ni vaqtinchalik Postgres'ga tiklaydi, qatorlar sonini tekshiradi, natijani Telegram'ga (texnik kanal) yuboradi. Muvaffaqiyatsiz bo'lsa — alarm.
-- Runbook: `docs/runbooks/restore.md` (T-INF vazifasida yoziladi).
+- Runbook: `docs/runbooks/restore.md` (T-015 da yoziladi).
 
 ## 6. Monitoring va kuzatuv (observability)
 
@@ -131,6 +132,7 @@ Reliz tegi (vX.Y.Z):
 ## 7. Xavfsizlik (infra)
 
 - Security group: faqat 80/443 ochiq; RDS faqat EC2 SG'dan.
+- **DB rollari (eng kam huquq):** `lg_owner` — jadvallar egasi, faqat migratsiya (deploy paytida); `lg_app` — NOLOGIN guruh roli (migratsiya 0001 yaratadi): CRUD, lekin o'zgarmas jadvallarda UPDATE/DELETE/TRUNCATE yo'q; `lg_api` — LOGIN, `GRANT lg_app TO lg_api` (api, worker shu bilan ulanadi). Lokalda `postgres` superuser — u uchun trigger himoyasi ishlaydi. Rollar T-012 da yaratiladi.
 - IMDSv2 majburiy, EBS shifrlangan, avtomatik OS yangilanishlari (unattended-upgrades) + SSM Patch Manager.
 - Sirlar: SSM Parameter Store (SecureString, KMS). `.env` fayllar git'ga tushmaydi.
 - AWS root akkaunt — MFA, ishlatilmaydi; IAM Identity Center orqali kirish; CloudTrail yoqilgan.

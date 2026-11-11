@@ -11,6 +11,40 @@
 | Q-06 | Texnik mas'ul (review, prod deploy tasdig'i, alertlar) | **Loyiha egasi (Sanjar)**                                                                                                                        |
 | —    | Markaz holati                                          | Hali ochilmagan. Mavjud ma'lumot yo'q (import kerak emas). Dastur to'liq quriladi, keyin **birinchi real ustoz** bilan ishga tushiriladi (T-508) |
 
+## Hujjatlar auditida hal qilingan (2026-11-11)
+
+Ziddiyat yoki noaniqlik topilgan, standart qaror qabul qilinib tegishli hujjatga yozilgan. Egasi boshqacha xohlasa — shu qatorni o'zgartiradi, agent hujjat + kodni moslaydi.
+
+| ID   | Muammo                                                                 | Qaror (qayerda yozilgan)                                                                  |
+| ---- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Q-70 | Director'da `absence.notify` yo'q, Admin'da bor — "to'liq huquq"ga zid | Director ⊇ Admin; Director'ga berildi (02 §2, §4; `roles.ts`)                             |
+| Q-71 | `payments`/`receipts` o'zgarmas, lekin `status` ustuni bor edi         | Holat ustuni yo'q; storno — yangi qator, chek bekor — `receipt_cancellations` (05, BR-19) |
+| Q-72 | "Guruh hisob kuni" (FR-PAY-1) vs kalendar oyi (BR-2)                   | Kalendar oyi; sozlamada faqat to'lov muddati kuni (01, T-115)                             |
+| Q-73 | Darslar 4 hafta oldinga — oy boshidagi invoice uchun yetmaydi          | Gorizont: ≥ 4 hafta va keyingi oy oxirigacha (FR-ORG-5, T-104)                            |
+| Q-74 | Yaxlitlash va proporsiya formulalari aniq emas                         | Yagona `prorate()` (BR-38), BR-3/5/9/25 shu orqali                                        |
+| Q-75 | Ustoz foizi `numeric(5,2)` — pul hisobida kasr                         | `percent_bp int` (bazis punkt) (05)                                                       |
+| Q-76 | Bot domen modullarini import qiladimi yoki HTTP?                       | Ichki HTTP `/internal/*`; modullar faqat `apps/api` (03)                                  |
+| Q-77 | `app.` va `api.` subdomenlar vs yo'l bo'yicha marshrut                 | Bitta host, yo'llar bilan (06 §1)                                                         |
+| Q-78 | Maket (T-017c) formati                                                 | Storybook ekran story'lari + skrinshotlar (09 T-017c)                                     |
+| Q-79 | Fayl yuklash moduli uchun vazifa yo'q edi                              | T-019 qo'shildi                                                                           |
+| Q-80 | Coverage: 90% / 95% / 100% — uch xil                                   | domain ≥ 95%, umumiy ≥ 80% (00, 03, 07)                                                   |
+| Q-81 | Fayl/funksiya hajmi "tavsiya"                                          | ESLint majburlaydi: fayl ≤ 300, funksiya ≤ 60 (07 §2)                                     |
+| Q-82 | Integratsiya testlari: Testcontainers vs compose                       | Haqiqiy Postgres (lokal compose, CI service), har fayl o'z vaqtinchalik bazasi (07 §1)    |
+| Q-83 | Roadmap F1 da "mavjud ma'lumot importi" — 10 ga zid                    | Olib tashlandi (08)                                                                       |
+| Q-84 | Mini App sessiyasi (refresh token WebView'da)                          | initData → 15 daq access token, refresh yo'q (05, T-007)                                  |
+
+## Egasidan kerak bo'ladigan ma'lumotlar (qaror emas — kirish ma'lumotlari)
+
+Agent bular uchun **to'xtamaydi**: env o'zgaruvchi yoki sozlama sifatida yozadi, lokalda soxta qiymat bilan ishlaydi, PR tavsifida "egasidan kerak: X" deb belgilaydi. Kerak bo'ladigan vazifa yonida.
+
+| Nima                                          | Qayerga               | Qachon kerak             |
+| --------------------------------------------- | --------------------- | ------------------------ |
+| Bot tokenlari (dev/staging/prod) — @BotFather | `.env` / SSM          | T-010 (dev), T-014       |
+| AWS akkaunt, domen (Q-02), texnik chat (Q-04) | Terraform var / SSM   | T-012, T-016             |
+| Karta rekvizitlari, markaz nomi, logotip      | Sozlamalar UI (T-115) | Real ishga tushirish     |
+| Sentry/Grafana Cloud akkauntlari              | SSM                   | T-016                    |
+| Chek shabloni uchun rasmiy ma'lumotlar        | Sozlamalar            | T-205 (standart shablon) |
+
 ## A. Infratuzilma
 
 | ID   | Savol                                 | Taklif (standart)                       | Bloklaydi |

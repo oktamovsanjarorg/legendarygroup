@@ -20,7 +20,7 @@
 - **PostgreSQL** (joriy major) — asosiy DB. Pul `bigint`, vaqt `timestamptz`.
 - **Drizzle ORM** + drizzle-kit migratsiyalar — SQL'ga yaqin, tez, tip-xavfsiz; murakkab hisobot so'rovlari uchun qulay.
 - **Zod** — barcha kirish/chiqish validatsiyasi; sxemalar `packages/contracts`da.
-- **API**: REST + OpenAPI (Zod'dan generatsiya) → frontend uchun tip-xavfsiz klient avtomatik generatsiya.
+- **API**: REST + OpenAPI (Zod'dan generatsiya) → frontend uchun tip-xavfsiz klient avtomatik generatsiya. Aniq kutubxonani (Zod→OpenAPI, klient generator) T-004 agenti o'sha paytdagi eng faol barqaror variantdan tanlaydi va ADR yozadi — egasidan so'ralmaydi.
 - **Redis (Valkey)** — kesh, rate limit, sessiya bloklari, navbatlar.
 - **BullMQ** — fon vazifalari: bildirishnomalar, hisobotlar, PDF, Excel import, oylik hisob, invoice generatsiya, backup tekshiruvi.
 - **PDF**: HTML shablon → Chromium (Playwright) worker'da (chek, oylik hisobot). Ko'p chek bo'lsa ham navbat orqali.
@@ -32,7 +32,7 @@
 
 - **grammY** — zamonaviy, TypeScript-first, conversations/menu plaginlari.
 - **Webhook** rejimi (prod/staging), long polling — faqat lokal.
-- Bot "yupqa" qatlam: biznes mantiq yo'q, faqat API servislarini chaqiradi (bir xil domen modullari import qilinadi yoki ichki HTTP).
+- Bot "yupqa" qatlam: biznes mantiq yo'q, DB'ga ulanmaydi. API'ni **ichki HTTP** orqali chaqiradi (`/internal/*`, Docker tarmog'ida, `INTERNAL_API_TOKEN` header) — RBAC, audit va idempotentlik bitta joyda (api) qoladi.
 - Xabar yuborish faqat navbat orqali (rate limit 25 msg/s, 429 da `retry_after`ga rioya).
 
 ### Mini App (`apps/miniapp`)
@@ -59,7 +59,7 @@
 ### Umumiy paketlar (`packages/*`)
 
 - `contracts` — Zod sxemalar, DTO tiplar, enumlar, xato kodlari.
-- `domain` — sof biznes qoidalari (invoice, jarima, oylik hisob) — framework'siz, 100% unit test.
+- `domain` — sof biznes qoidalari (invoice, jarima, oylik hisob, policy'lar, `Clock` interfeysi) — framework'siz, I/O'siz, coverage ≥ 95%.
 - `db` — Drizzle sxema, migratsiyalar, seed.
 - `ui-core` — dizayn tokenlari, ikonlar, formatlash, umumiy hooklar.
 - `ui-tg` — Mini App komponentlari (Telegram native).
@@ -93,7 +93,7 @@ Browser (Web panel) ──► ┌───────────────�
                        PostgreSQL     Redis      S3 (fayllar + backup)
 ```
 
-- `api`, `bot`, `worker` — bitta kod bazasidan (NestJS) turli entrypoint'lar; mustaqil masshtablanadi va qayta ishga tushiriladi.
+- Biznes modullari **faqat** `apps/api/src/modules/*`da. `apps/worker` — yupqa entrypoint: `@lg/api` paketidan `bootstrapWorker()`ni chaqiradi (o'sha modullar, HTTP serversiz). `apps/bot` — grammY, api'ga ichki HTTP. Uchalasi alohida konteyner: mustaqil masshtablanadi va qayta ishga tushiriladi.
 - Cron vazifalari (invoice, eslatma, hisobot) — BullMQ repeatable jobs (bitta joyda, takrorlanmasdan).
 
 ## 4. Backend modullari (bounded contexts)

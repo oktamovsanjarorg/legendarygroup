@@ -1,6 +1,6 @@
 # Legendary Group — O'quv markaz boshqaruv tizimi
 
-> Holat: **Rejalashtirish bosqichi** (2026-11-10). Kod hali yozilmagan.
+> Holat: **F0 — Poydevor** (T-001, T-002, T-003 tayyor). Joriy holat — [09-tasks.md](09-tasks.md).
 > Bu papkadagi hujjatlar — loyihaning yagona haqiqat manbai (single source of truth).
 > Har qanday kod shu hujjatlarga mos yozilishi shart. Qoida o'zgarsa — avval hujjat, keyin kod.
 
@@ -20,6 +20,7 @@
 | 09  | [09-tasks.md](09-tasks.md)                         | Aniq vazifalar ro'yxati (ID, bog'liqlik, qabul mezonlari)                         |
 | 10  | [10-open-questions.md](10-open-questions.md)       | Hali tasdiqlanmagan savollar                                                      |
 | 11  | [11-ux.md](11-ux.md)                               | UI/UX printsiplari, kanallar chegarasi, ekranlar xaritasi, o'lchanadigan mezonlar |
+| 12  | [12-ai-playbook.md](12-ai-playbook.md)             | AI agent ish tartibi: prompt shablonlari, kod tuzilishi, qaror qoidalari          |
 | —   | [../CLAUDE.md](../CLAUDE.md)                       | Kod yozuvchi AI agentlar uchun qat'iy qoidalar                                    |
 | —   | [adr/](adr/)                                       | Arxitektura qarorlari jurnali (ADR)                                               |
 

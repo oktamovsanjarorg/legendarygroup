@@ -5,7 +5,7 @@
 Ruxsat tekshiruvi **uch qatlamli**, har so'rovda uchalasi ham o'tishi shart:
 
 ```
-1. RBAC (permission)   — "bu rol umuman shu amalni qila oladimi?"        → guard: @RequirePermission('payment.confirm')
+1. RBAC (permission)   — "bu rol umuman shu amalni qila oladimi?"        → guard: @RequirePermission('payment.review')
 2. Scope (obyekt)      — "aynan shu obyektga (guruh, o'quvchi) tegishlimi?" → service: scope.assertGroup(user, groupId)
 3. Policy (qoida)      — "hozir, shu holatda ruxsat etiladimi?"            → domain: canEditAttendance(lesson, user, now)
                           (vaqt chegarasi, summa limiti, holat)
@@ -18,12 +18,12 @@ Ruxsat tekshiruvi **uch qatlamli**, har so'rovda uchalasi ham o'tishi shart:
 
 ## 2. Rollar
 
-| Rol      | Kod        | Izoh                                                                                                                                                                                                      |
-| -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Director | `director` | To'liq huquq. Bir nechta bo'lishi mumkin; **oxirgi faol Director'ni o'chirib/bloklab/rolini olib bo'lmaydi**. Birinchi Director — o'rnatishda CLI buyrug'i bilan yaratiladi (`pnpm cli director:create`). |
-| Admin    | `admin`    | Kundalik operatsiyalar. Director qo'shimcha ruxsat bera oladi (faqat §4 dagi "delegatsiya qilinadigan" ro'yxatdan).                                                                                       |
-| Ustoz    | `teacher`  | Guruhdagi o'rni bo'yicha: **asosiy** (`main`) yoki **yordamchi** (`assistant`). Vaqtincha **o'rinbosar** (`substitute`) — faqat o'sha dars uchun.                                                         |
-| Ota-ona  | `guardian` | Faqat o'z farzand(lar)i.                                                                                                                                                                                  |
+| Rol      | Kod        | Izoh                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Director | `director` | To'liq huquq (**Director ⊇ Admin** — Admin qila oladigan hamma narsani Director ham qila oladi). Bir nechta bo'lishi mumkin; **oxirgi faol Director'ni o'chirib/bloklab/rolini olib bo'lmaydi**. Birinchi Director — o'rnatishda CLI buyrug'i bilan yaratiladi (`pnpm cli director:create --phone +998... --name "..."` → 24 soatlik bir martalik sozlash havolasi chiqaradi: parol + TOTP; T-008). |
+| Admin    | `admin`    | Kundalik operatsiyalar. Director qo'shimcha ruxsat bera oladi (faqat §4 dagi "delegatsiya qilinadigan" ro'yxatdan).                                                                                                                                                                                                                                                                                 |
+| Ustoz    | `teacher`  | Guruhdagi o'rni bo'yicha: **asosiy** (`main`) yoki **yordamchi** (`assistant`). Vaqtincha **o'rinbosar** (`substitute`) — faqat o'sha dars uchun.                                                                                                                                                                                                                                                   |
+| Ota-ona  | `guardian` | Faqat o'z farzand(lar)i.                                                                                                                                                                                                                                                                                                                                                                            |
 
 ## 3. Scope (obyekt darajasidagi chegaralar)
 
@@ -49,9 +49,10 @@ Field-level filtr API javobini shakllantirishda (serializer) qo'llanadi — UI'd
 
 ## 4. Ruxsatlar katalogi
 
-Kanonik ro'yxat — `packages/contracts/src/permissions.ts` (bitta joy). Quyidagi jadval undan generatsiya qilinadi va **CI testi shu matritsani avtomatik tekshiradi** (har rol × har ruxsat: kutilgan natija).
+Kanonik manba — `packages/contracts/src/permissions.ts` (katalog) va `packages/contracts/src/roles.ts` (`ROLE_PERMISSIONS` matritsasi, `NON_DELEGABLE_PERMISSIONS`, `DELEGABLE_PERMISSIONS`). `roles.test.ts` shu jadvalni qatorma-qator tekshiradi; seed (`packages/db`) matritsani DB'ga sinxronlaydi. Jadval o'zgarsa — uchala joy bitta PR'da.
 
-Belgilar: ✅ ruxsat · 🔸 scope bilan · 🟡 policy bilan (shart §6) · ⬆️ so'rov orqali (Director tasdig'i) · ❌ yo'q · **D** — Admin'ga delegatsiya qilinadi
+Belgilar: ✅ ruxsat · 🔸 scope bilan · 🟡 policy bilan (shart §6) · ⬆️ so'rov orqali (Director tasdig'i) · ❌ yo'q · — tegishli emas (shaxsiy amal, rolda yo'q) · **D** — standart yo'q, Director `user_permission_overrides` orqali bera oladi.
+RBAC qatlamida ✅/🔸/🟡 = rolda **bor**; ❌/—/D/faqat ⬆️ = rolda **yo'q** (⬆️ — Admin `approval_requests` yaratadi, amalni Director bajaradi).
 
 | Ruxsat kodi              | Tavsif                                             | Director |            Admin             |               Ustoz                |                Ota-ona                 |
 | ------------------------ | -------------------------------------------------- | :------: | :--------------------------: | :--------------------------------: | :------------------------------------: |
@@ -72,7 +73,7 @@ Belgilar: ✅ ruxsat · 🔸 scope bilan · 🟡 policy bilan (shart §6) · ⬆
 | **Davomat va natijalar** |                                                    |          |                              |                                    |
 | `attendance.mark`        | Davomat belgilash                                  |    ✅    |              ✅              |                🔸🟡                |                   ❌                   |
 | `attendance.edit_past`   | O'tgan davomatni o'zgartirish (sabab bilan)        |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| `absence.notify`         | "Kela olmaydi" oldindan xabar                      |    —     |              ✅              |                 ❌                 |                   🔸                   |
+| `absence.notify`         | "Kela olmaydi" oldindan xabar                      |    ✅    |              ✅              |                 ❌                 |                   🔸                   |
 | `grade.write`            | Baho, izoh                                         |    ✅    |              ✅              |                🔸🟡                |                   ❌                   |
 | `test.manage`            | Test yaratish, Excel import, e'lon qilish          |    ✅    |              ✅              |         🔸 (faqat `main`)          |                   ❌                   |
 | `results.view`           | Baho, test natijalari                              |    ✅    |              ✅              |                 🔸                 | 🔸 (faqat `guardian` ko'rinishdagilar) |
@@ -101,6 +102,8 @@ Belgilar: ✅ ruxsat · 🔸 scope bilan · 🟡 policy bilan (shart §6) · ⬆
 
 **Delegatsiya qilinmaydi (hech qachon Admin'ga berilmaydi):** `staff.*`, `settings.manage`, `audit.view`, `payroll.manage`, `approval.decide`, `payment.refund`.
 
+**Override qoidasi (`user_permission_overrides`):** `granted = true` — faqat `DELEGABLE_PERMISSIONS` (`expense.manage`, `finance.view`) va faqat Admin'ga; `granted = false` — rolning istalgan standart ruxsatini shu foydalanuvchidan olib qo'yish (cheklash). O'zgarish → `permissions_version + 1`.
+
 **Yordamchi ustoz (`assistant`):** `attendance.mark`, `grade.write` (izohsiz), `group.view`, `student.view`. `test.manage`, `announcement.send`, izoh yozish — faqat `main` (Q-62).
 
 ## 5. Tasdiqlash so'rovlari (approval requests)
@@ -116,14 +119,14 @@ Oqim: so'rov (sabab majburiy) → Director'ga bot xabari inline tugmalar bilan �
 
 ## 6. Policy qoidalari (vaqt va holatga bog'liq)
 
-| Policy                | Qoida                                                                    | Manba |
-| --------------------- | ------------------------------------------------------------------------ | ----- |
-| `canMarkAttendance`   | Ustoz: dars kuni 00:00 dan 23:59 gacha, dars `cancelled` emas            | BR-30 |
-| `canWriteGrade`       | Ustoz: dars kunidan 3 kun ichida                                         | —     |
-| `canReversePayment`   | Admin: to'lov shu kuni kiritilgan bo'lsa                                 | BR-16 |
-| `canGrantDiscount`    | Admin: `percent ≤ settings.adminDiscountLimit`                           | BR-18 |
-| `canEditPayroll`      | Faqat `DRAFT` holatda                                                    | BR-27 |
-| `canReviewSubmission` | Holat `PENDING_REVIEW` va boshqa Admin hozir ochib turmagan (lock 5 daq) | BR-13 |
+| Policy                | Qoida                                                                                                                                                                                                               | Manba |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| `canMarkAttendance`   | Ustoz: dars kuni 00:00 dan 23:59 gacha, dars `cancelled` emas                                                                                                                                                       | BR-30 |
+| `canWriteGrade`       | Ustoz: dars kunidan 3 kun ichida (dars kuni + 3 kun, 23:59 gacha)                                                                                                                                                   | BR-37 |
+| `canReversePayment`   | Admin: to'lov shu kuni kiritilgan bo'lsa                                                                                                                                                                            | BR-16 |
+| `canGrantDiscount`    | Admin: `percent ≤ settings.adminDiscountLimit`                                                                                                                                                                      | BR-18 |
+| `canEditPayroll`      | Faqat `DRAFT` holatda                                                                                                                                                                                               | BR-27 |
+| `canReviewSubmission` | Holat `pending_review` va boshqa Admin hozir ochib turmagan (yumshoq lock 5 daq: `review_locked_by/until`); qaror `UPDATE ... WHERE status = 'pending_review'` bilan — 0 qator bo'lsa "allaqachon ko'rilgan" xatosi | BR-13 |
 
 Policy'lar `packages/domain/policies`da — sof funksiyalar, har biri unit test bilan.
 

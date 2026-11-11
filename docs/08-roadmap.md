@@ -34,7 +34,6 @@ F0 Poydevor ──► F1 Asosiy jarayon ──► F2 To'lovlar ──► F3 Nati
 - Ota-ona botda ro'yxatdan o'tishi (telefon orqali bog'lanish).
 - Davomat (Mini App, offline), ota-onaga darhol xabar.
 - Bildirishnomalar infratuzilmasi (navbat, shablon, rate limit, outbox).
-- Mavjud ma'lumotlarni import (o'quvchilar ro'yxati Excel'dan).
 
 **Natija:** Markaz guruhlarni va davomatni tizimda yurita oladi.
 
