@@ -7,9 +7,11 @@ import { QueueModule } from './common/queue/queue.module.js';
 import { RateLimitModule } from './common/rate-limit/rate-limit.module.js';
 import { RedisModule } from './common/redis/redis.module.js';
 import { SchedulerModule } from './common/scheduler/scheduler.module.js';
+import { StorageModule } from './common/storage/storage.module.js';
 import { ConfigModule } from './config/config.module.js';
 import type { EnvService } from './config/env.service.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { FilesModule } from './modules/files/files.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { InternalModule } from './modules/internal/internal.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
@@ -38,9 +40,11 @@ export class AppModule {
         OutboxModule,
         AuditModule,
         RateLimitModule,
+        StorageModule,
         IdempotencyModule,
         AuthModule,
         RbacModule, // AuthModule'dan keyin: guard tartibi
+        FilesModule,
         HealthModule,
         InternalModule,
         ...(opts.role === 'worker' ? [WorkerModule] : []),

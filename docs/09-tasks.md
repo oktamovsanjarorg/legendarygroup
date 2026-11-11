@@ -140,10 +140,11 @@
 - **Bog'liq:** T-015
 - **AC:** prod dump → ism, telefon, telegram_id, rasm, izohlar soxtalashtiriladi (deterministik, bog'lanishlar saqlanadi) → staging'ga; haftalik avtomatik; anonimlashtirilmagan ma'lumot staging'ga tushishi CI testida tekshiriladi (namunaviy qatorlar).
 
-### ⬜ T-019 · Fayllar moduli (S3)
+### ✅ T-019 · Fayllar moduli (S3)
 
 - **Bog'liq:** T-004 · **Talablar:** FR-SYS-2, 07-quality-security.md §3 (fayl yuklash)
 - **AC:** `files` moduli: presigned POST (maks. 10 MB, ruxsat etilgan MIME ro'yxati `purpose` bo'yicha), yuklangandan keyin tasdiqlash endpoint'i — magic bytes tekshiruvi, SHA-256, rasm qayta kodlanadi (EXIF olib tashlanadi, `sharp`); presigned GET (5 daq); lokal — MinIO; `files` yozuvi + audit; bot orqali kelgan fayl uchun ichki endpoint (bot Telegram'dan yuklab, shu oqimga beradi). Testlar: noto'g'ri MIME, katta fayl, soxta kengaytma.
+- **Bajarildi (2026-11-11):** maqsadlar `@lg/contracts` `FILE_PURPOSES` (tur, hajm, `upload`/`view` ruxsati); `POST /api/files/uploads` → S3 `tmp/` (presigned POST, hajm/Content-Type S3 shartida) → `…/complete` (`file-type` magic bytes, `sharp` qayta kodlash, EXIF yo'q, SHA-256) → `files/YYYY/MM/<id>.<ext>`; `GET /api/files/:id/url` (5 daq; yuklagan yoki `view` ruxsati, aks holda 404); bot — `POST /internal/files` (octet-stream). Modul scope'i (masalan, ota-ona faqat o'z farzandi cheki) — o'z modulida (T-206).
 
 ---
 

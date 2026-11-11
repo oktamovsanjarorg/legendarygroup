@@ -11,6 +11,12 @@ export const TEST_ENV = {
   TOTP_ENCRYPTION_KEY: '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff',
   CORS_ORIGINS: 'http://localhost:5173',
   LOG_LEVEL: 'silent',
+  S3_ENDPOINT: 'http://localhost:9000',
+  S3_REGION: 'eu-central-1',
+  S3_BUCKET_FILES: 'lg-local-files',
+  S3_ACCESS_KEY_ID: 'minioadmin',
+  S3_SECRET_ACCESS_KEY: 'minioadmin',
+  S3_FORCE_PATH_STYLE: 'true',
 } as const;
 
 export const testEnv = (overrides: Record<string, string> = {}): EnvService =>

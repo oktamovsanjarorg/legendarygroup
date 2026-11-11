@@ -17,6 +17,13 @@ export const envSchema = z.object({
   /** TOTP sirlarini shifrlash (AES-256-GCM): 32 bayt, hex. */
   TOTP_ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/i, '64 belgili hex (32 bayt)'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  /** S3 (prod — AWS, lokal — MinIO). Kalitlar bo'lmasa — SDK standart zanjiri (EC2 IAM roli). */
+  S3_ENDPOINT: z.url().optional(),
+  S3_REGION: z.string().min(1),
+  S3_BUCKET_FILES: z.string().min(3),
+  S3_ACCESS_KEY_ID: z.string().min(1).optional(),
+  S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  S3_FORCE_PATH_STYLE: z.stringbool().default(false),
   /** BullMQ kalitlari prefiksi (testlarda izolyatsiya uchun o'zgartiriladi). */
   QUEUE_PREFIX: z
     .string()

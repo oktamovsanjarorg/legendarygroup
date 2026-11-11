@@ -22,6 +22,17 @@ export async function createApp(
   );
 
   await app.register(fastifyCookie);
+  // Bot fayllari (`/internal/files`) — xom bayt; hajm chegarasi maqsad bo'yicha tekshiriladi.
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .addContentTypeParser(
+      'application/octet-stream',
+      { parseAs: 'buffer', bodyLimit: 11 * 1024 * 1024 },
+      (_req, body, done) => {
+        done(null, body);
+      },
+    );
   app.setGlobalPrefix(API_PREFIX, {
     exclude: [{ path: 'internal/*path', method: RequestMethod.ALL }],
   });

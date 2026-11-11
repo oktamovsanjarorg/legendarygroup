@@ -29,6 +29,11 @@ export const errorMessages = {
   INVALID_INVITE: 'Taklif havolasi yaroqsiz yoki muddati oʻtgan. Yangi havola soʻrang.',
   TELEGRAM_LOGIN_PENDING: 'Telegramdagi tasdiqlash kutilmoqda.',
   ROLE_NOT_ASSIGNED: 'Sizda bu rol yoʻq.',
+  FILE_TYPE_NOT_ALLOWED:
+    'Bu turdagi faylni yuklab boʻlmaydi. Rasm (JPG, PNG, WEBP) yoki PDF tanlang.',
+  FILE_TOO_LARGE: 'Fayl juda katta. Hajmi 10 MB dan oshmasin.',
+  FILE_CONTENT_MISMATCH: 'Fayl mazmuni koʻrsatilgan turga mos emas. Asl faylni yuklang.',
+  UPLOAD_NOT_FOUND: 'Yuklash muddati tugagan. Faylni qayta tanlang.',
   INVALID_INIT_DATA: 'Telegram maʼlumotlari tasdiqlanmadi. Ilovani bot orqali qayta oching.',
   TELEGRAM_NOT_LINKED:
     'Telegram akkauntingiz tizimga bogʻlanmagan. Botda /start bosing va telefon raqamingizni ulashing.',
