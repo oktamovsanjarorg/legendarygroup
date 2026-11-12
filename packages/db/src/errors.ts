@@ -28,3 +28,10 @@ export function isUniqueViolation(err: unknown, constraint?: string): boolean {
   if (pg?.code !== '23505') return false;
   return constraint === undefined || pg.constraint === constraint;
 }
+
+/** `23P01` exclusion_violation (masalan, jadval to'qnashuvi); `constraint` berilsa — faqat shu. */
+export function isExclusionViolation(err: unknown, constraint?: string): boolean {
+  const pg = pgError(err);
+  if (pg?.code !== '23P01') return false;
+  return constraint === undefined || pg.constraint === constraint;
+}

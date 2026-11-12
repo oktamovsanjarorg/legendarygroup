@@ -66,6 +66,8 @@ export const errorMessages = {
   COURSE_ARCHIVED: 'Kurs arxivda. Avval kursni arxivdan chiqaring.',
   ROOM_ARCHIVED: 'Xona arxivda. Boshqa xona tanlang.',
   HAS_ACTIVE_GROUPS: 'Bunga bogʻliq faol guruhlar bor. Avval guruhlarni yakunlang yoki koʻchiring.',
+  GROUP_NAME_TAKEN: 'Bu nomdagi joriy guruh allaqachon bor. Boshqa nom tanlang.',
+  MULTIPLE_MAIN_TEACHERS: 'Guruhda bir vaqtda faqat bitta asosiy ustoz boʻladi.',
   DUPLICATE_TEACHER: 'Bu ustoz guruhga shu davrda allaqachon biriktirilgan.',
   INVALID_DATE_RANGE: 'Sanalar notoʻgʻri: tugash sanasi boshlanishdan oldin boʻlmasin.',
   ARCHIVED_READ_ONLY: 'Arxivdagi yozuvni tahrirlab boʻlmaydi. Avval arxivdan chiqaring.',
