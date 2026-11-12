@@ -19,9 +19,7 @@ export interface StaffUser {
   roles: RoleCode[];
 }
 
-/** Telefonni loglar/audit uchun maskalash: `+99890***4567` (07 §3). */
-export const maskPhone = (phone: string): string =>
-  phone.length > 9 ? `${phone.slice(0, 6)}***${phone.slice(-4)}` : '***';
+export { maskPhone } from '../../common/audit/pii.js';
 
 /** Standart faol rol: Director bo'lsa — Director (eng keng huquq). */
 export const defaultWebRole = (r: readonly RoleCode[]): RoleCode | undefined =>

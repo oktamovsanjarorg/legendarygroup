@@ -13,13 +13,14 @@ import { type AuditContext, AuditService } from '../../common/audit/audit.servic
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
-import { changedFields, COURSE_AUDIT_FIELDS, toCourse } from './org.serializer.js';
+import { changedFields } from '../../common/audit/audit-diff.js';
+import { COURSE_AUDIT_FIELDS, toCourse } from './org.serializer.js';
 import {
   archivedFilter,
   type ArchiveVerb,
   assertArchiveTransition,
   withNameConflict,
-} from './org.shared.js';
+} from '../../common/db/archive.js';
 
 type CreateInput = z.output<typeof CreateCourseRequest>;
 

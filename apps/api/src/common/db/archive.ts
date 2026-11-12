@@ -4,7 +4,7 @@ import { isUniqueViolation } from '@lg/db';
 import type { ErrorCode } from '@lg/i18n';
 import { isNotNull, isNull, type SQL } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
-import { AppException } from '../../common/errors/app.exception.js';
+import { AppException } from '../errors/app.exception.js';
 
 export type ArchiveVerb = 'archive' | 'restore';
 

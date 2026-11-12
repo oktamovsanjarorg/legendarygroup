@@ -8,13 +8,14 @@ import { type AuditContext, AuditService } from '../../common/audit/audit.servic
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
-import { changedFields, ROOM_AUDIT_FIELDS, toRoom } from './org.serializer.js';
+import { changedFields } from '../../common/audit/audit-diff.js';
+import { ROOM_AUDIT_FIELDS, toRoom } from './org.serializer.js';
 import {
   archivedFilter,
   type ArchiveVerb,
   assertArchiveTransition,
   withNameConflict,
-} from './org.shared.js';
+} from '../../common/db/archive.js';
 
 type CreateInput = z.output<typeof CreateRoomRequest>;
 
