@@ -90,5 +90,6 @@ export const SessionInfo = z.object({
 
 export type LoginRequest = z.infer<typeof LoginRequest>;
 export type LoginResult = z.infer<typeof LoginResult>;
+export type TelegramAuthResult = z.infer<typeof TelegramAuthResult>;
 export type AuthUser = z.infer<typeof AuthUser>;
 export type SessionInfo = z.infer<typeof SessionInfo>;

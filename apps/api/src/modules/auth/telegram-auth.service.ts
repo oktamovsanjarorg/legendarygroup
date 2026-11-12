@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { AuthUser, RoleCode } from '@lg/contracts';
+import type { RoleCode, TelegramAuthResult } from '@lg/contracts';
 import { type Database, users } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { eq } from 'drizzle-orm';
@@ -11,10 +11,6 @@ import { EnvService } from '../../config/env.service.js';
 import { StaffUsers, toAuthUser } from './staff-users.js';
 import { verifyInitData } from './telegram-init-data.js';
 import { TokensService } from './tokens.service.js';
-
-export type TelegramAuthResult =
-  | { next: 'done'; accessToken: string; user: AuthUser }
-  | { next: 'choose_role'; roles: RoleCode[] };
 
 /**
  * Mini App kirishi (T-007, FR-AUTH-1/2/5): `initData` (HMAC, ≤ 24 soat) → `telegram_id` →

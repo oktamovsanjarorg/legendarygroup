@@ -164,6 +164,9 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 
 Format: `https://t.me/<bot>/app?startapp=<prefiks>_<id>` (≤ 64 belgi, `[A-Za-z0-9_-]`). Mini App router
 prefiksni ekranga moslaydi; obyektga ruxsat bo'lmasa — "Ruxsat yo'q" holati (11-ux §4.9).
+Link boshqa rol uchun bo'lsa (masalan, Ustoz+Ota-ona `att_` ni Ota-ona rolida ochdi) va foydalanuvchida
+o'sha rol bor — avtomatik shu rolga o'tiladi (tanlov ekranisiz) va rol eslab qolinadi; rol yo'q bo'lsa —
+"Ruxsat yo'q". Ekran hali qurilmagan bo'lsa — bosh sahifa (`apps/miniapp/src/deep-link.ts` `SCREEN_PATHS`).
 
 | Prefiks | Ekran | Kimga          | Manba                           |
 | ------- | ----- | -------------- | ------------------------------- |
