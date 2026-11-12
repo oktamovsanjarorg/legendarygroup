@@ -1,8 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
 import type { SlotInput } from '@lg/contracts';
-import { courses, type CourseRow, groups, rooms, type Transaction } from '@lg/db';
+import { courses, type CourseRow, groups, lessons, rooms, type Transaction } from '@lg/db';
 import { findSlotOverlap } from '@lg/domain';
-import { and, eq, ne } from 'drizzle-orm';
+import { and, eq, gte, ne } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { StaffDirectoryService } from '../rbac/index.js';
@@ -63,4 +63,20 @@ export async function assertNoCurrentGroups(
     .where(and(eq(column, id), ne(groups.status, 'finished')))
     .limit(1);
   if (g) throw new AppException(HttpStatus.CONFLICT, 'HAS_ACTIVE_GROUPS');
+}
+
+/** Q-66 (T-104): kelajakdagi (bekor qilinmagan) darsi bor xona arxivlanmaydi. */
+export async function assertNoFutureLessons(
+  tx: Transaction,
+  roomId: string,
+  today: string,
+): Promise<void> {
+  const [l] = await tx
+    .select({ id: lessons.id })
+    .from(lessons)
+    .where(
+      and(eq(lessons.roomId, roomId), gte(lessons.date, today), ne(lessons.status, 'cancelled')),
+    )
+    .limit(1);
+  if (l) throw new AppException(HttpStatus.CONFLICT, 'HAS_ACTIVE_GROUPS');
 }

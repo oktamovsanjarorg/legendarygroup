@@ -10,7 +10,7 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { changedFields } from '../../common/audit/audit-diff.js';
 import { ROOM_AUDIT_FIELDS, toRoom } from './org.serializer.js';
-import { assertNoCurrentGroups } from './group-validation.js';
+import { assertNoCurrentGroups, assertNoFutureLessons } from './group-validation.js';
 import {
   archivedFilter,
   type ArchiveVerb,
@@ -79,7 +79,10 @@ export class RoomsService {
       this.db.transaction(async (tx) => {
         const current = await this.lock(tx, id);
         assertArchiveTransition(current.archivedAt, verb);
-        if (verb === 'archive') await assertNoCurrentGroups(tx, groups.roomId, id);
+        if (verb === 'archive') {
+          await assertNoCurrentGroups(tx, groups.roomId, id);
+          await assertNoFutureLessons(tx, id, this.clock.today());
+        }
         const archivedAt = verb === 'archive' ? this.clock.now() : null;
         const [row] = await tx
           .update(rooms)

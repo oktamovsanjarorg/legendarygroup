@@ -7,7 +7,7 @@ import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
-import { GroupScopeService, GroupsQueryService } from '../org/index.js';
+import { GroupScopeService, GroupsQueryService, LessonsQueryService } from '../org/index.js';
 import { freezeSpan, toEnrollment } from './enrollments.serializer.js';
 import { StudentScopeService } from './student-scope.service.js';
 
@@ -20,6 +20,7 @@ export class EnrollmentsQueryService {
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(GroupScopeService) private readonly groupScope: GroupScopeService,
     @Inject(GroupsQueryService) private readonly groups: GroupsQueryService,
+    @Inject(LessonsQueryService) private readonly lessons: LessonsQueryService,
   ) {}
 
   /** O'quvchining barcha guruhlari (tarix bilan; FR-STU-3). Scope — o'quvchi bo'yicha. */
@@ -46,9 +47,18 @@ export class EnrollmentsQueryService {
   /** Guruh ro'yxati sanada: faqat o'sha kuni yozilganlar (BR-32). Ustozga — o'z guruhi. */
   async roster(user: RequestUser, groupId: string, date?: string): Promise<RosterResult> {
     await this.groupScope.assertVisible(user, groupId);
+    return this.rosterOn(groupId, date ?? this.clock.today());
+  }
+
+  /** Dars ro'yxati — dars sanasida (o'rinbosar ham ko'radi, 02 §3: dars kuni tugaguncha). */
+  async forLesson(user: RequestUser, lessonId: string): Promise<RosterResult> {
+    const lesson = await this.lessons.assertVisible(user, lessonId);
+    return this.rosterOn(lesson.groupId, lesson.date);
+  }
+
+  private async rosterOn(groupId: string, day: string): Promise<RosterResult> {
     const group = await this.groups.info(this.db, groupId);
     if (!group) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
-    const day = date ?? this.clock.today();
     const rows = await this.db
       .select({ e: enrollments, code: students.code, fullName: students.fullName })
       .from(enrollments)

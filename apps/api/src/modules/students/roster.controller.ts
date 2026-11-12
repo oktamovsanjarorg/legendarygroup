@@ -7,7 +7,7 @@ import { ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { EnrollmentsQueryService } from './enrollments-query.service.js';
 
-/** Enrollment'larni o'qish (T-106): o'quvchi tarixi va guruh ro'yxati. */
+/** Enrollment'larni o'qish (T-106): o'quvchi tarixi, guruh va dars ro'yxati (T-104). */
 @ApiTags('Enrollments')
 @ApiBearerAuth()
 @Controller()
@@ -33,5 +33,15 @@ export class RosterController {
     @CurrentUser() user: RequestUser,
   ): Promise<RosterResult> {
     return this.query.roster(user, id, q.date);
+  }
+
+  @Get('lessons/:id/students')
+  @RequirePermission('group.view')
+  @ApiOperation({ summary: "Dars ro'yxati (dars sanasida); o'rinbosar — faqat o'z darsi" })
+  forLesson(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<RosterResult> {
+    return this.query.forLesson(user, id);
   }
 }
