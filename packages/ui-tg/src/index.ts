@@ -1,2 +1,7 @@
-// Telegram UI package (native controls)
-export const UI_TG_VERSION = '0.1.0';
+// UI Telegram: Mini App komponentlari va native boshqaruvlar (11-ux §3–4)
+export * from './controls.js';
+export * from './provider.js';
+export * from './states.js';
+export * from './tab-bar.js';
+export * from './telegram.js';
+export * from './theme.js';
