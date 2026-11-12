@@ -3,9 +3,14 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from './button.js';
 import { Field } from './field.js';
-import { ErrorState, ForbiddenState, LoadingState } from './states.js';
+import { EmptyState, ErrorState, ForbiddenState, LoadingState } from './states.js';
 
 describe('ui-web: holatlar va asosiy komponentlar', () => {
+  it('EmptyState — sarlavha va hint', () => {
+    render(<EmptyState title="Bo'sh" hint="Ma'lumot yo'q" />);
+    expect(screen.getByText("Bo'sh")).toBeTruthy();
+    expect(screen.getByText("Ma'lumot yo'q")).toBeTruthy();
+  });
   it('ErrorState — matn, qayta urinish, requestId', () => {
     const retry = vi.fn();
     render(<ErrorState message="Xato" requestId="req-1" onRetry={retry} />);
