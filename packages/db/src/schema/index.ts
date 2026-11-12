@@ -7,4 +7,5 @@ export * from './auth.js';
 export * from './system.js';
 export * from './org.js';
 export * from './students.js';
+export * from './groups.js';
 export * from './relations.js';

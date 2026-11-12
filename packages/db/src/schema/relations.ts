@@ -6,6 +6,7 @@ import { auditLogs } from './audit.js';
 import { files, idempotencyKeys, settings } from './system.js';
 import { branches, courses, rooms } from './org.js';
 import { guardians, studentGuardians, students } from './students.js';
+import { groups, groupTeachers, scheduleOccupancy, scheduleSlots } from './groups.js';
 
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
@@ -15,6 +16,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   updatedSettings: many(settings),
   idempotencyKeys: many(idempotencyKeys),
   guardians: many(guardians),
+  groupAssignments: many(groupTeachers),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
@@ -89,14 +91,17 @@ export const branchesRelations = relations(branches, ({ many }) => ({
   rooms: many(rooms),
   students: many(students),
   guardians: many(guardians),
+  groups: many(groups),
 }));
 
-export const coursesRelations = relations(courses, ({ one }) => ({
+export const coursesRelations = relations(courses, ({ one, many }) => ({
   branch: one(branches, { fields: [courses.branchId], references: [branches.id] }),
+  groups: many(groups),
 }));
 
-export const roomsRelations = relations(rooms, ({ one }) => ({
+export const roomsRelations = relations(rooms, ({ one, many }) => ({
   branch: one(branches, { fields: [rooms.branchId], references: [branches.id] }),
+  groups: many(groups),
 }));
 
 export const studentsRelations = relations(students, ({ one, many }) => ({
@@ -113,4 +118,28 @@ export const guardiansRelations = relations(guardians, ({ one, many }) => ({
 export const studentGuardiansRelations = relations(studentGuardians, ({ one }) => ({
   student: one(students, { fields: [studentGuardians.studentId], references: [students.id] }),
   guardian: one(guardians, { fields: [studentGuardians.guardianId], references: [guardians.id] }),
+}));
+
+export const groupsRelations = relations(groups, ({ one, many }) => ({
+  branch: one(branches, { fields: [groups.branchId], references: [branches.id] }),
+  course: one(courses, { fields: [groups.courseId], references: [courses.id] }),
+  room: one(rooms, { fields: [groups.roomId], references: [rooms.id] }),
+  teachers: many(groupTeachers),
+  slots: many(scheduleSlots),
+  occupancy: many(scheduleOccupancy),
+}));
+
+export const groupTeachersRelations = relations(groupTeachers, ({ one }) => ({
+  group: one(groups, { fields: [groupTeachers.groupId], references: [groups.id] }),
+  teacher: one(users, { fields: [groupTeachers.teacherId], references: [users.id] }),
+}));
+
+export const scheduleSlotsRelations = relations(scheduleSlots, ({ one, many }) => ({
+  group: one(groups, { fields: [scheduleSlots.groupId], references: [groups.id] }),
+  occupancy: many(scheduleOccupancy),
+}));
+
+export const scheduleOccupancyRelations = relations(scheduleOccupancy, ({ one }) => ({
+  group: one(groups, { fields: [scheduleOccupancy.groupId], references: [groups.id] }),
+  slot: one(scheduleSlots, { fields: [scheduleOccupancy.slotId], references: [scheduleSlots.id] }),
 }));
