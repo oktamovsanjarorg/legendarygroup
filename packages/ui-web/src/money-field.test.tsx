@@ -15,10 +15,10 @@ describe('MoneyField (CLAUDE.md "Pul")', () => {
   it('raqamlar → bigint, U+00A0 bilan guruhlanadi; harf va 0 — rad', () => {
     const spy = vi.fn();
     render(<Harness spy={spy} />);
-    const input = screen.getByLabelText('Summa') as HTMLInputElement;
+    const input = screen.getByLabelText('Summa');
     fireEvent.change(input, { target: { value: '1300000' } });
     expect(spy).toHaveBeenLastCalledWith(1_300_000n);
-    expect(input.value).toBe(`1${NBSP}300${NBSP}000`);
+    expect(input).toHaveProperty('value', `1${NBSP}300${NBSP}000`);
     fireEvent.change(input, { target: { value: 'x0' } });
     expect(spy).toHaveBeenLastCalledWith(null);
   });

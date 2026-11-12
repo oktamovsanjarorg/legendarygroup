@@ -54,8 +54,10 @@ describe('FilePicker (MG-06, design-system §3)', () => {
 
     expect(screen.getByText('chek.jpg')).toBeTruthy();
     expect(screen.getByText('Almashtirish')).toBeTruthy();
-    const img = screen.getByAltText('chek.jpg') as HTMLImageElement;
-    expect(img.src).toBe('https://example.com/receipt.jpg');
+    expect(screen.getByAltText('chek.jpg')).toHaveProperty(
+      'src',
+      'https://example.com/receipt.jpg',
+    );
 
     fireEvent.click(screen.getByRole('button'));
     expect(onPick).toHaveBeenCalledOnce();

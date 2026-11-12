@@ -62,7 +62,8 @@ describe('Drawer (design-system §4)', () => {
     expect(onClose).not.toHaveBeenCalled();
 
     // Fon bosilganda yopilishi kerak
-    const backdrop = container.firstChild as HTMLElement;
+    const backdrop = container.firstElementChild;
+    if (!backdrop) throw new Error('fon chizilmadi');
     fireEvent.click(backdrop);
     expect(onClose).toHaveBeenCalledOnce();
   });

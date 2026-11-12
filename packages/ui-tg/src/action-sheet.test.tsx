@@ -53,7 +53,8 @@ describe('ActionSheet (11-ux §4.5)', () => {
       <ActionSheet open actions={[]} cancelLabel="Bekor qilish" onClose={onClose} />,
     );
 
-    const backdrop = container.firstChild as HTMLElement;
+    const backdrop = container.firstElementChild;
+    if (!backdrop) throw new Error('fon chizilmadi');
     fireEvent.click(backdrop);
     expect(onClose).toHaveBeenCalledOnce();
   });

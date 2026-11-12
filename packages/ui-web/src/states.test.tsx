@@ -28,8 +28,8 @@ describe('ui-web: holatlar va asosiy komponentlar', () => {
         Saqlash
       </Button>,
     );
-    const btn = screen.getByRole('button', { name: 'Saqlash' }) as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
+    const btn = screen.getByRole('button', { name: 'Saqlash' });
+    expect(btn).toHaveProperty('disabled', true);
     expect(btn.getAttribute('aria-busy')).toBe('true');
   });
 

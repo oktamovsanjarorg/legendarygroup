@@ -24,10 +24,10 @@ describe('MoneyInput (CLAUDE.md "Pul": faqat bigint)', () => {
   it("raqamlar bigint'ga, ko'rinishi U+00A0 bilan guruhlanadi", () => {
     const spy = vi.fn();
     render(<Harness spy={spy} />);
-    const input = screen.getByLabelText('Summa') as HTMLInputElement;
+    const input = screen.getByLabelText('Summa');
     fireEvent.change(input, { target: { value: '1250000' } });
     expect(spy).toHaveBeenLastCalledWith(1_250_000n);
-    expect(input.value).toBe(`1${NBSP}250${NBSP}000`);
+    expect(input).toHaveProperty('value', `1${NBSP}250${NBSP}000`);
   });
 
   it("harf/belgi tashlanadi; 0 yoki bo'sh — null", () => {
