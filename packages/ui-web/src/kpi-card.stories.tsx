@@ -1,3 +1,4 @@
+import { formatMoney } from '@lg/i18n';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { KpiCard } from './kpi-card.js';
 
@@ -13,7 +14,7 @@ export const DeltaUpGood: Story = {
     <div className="max-w-xs p-4">
       <KpiCard
         label="Oylik tushum"
-        value="78 650 000 soʻm"
+        value={formatMoney(78_650_000n)}
         delta={{ text: '+12% oʻtgan oyga nisbatan', up: true, good: true }}
       />
     </div>
@@ -37,7 +38,7 @@ export const DeltaUpBad: Story = {
     <div className="max-w-xs p-4">
       <KpiCard
         label="Umumiy qarz"
-        value="8 400 000 soʻm"
+        value={formatMoney(8_400_000n)}
         tone="danger"
         delta={{ text: '+15% oshdi', up: true, good: false }}
       />
@@ -63,7 +64,7 @@ export const DashboardGrid: Story = {
     <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
       <KpiCard
         label="Oylik tushum"
-        value="78 650 000 soʻm"
+        value={formatMoney(78_650_000n)}
         delta={{ text: '+8% oʻtgan oy', up: true, good: true }}
         onClick={() => undefined}
       />
@@ -75,13 +76,13 @@ export const DashboardGrid: Story = {
       />
       <KpiCard
         label="Davomat koʻrsatkichi"
-        value="94.2%"
+        value="94,2%"
         delta={{ text: '+1.5% oʻsish', up: true, good: true }}
         onClick={() => undefined}
       />
       <KpiCard
         label="Umumiy qarzdorlik"
-        value="3 200 000 soʻm"
+        value={formatMoney(3_200_000n)}
         tone="danger"
         delta={{ text: '+500 000 soʻm', up: true, good: false }}
         onClick={() => undefined}

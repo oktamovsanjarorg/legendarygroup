@@ -1,3 +1,4 @@
+import { formatMoney } from '@lg/i18n';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from './button.js';
@@ -8,7 +9,7 @@ interface StudentRow {
   name: string;
   course: string;
   attendance: string;
-  balance: string;
+  balance: bigint;
 }
 
 const COLUMNS: ColumnDef<StudentRow, unknown>[] = [
@@ -27,6 +28,7 @@ const COLUMNS: ColumnDef<StudentRow, unknown>[] = [
   {
     accessorKey: 'balance',
     header: 'Balans',
+    cell: ({ row }) => formatMoney(row.original.balance),
   },
 ];
 
@@ -36,28 +38,28 @@ const MOCK_DATA: readonly StudentRow[] = [
     name: 'Ali Valiyev',
     course: 'Ingliz tili (IELTS)',
     attendance: '96%',
-    balance: '650 000 soʻm',
+    balance: 650_000n,
   },
   {
     id: '2',
     name: 'Zuhra Karimova',
     course: 'Matematika',
     attendance: '92%',
-    balance: '0 soʻm',
+    balance: 0n,
   },
   {
     id: '3',
     name: 'Sardor Rahimov',
     course: 'Ingliz tili (IELTS)',
     attendance: '88%',
-    balance: '-350 000 soʻm',
+    balance: -350_000n,
   },
   {
     id: '4',
     name: 'Fotima Yusupova',
     course: 'Matematika',
     attendance: '100%',
-    balance: '550 000 soʻm',
+    balance: 550_000n,
   },
 ];
 

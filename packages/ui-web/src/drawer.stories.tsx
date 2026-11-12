@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from './button.js';
 import { Drawer } from './drawer.js';
 import { Field } from './field.js';
+import { MoneyField } from './money-field.js';
 
 const meta = {
   title: 'ui-web/Drawer',
@@ -23,8 +24,9 @@ export const Open: Story = {
   ),
 };
 
-export const WithFooter: Story = {
-  render: () => (
+function PaymentDrawer() {
+  const [amount, setAmount] = useState<bigint | null>(650_000n);
+  return (
     <Drawer
       open
       title="Toʻlov qabul qilish"
@@ -40,13 +42,15 @@ export const WithFooter: Story = {
       }
     >
       <div className="flex flex-col gap-4 py-2">
-        <Field label="Oʻquvchi" defaultValue="Ali Valiyev (ST-1002)" disabled />
-        <Field label="Summa (soʻm)" defaultValue="650 000" />
+        <Field label="Oʻquvchi" defaultValue="Ali Valiyev (LG-10002)" disabled />
+        <MoneyField label="Summa" value={amount} onChange={setAmount} />
         <Field label="Izoh" placeholder="Toʻlov haqida qoʻshimcha maʼlumot" />
       </div>
     </Drawer>
-  ),
-};
+  );
+}
+
+export const WithFooter: Story = { render: () => <PaymentDrawer /> };
 
 function InteractiveDemo() {
   const [open, setOpen] = useState(false);
