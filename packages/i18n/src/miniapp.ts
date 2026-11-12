@@ -1,3 +1,4 @@
+import { guardianMessages } from './miniapp-guardian.js';
 import { teacherMessages } from './miniapp-teacher.js';
 import { webMessages } from './web.js';
 
@@ -33,6 +34,7 @@ export const miniappMessages = {
     profile: 'Profil',
   },
   ...teacherMessages,
+  ...guardianMessages,
   feedback: {
     title: 'Taklif yoki xato haqida',
     hint: 'Nima yaxshi ishlamayapti yoki nimani yaxshilash kerak? Biz har bir xabarni oʻqiymiz.',

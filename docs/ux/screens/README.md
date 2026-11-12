@@ -13,14 +13,14 @@ mock ma'lumot bilan) + shu papkadagi skrinshotlar. Maket kodi haqiqiy ekranda qa
 
 ## Qabul holati
 
-| Qism | Ekranlar                                                  | Papka                                 | Holat                   |
-| ---- | --------------------------------------------------------- | ------------------------------------- | ----------------------- |
-| 1    | MT-01 Bugun, MT-02 Davomat, MT-03 Offline, MT-04/05 Guruh | `miniapp/ustoz-*`                     | ⏳ egasi ko'rib chiqadi |
-| 1    | C-01…C-04 (kirish, rol tanlash, bog'lanmagan, sozlamalar) | haqiqiy ekran — T-009, `apps/miniapp` | ✅ qurilgan             |
-| 2    | MT-06…MT-11, C-05                                         | —                                     | ⬜                      |
-| 3    | MG-01…MG-10 (Ota-ona)                                     | —                                     | ⬜                      |
-| 4    | MS-01…MS-05 (xodim rejimi)                                | —                                     | ⬜                      |
-| 5–6  | W-01…W-35 (web panel; 1280/1440 px)                       | —                                     | ⬜                      |
+| Qism | Ekranlar                                                                                 | Papka                                 | Holat                   |
+| ---- | ---------------------------------------------------------------------------------------- | ------------------------------------- | ----------------------- |
+| 1    | MT-01 Bugun, MT-02 Davomat, MT-03 Offline, MT-04/05 Guruh                                | `miniapp/ustoz-*`                     | ⏳ egasi ko'rib chiqadi |
+| 1    | C-01…C-04 (kirish, rol tanlash, bog'lanmagan, sozlamalar)                                | haqiqiy ekran — T-009, `apps/miniapp` | ✅ qurilgan             |
+| 2    | MT-06…MT-11, C-05                                                                        | —                                     | ⬜                      |
+| 3    | MG-01 Asosiy, MG-02…04 Natijalar/test/hisobot, MG-05…07 Toʻlovlar/chek, MG-08…11 Koʻproq | `miniapp/ota-ona-*`                   | ⏳ egasi ko'rib chiqadi |
+| 4    | MS-01…MS-05 (xodim rejimi)                                                               | —                                     | ⬜                      |
+| 5–6  | W-01…W-35 (web panel; 1280/1440 px)                                                      | —                                     | ⬜                      |
 
 ## O'lchanadigan mezonlar (11-ux §5)
 

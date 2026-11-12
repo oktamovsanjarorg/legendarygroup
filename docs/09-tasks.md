@@ -143,6 +143,7 @@
 - **Qismlarga bo'lindi** (har UI vazifasidan oldin tegishli qism tayyor bo'lishi kifoya): 1 — Ustoz asosiy (MT-01…05), 2 — Ustoz qolgan + C-05, 3 — Ota-ona, 4 — xodim rejimi, 5–6 — web. Holat: [docs/ux/screens/README.md](ux/screens/README.md).
 - **1-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** `ui-tg`: `Section`/`ListItem`, `StatusChip`, `AttendanceRow` (teginish/uzoq bosish), `ActionSheet`; `apps/miniapp/src/screens/teacher` — MT-01…05 ko'rinishlari (props bilan, API'siz) + davomat mantiqi (`attendance-marks.ts`, testlar); `pnpm -F @lg/storybook screenshots` — Playwright, 57 skrinshot.
 - **2-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** MT-06 (davomat kalendari, baholar, izoh — ota-onaga/ichki), MT-07/08 (testlar, BR-35 import ko'rib chiqish), MT-09 (hafta qatori, o'rinbosar), MT-10 (qoralama, oldindan ko'rish, tasdiqlash), MT-11 (oylar, tafsilot — Q-33), C-05. `ui-tg`: `MoneyText`, `TextArea`, `Segmented`, `DayStrip`, `AttendanceCalendar`. Jami 72 story, 137 skrinshot.
+- **3-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** MG-01…MG-10 + MG-11 "Ko'proq" (screens.md'ga qo'shildi; MG-01 havolasi MG-07 → MG-06 tuzatildi). `ui-tg`: `ChildSwitcher`, `MoneyInput` (bigint, U+00A0), `CopyField`, `FilePicker` (4 holat), `ProgressChart` (vergulli o'nlik). Storybook ramkasi: MainButton webview tashqarisida (haqiqiy Telegram kabi). Jami 113 story, 228 skrinshot.
 
 ### ⬜ T-018 · Staging uchun anonimlashtirish
 

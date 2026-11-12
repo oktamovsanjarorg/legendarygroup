@@ -3,7 +3,9 @@
  * Ming ajratuvchi — U+00A0 (qator bo'linmasin), "soʻm" — U+02BB bilan.
  */
 export const NBSP = ' ';
-const SOM = 'soʻm';
+/** Valyuta yorlig'i (formatMoney va summa maydonlari uchun yagona manba). */
+export const CURRENCY = 'soʻm';
+const SOM = CURRENCY;
 
 /** `1250000n` → `1 250 000 soʻm`; manfiy — `−1 250 000 soʻm` (U+2212). */
 export function formatMoney(amount: bigint, opts: { withCurrency?: boolean } = {}): string {

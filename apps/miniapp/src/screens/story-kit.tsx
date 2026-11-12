@@ -7,7 +7,16 @@ import {
   TabBar,
   type TabItem,
 } from '@lg/ui-tg';
-import { CalendarCheck, CalendarDays, UserRound, Users } from 'lucide-react';
+import {
+  BarChart3,
+  CalendarCheck,
+  CalendarDays,
+  Ellipsis,
+  House,
+  UserRound,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 
 /**
@@ -21,12 +30,27 @@ export const TEACHER_TABS: TabItem[] = [
   { screen: 'MT-11', to: '/profile', label: t.tabs.profile, icon: UserRound },
 ];
 
-/** Tab ildiz ekrani: pastda Ustoz menyusi. */
-export function TabRoot({ active, children }: { active: string; children: ReactNode }) {
+export const GUARDIAN_TABS: TabItem[] = [
+  { screen: 'MG-01', to: '/', label: t.gtabs.home, icon: House },
+  { screen: 'MG-02', to: '/results', label: t.gtabs.results, icon: BarChart3 },
+  { screen: 'MG-05', to: '/payments', label: t.gtabs.payments, icon: Wallet },
+  { screen: 'MG-11', to: '/more', label: t.gtabs.more, icon: Ellipsis },
+];
+
+/** Tab ildiz ekrani: pastda rol menyusi (standart — Ustoz). */
+export function TabRoot({
+  active,
+  tabs = TEACHER_TABS,
+  children,
+}: {
+  active: string;
+  tabs?: TabItem[];
+  children: ReactNode;
+}) {
   return (
     <div className="pb-20">
       {children}
-      <TabBar items={TEACHER_TABS} active={active} onSelect={() => undefined} />
+      <TabBar items={tabs} active={active} onSelect={() => undefined} />
     </div>
   );
 }

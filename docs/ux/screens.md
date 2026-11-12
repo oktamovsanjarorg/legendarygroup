@@ -59,7 +59,7 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 
 | ID    | Ekran         | Maqsad                                 | Ma'lumotlar                                                      | Amallar                                          | Ruxsat            |
 | ----- | ------------- | -------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------ | ----------------- |
-| MG-01 | Asosiy        | Farzand holati bir qarashda            | farzand almashtirgich, bugun keldi/kelmadi, keyingi dars, balans | "To'lash" (qarz bo'lsa) → MG-07                  | student.view 🔸   |
+| MG-01 | Asosiy        | Farzand holati bir qarashda            | farzand almashtirgich, bugun keldi/kelmadi, keyingi dars, balans | "To'lash" (qarz bo'lsa) → MG-06                  | student.view 🔸   |
 | MG-02 | Natijalar     | Davomat, baho, izoh, test (FR-GRD-5)   | davomat kalendari, baholar, `guardian` izohlar, testlar, grafik  | test → MG-03                                     | results.view 🔸   |
 | MG-03 | Test natijasi | Bitta test (Q-42: o'rin yo'q)          | ball, bo'limlar, guruh o'rtachasi                                | —                                                | results.view 🔸   |
 | MG-04 | Hisobot       | Haftalik/oylik hisobot (FR-RPT-2/3)    | davr, davomat x/y, o'rtacha baho, izohlar, PDF                   | PDF yuklab olish                                 | results.view 🔸   |
@@ -69,6 +69,7 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 | MG-08 | Kela olmaydi  | Oldindan sababli xabar (FR-ATT-7)      | farzand, sana, sabab                                             | **Yuborish**                                     | absence.notify 🔸 |
 | MG-09 | Murojaat      | Savol → ticket (FR-RPT-7)              | murojaatlar va javoblar                                          | **Yuborish**                                     | ticket.create     |
 | MG-10 | Jadval        | Farzand jadvali                        | haftalik darslar                                                 | —                                                | student.view 🔸   |
+| MG-11 | Ko'proq       | 4-tab menyusi (11-ux §2)               | MG-08, MG-09, MG-10, C-04, C-05 havolalari                       | —                                                | auth              |
 
 ### 1.4 Xodim rejimi (MS) — Bugun · Navbat · So'rovlar (Director) · Qidiruv
 
