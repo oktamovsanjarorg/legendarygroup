@@ -113,6 +113,20 @@
       "when": 1794497427144,
       "tag": "0015_enrollment_exclusion",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794501843296,
+      "tag": "0016_lessons_holidays",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794501843832,
+      "tag": "0017_lessons_exclusion",
+      "breakpoints": true
     }
   ]
 }

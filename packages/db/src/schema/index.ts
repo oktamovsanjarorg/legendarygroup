@@ -9,4 +9,5 @@ export * from './org.js';
 export * from './students.js';
 export * from './groups.js';
 export * from './enrollments.js';
+export * from './lessons.js';
 export * from './relations.js';
