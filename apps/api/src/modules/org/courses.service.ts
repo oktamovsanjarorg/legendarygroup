@@ -7,7 +7,7 @@ import type {
 } from '@lg/contracts';
 import { courses, type CourseRow, type Database, groups, type Transaction } from '@lg/db';
 import type { Clock } from '@lg/domain';
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, inArray } from 'drizzle-orm';
 import type { z } from 'zod';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
@@ -49,6 +49,25 @@ export class CoursesService {
     const [row] = await this.db.select().from(courses).where(eq(courses.id, id));
     if (!row) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     return toCourse(row);
+  }
+
+  /** Boshqa modullar uchun: id → nom (arxivdagi ham). */
+  async namesOf(ids: readonly string[]): Promise<Map<string, string>> {
+    if (ids.length === 0) return new Map();
+    const rows = await this.db
+      .select({ id: courses.id, name: courses.name })
+      .from(courses)
+      .where(inArray(courses.id, [...new Set(ids)]));
+    return new Map(rows.map((r) => [r.id, r.name]));
+  }
+
+  /** Mavjud va arxivda emas (yangi lid/guruh uchun). */
+  async isActive(id: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ archivedAt: courses.archivedAt })
+      .from(courses)
+      .where(eq(courses.id, id));
+    return row !== undefined && row.archivedAt === null;
   }
 
   async create(ctx: AuditContext, input: CreateInput): Promise<Course> {

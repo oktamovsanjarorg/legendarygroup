@@ -38,9 +38,10 @@ export class EnrollmentsService {
     @Inject(GroupsQueryService) private readonly groups: GroupsQueryService,
   ) {}
 
-  async enroll(ctx: AuditContext, input: EnrollInput): Promise<EnrollmentDto> {
+  /** `outer` — chaqiruvchi tranzaksiyasi ichida (savepoint), masalan lidni aylantirish (T-107). */
+  async enroll(ctx: AuditContext, input: EnrollInput, outer?: Transaction): Promise<EnrollmentDto> {
     return this.mapOverlap(() =>
-      this.db.transaction(async (tx) => {
+      (outer ?? this.db).transaction(async (tx) => {
         const { row, groupName } = await this.insert(tx, input);
         await this.audit.record(
           ctx,

@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { RoleCode } from '@lg/contracts';
 import { type Database, roles, type Transaction, userRoles, users } from '@lg/db';
 import { and, eq, inArray } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
@@ -21,13 +22,27 @@ export class StaffDirectoryService {
   }
 
   /** Faol (bloklanmagan) va `teacher` roli bor. */
-  async isActiveTeacher(userId: string, tx: Database | Transaction = this.db): Promise<boolean> {
+  isActiveTeacher(userId: string, tx: Database | Transaction = this.db): Promise<boolean> {
+    return this.hasActiveRole(userId, ['teacher'], tx);
+  }
+
+  /** Faol Admin yoki Director (masalan, lidga mas'ul — T-107). */
+  isActiveManager(userId: string, tx: Database | Transaction = this.db): Promise<boolean> {
+    return this.hasActiveRole(userId, ['admin', 'director'], tx);
+  }
+
+  private async hasActiveRole(
+    userId: string,
+    codes: readonly RoleCode[],
+    tx: Database | Transaction,
+  ): Promise<boolean> {
     const [row] = await tx
       .select({ id: users.id })
       .from(users)
       .innerJoin(userRoles, eq(userRoles.userId, users.id))
       .innerJoin(roles, eq(roles.id, userRoles.roleId))
-      .where(and(eq(users.id, userId), eq(users.status, 'active'), eq(roles.code, 'teacher')));
+      .where(and(eq(users.id, userId), eq(users.status, 'active'), inArray(roles.code, [...codes])))
+      .limit(1);
     return Boolean(row);
   }
 }

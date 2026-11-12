@@ -36,13 +36,14 @@ export class StudentsService {
     @Inject(StudentsQueryService) private readonly query: StudentsQueryService,
   ) {}
 
-  async create(ctx: AuditContext, input: CreateInput): Promise<StudentDetail> {
+  /** `outer` — chaqiruvchi tranzaksiyasi ichida (savepoint), masalan lidni aylantirish (T-107). */
+  async create(ctx: AuditContext, input: CreateInput, outer?: Transaction): Promise<StudentDetail> {
     const { guardians: guardianInputs, allowDuplicate, ...fields } = input;
     assertUniquePhones(guardianInputs);
     const links = normalizePrimary(guardianInputs);
     if (fields.photoFileId) await this.assertPhoto(fields.photoFileId);
     const searchName = normalizeUz(fields.fullName);
-    return this.db.transaction(async (tx) => {
+    return (outer ?? this.db).transaction(async (tx) => {
       if (!allowDuplicate) await this.assertNoDuplicate(tx, searchName, fields.birthDate ?? null);
       const [row] = await tx
         .insert(students)

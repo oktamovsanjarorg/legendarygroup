@@ -10,7 +10,7 @@ import {
   type Transaction,
 } from '@lg/db';
 import { type Clock, hhmm } from '@lg/domain';
-import { and, asc, eq, exists, gte, isNull, lte, or, type SQL, sql } from 'drizzle-orm';
+import { and, asc, eq, exists, gte, inArray, isNull, lte, or, type SQL, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { CLOCK_TOKEN } from '../../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../../common/db/db.tokens.js';
@@ -19,6 +19,14 @@ import type { RequestUser } from '../../auth/index.js';
 import { StaffDirectoryService } from '../../rbac/index.js';
 
 const makeup = alias(lessons, 'makeup');
+
+export interface LessonBrief {
+  lessonId: string;
+  date: string;
+  startTime: string;
+  status: LessonRow['status'];
+  group: { id: string; name: string };
+}
 
 /** Dars konteksti — boshqa modullar (davomat, ro'yxat) uchun. */
 export interface LessonInfo {
@@ -96,6 +104,35 @@ export class LessonsQueryService {
       .where(and(eq(lessons.id, id), this.scopeWhere(user)));
     if (!l) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     return l;
+  }
+
+  /** Boshqa modullar uchun (lidning sinov darsi): id → qisqa ma'lumot. */
+  async briefs(ids: readonly string[]): Promise<Map<string, LessonBrief>> {
+    if (ids.length === 0) return new Map();
+    const rows = await this.db
+      .select({
+        id: lessons.id,
+        date: lessons.date,
+        startTime: lessons.startTime,
+        status: lessons.status,
+        groupId: groups.id,
+        groupName: groups.name,
+      })
+      .from(lessons)
+      .innerJoin(groups, eq(groups.id, lessons.groupId))
+      .where(inArray(lessons.id, [...new Set(ids)]));
+    return new Map(
+      rows.map((r) => [
+        r.id,
+        {
+          lessonId: r.id,
+          date: r.date,
+          startTime: hhmm(r.startTime),
+          status: r.status,
+          group: { id: r.groupId, name: r.groupName },
+        },
+      ]),
+    );
   }
 
   async dtoIn(tx: Transaction, id: string): Promise<LessonDto> {

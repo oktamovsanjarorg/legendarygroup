@@ -89,6 +89,9 @@ export const errorMessages = {
   FREEZE_OUTSIDE_ENROLLMENT: 'Muzlatish davri oʻquvchining guruhdagi davri ichida boʻlishi kerak.',
   FREEZE_OVERLAP: 'Bu davrda allaqachon muzlatish bor.',
   FREEZE_STARTED: 'Boshlangan muzlatishni bekor qilib boʻlmaydi — erta tugating.',
+  LEAD_EXISTS: 'Bu telefon raqamli ochiq lid allaqachon bor. Oʻsha lidni oching.',
+  LEAD_CLOSED: 'Lid yopilgan (yozildi yoki rad etdi). Rad etilgan lidni avval qayta oching.',
+  LOST_REASON_REQUIRED: 'Rad etish sababini kiriting.',
   ARCHIVED_READ_ONLY: 'Arxivdagi yozuvni tahrirlab boʻlmaydi. Avval arxivdan chiqaring.',
 } as const;
 
