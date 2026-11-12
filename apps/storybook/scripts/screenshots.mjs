@@ -91,6 +91,8 @@ for (const [channel, widths] of Object.entries(CHANNELS)) {
       });
       await page.goto(`${base}/iframe.html?id=${s.id}&viewMode=story&globals=theme:${theme}`);
       await page.waitForSelector('#storybook-root > *');
+      // Deterministik: animatsiya (skeleton pulse) har safar boshqa kadrda — git'da shovqinli farq.
+      await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' });
       await page.waitForTimeout(400); // effect'lar va fake MainButton holati
       // Ekran balandligida (fullPage emas): foydalanuvchi ko'radigani, MainButton/TabBar o'z joyida.
       await page.screenshot({ path: join(dir, `${slug(s.name)}__${width}-${theme}.png`) });

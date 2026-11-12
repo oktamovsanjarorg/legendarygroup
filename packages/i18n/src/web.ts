@@ -1,8 +1,10 @@
 import { webF1Messages } from './web-f1.js';
+import { webF2Messages } from './web-f2.js';
 
 /** Web panel matnlari (W-*, docs/ux/screens.md). */
 export const webMessages = {
   ...webF1Messages,
+  ...webF2Messages,
   appTitle: 'Legendary Group — boshqaruv paneli',
   login: {
     title: 'Tizimga kirish',
