@@ -1,7 +1,7 @@
 import type { RoleCode } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
 import { createFakeWebApp } from '@lg/ui-tg/testing';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './app.js';
@@ -66,7 +66,10 @@ describe('Mini App qobig‘i (T-009)', () => {
     const wa = createFakeWebApp();
     render(<App webApp={wa} />);
     await screen.findByText(t.notLinked.title);
-    expect(wa.MainButton.params).toMatchObject({ text: t.notLinked.backToBot, is_visible: true });
+    // MainButton — passive effect'da (render'dan keyin): kutiladi.
+    await waitFor(() =>
+      expect(wa.MainButton.params).toMatchObject({ text: t.notLinked.backToBot, is_visible: true }),
+    );
     act(() => wa.MainButton.click());
     expect(wa.closed).toBe(true);
   });
@@ -78,12 +81,12 @@ describe('Mini App qobig‘i (T-009)', () => {
     await userEvent.click(await screen.findByRole('button', { name: t.roles.teacher }));
     await screen.findByText(t.home.greeting.replace('{name}', 'Ali Valiyev'));
     expect(wa.storage.get('lg_role')).toBe('teacher');
+    await waitFor(() => expect(wa.SettingsButton.visible).toBe(true));
     expect(wa.BackButton.visible).toBe(false);
-    expect(wa.SettingsButton.visible).toBe(true);
 
     act(() => wa.SettingsButton.click());
     await screen.findByText(t.settings.title);
-    expect(wa.BackButton.visible).toBe(true);
+    await waitFor(() => expect(wa.BackButton.visible).toBe(true));
     await userEvent.click(screen.getByRole('button', { name: t.roles.guardian }));
     await screen.findByText(t.home.greeting.replace('{name}', 'Ali Valiyev'));
     expect(wa.storage.get('lg_role')).toBe('guardian');

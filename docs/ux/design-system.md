@@ -45,6 +45,11 @@ Bot xabarlarida emoji faqat holat belgisi (11-ux §6): ✅ ❌ ⏰ 📝 💳 �
 
 Har komponent Storybook'da: light, dark, custom (past kontrast → fallback), uzun matn, RTL yo'q (uz-Latn).
 
+Ishga tushirish: `pnpm -F @lg/storybook dev` (http://localhost:6006). Hikoyalar komponent yonida —
+`packages/ui-{web,tg}/src/*.stories.tsx`. Toolbar'dagi "Tema": Light / Dark / Custom (past kontrast).
+`ui-tg/*` hikoyalari fake Telegram ramkasida — MainButton/SecondaryButton/BackButton holati pastda/yuqorida
+ko'rinadi va bosiladi.
+
 | Komponent          | Vazifa / ekranlar                | Holatlar                                                                        |
 | ------------------ | -------------------------------- | ------------------------------------------------------------------------------- |
 | `AppShell`         | pastki tablar, safe-area         | rolga qarab tablar; offline chizig'i                                            |

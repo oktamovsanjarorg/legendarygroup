@@ -1,24 +1,9 @@
 @import 'tailwindcss';
+@import '@lg/ui-core/theme.css';
 @source '../../../packages/ui-tg/src';
 
-/* Semantik tokenlar (packages/ui-core) — Telegram temasidan (applyTelegramTheme) → Tailwind. */
+/* Mini App — tizim shrifti (native his, 11-ux §3). */
 @theme {
-  --color-bg: var(--lg-bg);
-  --color-surface: var(--lg-surface);
-  --color-surface-alt: var(--lg-surface-alt);
-  --color-text: var(--lg-text);
-  --color-text-muted: var(--lg-text-muted);
-  --color-border: var(--lg-border);
-  --color-primary: var(--lg-primary);
-  --color-primary-text: var(--lg-primary-text);
-  --color-link: var(--lg-link);
-  --color-success: var(--lg-success);
-  --color-warning: var(--lg-warning);
-  --color-danger: var(--lg-danger);
-  --color-success-bg: var(--lg-success-bg);
-  --color-warning-bg: var(--lg-warning-bg);
-  --color-danger-bg: var(--lg-danger-bg);
-  /* Mini App — tizim shrifti (native his, 11-ux §3). */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 

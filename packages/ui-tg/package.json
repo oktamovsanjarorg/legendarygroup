@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@lg/config": "workspace:*",
+    "@storybook/react-vite": "10.6.5",
     "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.6.8",
     "@types/react": "19.3.0",

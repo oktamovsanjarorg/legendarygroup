@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@lg/config": "workspace:*",
+    "@storybook/react-vite": "10.6.5",
     "@testing-library/react": "16.3.3",
     "@types/react": "19.3.0",
     "happy-dom": "21.0.4",
