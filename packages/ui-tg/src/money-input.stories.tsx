@@ -1,3 +1,4 @@
+import { formatMoney } from '@lg/i18n';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { MoneyInput } from './money-input.js';
@@ -31,7 +32,7 @@ export const WithHint: Story = {
       <MoneyInput
         label="Toʻlov summasi"
         value={null}
-        hint="Qarz: 550 000 soʻm. Boshqa summa ham yuborish mumkin."
+        hint={`Qarz: ${formatMoney(550_000n)}. Boshqa summa ham yuborish mumkin.`}
         onChange={() => undefined}
       />
     </div>

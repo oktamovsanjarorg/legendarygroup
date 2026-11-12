@@ -1,3 +1,4 @@
+import { formatMoney } from '@lg/i18n';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { KpiTile } from './kpi-tile.js';
 
@@ -13,8 +14,8 @@ export const DefaultTone: Story = {
     <div className="w-48 p-4">
       <KpiTile
         label="Bugungi tushum"
-        value="4 850 000"
-        note="kecha: 3 200 000 soʻm"
+        value={formatMoney(4_850_000n, { withCurrency: false })}
+        note={`kecha: ${formatMoney(3_200_000n)}`}
         tone="default"
         onClick={() => undefined}
       />
