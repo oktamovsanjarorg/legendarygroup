@@ -7,6 +7,7 @@ import { files, idempotencyKeys, settings } from './system.js';
 import { branches, courses, rooms } from './org.js';
 import { guardians, studentGuardians, students } from './students.js';
 import { groups, groupTeachers, scheduleOccupancy, scheduleSlots } from './groups.js';
+import { enrollmentFreezes, enrollments } from './enrollments.js';
 
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
@@ -17,6 +18,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   idempotencyKeys: many(idempotencyKeys),
   guardians: many(guardians),
   groupAssignments: many(groupTeachers),
+  approvedFreezes: many(enrollmentFreezes),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
@@ -108,6 +110,7 @@ export const studentsRelations = relations(students, ({ one, many }) => ({
   branch: one(branches, { fields: [students.branchId], references: [branches.id] }),
   photo: one(files, { fields: [students.photoFileId], references: [files.id] }),
   guardianLinks: many(studentGuardians),
+  enrollments: many(enrollments),
 }));
 
 export const guardiansRelations = relations(guardians, ({ one, many }) => ({
@@ -127,6 +130,7 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
   teachers: many(groupTeachers),
   slots: many(scheduleSlots),
   occupancy: many(scheduleOccupancy),
+  enrollments: many(enrollments),
 }));
 
 export const groupTeachersRelations = relations(groupTeachers, ({ one }) => ({
@@ -142,4 +146,18 @@ export const scheduleSlotsRelations = relations(scheduleSlots, ({ one, many }) =
 export const scheduleOccupancyRelations = relations(scheduleOccupancy, ({ one }) => ({
   group: one(groups, { fields: [scheduleOccupancy.groupId], references: [groups.id] }),
   slot: one(scheduleSlots, { fields: [scheduleOccupancy.slotId], references: [scheduleSlots.id] }),
+}));
+
+export const enrollmentsRelations = relations(enrollments, ({ one, many }) => ({
+  student: one(students, { fields: [enrollments.studentId], references: [students.id] }),
+  group: one(groups, { fields: [enrollments.groupId], references: [groups.id] }),
+  freezes: many(enrollmentFreezes),
+}));
+
+export const enrollmentFreezesRelations = relations(enrollmentFreezes, ({ one }) => ({
+  enrollment: one(enrollments, {
+    fields: [enrollmentFreezes.enrollmentId],
+    references: [enrollments.id],
+  }),
+  approver: one(users, { fields: [enrollmentFreezes.approvedBy], references: [users.id] }),
 }));
