@@ -181,6 +181,7 @@
 
 - **Bog'liq:** T-102, T-101 · **Talablar:** FR-ORG-3, 4, 6
 - **AC:** (T-008 dan) ustoz scope servisi: `group_teachers` bo'yicha hozirgi sanada faol guruhlar (02 §3, Q-64) + o'z/begona guruh matritsa testi; guruh CRUD, ustoz biriktirish (asosiy/yordamchi, sanalar bilan), faol guruhli kursni arxivlash taqig'i (Q-66), haftalik jadval sloti; xona va ustoz to'qnashuvi DB darajasida rad etiladi (exclusion constraint) va UI'da tushunarli xabar; guruh holatlari.
+- **Backend bajarildi (2026-11-12):** `groups`, `group_teachers`, `schedule_slots`, `schedule_occupancy` (0012) + EXCLUDE USING gist (0013, `btree_gist`): xona/ustoz to'qnashuvi, bir davrda bitta asosiy ustoz, ustoz takrori — DB darajasida; 409 `SCHEDULE_CONFLICT` tafsiloti (qaysi xona/ustoz, qaysi guruh, qaysi vaqt). Domen: `occupancyFor`, `findSlotOverlap`, `planScheduleChange`, holat o'tishlari (`forming → active ⇄ paused → finished`). `GroupScopeService` (Ustoz — bugun amaldagi biriktirishlari, Q-64) + matritsa testi. API: `GET /api/groups` (`status`, `courseId`, `roomId`, `teacherId`), `GET /:id`, `POST` (slotlar/ustozlar bilan, narx/baho kursdan), `PATCH`, `POST /:id/status`, `PUT /:id/schedule` (sanadan), `POST /:id/teachers` (yangi asosiy — almashtirish, FR-ORG-6), `POST /:id/teachers/:assignmentId/end`. Q-66 (faol guruhli kurs/xona arxivlanmaydi), Q-69. `StaffDirectoryService` (rbac public). **Qolgan:** W-10 UI (maket qabul qilingach); o'rinbosar va dars darajasidagi to'qnashuv — T-104; enrollment soni ≤ `max_students` — T-106.
 
 ### ⬜ T-104 · Darslar generatsiyasi va kalendar
 
