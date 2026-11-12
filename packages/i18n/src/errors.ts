@@ -48,6 +48,12 @@ export const errorMessages = {
   ROOM_NAME_TAKEN: 'Bu nomdagi faol xona allaqachon bor. Boshqa nom tanlang.',
   ALREADY_ARCHIVED: 'Bu yozuv allaqachon arxivda.',
   NOT_ARCHIVED: 'Bu yozuv arxivda emas.',
+  POSSIBLE_DUPLICATE:
+    'Shu ism va tugʻilgan sanali oʻquvchi allaqachon bor. Tekshiring yoki baribir qoʻshing.',
+  INVALID_FILE: 'Fayl topilmadi yoki bu maqsad uchun yaroqsiz. Qayta yuklang.',
+  MULTIPLE_PRIMARY_GUARDIANS: 'Faqat bitta ota-ona asosiy boʻlishi mumkin.',
+  DUPLICATE_GUARDIAN_PHONE: 'Bir telefon raqam ikki marta kiritilgan.',
+  GUARDIAN_ALREADY_LINKED: 'Bu ota-ona oʻquvchiga allaqachon bogʻlangan.',
   ARCHIVED_READ_ONLY: 'Arxivdagi yozuvni tahrirlab boʻlmaydi. Avval arxivdan chiqaring.',
 } as const;
 

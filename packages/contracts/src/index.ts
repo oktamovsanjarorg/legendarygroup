@@ -5,3 +5,5 @@ export * from './auth.js';
 export * from './files.js';
 export * from './staff.js';
 export * from './org.js';
+export * from './phone.js';
+export * from './students.js';

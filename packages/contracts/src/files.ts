@@ -40,12 +40,15 @@ export const FILE_PURPOSES = {
     upload: 'expense.manage',
     view: 'finance.view',
   },
-  /** O'quvchi rasmi (FR-STU-1, T-105). */
+  /**
+   * O'quvchi rasmi (FR-STU-1, T-105). Umumiy `/files/:id/url` — faqat xodim (`student.manage`);
+   * Ustoz/Ota-ona — scope bilan `GET /students/:id/photo` orqali.
+   */
   student_photo: {
     mimes: IMAGE_MIMES,
     maxBytes: 5 * 1024 * 1024,
     upload: 'student.manage',
-    view: 'student.view',
+    view: 'student.manage',
   },
   /** Ommaviy e'lon ilovasi (FR-RPT-5, T-305). */
   announcement: {
