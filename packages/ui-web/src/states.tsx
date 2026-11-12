@@ -38,9 +38,18 @@ function Shell({
   );
 }
 
-export function EmptyState({ title, action }: { title: string; action?: ReactNode }) {
+export function EmptyState({
+  title,
+  hint,
+  action,
+}: {
+  title: string;
+  hint?: string;
+  action?: ReactNode;
+}) {
   return (
     <Shell icon={<Inbox className="size-8" aria-hidden />} title={title}>
+      {hint && <p className="text-sm text-text-muted">{hint}</p>}
       {action}
     </Shell>
   );
