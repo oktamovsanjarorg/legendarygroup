@@ -87,11 +87,12 @@ Agent bular uchun **to'xtamaydi**: env o'zgaruvchi yoki sozlama sifatida yozadi,
 
 ## E. Rollar va UI (yangi — [02](02-roles-permissions.md), [11](11-ux.md))
 
-| ID   | Savol                                                            | Taklif                                                                  | Bloklaydi |
-| ---- | ---------------------------------------------------------------- | ----------------------------------------------------------------------- | --------- |
-| Q-60 | Ustoz web panelga kiradimi yoki faqat Mini App?                  | **Faqat Mini App** (Excel — botga fayl yuborib); web keyin kerak bo'lsa | T-017a    |
-| Q-61 | Bir nechta Director bo'lishi mumkinmi?                           | Ha, lekin oxirgi Director'ni o'chirib/bloklab bo'lmaydi                 | T-008     |
-| Q-62 | Yordamchi ustoz (assistant) nima qila oladi?                     | Davomat + baho; test import, izoh, e'lon — faqat asosiy ustoz           | T-008     |
-| Q-63 | Ustoz o'quvchi ota-onasi telefonini ko'radimi?                   | Yo'q (standart), Director yoqishi mumkin                                | T-114     |
-| Q-64 | Ustoz guruhdan ketgandan keyin eski ma'lumotlarni ko'radimi?     | Yo'q, faqat joriy guruhlar                                              | T-008     |
-| Q-65 | Admin Mini App'da ham ishlaydimi (tasdiqlash navbati telefonda)? | Ha — Mini App'da "xodim rejimi": navbat + bugungi holat                 | T-207     |
+| ID   | Savol                                                            | Taklif                                                                                                                                       | Bloklaydi |
+| ---- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Q-60 | Ustoz web panelga kiradimi yoki faqat Mini App?                  | **Faqat Mini App** (Excel — botga fayl yuborib); web keyin kerak bo'lsa                                                                      | T-017a    |
+| Q-61 | Bir nechta Director bo'lishi mumkinmi?                           | Ha, lekin oxirgi Director'ni o'chirib/bloklab bo'lmaydi                                                                                      | T-008     |
+| Q-62 | Yordamchi ustoz (assistant) nima qila oladi?                     | Davomat + baho; test import, izoh, e'lon — faqat asosiy ustoz                                                                                | T-008     |
+| Q-63 | Ustoz o'quvchi ota-onasi telefonini ko'radimi?                   | Yo'q (standart), Director yoqishi mumkin                                                                                                     | T-114     |
+| Q-64 | Ustoz guruhdan ketgandan keyin eski ma'lumotlarni ko'radimi?     | Yo'q, faqat joriy guruhlar                                                                                                                   | T-008     |
+| Q-65 | Admin Mini App'da ham ishlaydimi (tasdiqlash navbati telefonda)? | Ha — Mini App'da "xodim rejimi": navbat + bugungi holat                                                                                      | T-207     |
+| Q-66 | Kurs/xonani arxivlash cheklovlari?                               | Arxivlash va qayta tiklash mumkin; faol nom takrorlanmaydi; faol guruhli kurs / kelajakdagi darsli xona arxivlanmaydi (T-103/T-104 qo'shadi) | T-102     |

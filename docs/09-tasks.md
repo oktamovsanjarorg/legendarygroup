@@ -170,16 +170,17 @@
 - **Aniqlik:** taklif = `staff_invites` (24 soat, bir martalik). Admin/Director havola orqali parol + TOTP o'rnatadi; Ustoz paroli yo'q — havola botni ochadi, telefon ulashganda `telegram_id` bog'lanadi. Override qoidasi — 02 §4. Bloklash → barcha sessiyalar bekor, `permissions_version + 1`.
 - **Backend va bot bajarildi (2026-11-12):** `GET/POST /api/staff`, `GET /api/staff/:id`, `POST /api/staff/:id/{invite,unblock,roles}` (`staff.manage`; bloklash/rolni olish/override — T-008 `RbacController`); mavjud foydalanuvchiga rol qo'shish (FR-AUTH-5: ota-ona ham ustoz); taklif kanali `staff_invites.channel` (migratsiya 0007, expand): Admin — `PUBLIC_APP_URL/invite/<token>`, Ustoz — `t.me/<bot>?start=inv_<token>`; qayta taklif eskisini darhol yaroqsiz qiladi. Bot: `/start inv_` → telefon ulashish (faqat o'z kontakti) → `POST /internal/staff/contact`. **Xavfsizlik tuzatishi:** `acceptInvite` taklifni yondirib parol yozgandan KEYIN rolni tekshirardi — bot tokeni bilan Ustozga parol o'rnatish va taklifni yondirish mumkin edi; endi faqat `web` kanal, rol tekshiruvi tranzaksiya ichida (avval qizil regressiya testi). Yangi env: `TELEGRAM_BOT_USERNAME`, `PUBLIC_APP_URL` (API), `API_INTERNAL_URL` (bot). **Qolgan:** W-28 UI (maket qabul qilingach).
 
-### ⬜ T-102 · Kurslar va xonalar
+### 🟨 T-102 · Kurslar va xonalar
 
 - **Bog'liq:** T-008 · **Talablar:** FR-ORG-1, 2
 - **AC:** CRUD (web), arxivlash, validatsiya, audit.
 - **Aniqlik:** shu vazifa `branches` jadvalini (id, name) bitta seed qatori bilan yaratadi; keyingi biznes jadvallar `branch_id` FK oladi (standart — yagona filial).
+- **Backend bajarildi (2026-11-12):** `branches` (0008) + yagona filial qatori (0009, `DEFAULT_BRANCH_ID`, `branch_id` standarti); `courses` (darajalar `text[]`, narx `bigint`, dars 15–480 daq, `duration_months`, `grade_scale` BR-33), `rooms` (sig'im 1–500); faol nom filial ichida unique (`lower(name)`, partial — arxivdagi nom qayta ishlatiladi; parallel so'rovda ham DB tekshiradi). `GET/POST /api/{courses,rooms}`, `GET/PATCH /api/{…}/:id`, `POST /api/{…}/:id/{archive,restore}` — `course.manage`; arxivdagi yozuv tahrirlanmaydi; audit `course.*`/`room.*` (before/after — faqat farq). Q-66 standart varianti. **Qolgan:** W-09 UI (maket qabul qilingach).
 
 ### ⬜ T-103 · Guruhlar va jadval
 
 - **Bog'liq:** T-102, T-101 · **Talablar:** FR-ORG-3, 4, 6
-- **AC:** (T-008 dan) ustoz scope servisi: `group_teachers` bo'yicha hozirgi sanada faol guruhlar (02 §3, Q-64) + o'z/begona guruh matritsa testi; guruh CRUD, ustoz biriktirish (asosiy/yordamchi, sanalar bilan), haftalik jadval sloti; xona va ustoz to'qnashuvi DB darajasida rad etiladi (exclusion constraint) va UI'da tushunarli xabar; guruh holatlari.
+- **AC:** (T-008 dan) ustoz scope servisi: `group_teachers` bo'yicha hozirgi sanada faol guruhlar (02 §3, Q-64) + o'z/begona guruh matritsa testi; guruh CRUD, ustoz biriktirish (asosiy/yordamchi, sanalar bilan), faol guruhli kursni arxivlash taqig'i (Q-66), haftalik jadval sloti; xona va ustoz to'qnashuvi DB darajasida rad etiladi (exclusion constraint) va UI'da tushunarli xabar; guruh holatlari.
 
 ### ⬜ T-104 · Darslar generatsiyasi va kalendar
 
