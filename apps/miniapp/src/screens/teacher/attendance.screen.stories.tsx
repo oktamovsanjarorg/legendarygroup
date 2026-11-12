@@ -10,6 +10,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Ochilganda: hamma "keldi", oldindan sababli belgili; MainButton "Saqlash (19/20 keldi)". */
 export const Default: Story = {
+  tags: ['primary'],
   render: () => <AttendanceView lesson={LESSON} students={ROSTER} onSave={noop} />,
 };
 

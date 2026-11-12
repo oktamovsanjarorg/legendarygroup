@@ -19,6 +19,7 @@ const main = GROUPS[0] ?? {
 const assistant = GROUPS[2] ?? main;
 
 export const MT04_List: Story = {
+  tags: ['primary'],
   render: () => (
     <TabRoot active="/groups">
       <GroupsView groups={GROUPS} onOpen={noop} />
@@ -40,6 +41,7 @@ export const MT04_Offline: Story = {
   ),
 };
 export const MT05_MainTeacher: Story = {
+  tags: ['primary'],
   render: () => (
     <GroupView
       group={main}

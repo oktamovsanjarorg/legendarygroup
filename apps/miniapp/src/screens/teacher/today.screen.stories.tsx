@@ -18,6 +18,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  tags: ['primary'],
   render: () => <TodayView lessons={TODAY} onOpen={noop} onSchedule={noop} />,
 };
 export const AllMarked: Story = {

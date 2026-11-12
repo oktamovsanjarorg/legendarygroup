@@ -6,6 +6,7 @@ mock ma'lumot bilan) + shu papkadagi skrinshotlar. Maket kodi haqiqiy ekranda qa
 
 - Jonli ko'rish: `pnpm -F @lg/storybook dev` → http://localhost:6006 (toolbar: Light / Dark / Custom).
 - Skrinshotlarni yangilash: `pnpm -F @lg/storybook screenshots`.
+- Asosiy holat story'da `tags: ['primary']` bilan belgilanadi.
 - Fayl nomi: `<holat>__<kenglik>-<tema>.png`. Asosiy holat — 360/390/430 px va desktop Telegram 600 px
   (light), 390 px dark va past kontrastli custom tema (fallback). Qolgan holatlar — 390 px light.
 - Har ekranda 5 holat: `loading`, `empty`, `error`, `offline`, `forbidden` (+ ekranga xos holatlar).

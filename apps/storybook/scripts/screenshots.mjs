@@ -3,7 +3,7 @@
  *
  *   pnpm -F @lg/storybook screenshots
  *
- * Asosiy holat (Default va h.k.) — Mini App kengliklari 360/390/430 + desktop Telegram 600 px,
+ * Asosiy holat (story `tags: ['primary']`) — Mini App kengliklari 360/390/430 + desktop Telegram 600 px,
  * light; 390 px — dark va past kontrastli custom tema. Qolgan holatlar — 390 px light.
  * storybook-static'ni o'zi xizmat qiladi (qo'shimcha server kerak emas).
  */
@@ -17,7 +17,6 @@ const OUT = resolve(import.meta.dirname, '../../../docs/ux/screens');
 const PREFIX = 'miniapp/';
 /** Kenglik → tipik telefon balandligi; 600 — desktop Telegram oynasi. */
 const HEIGHT = { 360: 740, 390: 844, 430: 932, 600: 800 };
-const PRIMARY = new Set(['Default', 'MT 04 List', 'MT 05 Main Teacher']);
 const TYPES = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -47,8 +46,9 @@ const slug = (s) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
-const shots = (name) =>
-  PRIMARY.has(name)
+/** `tags: ['primary']` — ekranning asosiy holati (barcha kenglik va temalar). */
+const shots = (entry) =>
+  entry.tags?.includes('primary')
     ? [
         [360, 'light'],
         [390, 'light'],
@@ -70,7 +70,7 @@ let count = 0;
 for (const s of stories) {
   const dir = join(OUT, 'miniapp', slug(s.title.slice(PREFIX.length)));
   mkdirSync(dir, { recursive: true });
-  for (const [width, theme] of shots(s.name)) {
+  for (const [width, theme] of shots(s)) {
     const page = await browser.newPage({
       viewport: { width, height: HEIGHT[width] },
       deviceScaleFactor: 1,

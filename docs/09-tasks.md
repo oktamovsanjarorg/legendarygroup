@@ -142,6 +142,7 @@
 - **Aniqlik:** maket formati — Figma emas: `ui-tg`/`ui-web` komponentlaridan mock ma'lumot bilan yig'ilgan **Storybook ekran story'lari** (`*.screen.stories.tsx`) + Playwright skrinshotlari `docs/ux/screens/`ga; egasi skrinshotlar bo'yicha qabul qiladi. Maket kodi keyin haqiqiy ekranda qayta ishlatiladi.
 - **Qismlarga bo'lindi** (har UI vazifasidan oldin tegishli qism tayyor bo'lishi kifoya): 1 — Ustoz asosiy (MT-01…05), 2 — Ustoz qolgan + C-05, 3 — Ota-ona, 4 — xodim rejimi, 5–6 — web. Holat: [docs/ux/screens/README.md](ux/screens/README.md).
 - **1-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** `ui-tg`: `Section`/`ListItem`, `StatusChip`, `AttendanceRow` (teginish/uzoq bosish), `ActionSheet`; `apps/miniapp/src/screens/teacher` — MT-01…05 ko'rinishlari (props bilan, API'siz) + davomat mantiqi (`attendance-marks.ts`, testlar); `pnpm -F @lg/storybook screenshots` — Playwright, 57 skrinshot.
+- **2-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** MT-06 (davomat kalendari, baholar, izoh — ota-onaga/ichki), MT-07/08 (testlar, BR-35 import ko'rib chiqish), MT-09 (hafta qatori, o'rinbosar), MT-10 (qoralama, oldindan ko'rish, tasdiqlash), MT-11 (oylar, tafsilot — Q-33), C-05. `ui-tg`: `MoneyText`, `TextArea`, `Segmented`, `DayStrip`, `AttendanceCalendar`. Jami 72 story, 137 skrinshot.
 
 ### ⬜ T-018 · Staging uchun anonimlashtirish
 
