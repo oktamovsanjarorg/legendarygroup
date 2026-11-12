@@ -5,7 +5,7 @@ import type {
   OrgListFilter,
   UpdateCourseRequest,
 } from '@lg/contracts';
-import { courses, type CourseRow, type Database, type Transaction } from '@lg/db';
+import { courses, type CourseRow, type Database, groups, type Transaction } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { asc, eq } from 'drizzle-orm';
 import type { z } from 'zod';
@@ -15,6 +15,7 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { changedFields } from '../../common/audit/audit-diff.js';
 import { COURSE_AUDIT_FIELDS, toCourse } from './org.serializer.js';
+import { assertNoCurrentGroups } from './group-validation.js';
 import {
   archivedFilter,
   type ArchiveVerb,
@@ -77,12 +78,13 @@ export class CoursesService {
     );
   }
 
-  /** Arxivlash / arxivdan chiqarish. Faol guruhlari bor kursni arxivlash taqig'i — T-103. */
+  /** Arxivlash / arxivdan chiqarish. Yakunlanmagan guruhli kurs arxivlanmaydi (Q-66). */
   async setArchived(ctx: AuditContext, id: string, verb: ArchiveVerb): Promise<Course> {
     return withNameConflict(NAME_UQ, 'COURSE_NAME_TAKEN', () =>
       this.db.transaction(async (tx) => {
         const current = await this.lock(tx, id);
         assertArchiveTransition(current.archivedAt, verb);
+        if (verb === 'archive') await assertNoCurrentGroups(tx, groups.courseId, id);
         const archivedAt = verb === 'archive' ? this.clock.now() : null;
         const [row] = await tx
           .update(courses)

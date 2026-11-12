@@ -1,6 +1,6 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type { Room, CreateRoomRequest, OrgListFilter, UpdateRoomRequest } from '@lg/contracts';
-import { rooms, type RoomRow, type Database, type Transaction } from '@lg/db';
+import { type Database, groups, rooms, type RoomRow, type Transaction } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { asc, eq } from 'drizzle-orm';
 import type { z } from 'zod';
@@ -10,6 +10,7 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { changedFields } from '../../common/audit/audit-diff.js';
 import { ROOM_AUDIT_FIELDS, toRoom } from './org.serializer.js';
+import { assertNoCurrentGroups } from './group-validation.js';
 import {
   archivedFilter,
   type ArchiveVerb,
@@ -72,12 +73,13 @@ export class RoomsService {
     );
   }
 
-  /** Arxivlash / arxivdan chiqarish. Kelajakdagi darslari bor xonani arxivlash taqig'i — T-103/T-104. */
+  /** Arxivlash / arxivdan chiqarish. Yakunlanmagan guruhli xona arxivlanmaydi (Q-66). */
   async setArchived(ctx: AuditContext, id: string, verb: ArchiveVerb): Promise<Room> {
     return withNameConflict(NAME_UQ, 'ROOM_NAME_TAKEN', () =>
       this.db.transaction(async (tx) => {
         const current = await this.lock(tx, id);
         assertArchiveTransition(current.archivedAt, verb);
+        if (verb === 'archive') await assertNoCurrentGroups(tx, groups.roomId, id);
         const archivedAt = verb === 'archive' ? this.clock.now() : null;
         const [row] = await tx
           .update(rooms)

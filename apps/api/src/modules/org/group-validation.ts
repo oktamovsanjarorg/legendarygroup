@@ -1,8 +1,9 @@
 import { HttpStatus } from '@nestjs/common';
 import type { SlotInput } from '@lg/contracts';
-import { courses, type CourseRow, rooms, type Transaction } from '@lg/db';
+import { courses, type CourseRow, groups, rooms, type Transaction } from '@lg/db';
 import { findSlotOverlap } from '@lg/domain';
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { StaffDirectoryService } from '../rbac/index.js';
 
@@ -48,4 +49,18 @@ export async function assertTeachers(
 export function assertSlotsDisjoint(slots: readonly SlotInput[], from: string): void {
   const withIds = slots.map((s, i) => ({ ...s, id: String(i), validFrom: from, validTo: null }));
   if (findSlotOverlap(withIds)) throw new AppException(HttpStatus.BAD_REQUEST, 'SLOT_OVERLAP');
+}
+
+/** Q-66: yakunlanmagan guruhi bor kurs/xona arxivlanmaydi. */
+export async function assertNoCurrentGroups(
+  tx: Transaction,
+  column: AnyPgColumn,
+  id: string,
+): Promise<void> {
+  const [g] = await tx
+    .select({ id: groups.id })
+    .from(groups)
+    .where(and(eq(column, id), ne(groups.status, 'finished')))
+    .limit(1);
+  if (g) throw new AppException(HttpStatus.CONFLICT, 'HAS_ACTIVE_GROUPS');
 }
