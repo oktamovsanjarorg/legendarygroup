@@ -71,6 +71,20 @@
       "when": 1794493445223,
       "tag": "0009_default_branch",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794494486520,
+      "tag": "0010_pg_trgm",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794494487709,
+      "tag": "0011_students_guardians",
+      "breakpoints": true
     }
   ]
 }

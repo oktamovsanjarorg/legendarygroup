@@ -24,7 +24,7 @@ export const branches = pgTable('branches', {
 });
 
 /** Har biznes jadval uchun: FK → `branches`, standart — yagona filial. */
-const branchId = () =>
+export const branchId = () =>
   uuid('branch_id')
     .notNull()
     .default(DEFAULT_BRANCH_ID)

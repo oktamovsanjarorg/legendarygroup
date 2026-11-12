@@ -5,6 +5,7 @@ import { sessions } from './sessions.js';
 import { auditLogs } from './audit.js';
 import { files, idempotencyKeys, settings } from './system.js';
 import { branches, courses, rooms } from './org.js';
+import { guardians, studentGuardians, students } from './students.js';
 
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
@@ -13,6 +14,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   files: many(files),
   updatedSettings: many(settings),
   idempotencyKeys: many(idempotencyKeys),
+  guardians: many(guardians),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
@@ -67,11 +69,12 @@ export const settingsRelations = relations(settings, ({ one }) => ({
   }),
 }));
 
-export const filesRelations = relations(files, ({ one }) => ({
+export const filesRelations = relations(files, ({ one, many }) => ({
   uploader: one(users, {
     fields: [files.uploadedBy],
     references: [users.id],
   }),
+  studentPhotos: many(students),
 }));
 
 export const idempotencyKeysRelations = relations(idempotencyKeys, ({ one }) => ({
@@ -84,6 +87,8 @@ export const idempotencyKeysRelations = relations(idempotencyKeys, ({ one }) => 
 export const branchesRelations = relations(branches, ({ many }) => ({
   courses: many(courses),
   rooms: many(rooms),
+  students: many(students),
+  guardians: many(guardians),
 }));
 
 export const coursesRelations = relations(courses, ({ one }) => ({
@@ -92,4 +97,20 @@ export const coursesRelations = relations(courses, ({ one }) => ({
 
 export const roomsRelations = relations(rooms, ({ one }) => ({
   branch: one(branches, { fields: [rooms.branchId], references: [branches.id] }),
+}));
+
+export const studentsRelations = relations(students, ({ one, many }) => ({
+  branch: one(branches, { fields: [students.branchId], references: [branches.id] }),
+  photo: one(files, { fields: [students.photoFileId], references: [files.id] }),
+  guardianLinks: many(studentGuardians),
+}));
+
+export const guardiansRelations = relations(guardians, ({ one, many }) => ({
+  user: one(users, { fields: [guardians.userId], references: [users.id] }),
+  studentLinks: many(studentGuardians),
+}));
+
+export const studentGuardiansRelations = relations(studentGuardians, ({ one }) => ({
+  student: one(students, { fields: [studentGuardians.studentId], references: [students.id] }),
+  guardian: one(guardians, { fields: [studentGuardians.guardianId], references: [guardians.id] }),
 }));
