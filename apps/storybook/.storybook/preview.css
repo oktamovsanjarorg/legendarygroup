@@ -2,6 +2,7 @@
 @import '@lg/ui-core/theme.css';
 @source '../../../packages/ui-web/src';
 @source '../../../packages/ui-tg/src';
+@source '../../miniapp/src';
 
 body {
   @apply bg-surface text-text antialiased;

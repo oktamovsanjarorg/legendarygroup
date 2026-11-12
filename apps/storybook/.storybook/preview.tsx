@@ -14,10 +14,10 @@ function WebTheme({ scheme }: { scheme: 'light' | 'dark' }) {
   return null;
 }
 
-/** `ui-tg/*` — Telegram ramkasi; `ui-web/*` — web palitrasi. */
+/** `ui-tg/*`, `miniapp/*` — Telegram ramkasi; `ui-web/*` — web palitrasi. */
 const withTheme: Decorator = (Story, ctx) => {
   const theme = String(ctx.globals['theme'] ?? 'light');
-  if (ctx.title.startsWith('ui-tg/'))
+  if (ctx.title.startsWith('ui-tg/') || ctx.title.startsWith('miniapp/'))
     return (
       <TelegramFrame theme={theme}>
         <Story />

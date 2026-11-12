@@ -10,6 +10,8 @@ const config: StorybookConfig = {
   stories: [
     '../../../packages/ui-web/src/**/*.stories.tsx',
     '../../../packages/ui-tg/src/**/*.stories.tsx',
+    // T-017c ekran maketlari — ilova ichida, keyin haqiqiy ekranda qayta ishlatiladi.
+    '../../miniapp/src/**/*.screen.stories.tsx',
   ],
   addons: ['@storybook/addon-a11y'],
   core: { disableTelemetry: true },

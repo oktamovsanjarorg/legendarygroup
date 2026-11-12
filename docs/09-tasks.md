@@ -135,11 +135,13 @@
 - **AC:** tokenlar (rang, tipografiya, oraliq, radius, soya) light/dark + Telegram `themeParams` xaritasi va kontrast fallback; `ui-tg` va `ui-web` komponentlar ro'yxati (har biri holatlari bilan); ikon to'plami; bot xabar shablonlari katalogi (11-ux.md §6).
 - **Bajarildi (2026-11-11):** tokenlar kodda — `packages/ui-core/src/tokens` (palitra light/dark, `resolveTelegramTheme` + WCAG kontrast fallback, CSS o'zgaruvchilar; palitraning har matn jufti AA testda); katalog — [docs/ux/design-system.md](ux/design-system.md) (ikonlar — Lucide, ui-tg/ui-web komponentlari holatlari bilan, 19 bot shabloni). Qaror: tugma yozuvi — WCAG katta matn (19 px qalin, 3:1) — Telegram standart temasi native qoladi.
 
-### ⬜ T-017c · UX: barcha ekranlar maketi (hi-fi)
+### 🟨 T-017c · UX: barcha ekranlar maketi (hi-fi)
 
 - **Bog'liq:** T-017b
 - **AC:** T-017a dagi har bir ekran light/dark, 5 holat bilan; Mini App 360/390/430 px va desktop Telegram kengliklari; web 1280/1440 px; o'lchanadigan mezonlar (11-ux.md §5) bo'yicha teginish sonlari hisoblangan; loyiha egasi qabul qilgan. Har UI vazifasi boshlanishidan oldin tegishli maket tayyor bo'lishi shart.
 - **Aniqlik:** maket formati — Figma emas: `ui-tg`/`ui-web` komponentlaridan mock ma'lumot bilan yig'ilgan **Storybook ekran story'lari** (`*.screen.stories.tsx`) + Playwright skrinshotlari `docs/ux/screens/`ga; egasi skrinshotlar bo'yicha qabul qiladi. Maket kodi keyin haqiqiy ekranda qayta ishlatiladi.
+- **Qismlarga bo'lindi** (har UI vazifasidan oldin tegishli qism tayyor bo'lishi kifoya): 1 — Ustoz asosiy (MT-01…05), 2 — Ustoz qolgan + C-05, 3 — Ota-ona, 4 — xodim rejimi, 5–6 — web. Holat: [docs/ux/screens/README.md](ux/screens/README.md).
+- **1-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** `ui-tg`: `Section`/`ListItem`, `StatusChip`, `AttendanceRow` (teginish/uzoq bosish), `ActionSheet`; `apps/miniapp/src/screens/teacher` — MT-01…05 ko'rinishlari (props bilan, API'siz) + davomat mantiqi (`attendance-marks.ts`, testlar); `pnpm -F @lg/storybook screenshots` — Playwright, 57 skrinshot.
 
 ### ⬜ T-018 · Staging uchun anonimlashtirish
 
