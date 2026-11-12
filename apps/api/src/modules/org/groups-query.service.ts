@@ -68,6 +68,35 @@ export class GroupsQueryService {
     return toDetail(bundle, this.clock.today());
   }
 
+  /**
+   * Boshqa modullar uchun (enrollment, T-106): guruh qatorini `FOR UPDATE` bilan qulflaydi —
+   * sig'im tekshiruvi parallel yozilishlarda ketma-ket bajariladi.
+   */
+  async lockForEnrollment(tx: Transaction, id: string) {
+    const [g] = await tx
+      .select({
+        id: groups.id,
+        name: groups.name,
+        status: groups.status,
+        startDate: groups.startDate,
+        endDate: groups.endDate,
+        maxStudents: groups.maxStudents,
+      })
+      .from(groups)
+      .where(eq(groups.id, id))
+      .for('update');
+    return g ?? null;
+  }
+
+  async namesOf(ids: readonly string[]): Promise<Map<string, string>> {
+    if (ids.length === 0) return new Map();
+    const rows = await this.db
+      .select({ id: groups.id, name: groups.name })
+      .from(groups)
+      .where(inArray(groups.id, [...new Set(ids)]));
+    return new Map(rows.map((r) => [r.id, r.name]));
+  }
+
   private async bundles(tx: Database | Transaction, where: SQL | undefined) {
     const rows = await tx
       .select({ group: groups, course: { id: courses.id, name: courses.name }, room: rooms })

@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
 import { FilesModule } from '../files/index.js';
+import { OrgModule } from '../org/index.js';
+import { EnrollmentsController } from './enrollments.controller.js';
+import { EnrollmentsService } from './enrollments.service.js';
 import { StudentGuardiansController } from './student-guardians.controller.js';
 import { StudentGuardiansService } from './student-guardians.service.js';
 import { StudentScopeService } from './student-scope.service.js';
@@ -9,9 +12,15 @@ import { StudentsService } from './students.service.js';
 
 /** O'quvchilar va ota-onalar (T-105). Scope servisi — davomat/billing modullari uchun ochiq. */
 @Module({
-  imports: [FilesModule],
-  controllers: [StudentsController, StudentGuardiansController],
-  providers: [StudentsService, StudentsQueryService, StudentGuardiansService, StudentScopeService],
+  imports: [FilesModule, OrgModule],
+  controllers: [StudentsController, StudentGuardiansController, EnrollmentsController],
+  providers: [
+    EnrollmentsService,
+    StudentsService,
+    StudentsQueryService,
+    StudentGuardiansService,
+    StudentScopeService,
+  ],
   exports: [StudentScopeService, StudentsQueryService],
 })
 export class StudentsModule {}
