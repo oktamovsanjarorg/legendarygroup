@@ -23,6 +23,7 @@
 | —   | [ux/design-system.md](ux/design-system.md)         | Tokenlar (kod: ui-core), komponentlar katalogi, ikonlar, bot shablonlari          |
 | —   | [ux/screens.md](ux/screens.md)                     | Ekranlar xaritasi (ID), FR qamrovi, oqimlar, deep link'lar                        |
 | 12  | [12-ai-playbook.md](12-ai-playbook.md)             | AI agent ish tartibi: prompt shablonlari, kod tuzilishi, qaror qoidalari          |
+| 13  | [13-antigravity.md](13-antigravity.md)             | Antigravity (agy) uchun parallel vazifalar: ishga tushirish, qoidalar, A-1…A-4    |
 | —   | [../CLAUDE.md](../CLAUDE.md)                       | Kod yozuvchi AI agentlar uchun qat'iy qoidalar                                    |
 | —   | [adr/](adr/)                                       | Arxitektura qarorlari jurnali (ADR)                                               |
 
