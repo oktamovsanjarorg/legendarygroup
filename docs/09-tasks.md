@@ -206,6 +206,7 @@
 
 - **Bog'liq:** T-105 · **Talablar:** FR-STU-4
 - **AC:** lid kanbani (holatlar), sinov darsiga yozish, lid → o'quvchiga aylantirish (ma'lumotlar ko'chadi), manba statistikasi.
+- **Backend bajarildi (2026-11-12):** `leads`, `lead_events` (0018; bitta telefonda bitta ochiq lid). Domen: `LEAD_STATUS_FLOW` (`won` — faqat aylantirish, `lost` → `new` qayta ochish), `conversionPercent`. API: `GET/POST /api/leads` (kanban filtrlari, ism/telefon qidiruvi; takror — 409 `LEAD_EXISTS` + `leadId`), `GET/PATCH /:id`, `POST /:id/status` (rad — sabab majburiy), `POST /:id/trial` (rejalashtirilgan dars), `POST /:id/convert` (o'quvchi + ixtiyoriy guruhga yozish + `won` — bitta tranzaksiya), `GET /api/leads/stats` (manba voronkasi); `POST /api/public/leads` (landing: limitlar, bot tuzog'i, har doim 202). Q-87. **Qolgan:** W-08 UI (maket qabul qilingach); sinov darsidagi lid ustoz ro'yxatida — davomat bilan (T-110); landing ulanishi — T-503.
 
 ### ⬜ T-109 · Bildirishnomalar moduli
 
