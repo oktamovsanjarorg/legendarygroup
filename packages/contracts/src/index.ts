@@ -7,3 +7,4 @@ export * from './staff.js';
 export * from './org.js';
 export * from './phone.js';
 export * from './students.js';
+export * from './groups.js';

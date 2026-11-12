@@ -54,6 +54,20 @@ export const errorMessages = {
   MULTIPLE_PRIMARY_GUARDIANS: 'Faqat bitta ota-ona asosiy boʻlishi mumkin.',
   DUPLICATE_GUARDIAN_PHONE: 'Bir telefon raqam ikki marta kiritilgan.',
   GUARDIAN_ALREADY_LINKED: 'Bu ota-ona oʻquvchiga allaqachon bogʻlangan.',
+  SCHEDULE_CONFLICT:
+    'Jadval toʻqnashuvi: xona yoki ustoz shu vaqtda boshqa guruhda band. Vaqt yoki xonani oʻzgartiring.',
+  SLOT_OVERLAP: 'Guruh jadvalida bir kunda kesishuvchi vaqtlar bor. Vaqtlarni tuzating.',
+  INVALID_STATUS_TRANSITION: 'Guruhni bu holatga oʻtkazib boʻlmaydi.',
+  GROUP_FINISHED: 'Yakunlangan guruhni oʻzgartirib boʻlmaydi.',
+  START_DATE_LOCKED: 'Boshlanish sanasini faqat yigʻilayotgan guruhda oʻzgartirish mumkin.',
+  NOT_A_TEACHER: 'Tanlangan xodim faol ustoz emas.',
+  ROOM_CAPACITY_EXCEEDED:
+    'Guruh sigʻimi xona sigʻimidan katta. Kattaroq xona tanlang yoki sonni kamaytiring.',
+  COURSE_ARCHIVED: 'Kurs arxivda. Avval kursni arxivdan chiqaring.',
+  ROOM_ARCHIVED: 'Xona arxivda. Boshqa xona tanlang.',
+  HAS_ACTIVE_GROUPS: 'Bunga bogʻliq faol guruhlar bor. Avval guruhlarni yakunlang yoki koʻchiring.',
+  DUPLICATE_TEACHER: 'Bu ustoz guruhga shu davrda allaqachon biriktirilgan.',
+  INVALID_DATE_RANGE: 'Sanalar notoʻgʻri: tugash sanasi boshlanishdan oldin boʻlmasin.',
   ARCHIVED_READ_ONLY: 'Arxivdagi yozuvni tahrirlab boʻlmaydi. Avval arxivdan chiqaring.',
 } as const;
 
