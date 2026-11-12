@@ -14,6 +14,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { FilesModule } from './modules/files/files.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { InternalModule } from './modules/internal/internal.module.js';
+import { OrgModule } from './modules/org/org.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
 import { RbacModule } from './modules/rbac/rbac.module.js';
 import { TelegramModule } from './modules/telegram/telegram.module.js';
@@ -47,6 +48,7 @@ export class AppModule {
         AuthModule,
         RbacModule, // AuthModule'dan keyin: guard tartibi
         FilesModule,
+        OrgModule,
         HealthModule,
         InternalModule,
         ...(opts.role === 'worker' ? [WorkerModule] : []),
