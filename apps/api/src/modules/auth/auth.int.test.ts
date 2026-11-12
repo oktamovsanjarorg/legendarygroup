@@ -105,7 +105,11 @@ describe('Login (T-006, FR-AUTH-3)', () => {
       sameSite: 'Strict',
       path: '/api/auth',
     });
-    expect((await get('me', body.accessToken)).statusCode).toBe(200);
+    const me = await get('me', body.accessToken);
+    expect(me.statusCode).toBe(200);
+    const perms = me.json<{ permissions: string[] }>().permissions;
+    expect(perms).toContain('audit.view');
+    expect(perms).not.toContain('payment.submit'); // ota-ona amali — Director'da yo'q
   });
 
   it('keyingi kirish: TOTP; ishlatilgan kod qayta ishlamaydi; zaxira kod — bir marta', async () => {

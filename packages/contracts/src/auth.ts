@@ -52,6 +52,10 @@ export const LoginResult = z.discriminatedUnion('next', [
   z.object({ next: z.literal('totp_setup'), mfaToken: z.string() }),
 ]);
 
+/** `GET /api/auth/me` — UI menyusi va tugmalar uchun samarali ruxsatlar (faol rol bo'yicha). */
+export const MeResult = AuthUser.extend({ permissions: z.array(z.string()) });
+export type MeResult = z.infer<typeof MeResult>;
+
 export const TelegramAuthResult = z.discriminatedUnion('next', [
   z.object({ next: z.literal('done'), accessToken: z.string(), user: AuthUser }),
   z.object({ next: z.literal('choose_role'), roles: z.array(z.enum(ROLES)) }),

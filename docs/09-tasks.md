@@ -82,6 +82,7 @@
 - **AC:** `packages/i18n` (tiplangan kalitlar, pul/sana formatlash `1 250 000 so'm`, `10-noyabr, 2026`), `packages/ui-core|ui-tg|ui-web` (T-017b tokenlari asosida) + Storybook; `apps/web` — shadcn/ui, Tailwind, layout, login, ruxsatga qarab menyu (11-ux.md §2); `apps/miniapp` — Telegram SDK, tema (light/dark/custom + kontrast fallback), BackButton/MainButton/SecondaryButton, haptic, closing confirmation, safe-area, rolga qarab pastki tablar, rol almashtirish, deep link (`startapp`) router.
 - **Aniqlik:** i18n'da: pul formatlash (U+00A0 ajratuvchi), summani so'z bilan yozish (chek uchun, `toWordsUz(bigint)` + testlar), qidiruv normalizatsiyasi `normalizeUz()` — `' ‘ ’ ʻ ʼ \`` → bitta kanonik belgi, kichik harf.
 - **1-qism bajarildi (2026-11-11):** `@lg/i18n`: `formatMoney`/`parseMoney` (U+00A0, `soʻm`, property test), `formatDate` (`10-noyabr, 2026`, Toshkent), `formatDateShort`, `formatTime`, `formatPhone`, `toWordsUz`/`amountInWords`, `normalizeUz`. Qolgan: web va Mini App poydevori.
+- **2-qism bajarildi (2026-11-12):** `@lg/ui-web` (Button, Card, Field, 5 holat komponentlari — shadcn uslubi, cva + tailwind-merge), `apps/web` — Vite + React 19, Tailwind 4 (T-017b tokenlari), TanStack Router/Query, login (W-01), TOTP sozlash/tasdiqlash (W-02), Telegram orqali kirish, taklif (invite), sessiyalar (W-32), ruxsatga qarab menyu (`GET /auth/me` endi `permissions` qaytaradi). Qolgan: Storybook, Mini App poydevori.
 - **Bog'liq (qo'shimcha):** T-017b
 
 ### ✅ T-010 · Bot skeleti

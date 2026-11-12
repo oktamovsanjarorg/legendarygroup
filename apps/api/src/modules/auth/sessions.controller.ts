@@ -11,7 +11,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, type SessionInfo, SwitchRoleRequest } from '@lg/contracts';
+import { type MeResult, type SessionInfo, SwitchRoleRequest } from '@lg/contracts';
 import type { FastifyRequest } from 'fastify';
 import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { AuditService } from '../../common/audit/audit.service.js';
@@ -22,6 +22,7 @@ import { auditContext, CurrentUser, type RequestUser } from './access-token.guar
 import { SessionsService } from './sessions.service.js';
 import { StaffUsers, toAuthUser, WEB_ROLES } from './staff-users.js';
 import { TokensService } from './tokens.service.js';
+import { PermissionsService } from '../rbac/index.js';
 import type { z } from 'zod';
 
 /**
@@ -39,13 +40,15 @@ export class SessionsController {
     @Inject(StaffUsers) private readonly staff: StaffUsers,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(TokensService) private readonly tokens: TokensService,
+    @Inject(PermissionsService) private readonly permissions: PermissionsService,
   ) {}
 
   @Get('me')
-  async me(@CurrentUser() user: RequestUser): Promise<AuthUser> {
+  async me(@CurrentUser() user: RequestUser): Promise<MeResult> {
     const u = await this.staff.byId(user.id);
     if (!u) throw new AppException(HttpStatus.UNAUTHORIZED, 'UNAUTHORIZED');
-    return toAuthUser(u, user.role);
+    const permissions = await this.permissions.forUser(user.id, user.role, user.pv);
+    return { ...toAuthUser(u, user.role), permissions: [...permissions].sort() };
   }
 
   /** Rol almashtirish (FR-AUTH-5): yangi access token; eski rolli token darhol yaroqsiz. */
