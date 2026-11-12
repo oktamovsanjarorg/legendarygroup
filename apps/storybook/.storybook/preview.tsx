@@ -23,6 +23,14 @@ const withTheme: Decorator = (Story, ctx) => {
         <Story />
       </TelegramFrame>
     );
+  // Web ekran maketlari — o'z ramkasi (AppShell) bilan, chekkasiz.
+  if (ctx.title.startsWith('web/'))
+    return (
+      <div className="min-h-screen bg-surface">
+        <WebTheme scheme={theme === 'dark' ? 'dark' : 'light'} />
+        <Story />
+      </div>
+    );
   return (
     <div className="min-h-screen bg-surface p-6">
       <WebTheme scheme={theme === 'dark' ? 'dark' : 'light'} />

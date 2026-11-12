@@ -1,9 +1,9 @@
 import { webMessages as t } from '@lg/i18n';
-import { Button, LoadingState, OfflineBanner, cn } from '@lg/ui-web';
-import { Link, Navigate, Outlet } from '@tanstack/react-router';
-import { LogOut } from 'lucide-react';
+import { LoadingState } from '@lg/ui-web';
+import { Link, Navigate, Outlet, useRouterState } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/auth.js';
+import { AppShell } from './app-shell.js';
 import { visibleNav } from './nav.js';
 
 function useOnline(): boolean {
@@ -25,6 +25,7 @@ function useOnline(): boolean {
 export function AppLayout() {
   const { status, me, permissions, signOut } = useAuth();
   const online = useOnline();
+  const path = useRouterState({ select: (s) => s.location.pathname });
   if (status === 'loading')
     return (
       <div className="p-8">
@@ -32,48 +33,20 @@ export function AppLayout() {
       </div>
     );
   if (status === 'anonymous' || !me) return <Navigate to="/login" />;
-
   return (
-    <div className="flex min-h-screen flex-col">
-      {!online && <OfflineBanner />}
-      <div className="flex flex-1">
-        <aside className="flex w-64 flex-col border-r border-border bg-bg p-4">
-          <p className="mb-6 px-2 text-sm font-semibold text-text">Legendary Group</p>
-          <nav className="flex flex-1 flex-col gap-1" aria-label="Asosiy menyu">
-            {visibleNav(permissions).map((item) => (
-              <Link
-                key={item.screen}
-                to={item.to}
-                className={cn(
-                  'flex min-h-11 items-center gap-3 rounded-md px-3 text-sm text-text hover:bg-surface',
-                )}
-                activeProps={{ className: 'bg-surface font-semibold' }}
-                activeOptions={{ exact: true }}
-              >
-                <item.icon className="size-5" aria-hidden />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="border-t border-border pt-4">
-            <p className="px-2 text-sm font-medium text-text">{me.fullName}</p>
-            <p className="px-2 text-xs text-text-muted">
-              {t.nav.role}: {t.roles[me.activeRole]}
-            </p>
-            <Button
-              variant="ghost"
-              className="mt-2 w-full justify-start"
-              onClick={() => void signOut()}
-            >
-              <LogOut className="size-4" aria-hidden />
-              {t.nav.logout}
-            </Button>
-          </div>
-        </aside>
-        <main className="flex-1 p-8">
-          <Outlet />
-        </main>
-      </div>
-    </div>
+    <AppShell
+      nav={visibleNav(permissions)}
+      active={path}
+      user={{ name: me.fullName, role: t.roles[me.activeRole] }}
+      offline={!online}
+      onLogout={() => void signOut()}
+      renderLink={(item, className, children) => (
+        <Link key={item.screen} to={item.to} className={className}>
+          {children}
+        </Link>
+      )}
+    >
+      <Outlet />
+    </AppShell>
   );
 }

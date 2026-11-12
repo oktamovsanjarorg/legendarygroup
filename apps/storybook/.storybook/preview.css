@@ -3,6 +3,7 @@
 @source '../../../packages/ui-web/src';
 @source '../../../packages/ui-tg/src';
 @source '../../miniapp/src';
+@source '../../web/src';
 
 body {
   @apply bg-surface text-text antialiased;

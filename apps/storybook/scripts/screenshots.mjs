@@ -3,8 +3,7 @@
  *
  *   pnpm -F @lg/storybook screenshots
  *
- * Asosiy holat (story `tags: ['primary']`) — Mini App kengliklari 360/390/430 + desktop Telegram 600 px,
- * light; 390 px — dark va past kontrastli custom tema. Qolgan holatlar — 390 px light.
+ * Kenglik va temalar — pastdagi CHANNELS'da (Mini App va web).
  * storybook-static'ni o'zi xizmat qiladi (qo'shimcha server kerak emas).
  */
 import { createReadStream, existsSync, rmSync, mkdirSync, readFileSync, statSync } from 'node:fs';
@@ -14,9 +13,8 @@ import { chromium } from 'playwright-core';
 
 const STATIC = resolve(import.meta.dirname, '../storybook-static');
 const OUT = resolve(import.meta.dirname, '../../../docs/ux/screens');
-const PREFIX = 'miniapp/';
 /** Kenglik → tipik telefon balandligi; 600 — desktop Telegram oynasi. */
-const HEIGHT = { 360: 740, 390: 844, 430: 932, 600: 800 };
+const HEIGHT = { 360: 740, 390: 844, 430: 932, 600: 800, 1280: 800, 1440: 900 };
 const TYPES = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -46,44 +44,61 @@ const slug = (s) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
-/** `tags: ['primary']` — ekranning asosiy holati (barcha kenglik va temalar). */
-const shots = (entry) =>
-  entry.tags?.includes('primary')
-    ? [
-        [360, 'light'],
-        [390, 'light'],
-        [430, 'light'],
-        [600, 'light'],
-        [390, 'dark'],
-        [390, 'lowContrast'],
-      ]
-    : [[390, 'light']];
+/**
+ * Kanal → kengliklar: `tags: ['primary']` — asosiy holat (barcha kenglik va temalar), qolgani — bitta.
+ * Mini App: telefon (360/390/430) + desktop Telegram 600; web: 1280 (asosiy) va 1440 (11-ux §1).
+ */
+const CHANNELS = {
+  miniapp: {
+    primary: [
+      [360, 'light'],
+      [390, 'light'],
+      [430, 'light'],
+      [600, 'light'],
+      [390, 'dark'],
+      [390, 'lowContrast'],
+    ],
+    other: [[390, 'light']],
+  },
+  web: {
+    primary: [
+      [1280, 'light'],
+      [1440, 'light'],
+      [1440, 'dark'],
+    ],
+    other: [[1280, 'light']],
+  },
+};
 
 const index = JSON.parse(readFileSync(join(STATIC, 'index.json'), 'utf8'));
-const stories = Object.values(index.entries).filter(
-  (e) => e.type === 'story' && e.title.startsWith(PREFIX),
-);
-
-rmSync(join(OUT, 'miniapp'), { recursive: true, force: true });
 const browser = await chromium.launch();
 let count = 0;
-for (const s of stories) {
-  const dir = join(OUT, 'miniapp', slug(s.title.slice(PREFIX.length)));
-  mkdirSync(dir, { recursive: true });
-  for (const [width, theme] of shots(s)) {
-    const page = await browser.newPage({
-      viewport: { width, height: HEIGHT[width] },
-      deviceScaleFactor: 1,
-    });
-    await page.goto(`${base}/iframe.html?id=${s.id}&viewMode=story&globals=theme:${theme}`);
-    await page.waitForSelector('#storybook-root > *');
-    await page.waitForTimeout(400); // effect'lar va fake MainButton holati
-    // Telefon ekrani balandligida (fullPage emas): foydalanuvchi ko'radigani, MainButton/TabBar o'z joyida.
-    await page.screenshot({ path: join(dir, `${slug(s.name)}__${width}-${theme}.png`) });
-    await page.close();
-    count += 1;
+let total = 0;
+for (const [channel, widths] of Object.entries(CHANNELS)) {
+  const prefix = `${channel}/`;
+  const stories = Object.values(index.entries).filter(
+    (e) => e.type === 'story' && e.title.startsWith(prefix),
+  );
+  total += stories.length;
+  rmSync(join(OUT, channel), { recursive: true, force: true });
+  for (const s of stories) {
+    const dir = join(OUT, channel, slug(s.title.slice(prefix.length)));
+    mkdirSync(dir, { recursive: true });
+    for (const [width, theme] of s.tags?.includes('primary') ? widths.primary : widths.other) {
+      const page = await browser.newPage({
+        viewport: { width, height: HEIGHT[width] },
+        deviceScaleFactor: 1,
+      });
+      await page.goto(`${base}/iframe.html?id=${s.id}&viewMode=story&globals=theme:${theme}`);
+      await page.waitForSelector('#storybook-root > *');
+      await page.waitForTimeout(400); // effect'lar va fake MainButton holati
+      // Ekran balandligida (fullPage emas): foydalanuvchi ko'radigani, MainButton/TabBar o'z joyida.
+      await page.screenshot({ path: join(dir, `${slug(s.name)}__${width}-${theme}.png`) });
+      await page.close();
+      count += 1;
+    }
   }
 }
 await browser.close();
 server.close();
-console.log(`${stories.length} ta story, ${count} ta skrinshot → ${OUT}/miniapp`);
+console.log(`${total} ta story, ${count} ta skrinshot → ${OUT}`);
