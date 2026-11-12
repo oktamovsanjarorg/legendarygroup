@@ -115,7 +115,7 @@ describe('teacherOn va holidayEffect', () => {
     expect(teacherOn(main, '2026-11-01')).toBe('t2');
     expect(teacherOn(main, '2026-08-31')).toBeNull();
   });
-  it('Q-71: joriy oy — bekor (kredit), keyingi oy — oʻchiriladi', () => {
+  it('Q-86: joriy oy — bekor (kredit), keyingi oy — oʻchiriladi', () => {
     expect(holidayEffect('2026-11-30', '2026-11-12')).toBe('cancel');
     expect(holidayEffect('2026-11-01', '2026-11-12')).toBe('cancel');
     expect(holidayEffect('2026-12-01', '2026-11-12')).toBe('delete');

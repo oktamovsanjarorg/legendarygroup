@@ -17,7 +17,7 @@ import { AppException } from '../../../common/errors/app.exception.js';
 import { LessonSyncService } from './lesson-sync.service.js';
 
 /**
- * Bayramlar (FR-ORG-5, BR-3/BR-5, Q-71). Qo'shilganda shu kundagi jadval darslari: joriy oy —
+ * Bayramlar (FR-ORG-5, BR-3/BR-5, Q-86). Qo'shilganda shu kundagi jadval darslari: joriy oy —
  * bekor (`holiday`, kredit), keyingi oylar — o'chiriladi. Olib tashlanganda — bayram sababli
  * bekor qilinganlar o'chirilib, jadval qayta generatsiya qilinadi. O'tgan sana o'zgarmaydi.
  */

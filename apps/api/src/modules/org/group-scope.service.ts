@@ -13,7 +13,7 @@ export type GroupScope = { kind: 'all' } | { kind: 'some'; where: SQL };
  * Guruh scope'i (02 §3, T-103):
  * - Director/Admin — hammasi;
  * - Ustoz — `group_teachers`da **bugun** (Asia/Tashkent) amaldagi biriktirishlari (asosiy yoki
- *   yordamchi). Guruhdan ketgan ustoz eski guruhni ko'rmaydi (Q-64). O'rinbosar (bitta dars) — T-104;
+ *   yordamchi). Guruhdan ketgan ustoz eski guruhni ko'rmaydi (Q-64). O'rinbosar — faqat dars orqali (LessonsQueryService);
  * - boshqalar — hech narsa (deny by default).
  */
 @Injectable()

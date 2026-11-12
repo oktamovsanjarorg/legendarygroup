@@ -82,7 +82,7 @@ export const lessonKey = (l: { date: string; startTime: string }): string =>
   `${l.date} ${hhmm(l.startTime)}`;
 
 /**
- * Bayram qo'shilganda shu kundagi darslar bilan nima qilinadi (Q-71): joriy yoki o'tgan oy —
+ * Bayram qo'shilganda shu kundagi darslar bilan nima qilinadi (Q-86): joriy yoki o'tgan oy —
  * invoice allaqachon shu darslarni hisoblagan, shuning uchun **bekor qilinadi** (BR-5 kredit);
  * keyingi oylar — hali hisoblanmagan, **o'chiriladi** (BR-3: bayram darsi rejalashtirilmaydi).
  */
@@ -90,6 +90,6 @@ export function holidayEffect(holiday: string, today: string): 'cancel' | 'delet
   return holiday < startOfNextMonth(today) ? 'cancel' : 'delete';
 }
 
-/** Generatsiya qilinadigan guruh holatlari: shakllanayotgan va faol (Q-71). */
+/** Generatsiya qilinadigan guruh holatlari: shakllanayotgan va faol (Q-86). */
 export const generatesLessons = (status: string): boolean =>
   status === 'forming' || status === 'active';

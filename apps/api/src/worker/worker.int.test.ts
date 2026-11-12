@@ -144,8 +144,12 @@ describe('Cron (T-005)', () => {
   it("ro'yxatdagi vazifa ishlaydi; scheduler idempotent; eskisi o'chiriladi", async () => {
     await waitFor(() => cronRuns >= 2, 8000);
     const schedulers = await svc(QueueService).queue(QUEUES.cron).getJobSchedulers();
-    expect(schedulers.map((s) => s.key)).toEqual(['probe.tick']);
-    expect(schedulers[0]?.tz).toBe('Asia/Tashkent');
+    // Haqiqiy modullar cron'lari ham ro'yxatda (masalan, T-104 darslar); eskisi o'chirilgan.
+    const keys = schedulers.map((s) => s.key);
+    expect(keys).toContain('probe.tick');
+    expect(keys).toContain('org.lessons-generate');
+    expect(keys).not.toContain('old.removed');
+    expect(schedulers.every((s) => s.tz === 'Asia/Tashkent')).toBe(true);
   });
 });
 

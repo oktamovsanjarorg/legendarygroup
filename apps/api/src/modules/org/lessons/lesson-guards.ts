@@ -32,7 +32,7 @@ export function assertScheduled(l: LessonRow): void {
     throw new AppException(HttpStatus.CONFLICT, 'LESSON_NOT_SCHEDULED', { status: l.status });
 }
 
-/** Yangi dars: o'tmishda emas (Q-71) va guruh davri ichida. */
+/** Yangi dars: o'tmishda emas (Q-86) va guruh davri ichida. */
 export function assertBookable(g: GroupRow, date: string, today: string): void {
   if (date < today) throw new AppException(HttpStatus.BAD_REQUEST, 'LESSON_IN_PAST');
   if (date < g.startDate || (g.endDate !== null && date > g.endDate))
