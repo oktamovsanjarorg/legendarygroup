@@ -127,6 +127,13 @@
       "when": 1794501843832,
       "tag": "0017_lessons_exclusion",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794505705330,
+      "tag": "0018_leads",
+      "breakpoints": true
     }
   ]
 }

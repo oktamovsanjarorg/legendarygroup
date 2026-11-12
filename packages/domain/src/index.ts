@@ -6,3 +6,4 @@ export * from './org/schedule.js';
 export * from './org/group-status.js';
 export * from './students/enrollment.js';
 export * from './org/lessons.js';
+export * from './students/lead-status.js';
