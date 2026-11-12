@@ -1,4 +1,4 @@
-import { webMessages as t } from '@lg/i18n';
+import { formatDateTime, webMessages as t } from '@lg/i18n';
 import {
   Badge,
   Button,
@@ -43,7 +43,11 @@ const MODULE_NAMES: Record<AuditModule, string> = {
 const logColumns = (
   onViewDiff: (item: AuditLogItem) => void,
 ): ColumnDef<AuditLogItem, unknown>[] => [
-  { accessorKey: 'timestamp', header: t.audit.cols.timestamp },
+  {
+    accessorKey: 'timestamp',
+    header: t.audit.cols.timestamp,
+    cell: ({ row }) => formatDateTime(row.original.timestamp),
+  },
   {
     accessorKey: 'userName',
     header: t.audit.cols.user,
@@ -176,7 +180,7 @@ function SuspiciousList({ suspicious }: { suspicious: readonly SuspiciousActivit
               />
               <h4 className="font-semibold text-text">{s.title}</h4>
             </div>
-            <span className="text-xs text-text-muted">{s.timestamp}</span>
+            <span className="text-xs text-text-muted">{formatDateTime(s.timestamp)}</span>
           </div>
           <p className="mt-1 text-sm text-text">{s.description}</p>
           <div className="mt-2 flex items-center justify-between text-xs text-text-muted">
@@ -198,7 +202,7 @@ function AuditDiffDrawerContent({ log }: { log: AuditLogItem }) {
       <div className="rounded-md border border-border bg-surface p-3 text-xs">
         <p className="font-semibold text-text">{log.target}</p>
         <p className="text-text-muted mt-0.5">
-          {log.userName} ({log.userRole}) • {log.timestamp}
+          {log.userName} ({log.userRole}) • {formatDateTime(log.timestamp)}
         </p>
       </div>
       <div className="space-y-2">

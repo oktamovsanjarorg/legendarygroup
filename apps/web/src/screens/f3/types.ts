@@ -5,7 +5,7 @@ export interface TestItem {
   id: string;
   title: string;
   group: string;
-  date: string;
+  date: Date;
   maxScore: number;
   participants: number;
   totalStudents: number;
@@ -16,7 +16,7 @@ export interface TestItem {
 export interface ImportHistoryItem {
   id: string;
   fileName: string;
-  date: string;
+  date: Date;
   author: string;
   totalRows: number;
   successCount: number;
@@ -41,7 +41,7 @@ export interface AnnouncementItem {
   content: string;
   target: AnnouncementAudience;
   groupName?: string;
-  date: string;
+  date: Date;
   author: string;
   sentCount: number;
   deliveredCount: number;
@@ -70,7 +70,7 @@ export interface TicketItem {
   topic: string;
   status: TicketStatus;
   priority: TicketPriority;
-  date: string;
+  date: Date;
   messages: readonly TicketMessage[];
 }
 
@@ -89,7 +89,7 @@ export interface FailedMessageItem {
   type: FailedMessageType;
   reason: FailedMessageReason;
   attempts: number;
-  date: string;
+  date: Date;
 }
 
 // W-23: Xarajatlar
@@ -99,7 +99,7 @@ export type ExpenseMethod = 'cash' | 'bank' | 'card';
 
 export interface ExpenseItem {
   id: string;
-  date: string;
+  date: Date;
   category: ExpenseCategory;
   description: string;
   amount: bigint;
@@ -207,7 +207,7 @@ export interface AuditDiffItem {
 
 export interface AuditLogItem {
   id: string;
-  timestamp: string;
+  timestamp: Date;
   userName: string;
   userRole: string;
   module: AuditModule;
@@ -222,7 +222,7 @@ export interface SuspiciousActivityItem {
   title: string;
   description: string;
   riskLevel: 'high' | 'medium';
-  timestamp: string;
+  timestamp: Date;
   userName: string;
 }
 

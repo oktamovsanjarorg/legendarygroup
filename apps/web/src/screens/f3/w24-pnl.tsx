@@ -1,4 +1,4 @@
-import { formatMoney, webMessages as t } from '@lg/i18n';
+import { formatMoney, formatMonth, webMessages as t } from '@lg/i18n';
 import { Button, Card, type ColumnDef, DataTable, PageHeader } from '@lg/ui-web';
 import { Download } from 'lucide-react';
 import type { PnlMonthRow } from './types.js';
@@ -8,13 +8,20 @@ interface Props {
   onExportExcel?: () => void;
 }
 
+/** `2026-10` → `oktabr, 2026` (oy o'rtasi — vaqt zonasidan qat'i nazar shu oy). */
+const monthLabel = (ym: string): string => formatMonth(new Date(`${ym}-15T12:00:00+05:00`));
+
 const compareBigint = (a: bigint, b: bigint): number => (a < b ? -1 : a > b ? 1 : 0);
 
 const columns: ColumnDef<PnlMonthRow, unknown>[] = [
   {
     accessorKey: 'month',
     header: t.pnl.cols.month,
-    cell: ({ row }) => <span className="font-semibold text-text">{row.original.month}</span>,
+    cell: ({ row }) => (
+      <span className="whitespace-nowrap font-semibold text-text">
+        {monthLabel(row.original.month)}
+      </span>
+    ),
   },
   {
     accessorKey: 'revenue',
@@ -51,7 +58,11 @@ const columns: ColumnDef<PnlMonthRow, unknown>[] = [
     header: t.pnl.cols.netProfit,
     sortingFn: (a, b) => compareBigint(a.original.netProfit, b.original.netProfit),
     cell: ({ row }) => (
-      <span className="font-semibold text-success">{formatMoney(row.original.netProfit)}</span>
+      <span
+        className={`font-semibold ${row.original.netProfit < 0n ? 'text-danger' : 'text-success'}`}
+      >
+        {formatMoney(row.original.netProfit)}
+      </span>
     ),
   },
   {
@@ -98,22 +109,22 @@ function PnlComparisonBars({ months }: { months: readonly PnlMonthRow[] }) {
             <div key={m.month} className="flex flex-col items-center gap-2">
               <div className="flex items-end gap-1.5 h-36">
                 <div
-                  title={`Tushum: ${formatMoney(m.revenue)}`}
+                  title={t.pnl.tooltip.revenue.replace('{amount}', formatMoney(m.revenue))}
                   style={{ height: `${revH}%` }}
                   className="w-6 rounded-t bg-success/80 transition-all"
                 />
                 <div
-                  title={`Xarajat: ${formatMoney(m.totalExpenses)}`}
+                  title={t.pnl.tooltip.expenses.replace('{amount}', formatMoney(m.totalExpenses))}
                   style={{ height: `${expH}%` }}
                   className="w-6 rounded-t bg-danger/80 transition-all"
                 />
                 <div
-                  title={`Sof foyda: ${formatMoney(m.netProfit)}`}
+                  title={t.pnl.tooltip.profit.replace('{amount}', formatMoney(m.netProfit))}
                   style={{ height: `${profH}%` }}
                   className="w-6 rounded-t bg-primary transition-all"
                 />
               </div>
-              <span className="text-xs font-medium text-text">{m.month}</span>
+              <span className="text-xs font-medium text-text">{monthLabel(m.month)}</span>
             </div>
           );
         })}

@@ -17,6 +17,7 @@ export const webF3FinanceMessages = {
       thisMonth: 'Shu oylik xarajat',
       topCategory: 'Asosiy xarajat moddasi',
       compareMonth: 'Oʻtgan oyga nisbatan',
+      withinPlan: 'Reja doirasida',
     },
     cols: {
       date: 'Sana',
@@ -58,6 +59,11 @@ export const webF3FinanceMessages = {
       payroll: 'Oyliklar',
       expenses: 'Xarajatlar',
       profit: 'Sof foyda',
+    },
+    tooltip: {
+      revenue: 'Tushum: {amount}',
+      expenses: 'Xarajat: {amount}',
+      profit: 'Sof foyda: {amount}',
     },
     cols: {
       month: 'Oy',
@@ -145,6 +151,12 @@ export const webF3FinanceMessages = {
       warning: '8–15 kun',
       danger: '16–30 kun',
       critical: '30+ kun (kritik)',
+    },
+    agingCols: {
+      interval: 'Qarzdorlik muddati',
+      count: 'Oʻquvchilar soni',
+      debtAmount: 'Qarz summasi',
+      share: 'Ulush',
     },
     cols: {
       course: 'Kurs',

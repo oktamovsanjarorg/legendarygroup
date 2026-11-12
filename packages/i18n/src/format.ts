@@ -83,6 +83,17 @@ export function formatTime(date: Date): string {
   return `${hh}:${mm}`;
 }
 
+/** Jadval/jurnal uchun: `11.11.2026 00:30` (Toshkent). */
+export function formatDateTime(date: Date): string {
+  return `${formatDateShort(date)} ${formatTime(date)}`;
+}
+
+/** Oy: `noyabr, 2026` (hisobotlar, P&L). */
+export function formatMonth(date: Date): string {
+  const { y, m } = tashkentParts(date);
+  return `${MONTHS[m - 1]}, ${y}`;
+}
+
 /** Telefon: `+998901234567` → `+998 90 123 45 67`. */
 export function formatPhone(e164: string): string {
   const m = /^\+998(\d{2})(\d{3})(\d{2})(\d{2})$/.exec(e164);

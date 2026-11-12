@@ -62,6 +62,8 @@ export const webF3CommMessages = {
       bodyPlaceholder: 'Xabar matnini kiriting…',
       attachFile: 'Fayl biriktirish (rasm yoki PDF)',
       previewTelegram: 'Telegram koʻrinishi',
+      previewTitle: 'Eʼlon sarlavhasi',
+      previewBody: 'Xabar matni bu yerda koʻrinadi…',
       sendNow: 'Hozir yuborish',
       schedule: 'Rejalashtirish',
     },

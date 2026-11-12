@@ -6,13 +6,14 @@ import type {
   TestItem,
   TicketItem,
 } from './types.js';
+import { at } from './mock-time.js';
 
 export const MOCK_TESTS: readonly TestItem[] = [
   {
     id: 'test-1',
     title: 'Algebra 1-chorak oraliq imtihoni',
     group: 'Algebra-101',
-    date: '2026-10-15',
+    date: at('2026-10-15'),
     maxScore: 100,
     participants: 18,
     totalStudents: 18,
@@ -23,7 +24,7 @@ export const MOCK_TESTS: readonly TestItem[] = [
     id: 'test-2',
     title: 'Geometriya starter sinov testi',
     group: 'Geometriya-201',
-    date: '2026-10-22',
+    date: at('2026-10-22'),
     maxScore: 50,
     participants: 14,
     totalStudents: 15,
@@ -34,7 +35,7 @@ export const MOCK_TESTS: readonly TestItem[] = [
     id: 'test-3',
     title: 'Fizika mexanika boʻlimi nazorati',
     group: 'Fizika-Olimp',
-    date: '2026-11-05',
+    date: at('2026-11-05'),
     maxScore: 100,
     participants: 12,
     totalStudents: 12,
@@ -47,7 +48,7 @@ export const MOCK_IMPORT_HISTORY: readonly ImportHistoryItem[] = [
   {
     id: 'imp-1',
     fileName: 'algebra_101_oraliq.xlsx',
-    date: '2026-10-15 14:30',
+    date: at('2026-10-15 14:30'),
     author: 'Aziz Rahimov (Ustoz)',
     totalRows: 18,
     successCount: 18,
@@ -57,7 +58,7 @@ export const MOCK_IMPORT_HISTORY: readonly ImportHistoryItem[] = [
   {
     id: 'imp-2',
     fileName: 'fizika_natijalar_nov.xlsx',
-    date: '2026-11-05 11:20',
+    date: at('2026-11-05 11:20'),
     author: 'Malika Karimova (Admin)',
     totalRows: 15,
     successCount: 13,
@@ -90,7 +91,7 @@ export const MOCK_ANNOUNCEMENTS: readonly AnnouncementItem[] = [
     content:
       'Hurmatli ota-onalar va oʻquvchilar! 4–10-noyabr kunlari barcha guruhlarda darslar odatiy jadval asosida davom etadi. Qoʻshimcha savollar boʻlsa maʼmuriyatga murojaat qiling.',
     target: 'all',
-    date: '2026-11-02 10:00',
+    date: at('2026-11-02 10:00'),
     author: 'Sardor Aliyev (Direktor)',
     sentCount: 340,
     deliveredCount: 334,
@@ -104,7 +105,7 @@ export const MOCK_ANNOUNCEMENTS: readonly AnnouncementItem[] = [
       'Yakshanba kuni soat 10:00 da 3-xonada tenglamalar mavzusiga bagʻishlangan bepul master-klass oʻtkaziladi.',
     target: 'groups',
     groupName: 'Algebra-101',
-    date: '2026-11-08 16:45',
+    date: at('2026-11-08 16:45'),
     author: 'Aziz Rahimov (Ustoz)',
     sentCount: 18,
     deliveredCount: 18,
@@ -123,7 +124,7 @@ export const MOCK_TICKETS: readonly TicketItem[] = [
     topic: 'Toʻlov cheki boʻyicha savol',
     status: 'open',
     priority: 'urgent',
-    date: '2026-11-12 11:20',
+    date: at('2026-11-12 11:20'),
     messages: [
       {
         id: 'm1',
@@ -143,7 +144,7 @@ export const MOCK_TICKETS: readonly TicketItem[] = [
     topic: 'Kasallik sababli dars qoldirish',
     status: 'inProgress',
     priority: 'normal',
-    date: '2026-11-11 15:40',
+    date: at('2026-11-11 15:40'),
     messages: [
       {
         id: 'm2',
@@ -173,7 +174,7 @@ export const MOCK_FAILED_MESSAGES: readonly FailedMessageItem[] = [
     type: 'paymentReminder',
     reason: 'TelegramChatBlocked',
     attempts: 3,
-    date: '2026-11-12 09:30',
+    date: at('2026-11-12 09:30'),
   },
   {
     id: 'fail-2',
@@ -184,7 +185,7 @@ export const MOCK_FAILED_MESSAGES: readonly FailedMessageItem[] = [
     type: 'lessonCancel',
     reason: 'UserNotFound',
     attempts: 2,
-    date: '2026-11-11 18:15',
+    date: at('2026-11-11 18:15'),
   },
   {
     id: 'fail-3',
@@ -195,6 +196,6 @@ export const MOCK_FAILED_MESSAGES: readonly FailedMessageItem[] = [
     type: 'attendanceAlert',
     reason: 'NetworkError',
     attempts: 1,
-    date: '2026-11-12 10:05',
+    date: at('2026-11-12 10:05'),
   },
 ];

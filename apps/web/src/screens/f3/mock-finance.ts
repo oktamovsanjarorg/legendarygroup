@@ -1,9 +1,10 @@
 import type { ExpenseItem, PayrollItem, PnlMonthRow } from './types.js';
+import { at } from './mock-time.js';
 
 export const MOCK_EXPENSES: readonly ExpenseItem[] = [
   {
     id: 'exp-1',
-    date: '2026-11-01',
+    date: at('2026-11-01'),
     category: 'rent',
     description: 'Bosh bino oylik ijara toʻlovi (noyabr)',
     amount: 8_000_000n,
@@ -13,7 +14,7 @@ export const MOCK_EXPENSES: readonly ExpenseItem[] = [
   },
   {
     id: 'exp-2',
-    date: '2026-11-03',
+    date: at('2026-11-03'),
     category: 'marketing',
     description: 'Instagram va Telegram target reklamasi',
     amount: 2_500_000n,
@@ -23,7 +24,7 @@ export const MOCK_EXPENSES: readonly ExpenseItem[] = [
   },
   {
     id: 'exp-3',
-    date: '2026-11-05',
+    date: at('2026-11-05'),
     category: 'utilities',
     description: 'Elektr energiyasi va internet provayder',
     amount: 1_300_000n,
@@ -33,7 +34,7 @@ export const MOCK_EXPENSES: readonly ExpenseItem[] = [
   },
   {
     id: 'exp-4',
-    date: '2026-11-08',
+    date: at('2026-11-08'),
     category: 'supplies',
     description: 'Ofis qogʻozi va oʻquv materiallari bosmasi',
     amount: 700_000n,
@@ -45,6 +46,8 @@ export const MOCK_EXPENSES: readonly ExpenseItem[] = [
 
 /** UI pul hisoblamaydi — mock'da tayyor yig'indi. */
 export const MOCK_EXPENSES_TOTAL = 12_500_000n;
+/** O'tgan oyga nisbatan o'sish: 12 020 000 → 12 500 000 (+4%, KPI delta bilan mos). */
+export const MOCK_EXPENSES_MONTH_DELTA = 480_000n;
 
 // P&L: tushum ~72-80 mln (W-04 bilan mos), revenue - totalExpenses = netProfit, totalExpenses = payroll + operational
 export const MOCK_PNL_MONTHS: readonly PnlMonthRow[] = [

@@ -1,4 +1,4 @@
-import { formatMoney, webMessages as t } from '@lg/i18n';
+import { formatDateShort, formatMoney, webMessages as t } from '@lg/i18n';
 import {
   Badge,
   Button,
@@ -13,7 +13,7 @@ import {
 } from '@lg/ui-web';
 import { FileText, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { MOCK_EXPENSES_TOTAL } from './mock-finance.js';
+import { MOCK_EXPENSES_MONTH_DELTA, MOCK_EXPENSES_TOTAL } from './mock-finance.js';
 import type { ExpenseCategory, ExpenseItem, ExpenseMethod } from './types.js';
 
 interface Props {
@@ -56,7 +56,11 @@ const CATEGORY_TONES: Record<ExpenseCategory, 'info' | 'warning' | 'muted' | 'su
 };
 
 const columns: ColumnDef<ExpenseItem, unknown>[] = [
-  { accessorKey: 'date', header: t.expenses.cols.date },
+  {
+    accessorKey: 'date',
+    header: t.expenses.cols.date,
+    cell: ({ row }) => formatDateShort(row.original.date),
+  },
   {
     accessorKey: 'category',
     header: t.expenses.cols.category,
@@ -249,8 +253,8 @@ export function ExpensesView({ expenses, total = MOCK_EXPENSES_TOTAL, onAddExpen
         <KpiCard label={t.expenses.kpi.topCategory} value={t.expenses.categories.rent} />
         <KpiCard
           label={t.expenses.kpi.compareMonth}
-          value="+1 100 000 soʻm"
-          delta={{ text: 'Reja doirasida', up: false, good: true }}
+          value={`+${formatMoney(MOCK_EXPENSES_MONTH_DELTA)}`}
+          delta={{ text: t.expenses.kpi.withinPlan, up: false, good: true }}
         />
       </div>
 

@@ -1,4 +1,4 @@
-import { formatPhone, webMessages as t } from '@lg/i18n';
+import { formatPhone, formatTime, webMessages as t } from '@lg/i18n';
 import { Badge, Button, Card, EmptyState, PageHeader, Tabs } from '@lg/ui-web';
 import { CheckCircle2, Send } from 'lucide-react';
 import { useState } from 'react';
@@ -155,7 +155,7 @@ function TicketSidebarList({
           >
             <div className="flex items-center justify-between text-xs mb-1">
               <span className="font-medium text-text">{tk.senderName}</span>
-              <span className="text-text-muted">{tk.date.split(' ')[1]}</span>
+              <span className="text-text-muted">{formatTime(tk.date)}</span>
             </div>
             <p className="line-clamp-1 text-sm font-medium text-text">{tk.topic}</p>
             <p className="line-clamp-1 text-xs text-text-muted mt-0.5">

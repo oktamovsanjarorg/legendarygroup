@@ -1,4 +1,4 @@
-import { webMessages as t } from '@lg/i18n';
+import { formatDateShort, formatDateTime, webMessages as t } from '@lg/i18n';
 import {
   Badge,
   Button,
@@ -34,7 +34,11 @@ const testColumns: ColumnDef<TestItem, unknown>[] = [
     cell: ({ row }) => <span className="font-medium text-text">{row.original.title}</span>,
   },
   { accessorKey: 'group', header: t.tests.cols.group },
-  { accessorKey: 'date', header: t.tests.cols.date },
+  {
+    accessorKey: 'date',
+    header: t.tests.cols.date,
+    cell: ({ row }) => formatDateShort(row.original.date),
+  },
   { accessorKey: 'maxScore', header: t.tests.cols.maxScore },
   {
     id: 'participants',
@@ -68,7 +72,11 @@ const historyColumns: ColumnDef<ImportHistoryItem, unknown>[] = [
       </span>
     ),
   },
-  { accessorKey: 'date', header: t.tests.historyCols.date },
+  {
+    accessorKey: 'date',
+    header: t.tests.historyCols.date,
+    cell: ({ row }) => formatDateTime(row.original.date),
+  },
   { accessorKey: 'author', header: t.tests.historyCols.author },
   { accessorKey: 'totalRows', header: t.tests.historyCols.totalRows },
   {

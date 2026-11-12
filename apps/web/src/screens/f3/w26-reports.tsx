@@ -42,7 +42,7 @@ const revenueColumns: ColumnDef<ReportRevenueRow, unknown>[] = [
   },
   {
     accessorKey: 'sharePercent',
-    header: 'Ulush',
+    header: t.reports.agingCols.share,
     cell: ({ row }) => (
       <div className="flex items-center justify-end gap-2">
         <div className="w-16 h-2 rounded-full bg-surface-alt overflow-hidden">
@@ -60,13 +60,13 @@ const revenueColumns: ColumnDef<ReportRevenueRow, unknown>[] = [
 const agingColumns: ColumnDef<ReportAgingRow, unknown>[] = [
   {
     accessorKey: 'interval',
-    header: 'Qarzdorlik muddati',
+    header: t.reports.agingCols.interval,
     cell: ({ row }) => <span className="font-medium text-text">{row.original.interval}</span>,
   },
-  { accessorKey: 'count', header: 'Oʻquvchilar soni' },
+  { accessorKey: 'count', header: t.reports.agingCols.count },
   {
     accessorKey: 'debtAmount',
-    header: 'Qarz summasi',
+    header: t.reports.agingCols.debtAmount,
     cell: ({ row }) => (
       <span className="font-semibold text-danger">{formatMoney(row.original.debtAmount)}</span>
     ),

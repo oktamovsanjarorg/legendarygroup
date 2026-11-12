@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   formatDate,
   formatDateShort,
+  formatDateTime,
   formatMoney,
+  formatMonth,
   formatPhone,
   formatTime,
   NBSP,
@@ -46,6 +48,9 @@ describe('Sana va vaqt (Asia/Tashkent)', () => {
     expect(formatDate(d, { withYear: false })).toBe('11-noyabr');
     expect(formatDateShort(d)).toBe('11.11.2026');
     expect(formatTime(d)).toBe('00:30');
+    expect(formatDateTime(d)).toBe('11.11.2026 00:30');
+    expect(formatMonth(d)).toBe('noyabr, 2026');
+    expect(formatMonth(new Date('2026-12-31T19:00:00Z'))).toBe('yanvar, 2027');
   });
 });
 

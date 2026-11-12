@@ -1,4 +1,4 @@
-import { formatPhone, webMessages as t } from '@lg/i18n';
+import { formatDateTime, formatPhone, webMessages as t } from '@lg/i18n';
 import { Badge, Button, Card, type ColumnDef, DataTable, PageHeader } from '@lg/ui-web';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import type { FailedMessageItem, FailedMessageReason } from './types.js';
@@ -58,6 +58,7 @@ const columns = (onRetry?: (id: string) => void): ColumnDef<FailedMessageItem, u
   {
     accessorKey: 'date',
     header: t.failedMessages.cols.date,
+    cell: ({ row }) => formatDateTime(row.original.date),
   },
   {
     id: 'actions',

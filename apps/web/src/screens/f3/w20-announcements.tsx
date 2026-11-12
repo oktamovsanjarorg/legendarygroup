@@ -1,4 +1,4 @@
-import { webMessages as t } from '@lg/i18n';
+import { formatDateTime, webMessages as t } from '@lg/i18n';
 import {
   Badge,
   Button,
@@ -47,7 +47,11 @@ const columns: ColumnDef<AnnouncementItem, unknown>[] = [
       </Badge>
     ),
   },
-  { accessorKey: 'date', header: t.announcements.cols.date },
+  {
+    accessorKey: 'date',
+    header: t.announcements.cols.date,
+    cell: ({ row }) => formatDateTime(row.original.date),
+  },
   { accessorKey: 'author', header: t.announcements.cols.author },
   {
     accessorKey: 'sentCount',
@@ -76,9 +80,9 @@ function AnnouncementPreview({ title, content }: { title: string; content: strin
         {t.announcements.form.previewTelegram}
       </div>
       <div className="rounded-lg bg-surface p-3 shadow-sm border border-border/40">
-        <p className="font-semibold text-text">{title || 'Eʼlon sarlavhasi'}</p>
+        <p className="font-semibold text-text">{title || t.announcements.form.previewTitle}</p>
         <p className="mt-1 whitespace-pre-wrap text-xs text-text-muted">
-          {content || 'Xabar matni bu yerda koʻrinadi…'}
+          {content || t.announcements.form.previewBody}
         </p>
       </div>
     </div>

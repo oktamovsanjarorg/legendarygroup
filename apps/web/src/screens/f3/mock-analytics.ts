@@ -11,8 +11,10 @@ import type {
   StaffActivityItem,
   SuspiciousActivityItem,
 } from './types.js';
+import { at } from './mock-time.js';
 
-// W-26: Hisobotlar (faqat markaz kurslari: Matematika 550 000 soʻm, Ingliz tili 650 000 soʻm; jami ~186 oʻquvchi, ~78m tushum)
+// W-26: Hisobotlar — faqat markaz kurslari (Matematika 550 000, Ingliz tili 650 000 soʻm);
+// toʻlagan oʻquvchilar × narx = tushum (~78 mln, W-04 bilan mos).
 export const MOCK_REPORT_REVENUE: readonly ReportRevenueRow[] = [
   {
     course: 'Matematika',
@@ -115,7 +117,7 @@ export const MOCK_CHURN_STUDENTS: readonly ChurnStudentItem[] = [
 export const MOCK_AUDIT_LOGS: readonly AuditLogItem[] = [
   {
     id: 'aud-1',
-    timestamp: '2026-11-12 11:45:22',
+    timestamp: at('2026-11-12 11:45:22'),
     userName: 'Malika Karimova',
     userRole: 'Administrator',
     module: 'finance',
@@ -129,7 +131,7 @@ export const MOCK_AUDIT_LOGS: readonly AuditLogItem[] = [
   },
   {
     id: 'aud-2',
-    timestamp: '2026-11-12 10:15:08',
+    timestamp: at('2026-11-12 10:15:08'),
     userName: 'Sardor Aliyev',
     userRole: 'Direktor',
     module: 'students',
@@ -140,7 +142,7 @@ export const MOCK_AUDIT_LOGS: readonly AuditLogItem[] = [
   },
   {
     id: 'aud-3',
-    timestamp: '2026-11-12 09:00:15',
+    timestamp: at('2026-11-12 09:00:15'),
     userName: 'Aziz Rahimov',
     userRole: 'Ustoz',
     module: 'attendance',
@@ -157,7 +159,7 @@ export const MOCK_SUSPICIOUS_ACTIVITIES: readonly SuspiciousActivityItem[] = [
     description:
       'Xodim hisobi orqali noaniq IP-manzildan (46.227.12.8) kassa sahifasiga kirish amalga oshirilgan.',
     riskLevel: 'high',
-    timestamp: '2026-11-11 23:42',
+    timestamp: at('2026-11-11 23:42'),
     userName: 'Nomaʼlum sessiya',
   },
   {
@@ -166,7 +168,7 @@ export const MOCK_SUSPICIOUS_ACTIVITIES: readonly SuspiciousActivityItem[] = [
     description:
       '7-noyabrdagi dars davomatida 2 nafar oʻquvchi holati «kelmadi»dan «keldi»ga oʻzgartirilgan.',
     riskLevel: 'medium',
-    timestamp: '2026-11-12 08:30',
+    timestamp: at('2026-11-12 08:30'),
     userName: 'Aziz Rahimov',
   },
 ];
