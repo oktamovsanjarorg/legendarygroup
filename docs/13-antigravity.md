@@ -72,7 +72,7 @@ cd ../legendarygroup-agy-<nom> && pnpm install
 
 ---
 
-## A-1 · T-017c 6-qism — web F3–F5 maketlarini tugatish ⏳ (boshlangan)
+## A-1 · T-017c 6-qism — web F3–F5 maketlarini tugatish ✅
 
 **Worktree:** `~/projects/legendarygroup-agy`, branch `feat/t-017c-web-f3`.
 **Holat:** ekranlar yozilgan (`apps/web/src/screens/f3/`, `packages/i18n/src/web-f3*.ts`), commit qilinmagan.
@@ -114,7 +114,7 @@ cd ../legendarygroup-agy-<nom> && pnpm install
 
 ---
 
-## A-2 · `ui-tg` komponentlari uchun Storybook story'lari (design-system §3)
+## A-2 · `ui-tg` komponentlari uchun Storybook story'lari (design-system §3) ✅
 
 **Yangi worktree**, branch `feat/storybook-ui-tg`. Har komponent **barcha holatlari** bilan story'da
 bo'lishi shart (11-ux §7) — hozir faqat `States`, `TabBar` bor.
@@ -133,7 +133,7 @@ bo'lishi shart (11-ux §7) — hozir faqat `States`, `TabBar` bor.
 - Story'lar ilova bundle'iga kirmaydi (`tsconfig.build.json`da chiqarilgan) — shunday qolsin.
 - Tekshirish: `pnpm -F @lg/ui-tg typecheck && pnpm -F @lg/ui-tg lint`, `pnpm -F @lg/storybook build`.
 
-## A-3 · `ui-web` komponentlari uchun Storybook story'lari (design-system §4)
+## A-3 · `ui-web` komponentlari uchun Storybook story'lari (design-system §4) ✅
 
 **Yangi worktree**, branch `feat/storybook-ui-web`. A-2 bilan bir xil tartib, `packages/ui-web/src/`:
 `Badge` (5 ton), `KpiCard` (delta ↑↓ yaxshi/yomon, tonlar), `PageHeader` (amallar bilan),
@@ -141,7 +141,7 @@ bo'lishi shart (11-ux §7) — hozir faqat `States`, `TabBar` bor.
 saralash, yuklanmoqda, bo'sh, xato, "Yana yuklash", raqamli ustunlar), `MoneyField` (bo'sh, qiymat, xato),
 `Card`. Mavjud: `button`, `field`, `states` story'lari — andoza.
 
-## A-4 · Komponent testlari (ui-tg / ui-web) — qamrovni oshirish
+## A-4 · Komponent testlari (ui-tg / ui-web) — qamrovni oshirish ✅
 
 **Yangi worktree**, branch `test/ui-components`. Testi yo'q komponentlar uchun `*.test.tsx`
 (andoza: `packages/ui-tg/src/attendance-row.test.tsx`, `packages/ui-web/src/data-table.test.tsx`):
@@ -163,6 +163,10 @@ saralash, yuklanmoqda, bo'sh, xato, "Yana yuklash", raqamli ustunlar), `MoneyFie
 
 ## Jurnal
 
-| Sana       | Vazifa          | Natija                                                                                                                                                               |
-| ---------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-11-12 | A-1 (1-urinish) | Ekranlar yozildi, sessiya uzildi; review: 77 tip xatosi (API taxmin qilingan), 7 lint, `as`, UI'da pul yig'indisi, mock nomuvofiqligi. Landing — Claude qayta yozdi. |
+| Sana       | Vazifa          | Natija                                                                                                                                                                                                             |
+| ---------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-11-12 | A-1 (1-urinish) | Ekranlar yozildi, sessiya uzildi; review: 77 tip xatosi (API taxmin qilingan), 7 lint, `as`, UI'da pul yig'indisi, mock nomuvofiqligi. Landing — Claude qayta yozdi.                                               |
+| 2026-11-12 | A-1 (2-urinish) | Qabul qilindi. Review: 7 ta kodga yozilgan matn → i18n; sanalar `string` va xom chiqardi → `Date` + formatlash; summa matn sifatida (`"+1 100 000 soʻm"`); manfiy foyda yashil edi. Mock'lar mos (test qo'shildi). |
+| 2026-11-12 | A-2             | Qabul qilindi. Review: story'larda pul oddiy bo'shliq bilan yozilgan (`"4 850 000"`) → `formatMoney`.                                                                                                              |
+| 2026-11-12 | A-3             | Qabul qilindi. Review: `DataTable` balansi `string` → `bigint`; Drawer'da summa `Field` → `MoneyField`; `94.2%` → `94,2%`; o'quvchi kodi `ST-…` → `LG-…`.                                                          |
+| 2026-11-12 | A-4             | Qabul qilindi. Review: testlarda `as HTMLElement` (qoida 4) → null tekshiruvi / `toHaveProperty`.                                                                                                                  |
