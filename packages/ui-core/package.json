@@ -20,5 +20,8 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     }
+  },
+  "dependencies": {
+    "@lg/i18n": "workspace:*"
   }
 }

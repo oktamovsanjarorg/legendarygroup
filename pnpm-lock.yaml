@@ -508,6 +508,10 @@ importers:
         version: 4.10.2
 
   packages/ui-core:
+    dependencies:
+      '@lg/i18n':
+        specifier: workspace:*
+        version: link:../i18n
     devDependencies:
       '@lg/config':
         specifier: workspace:*

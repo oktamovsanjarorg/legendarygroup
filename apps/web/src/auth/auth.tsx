@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setMe(null);
       setStatus('anonymous');
     };
-    void api.restore().then((ok) => (ok ? loadMe() : setStatus('anonymous')));
+    void api.refresh().then((ok) => (ok ? loadMe() : setStatus('anonymous')));
   }, [loadMe]);
 
   const value = useMemo<AuthValue>(
