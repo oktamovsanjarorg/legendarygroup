@@ -8,3 +8,4 @@ export * from './org.js';
 export * from './phone.js';
 export * from './students.js';
 export * from './groups.js';
+export * from './enrollments.js';

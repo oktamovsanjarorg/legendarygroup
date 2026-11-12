@@ -85,6 +85,8 @@ export const UpdateGuardianLinkRequest = z
 export const StudentListQuery = z.object({
   q: z.string().trim().max(100).optional(),
   status: z.enum(ORG_LIST_FILTERS).default('active'),
+  /** Guruhga bugun yozilganlar (T-106). */
+  groupId: z.uuid().optional(),
   cursor: z.string().max(200).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });

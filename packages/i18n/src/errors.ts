@@ -70,6 +70,16 @@ export const errorMessages = {
   MULTIPLE_MAIN_TEACHERS: 'Guruhda bir vaqtda faqat bitta asosiy ustoz boʻladi.',
   DUPLICATE_TEACHER: 'Bu ustoz guruhga shu davrda allaqachon biriktirilgan.',
   INVALID_DATE_RANGE: 'Sanalar notoʻgʻri: tugash sanasi boshlanishdan oldin boʻlmasin.',
+  GROUP_FULL: 'Guruhda boʻsh oʻrin yoʻq. Sigʻimni oshiring yoki boshqa guruh tanlang.',
+  ALREADY_ENROLLED: 'Oʻquvchi shu davrda bu guruhga allaqachon yozilgan.',
+  ENROLLMENT_ENDED: 'Bu yozilish allaqachon yakunlangan.',
+  STUDENT_ARCHIVED: 'Oʻquvchi arxivda. Avval arxivdan chiqaring.',
+  SAME_GROUP: 'Oʻquvchi allaqachon shu guruhda.',
+  FREEZE_TOO_SHORT:
+    'Muzlatish kamida 14 kun boʻlishi kerak. Qisqa sababli qatnashmaslik — davomatda belgilanadi.',
+  FREEZE_OUTSIDE_ENROLLMENT: 'Muzlatish davri oʻquvchining guruhdagi davri ichida boʻlishi kerak.',
+  FREEZE_OVERLAP: 'Bu davrda allaqachon muzlatish bor.',
+  FREEZE_STARTED: 'Boshlangan muzlatishni bekor qilib boʻlmaydi — erta tugating.',
   ARCHIVED_READ_ONLY: 'Arxivdagi yozuvni tahrirlab boʻlmaydi. Avval arxivdan chiqaring.',
 } as const;
 
