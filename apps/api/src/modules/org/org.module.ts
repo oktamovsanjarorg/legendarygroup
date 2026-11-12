@@ -7,6 +7,8 @@ import { GroupScopeService } from './group-scope.service.js';
 import { GroupsQueryService } from './groups-query.service.js';
 import { GroupsController } from './groups.controller.js';
 import { GroupsService } from './groups.service.js';
+import { LessonSyncService } from './lessons/lesson-sync.service.js';
+import { LessonsCron } from './lessons/lessons-cron.js';
 import { RoomsController } from './rooms.controller.js';
 import { RoomsService } from './rooms.service.js';
 
@@ -20,6 +22,8 @@ import { RoomsService } from './rooms.service.js';
     GroupsQueryService,
     GroupsService,
     GroupScheduleService,
+    LessonSyncService,
+    LessonsCron,
   ],
   exports: [CoursesService, RoomsService, GroupScopeService, GroupsQueryService],
 })

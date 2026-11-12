@@ -94,6 +94,19 @@ async function findConflicts(db: Database, trace: OccupancyTrace): Promise<Sched
   return out;
 }
 
+const LESSON_CONSTRAINTS = {
+  lessons_room_no_overlap: 'room',
+  lessons_teacher_no_overlap: 'teacher',
+  lessons_group_no_overlap: 'group',
+} as const;
+
+/** Dars darajasidagi to'qnashuv (0017) — qaysi resurs bo'yicha; boshqa xato — `null`. */
+export function lessonConflictKind(err: unknown): 'room' | 'teacher' | 'group' | null {
+  for (const [name, kind] of Object.entries(LESSON_CONSTRAINTS))
+    if (isExclusionViolation(err, name)) return kind;
+  return null;
+}
+
 /**
  * Guruh yozish amallarining DB xatolarini domen xatosiga aylantiradi: jadval to'qnashuvi
  * (tafsilot bilan), ustoz takrori, asosiy ustoz kesishuvi, nom bandligi.
@@ -114,6 +127,8 @@ export async function withGroupConstraints<T>(
       throw new AppException(HttpStatus.CONFLICT, 'DUPLICATE_TEACHER');
     if (isExclusionViolation(err, 'group_teachers_one_main'))
       throw new AppException(HttpStatus.CONFLICT, 'MULTIPLE_MAIN_TEACHERS');
+    const lesson = lessonConflictKind(err);
+    if (lesson) throw new AppException(HttpStatus.CONFLICT, 'LESSON_CONFLICT', { kind: lesson });
     if (isUniqueViolation(err, 'groups_branch_name_current_uq'))
       throw new AppException(HttpStatus.CONFLICT, 'GROUP_NAME_TAKEN');
     throw err;

@@ -56,6 +56,8 @@ export const errorMessages = {
   GUARDIAN_ALREADY_LINKED: 'Bu ota-ona oʻquvchiga allaqachon bogʻlangan.',
   SCHEDULE_CONFLICT:
     'Jadval toʻqnashuvi: xona yoki ustoz shu vaqtda boshqa guruhda band. Vaqt yoki xonani oʻzgartiring.',
+  LESSON_CONFLICT:
+    'Shu vaqtda xona, ustoz yoki guruhda boshqa dars bor (qoʻshimcha yoki koʻchirilgan). Vaqtni oʻzgartiring.',
   SLOT_OVERLAP: 'Guruh jadvalida bir kunda kesishuvchi vaqtlar bor. Vaqtlarni tuzating.',
   INVALID_STATUS_TRANSITION: 'Guruhni bu holatga oʻtkazib boʻlmaydi.',
   GROUP_FINISHED: 'Yakunlangan guruhni oʻzgartirib boʻlmaydi.',

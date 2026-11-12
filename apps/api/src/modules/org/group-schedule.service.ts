@@ -16,6 +16,7 @@ import { StaffDirectoryService } from '../rbac/index.js';
 import { assertSlotsDisjoint } from './group-validation.js';
 import { GroupsQueryService } from './groups-query.service.js';
 import { GroupsService } from './groups.service.js';
+import { LessonSyncService } from './lessons/lesson-sync.service.js';
 import { rebuildOccupancy, withGroupConstraints } from './schedule-occupancy.js';
 
 /** Sana guruh davri ichidami (boshlanishdan oldin yoki tugagandan keyin — xato). */
@@ -29,7 +30,7 @@ function assertWithinGroup(g: GroupRow, day: string): void {
 
 /**
  * Jadval va ustoz biriktirish (T-103, FR-ORG-3/6). O'tmish o'zgarmaydi: eski slot/biriktirish
- * sanadan oldingi kunda yopiladi. Kelajakdagi darslarni qayta hisoblash — T-104.
+ * sanadan oldingi kunda yopiladi; kelajakdagi darslar qayta hisoblanadi (T-104).
  */
 @Injectable()
 export class GroupScheduleService {
@@ -39,6 +40,7 @@ export class GroupScheduleService {
     @Inject(StaffDirectoryService) private readonly staff: StaffDirectoryService,
     @Inject(GroupsService) private readonly groups: GroupsService,
     @Inject(GroupsQueryService) private readonly query: GroupsQueryService,
+    @Inject(LessonSyncService) private readonly lessons: LessonSyncService,
   ) {}
 
   async replaceSchedule(
@@ -135,6 +137,7 @@ export class GroupScheduleService {
         const g = await this.groups.lockOpen(tx, id);
         const after = await change(tx, g);
         await rebuildOccupancy(tx, id, trace);
+        await this.lessons.sync(tx, id);
         await this.audit.record(ctx, { action, entity: 'group', entityId: id, after }, tx);
         return this.query.detailIn(tx, id);
       }),

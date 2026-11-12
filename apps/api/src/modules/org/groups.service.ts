@@ -30,6 +30,7 @@ import {
 } from './group-validation.js';
 import { GroupsQueryService } from './groups-query.service.js';
 import { GROUP_AUDIT_FIELDS } from './groups.serializer.js';
+import { LessonSyncService } from './lessons/lesson-sync.service.js';
 import { rebuildOccupancy, withGroupConstraints } from './schedule-occupancy.js';
 
 type CreateInput = z.output<typeof CreateGroupRequest>;
@@ -46,6 +47,7 @@ export class GroupsService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(StaffDirectoryService) private readonly staff: StaffDirectoryService,
     @Inject(GroupsQueryService) private readonly query: GroupsQueryService,
+    @Inject(LessonSyncService) private readonly lessons: LessonSyncService,
   ) {}
 
   /** Narx va baho sozlamasi kursdan meros; slotlar va ustozlar boshlanish sanasidan. */
@@ -78,6 +80,7 @@ export class GroupsService {
             .insert(scheduleSlots)
             .values(slots.map((s) => ({ ...s, groupId: g.id, validFrom: g.startDate })));
         await rebuildOccupancy(tx, g.id, trace);
+        await this.lessons.sync(tx, g.id);
         const detail = await this.query.detailIn(tx, g.id);
         await this.audit.record(
           ctx,
@@ -115,6 +118,7 @@ export class GroupsService {
           );
         const [row] = await tx.update(groups).set(patch).where(eq(groups.id, id)).returning();
         await rebuildOccupancy(tx, id, trace);
+        await this.lessons.sync(tx, id);
         return this.recordChange(tx, { ctx, action: 'group.update', before: current, after: row });
       }),
     );
@@ -146,6 +150,7 @@ export class GroupsService {
           .where(eq(groups.id, id))
           .returning();
         await rebuildOccupancy(tx, id, trace);
+        await this.lessons.sync(tx, id);
         return this.recordChange(tx, { ctx, action: 'group.status', before: current, after: row });
       }),
     );
