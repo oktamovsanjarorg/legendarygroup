@@ -157,6 +157,27 @@ export class FilesService {
     return { url, expiresAt, file: toInfo(row) };
   }
 
+  /** Fayl maqsadi (boshqa modullar `*_file_id`ni tekshirishi uchun); yo'q — `null`. */
+  async purposeOf(fileId: string): Promise<string | null> {
+    const [row] = await this.db
+      .select({ purpose: files.purpose })
+      .from(files)
+      .where(eq(files.id, fileId));
+    return row?.purpose ?? null;
+  }
+
+  /**
+   * Scope'ni chaqiruvchi modul tekshirgan holda ko'rish havolasi (masalan, ota-ona — faqat o'z
+   * farzandi rasmi, T-105). Ruxsat tekshiruvi YO'Q — faqat scope'dan keyin chaqiriladi.
+   */
+  async scopedViewUrl(fileId: string): Promise<{ url: string; expiresAt: string }> {
+    const [row] = await this.db.select().from(files).where(eq(files.id, fileId));
+    if (!row) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+    const url = await this.storage.presignedGet(row.s3Key, VIEW_URL_TTL_S);
+    const expiresAt = new Date(this.clock.now().getTime() + VIEW_URL_TTL_S * 1000).toISOString();
+    return { url, expiresAt };
+  }
+
   private async has(user: RequestUser, permission: Permission) {
     return (await this.permissions.forUser(user.id, user.role, user.pv)).has(permission);
   }
