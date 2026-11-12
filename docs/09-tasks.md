@@ -198,6 +198,7 @@
 
 - **Bog'liq:** T-103, T-105 · **Talablar:** FR-STU-3, BR-32
 - **AC:** (T-105 dan) `StudentScopeService`ga Ustoz qismi (hozir yozilgan o'quvchilari) + matritsa testi kengaytiriladi; qidiruvga guruh filtri; qo'shish/chiqarish/ko'chirish (sana, sabab), guruh sig'imi tekshiruvi, tarix, chegirma maydoni (F2 da ishlatiladi), muzlatish (freeze) yozuvi.
+- **Backend bajarildi (2026-11-12):** `enrollments`, `enrollment_freezes` (0014) + EXCLUDE (0015). Holat saqlanmaydi — `enrollmentState()` (upcoming/active/frozen/ended). Sig'im — `peakConcurrency()` (Q-70), guruh qatori `FOR UPDATE` (parallel yozilishda oshmaydi). API: `POST /api/enrollments`, `POST /:id/end` (ketdi/tugatdi, rejalashtirilgan ham), `POST /:id/transfer` (eski `date - 1` da, chegirma saqlanadi), muzlatish — `POST /:id/freezes` (BR-9 ≥ 14 kun), `…/freezes/:freezeId/end`, `DELETE …/freezes/:freezeId` (faqat boshlanmagani); `GET /api/students/:id/enrollments` (tarix), `GET /api/groups/:id/students?date=` (BR-32, PII'siz). `StudentScopeService` — Ustoz: bugungi guruhlariga bugun yozilganlar; o'quvchi qidiruviga `groupId`. Chegirma maydoni — ustun bor, o'rnatish T-203. **Qolgan:** UI (W-07/W-10, maket qabul qilingach); billing ta'siri (BR-3/BR-4/BR-9 kredit) — T-202/T-203.
 
 ### ⬜ T-107 · Lidlar
 

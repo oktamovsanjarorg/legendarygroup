@@ -8,7 +8,7 @@ import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 /**
  * Scope matritsasi (02 §3, T-105): rol × o'z/begona o'quvchi. Ota-ona — faqat
  * `student_guardians` orqali; arxivdagi farzand ko'rinadi; uzilsa — darhol yopiladi.
- * Ustoz — T-106 gacha hech kim (deny by default).
+ * Ustoz — guruhga biriktirilmagan bo'lsa hech kim (to'liq matritsa — enrollments.int.test).
  */
 let t: TestApp;
 let db: Database;
@@ -94,7 +94,7 @@ describe('Scope matritsasi: rol × oʻz/begona oʻquvchi', () => {
     expect(await ids(tokens.get('guardian')!)).toEqual([]);
   });
 
-  it('ustoz — T-106 gacha hech kim (deny by default)', async () => {
+  it('biriktirilmagan ustoz — hech kim (deny by default)', async () => {
     const teacher = tokens.get('teacher')!;
     expect(await ids(teacher)).toEqual([]);
     expect((await get(`students/${own}`, teacher)).statusCode).toBe(404);
