@@ -4,6 +4,7 @@ import { permissions, rolePermissions, roles, userRoles } from './roles.js';
 import { sessions } from './sessions.js';
 import { auditLogs } from './audit.js';
 import { files, idempotencyKeys, settings } from './system.js';
+import { branches, courses, rooms } from './org.js';
 
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
@@ -78,4 +79,17 @@ export const idempotencyKeysRelations = relations(idempotencyKeys, ({ one }) => 
     fields: [idempotencyKeys.userId],
     references: [users.id],
   }),
+}));
+
+export const branchesRelations = relations(branches, ({ many }) => ({
+  courses: many(courses),
+  rooms: many(rooms),
+}));
+
+export const coursesRelations = relations(courses, ({ one }) => ({
+  branch: one(branches, { fields: [courses.branchId], references: [branches.id] }),
+}));
+
+export const roomsRelations = relations(rooms, ({ one }) => ({
+  branch: one(branches, { fields: [rooms.branchId], references: [branches.id] }),
 }));

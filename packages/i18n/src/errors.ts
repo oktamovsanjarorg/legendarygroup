@@ -44,6 +44,11 @@ export const errorMessages = {
   USER_BLOCKED: 'Foydalanuvchi bloklangan. Avval blokdan chiqaring.',
   INVITE_NOT_NEEDED: 'Taklif kerak emas: xodim allaqachon tizimga kira oladi.',
   NOT_BLOCKED: 'Foydalanuvchi bloklanmagan.',
+  COURSE_NAME_TAKEN: 'Bu nomdagi faol kurs allaqachon bor. Boshqa nom tanlang.',
+  ROOM_NAME_TAKEN: 'Bu nomdagi faol xona allaqachon bor. Boshqa nom tanlang.',
+  ALREADY_ARCHIVED: 'Bu yozuv allaqachon arxivda.',
+  NOT_ARCHIVED: 'Bu yozuv arxivda emas.',
+  ARCHIVED_READ_ONLY: 'Arxivdagi yozuvni tahrirlab boʻlmaydi. Avval arxivdan chiqaring.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

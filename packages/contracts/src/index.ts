@@ -4,3 +4,4 @@ export * from './events.js';
 export * from './auth.js';
 export * from './files.js';
 export * from './staff.js';
+export * from './org.js';

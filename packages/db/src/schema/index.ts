@@ -5,4 +5,5 @@ export * from './sessions.js';
 export * from './audit.js';
 export * from './auth.js';
 export * from './system.js';
+export * from './org.js';
 export * from './relations.js';
