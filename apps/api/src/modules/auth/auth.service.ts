@@ -1,8 +1,8 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type { AuthUser, LoginResult, RoleCode } from '@lg/contracts';
-import { type Database, staffInvites, users } from '@lg/db';
+import { type Database, roles, staffInvites, userRoles, users } from '@lg/db';
 import type { Clock } from '@lg/domain';
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { and, eq, gt, inArray, isNull } from 'drizzle-orm';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
@@ -17,6 +17,7 @@ import {
   StaffUsers,
   type StaffUser,
   toAuthUser,
+  WEB_ROLES,
 } from './staff-users.js';
 import { TokensService } from './tokens.service.js';
 import { TotpService } from './totp.service.js';
@@ -143,12 +144,29 @@ export class AuthService {
         .where(
           and(
             eq(staffInvites.tokenHash, sha256(token)),
+            // T-101: faqat web taklif — Ustozning bot tokeni bilan parol o'rnatib bo'lmaydi.
+            eq(staffInvites.channel, 'web'),
             isNull(staffInvites.usedAt),
             gt(staffInvites.expiresAt, now),
           ),
         )
         .returning({ userId: staffInvites.userId });
       if (!invite) return null;
+      // Web roli yo'q yoki bloklangan — xato TRANZAKSIYA ICHIDA: parol yozilmaydi, taklif yonmaydi.
+      const [webRole] = await tx
+        .select({ code: roles.code })
+        .from(userRoles)
+        .innerJoin(roles, eq(roles.id, userRoles.roleId))
+        .innerJoin(users, eq(users.id, userRoles.userId))
+        .where(
+          and(
+            eq(userRoles.userId, invite.userId),
+            inArray(roles.code, [...WEB_ROLES]),
+            eq(users.status, 'active'),
+          ),
+        )
+        .limit(1);
+      if (!webRole) throw fail('INVALID_INVITE');
       await tx.update(users).set({ passwordHash }).where(eq(users.id, invite.userId));
       await this.audit.record(
         { ...ctx, actorId: invite.userId },

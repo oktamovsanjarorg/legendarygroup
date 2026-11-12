@@ -50,6 +50,13 @@
       "when": 1794410718353,
       "tag": "0006_permission_overrides",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794487982186,
+      "tag": "0007_staff_invite_channel",
+      "breakpoints": true
     }
   ]
 }

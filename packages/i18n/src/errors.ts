@@ -40,6 +40,10 @@ export const errorMessages = {
   NON_DELEGABLE_PERMISSION: 'Bu ruxsat faqat Direktorga tegishli, uni Adminga berib boʻlmaydi.',
   OVERRIDE_NOT_ALLOWED: 'Bu ruxsatni ushbu xodimga berib yoki olib boʻlmaydi.',
   LAST_DIRECTOR: 'Oxirgi faol Direktorni bloklab yoki rolini olib boʻlmaydi.',
+  ALREADY_STAFF: 'Bu xodimda shu rol allaqachon bor.',
+  USER_BLOCKED: 'Foydalanuvchi bloklangan. Avval blokdan chiqaring.',
+  INVITE_NOT_NEEDED: 'Taklif kerak emas: xodim allaqachon tizimga kira oladi.',
+  NOT_BLOCKED: 'Foydalanuvchi bloklanmagan.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

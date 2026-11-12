@@ -163,11 +163,12 @@
 
 ## F1 — Asosiy jarayon
 
-### ⬜ T-101 · Xodimlarni boshqarish
+### 🟨 T-101 · Xodimlarni boshqarish
 
 - **Bog'liq:** T-008 · **Talablar:** FR-AUTH-5
 - **AC:** Director Admin/Ustoz qo'shadi (telefon, ism, rol), taklif havolasi botga; bloklash; ruxsat override UI.
 - **Aniqlik:** taklif = `staff_invites` (24 soat, bir martalik). Admin/Director havola orqali parol + TOTP o'rnatadi; Ustoz paroli yo'q — havola botni ochadi, telefon ulashganda `telegram_id` bog'lanadi. Override qoidasi — 02 §4. Bloklash → barcha sessiyalar bekor, `permissions_version + 1`.
+- **Backend va bot bajarildi (2026-11-12):** `GET/POST /api/staff`, `GET /api/staff/:id`, `POST /api/staff/:id/{invite,unblock,roles}` (`staff.manage`; bloklash/rolni olish/override — T-008 `RbacController`); mavjud foydalanuvchiga rol qo'shish (FR-AUTH-5: ota-ona ham ustoz); taklif kanali `staff_invites.channel` (migratsiya 0007, expand): Admin — `PUBLIC_APP_URL/invite/<token>`, Ustoz — `t.me/<bot>?start=inv_<token>`; qayta taklif eskisini darhol yaroqsiz qiladi. Bot: `/start inv_` → telefon ulashish (faqat o'z kontakti) → `POST /internal/staff/contact`. **Xavfsizlik tuzatishi:** `acceptInvite` taklifni yondirib parol yozgandan KEYIN rolni tekshirardi — bot tokeni bilan Ustozga parol o'rnatish va taklifni yondirish mumkin edi; endi faqat `web` kanal, rol tekshiruvi tranzaksiya ichida (avval qizil regressiya testi). Yangi env: `TELEGRAM_BOT_USERNAME`, `PUBLIC_APP_URL` (API), `API_INTERNAL_URL` (bot). **Qolgan:** W-28 UI (maket qabul qilingach).
 
 ### ⬜ T-102 · Kurslar va xonalar
 

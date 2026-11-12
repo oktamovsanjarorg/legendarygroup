@@ -1,0 +1,2 @@
+ALTER TABLE "staff_invites" ADD COLUMN "channel" text DEFAULT 'web' NOT NULL;--> statement-breakpoint
+ALTER TABLE "staff_invites" ADD CONSTRAINT "staff_invites_channel_check" CHECK ("staff_invites"."channel" IN ('web', 'bot'));

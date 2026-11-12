@@ -12,6 +12,12 @@ export const envSchema = z.object({
   INTERNAL_API_TOKEN: z.string().min(32, 'kamida 32 belgi'),
   /** Bot tokeni — Mini App `initData` imzosini tekshirish (FR-AUTH-2) va bot (T-010). */
   TELEGRAM_BOT_TOKEN: z.string().regex(/^[0-9]+:[A-Za-z0-9_-]{20,}$/, 'BotFather tokeni formatida'),
+  /** Bot username (`@`siz) — ustoz taklif havolasi `t.me/<bot>?start=inv_<token>` (T-101). */
+  TELEGRAM_BOT_USERNAME: z
+    .string()
+    .regex(/^[A-Za-z][A-Za-z0-9_]{3,30}bot$/i, 'BotFather username (…bot)'),
+  /** Web panel ommaviy manzili — taklif havolasi `<url>/invite/<token>` (T-101, CLI). */
+  PUBLIC_APP_URL: z.url({ protocol: /^https?$/ }),
   /** Bot API manzili (testlarda soxta server). */
   TELEGRAM_API_URL: z.url().default('https://api.telegram.org'),
   /** Access JWT imzosi (HS256). */

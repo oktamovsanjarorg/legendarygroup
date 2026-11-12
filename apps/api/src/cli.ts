@@ -31,7 +31,9 @@ async function directorCreate(args: string[]): Promise<void> {
       { phone: values.phone, fullName: values.name },
       new SystemClock().now(),
     );
-    const base = process.env['PUBLIC_APP_URL'] ?? '';
+    // Yashirin standart yo'q (CLAUDE.md): manzil berilmasa — havola yaroqsiz, shuning uchun xato.
+    const base = process.env['PUBLIC_APP_URL'];
+    if (!base) throw new Error("PUBLIC_APP_URL yo'q — taklif havolasini yasab bo'lmaydi");
     console.info(
       `Direktor yaratildi. Sozlash havolasi (${expiresAt.toISOString()} gacha, bir marta):`,
     );

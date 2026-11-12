@@ -1,3 +1,4 @@
+import { createInternalApi } from './internal-api.js';
 import { Redis } from 'ioredis';
 import { configureMenuButton, createBot } from './bot.js';
 import { loadRootEnv, parseBotEnv } from './env.js';
@@ -15,7 +16,7 @@ async function main(): Promise<void> {
   loadRootEnv();
   const env = parseBotEnv(process.env);
   const redis = new Redis(env.REDIS_URL, { lazyConnect: true });
-  const bot = createBot({ env, store: redis, log });
+  const bot = createBot({ env, store: redis, log, api: createInternalApi(env) });
   await bot.init();
   if (!(await configureMenuButton(bot, env.TELEGRAM_MINIAPP_URL))) {
     log.info("Menyu tugmasi o'rnatilmadi: Mini App URL HTTPS emas (lokal)");

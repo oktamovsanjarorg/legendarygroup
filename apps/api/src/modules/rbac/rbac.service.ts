@@ -11,16 +11,17 @@ import {
 } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { canRemoveDirector, type OverrideError, overrideError } from '@lg/domain';
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import { bumpPermissionsVersion } from './user-version.js';
 
 /**
  * Ruxsat/rol/holat o'zgarishlari (02 §1–§4). Har o'zgarish — `permissions_version + 1`
  * (keyingi so'rovdan kuchga kiradi) va audit, hammasi bitta tranzaksiyada.
- * UI va xodim yaratish — T-101.
+ * Xodim yaratish va taklif — `StaffService` (T-101).
  */
 @Injectable()
 export class RbacService {
@@ -69,7 +70,7 @@ export class RbacService {
           createdBy: ctx.actorId,
         });
       }
-      await this.bumpVersion(tx, target.userId);
+      await bumpPermissionsVersion(tx, target.userId);
       await this.audit.record(
         ctx,
         {
@@ -98,7 +99,7 @@ export class RbacService {
         .update(sessions)
         .set({ revokedAt: this.clock.now() })
         .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt)));
-      await this.bumpVersion(tx, userId);
+      await bumpPermissionsVersion(tx, userId);
       await this.audit.record(
         ctx,
         { action: 'user.block', entity: 'user', entityId: userId, after: { status: 'blocked' } },
@@ -119,7 +120,7 @@ export class RbacService {
             .returning({ userId: userRoles.userId })
         : [];
       if (removed.length === 0) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
-      await this.bumpVersion(tx, userId);
+      await bumpPermissionsVersion(tx, userId);
       await this.audit.record(
         ctx,
         { action: 'user.role_removed', entity: 'user', entityId: userId, before: { role } },
@@ -170,12 +171,5 @@ export class RbacService {
     if (isDirector && !canRemoveDirector(directors.filter((d) => d.userId !== userId).length)) {
       throw new AppException(HttpStatus.CONFLICT, 'LAST_DIRECTOR');
     }
-  }
-
-  private async bumpVersion(tx: Transaction, userId: string): Promise<void> {
-    await tx
-      .update(users)
-      .set({ permissionsVersion: sql`${users.permissionsVersion} + 1` })
-      .where(eq(users.id, userId));
   }
 }

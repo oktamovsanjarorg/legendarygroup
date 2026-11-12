@@ -9,6 +9,8 @@ const valid = {
   S3_REGION: 'eu-central-1',
   S3_BUCKET_FILES: 'lg-local-files',
   TELEGRAM_BOT_TOKEN: '1:' + 'a'.repeat(30),
+  TELEGRAM_BOT_USERNAME: 'legendary_dev_bot',
+  PUBLIC_APP_URL: 'https://app.lg.uz',
   JWT_ACCESS_SECRET: 'j'.repeat(32),
   TOTP_ENCRYPTION_KEY: 'a'.repeat(64),
   CORS_ORIGINS: 'http://localhost:5173, http://localhost:5174',
@@ -30,6 +32,8 @@ describe('Config env validatsiyasi (T-004)', () => {
     'JWT_ACCESS_SECRET',
     'TOTP_ENCRYPTION_KEY',
     'CORS_ORIGINS',
+    'TELEGRAM_BOT_USERNAME',
+    'PUBLIC_APP_URL',
   ])("%s yo'q bo'lsa ilova ishga tushmaydi (yashirin standart yo'q)", (key) => {
     const env = Object.fromEntries(Object.entries(valid).filter(([k]) => k !== key));
     expect(() => validateEnv(env)).toThrow(key);
@@ -41,6 +45,8 @@ describe('Config env validatsiyasi (T-004)', () => {
     ['INTERNAL_API_TOKEN', 'short'],
     ['NODE_ENV', 'prod'],
     ['PORT', '70000'],
+    ['TELEGRAM_BOT_USERNAME', 'legendary_dev'],
+    ['PUBLIC_APP_URL', 'ftp://app.lg.uz'],
   ])("%s=%s noto'g'ri", (key, value) => {
     expect(() => validateEnv({ ...valid, [key]: value })).toThrow(key);
   });

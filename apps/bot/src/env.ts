@@ -16,6 +16,10 @@ export const botEnvSchema = z
     BOT_PORT: z.coerce.number().int().min(0).max(65535).default(3002),
     TELEGRAM_MINIAPP_URL: z.url(),
     REDIS_URL: z.url({ protocol: /^rediss?$/ }),
+    /** API ichki manzili (`/internal/*` — faqat ichki tarmoq, T-101). */
+    API_INTERNAL_URL: z.url({ protocol: /^https?$/ }),
+    /** API bilan bir xil (`x-internal-token`). */
+    INTERNAL_API_TOKEN: z.string().min(32, 'kamida 32 belgi'),
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),

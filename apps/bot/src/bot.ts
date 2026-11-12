@@ -3,10 +3,14 @@ import { Bot, type Context, InlineKeyboard } from 'grammy';
 import type { UserFromGetMe } from 'grammy/types';
 import { type DedupeStore, dedupeUpdates } from './dedupe.js';
 import type { BotEnv } from './env.js';
+import type { InternalApi } from './internal-api.js';
+import { registerStaffOnboarding } from './staff-onboarding.js';
 
 export interface BotDeps {
   env: Pick<BotEnv, 'TELEGRAM_BOT_TOKEN' | 'TELEGRAM_MINIAPP_URL'>;
   store: DedupeStore;
+  /** API ichki chaqiruvlari (taklif, kontakt). */
+  api: InternalApi;
   log: { error: (obj: unknown, msg: string) => void };
   /** Testlarda: `getMe` so'rovisiz. */
   botInfo?: UserFromGetMe;
@@ -23,13 +27,15 @@ const openAppKeyboard = (url: string): InlineKeyboard =>
 /**
  * Bot — yupqa qatlam (03 §2): biznes mantiq yo'q, DB yo'q. Javob faqat update kontekstida
  * (`ctx.reply`); boshqa barcha xabarlar — worker navbati (`telegram-outbox`) orqali.
- * Ro'yxatdan o'tish (telefon ulashish) — T-110, chek yuborish — T-206.
+ * Xodim ulanishi — T-101; ota-ona ro'yxatdan o'tishi — T-110, chek yuborish — T-206.
  */
 export function createBot(deps: BotDeps): Bot {
   const bot = new Bot(deps.env.TELEGRAM_BOT_TOKEN, deps.botInfo ? { botInfo: deps.botInfo } : {});
   const url = deps.env.TELEGRAM_MINIAPP_URL;
 
   bot.use(dedupeUpdates(deps.store));
+  // Avval: `/start inv_<token>` va kontakt (T-101); qolgan `/start` — pastdagi umumiy javob.
+  registerStaffOnboarding(bot, deps.api, () => openAppKeyboard(url));
   bot.command('start', (ctx: Context) =>
     ctx.reply(`<b>${t.start.title}</b>\n${t.start.body}`, {
       parse_mode: 'HTML',

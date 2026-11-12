@@ -2,6 +2,7 @@ import { botMessages } from '@lg/i18n';
 import type { Update } from 'grammy/types';
 import { describe, expect, it } from 'vitest';
 import { createBot } from './bot.js';
+import type { InternalApi } from './internal-api.js';
 import type { DedupeStore } from './dedupe.js';
 import { createWebhookServer, WEBHOOK_PATH } from './server.js';
 
@@ -28,7 +29,23 @@ const memoryStore = (): DedupeStore => {
   return { set: async (k) => (keys.has(k) ? null : (keys.add(k), 'OK')) };
 };
 
-function setup(miniAppUrl = 'https://app.example.uz/app') {
+/** Fake API: Karimov Rustam uchun faol taklif `good-token`, raqam +998932220002. */
+function fakeApi(): InternalApi & { shared: unknown[] } {
+  const shared: unknown[] = [];
+  return {
+    shared,
+    checkStaffInvite: async (token) =>
+      token === 'good-token' ? { valid: true, fullName: 'Karimov <Rustam>' } : { valid: false },
+    shareContact: async (input) => {
+      shared.push(input);
+      return input.phone.replace(/\D/g, '') === '998932220002'
+        ? { result: 'staff_linked', fullName: 'Karimov Rustam' }
+        : { result: 'not_found' };
+    },
+  };
+}
+
+function setup(miniAppUrl = 'https://app.example.uz/app', api = fakeApi()) {
   const calls: { method: string; payload: Record<string, unknown> }[] = [];
   const errors: unknown[] = [];
   const bot = createBot({
@@ -36,12 +53,13 @@ function setup(miniAppUrl = 'https://app.example.uz/app') {
     store: memoryStore(),
     log: { error: (e) => errors.push(e) },
     botInfo,
+    api,
   });
   bot.api.config.use(async (_prev, method, payload) => {
     calls.push({ method, payload: payload as Record<string, unknown> });
     return { ok: true, result: true } as never;
   });
-  return { bot, calls, errors };
+  return { bot, calls, errors, api };
 }
 
 let updateId = 1000;
@@ -53,7 +71,8 @@ const command = (text: string): Update => ({
     chat: { id: 42, type: 'private', first_name: 'Ali' },
     from: { id: 42, is_bot: false, first_name: 'Ali' },
     text,
-    entities: [{ type: 'bot_command', offset: 0, length: text.length }],
+    // Telegram kabi: entity faqat buyruqni qamraydi (`/start`), parametrni emas.
+    entities: [{ type: 'bot_command', offset: 0, length: text.split(' ')[0]!.length }],
   },
 });
 
@@ -90,6 +109,57 @@ describe('Bot (T-010)', () => {
     await bot.handleUpdate(u);
     await bot.handleUpdate(u);
     expect(calls).toHaveLength(1);
+  });
+});
+
+const contact = (phone: string, userId = 42): Update => ({
+  update_id: ++updateId,
+  message: {
+    message_id: updateId,
+    date: 1_794_000_000,
+    chat: { id: 42, type: 'private', first_name: 'Rustam' },
+    from: { id: 42, is_bot: false, first_name: 'Rustam', username: 'rustam_k' },
+    contact: { phone_number: phone, first_name: 'Rustam', user_id: userId },
+  },
+});
+
+describe('Ustozni ulash (T-101)', () => {
+  it('/start inv_<token> — ism (HTML escape) va "telefon ulashish" tugmasi', async () => {
+    const { bot, calls } = setup();
+    await bot.handleUpdate(command('/start inv_good-token'));
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.payload['text']).toContain('Karimov &lt;Rustam&gt;');
+    expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('"request_contact":true');
+  });
+
+  it('eskirgan taklif — tushunarli xabar; oddiy /start — salomlashuv (taklifsiz)', async () => {
+    const { bot, calls } = setup();
+    await bot.handleUpdate(command('/start inv_old'));
+    await bot.handleUpdate(command('/start'));
+    expect(calls[0]?.payload['text']).toBe(botMessages.staffInvite.invalid);
+    expect(calls[1]?.payload['text']).toContain(botMessages.start.title);
+  });
+
+  it("o'z kontakti — API'ga yuboriladi; ulandi → 2 xabar (klaviatura olinadi, ilova tugmasi)", async () => {
+    const { bot, calls, api } = setup();
+    await bot.handleUpdate(contact('998932220002'));
+    expect(api.shared).toEqual([{ telegramId: 42, phone: '998932220002', username: 'rustam_k' }]);
+    expect(calls).toHaveLength(2);
+    expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('"remove_keyboard":true');
+    expect(JSON.stringify(calls[1]?.payload['reply_markup'])).toContain('web_app');
+  });
+
+  it("BOSHQA birovning kontakti — API'ga yuborilmaydi (raqam egasi tekshiruvi)", async () => {
+    const { bot, calls, api } = setup();
+    await bot.handleUpdate(contact('998932220002', 999));
+    expect(api.shared).toEqual([]);
+    expect(calls[0]?.payload['text']).toBe(botMessages.staffInvite.notOwn);
+  });
+
+  it('taklifsiz raqam — "topilmadi"', async () => {
+    const { bot, calls } = setup();
+    await bot.handleUpdate(contact('+998901112233'));
+    expect(calls[0]?.payload['text']).toBe(botMessages.staffInvite.notFound);
   });
 });
 
