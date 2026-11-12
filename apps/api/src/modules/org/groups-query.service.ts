@@ -73,7 +73,12 @@ export class GroupsQueryService {
    * sig'im tekshiruvi parallel yozilishlarda ketma-ket bajariladi.
    */
   async lockForEnrollment(tx: Transaction, id: string) {
-    const [g] = await tx
+    return this.info(tx, id, true);
+  }
+
+  /** Guruhning asosiy maydonlari (boshqa modullar uchun; qulfsiz). */
+  async info(tx: Database | Transaction, id: string, lock = false) {
+    const q = tx
       .select({
         id: groups.id,
         name: groups.name,
@@ -83,8 +88,8 @@ export class GroupsQueryService {
         maxStudents: groups.maxStudents,
       })
       .from(groups)
-      .where(eq(groups.id, id))
-      .for('update');
+      .where(eq(groups.id, id));
+    const [g] = lock ? await q.for('update') : await q;
     return g ?? null;
   }
 

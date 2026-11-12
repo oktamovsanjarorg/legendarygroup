@@ -8,7 +8,7 @@ import {
 } from '@lg/contracts';
 import { type Database, guardians, studentGuardians, students, type Transaction } from '@lg/db';
 import { normalizeUz } from '@lg/i18n';
-import { and, asc, desc, eq, exists, ilike, or, type SQL, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, exists, ilike, inArray, or, type SQL, sql } from 'drizzle-orm';
 import { AppException } from '../../common/errors/app.exception.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import type { RequestUser } from '../auth/index.js';
@@ -54,6 +54,7 @@ function decodeCursor(raw: string): string {
 
 export interface StudentListParams {
   q?: string | undefined;
+  groupId?: string | undefined;
   status: OrgListFilter;
   cursor?: string | undefined;
   limit: number;
@@ -79,6 +80,7 @@ export class StudentsQueryService {
           scope.kind === 'all' ? undefined : scope.where,
           archivedFilter(students.archivedAt, p.status),
           searchCondition(this.db, p.q),
+          p.groupId ? inArray(students.id, this.scope.enrolledOn([p.groupId])) : undefined,
           after
             ? sql`(${students.createdAt}, ${students.id}) < (select s.created_at, s.id from ${students} s where s.id = ${after}::uuid)`
             : undefined,
