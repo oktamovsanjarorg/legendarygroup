@@ -58,6 +58,13 @@ export const errorMessages = {
     'Jadval toʻqnashuvi: xona yoki ustoz shu vaqtda boshqa guruhda band. Vaqt yoki xonani oʻzgartiring.',
   LESSON_CONFLICT:
     'Shu vaqtda xona, ustoz yoki guruhda boshqa dars bor (qoʻshimcha yoki koʻchirilgan). Vaqtni oʻzgartiring.',
+  LESSON_NOT_SCHEDULED: 'Bu dars rejalashtirilgan holatda emas (bekor qilingan yoki oʻtgan).',
+  LESSON_NOT_RESTORABLE:
+    'Bu darsni qaytarib boʻlmaydi: bayram sababli bekor qilingan yoki oʻrniga dars qoʻyilgan.',
+  LESSON_NOT_COMPENSABLE:
+    'Qoplovchi dars faqat bekor qilingan va hali qoplanmagan darsga qoʻshiladi.',
+  LESSON_IN_PAST: 'Oʻtgan sanaga dars yoki bayram qoʻyib boʻlmaydi.',
+  HOLIDAY_EXISTS: 'Bu sana allaqachon bayram sifatida belgilangan.',
   SLOT_OVERLAP: 'Guruh jadvalida bir kunda kesishuvchi vaqtlar bor. Vaqtlarni tuzating.',
   INVALID_STATUS_TRANSITION: 'Guruhni bu holatga oʻtkazib boʻlmaydi.',
   GROUP_FINISHED: 'Yakunlangan guruhni oʻzgartirib boʻlmaydi.',
