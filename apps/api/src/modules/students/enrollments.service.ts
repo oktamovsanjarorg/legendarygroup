@@ -178,9 +178,15 @@ export class EnrollmentsService {
     return row;
   }
 
-  async lockOpen(tx: Transaction, id: string): Promise<EnrollmentRow> {
+  async lock(tx: Transaction, id: string): Promise<EnrollmentRow> {
     const [e] = await tx.select().from(enrollments).where(eq(enrollments.id, id)).for('update');
     if (!e) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+    return e;
+  }
+
+  /** Yakunlanmagan (chiqish sababi qo'yilmagan) enrollment. */
+  async lockOpen(tx: Transaction, id: string): Promise<EnrollmentRow> {
+    const e = await this.lock(tx, id);
     if (e.endReason !== null) throw new AppException(HttpStatus.CONFLICT, 'ENROLLMENT_ENDED');
     return e;
   }
