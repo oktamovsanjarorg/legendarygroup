@@ -177,7 +177,7 @@
 - **Aniqlik:** shu vazifa `branches` jadvalini (id, name) bitta seed qatori bilan yaratadi; keyingi biznes jadvallar `branch_id` FK oladi (standart — yagona filial).
 - **Backend bajarildi (2026-11-12):** `branches` (0008) + yagona filial qatori (0009, `DEFAULT_BRANCH_ID`, `branch_id` standarti); `courses` (darajalar `text[]`, narx `bigint`, dars 15–480 daq, `duration_months`, `grade_scale` BR-33), `rooms` (sig'im 1–500); faol nom filial ichida unique (`lower(name)`, partial — arxivdagi nom qayta ishlatiladi; parallel so'rovda ham DB tekshiradi). `GET/POST /api/{courses,rooms}`, `GET/PATCH /api/{…}/:id`, `POST /api/{…}/:id/{archive,restore}` — `course.manage`; arxivdagi yozuv tahrirlanmaydi; audit `course.*`/`room.*` (before/after — faqat farq). Q-66 standart varianti. **Qolgan:** W-09 UI (maket qabul qilingach).
 
-### ⬜ T-103 · Guruhlar va jadval
+### 🟨 T-103 · Guruhlar va jadval
 
 - **Bog'liq:** T-102, T-101 · **Talablar:** FR-ORG-3, 4, 6
 - **AC:** (T-008 dan) ustoz scope servisi: `group_teachers` bo'yicha hozirgi sanada faol guruhlar (02 §3, Q-64) + o'z/begona guruh matritsa testi; guruh CRUD, ustoz biriktirish (asosiy/yordamchi, sanalar bilan), faol guruhli kursni arxivlash taqig'i (Q-66), haftalik jadval sloti; xona va ustoz to'qnashuvi DB darajasida rad etiladi (exclusion constraint) va UI'da tushunarli xabar; guruh holatlari.
