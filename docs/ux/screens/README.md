@@ -19,7 +19,7 @@ mock ma'lumot bilan) + shu papkadagi skrinshotlar. Maket kodi haqiqiy ekranda qa
 | 1    | C-01…C-04 (kirish, rol tanlash, bog'lanmagan, sozlamalar)                                | haqiqiy ekran — T-009, `apps/miniapp` | ✅ qurilgan             |
 | 2    | MT-06…MT-11, C-05                                                                        | —                                     | ⬜                      |
 | 3    | MG-01 Asosiy, MG-02…04 Natijalar/test/hisobot, MG-05…07 Toʻlovlar/chek, MG-08…11 Koʻproq | `miniapp/ota-ona-*`                   | ⏳ egasi ko'rib chiqadi |
-| 4    | MS-01…MS-05 (xodim rejimi)                                                               | —                                     | ⬜                      |
+| 4    | MS-01 Bugun (KPI), MS-02 Chek navbati, MS-03 Soʻrovlar, MS-04 Qidiruv, MS-05 Kartochka   | `miniapp/xodim-ms-01-05`              | ⏳ egasi ko'rib chiqadi |
 | 5–6  | W-01…W-35 (web panel; 1280/1440 px)                                                      | —                                     | ⬜                      |
 
 ## O'lchanadigan mezonlar (11-ux §5)

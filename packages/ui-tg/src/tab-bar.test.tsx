@@ -19,4 +19,15 @@ describe('TabBar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Jadval' }));
     expect(onSelect).toHaveBeenCalledWith(items[1]);
   });
+
+  it("badge: ekran o'quvchi uchun nom «Navbat (3)»", () => {
+    render(
+      <TabBar
+        items={[...items, { screen: 'MS-02', to: '/queue', label: 'Navbat', icon: Home, badge: 3 }]}
+        active="/"
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Navbat (3)' })).toBeTruthy();
+  });
 });

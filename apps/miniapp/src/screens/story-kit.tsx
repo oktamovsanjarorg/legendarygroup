@@ -11,8 +11,11 @@ import {
   BarChart3,
   CalendarCheck,
   CalendarDays,
+  ClipboardCheck,
   Ellipsis,
   House,
+  Receipt,
+  Search,
   UserRound,
   Users,
   Wallet,
@@ -37,6 +40,14 @@ export const GUARDIAN_TABS: TabItem[] = [
   { screen: 'MG-11', to: '/more', label: t.gtabs.more, icon: Ellipsis },
 ];
 
+/** Xodim rejimi (11-ux §2): navbatda badge; "So'rovlar" — faqat Director. */
+export const STAFF_TABS: TabItem[] = [
+  { screen: 'MS-01', to: '/', label: t.stabs.today, icon: CalendarCheck },
+  { screen: 'MS-02', to: '/queue', label: t.stabs.queue, icon: Receipt, badge: 3 },
+  { screen: 'MS-03', to: '/approvals', label: t.stabs.approvals, icon: ClipboardCheck, badge: 2 },
+  { screen: 'MS-04', to: '/search', label: t.stabs.search, icon: Search },
+];
+
 /** Tab ildiz ekrani: pastda rol menyusi (standart — Ustoz). */
 export function TabRoot({
   active,
@@ -56,6 +67,12 @@ export function TabRoot({
 }
 
 const noop = () => undefined;
+
+/** Mock massiv elementi (noUncheckedIndexedAccess): yo'q bo'lsa — darhol xato. */
+export function must<T>(v: T | undefined): T {
+  if (v === undefined) throw new Error("mock ma'lumot yo'q");
+  return v;
+}
 
 export const stateStories = {
   Loading: { render: () => <LoadingState /> },

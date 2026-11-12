@@ -6,6 +6,8 @@ export interface TabItem {
   to: string;
   label: string;
   icon: LucideIcon;
+  /** Son belgisi (masalan, navbatdagi cheklar). */
+  badge?: number;
 }
 
 interface TabBarProps {
@@ -32,10 +34,21 @@ export function TabBar({ items, active, onSelect }: TabBarProps) {
             key={item.to}
             type="button"
             aria-current={on ? 'page' : undefined}
+            aria-label={item.badge ? `${item.label} (${item.badge})` : undefined}
             onClick={() => !on && onSelect(item)}
             className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium ${on ? 'text-primary' : 'text-text-muted'}`}
           >
-            <Icon className="size-6" aria-hidden />
+            <span className="relative">
+              <Icon className="size-6" aria-hidden />
+              {item.badge ? (
+                <span
+                  aria-hidden
+                  className="absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-danger px-1 text-[10px] font-bold leading-4 text-primary-text tabular-nums"
+                >
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              ) : null}
+            </span>
             {item.label}
           </button>
         );
