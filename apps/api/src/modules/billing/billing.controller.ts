@@ -1,4 +1,14 @@
-import { Controller, Get, Inject, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Inject,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CashClosingListQuery,
@@ -21,6 +31,7 @@ import {
   PaymentListQuery,
   type PaymentListQueryInput,
   type PublicReceipt,
+  type ReceiptVerifyResponse,
   RefundPaymentRequest,
   type RefundPaymentInput,
   ReversePaymentRequest,
@@ -31,7 +42,7 @@ import {
   WaivePenaltyRequest,
   type WaivePenaltyInput,
 } from '@lg/contracts';
-import type { FastifyRequest } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { auditContext } from '../../common/audit/request-context.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
@@ -42,6 +53,7 @@ import type { GenerateResult } from './billing-generator.service.js';
 import { BillingService } from './billing.service.js';
 import { DiscountsService } from './discounts.service.js';
 import { PaymentsService } from './payments.service.js';
+import { ReceiptPdfService } from './receipt-pdf.service.js';
 import { StornoCashService } from './storno-cash.service.js';
 
 @ApiTags('Billing')
@@ -53,6 +65,7 @@ export class BillingController {
     @Inject(PaymentsService) private readonly payments: PaymentsService,
     @Inject(DiscountsService) private readonly discounts: DiscountsService,
     @Inject(StornoCashService) private readonly stornoCash: StornoCashService,
+    @Inject(ReceiptPdfService) private readonly receiptPdf: ReceiptPdfService,
   ) {}
 
   @Get('invoices')
@@ -146,6 +159,28 @@ export class BillingController {
   @ApiOperation({ summary: 'Chekni ommaviy tekshirish sahifasi (mehmon va ota-onalar uchun)' })
   async verifyReceipt(@Param('number') number: string): Promise<PublicReceipt> {
     return this.payments.getPublicReceipt(number);
+  }
+
+  @Get('receipts/:number/pdf')
+  @Public()
+  @NoAudit('GET receipt PDF')
+  @ApiOperation({ summary: 'Rasmiy toʻlov chekini PDF koʻrinishida yuklab olish (FR-PAY-8)' })
+  async downloadReceiptPdf(
+    @Param('number') number: string,
+    @Res() res: FastifyReply,
+  ): Promise<void> {
+    const buffer = await this.receiptPdf.generateReceiptPdf(number);
+    res.header('Content-Type', 'application/pdf');
+    res.header('Content-Disposition', `inline; filename="receipt-${number}.pdf"`);
+    res.send(buffer);
+  }
+
+  @Get('receipts/verify/:token')
+  @Public()
+  @NoAudit('GET receipt verify by token')
+  @ApiOperation({ summary: 'W-34 QR tekshiruv: ommaviy haqiqiylik tekshiruvi (PIIsiz, FR-PAY-8)' })
+  async verifyReceiptByToken(@Param('token') token: string): Promise<ReceiptVerifyResponse> {
+    return this.receiptPdf.verifyReceipt(token);
   }
 
   @Patch('enrollments/:id/discount')

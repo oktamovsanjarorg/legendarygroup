@@ -12,6 +12,7 @@ import { HomePage } from './pages/home.js';
 import { InvitePage } from './pages/invite.js';
 import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
+import { VerifyPage } from './pages/verify.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { GroupsPage } from './routes/groups/index.js';
@@ -36,6 +37,13 @@ const invite = createRoute({
   path: '/invite/$token',
   component: function Invite() {
     return <InvitePage token={invite.useParams().token} />;
+  },
+});
+const verify = createRoute({
+  getParentRoute: () => root,
+  path: '/verify/$token',
+  component: function Verify() {
+    return <VerifyPage token={verify.useParams().token} />;
   },
 });
 const app = createRoute({ getParentRoute: () => root, id: 'app', component: AppLayout });
@@ -75,6 +83,7 @@ const staff = createRoute({ getParentRoute: () => app, path: '/staff', component
 const routeTree = root.addChildren([
   login,
   invite,
+  verify,
   app.addChildren([home, students, studentCard, leads, courses, groups, calendar, staff, sessions]),
 ]);
 

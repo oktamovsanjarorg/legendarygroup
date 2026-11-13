@@ -17,6 +17,7 @@ import { DebtorsService } from './debtors.service.js';
 import { DiscountsRepository } from './discounts.repository.js';
 import { DiscountsService } from './discounts.service.js';
 import { PaymentsService } from './payments.service.js';
+import { ReceiptPdfService } from './receipt-pdf.service.js';
 import { StornoCashRepository } from './storno-cash.repository.js';
 import { StornoCashService } from './storno-cash.service.js';
 
@@ -43,6 +44,7 @@ import { StornoCashService } from './storno-cash.service.js';
     StornoCashService,
     DebtorsRepository,
     DebtorsService,
+    ReceiptPdfService,
   ],
   exports: [
     BillingService,
@@ -55,6 +57,7 @@ import { StornoCashService } from './storno-cash.service.js';
     StornoCashRepository,
     DebtorsService,
     DebtorsRepository,
+    ReceiptPdfService,
   ],
 })
 export class BillingModule {}

@@ -248,6 +248,14 @@ export class BillingRepository {
     return row ?? null;
   }
 
+  async findReceiptByVerifyToken(verifyToken: string): Promise<ReceiptRow | null> {
+    const [row] = await this.db
+      .select()
+      .from(receipts)
+      .where(eq(receipts.verifyToken, verifyToken));
+    return row ?? null;
+  }
+
   async isReceiptCancelled(
     receiptId: string,
   ): Promise<{ isCancelled: boolean; reason: string | null }> {

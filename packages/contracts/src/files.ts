@@ -57,6 +57,13 @@ export const FILE_PURPOSES = {
     upload: 'announcement.send',
     view: 'announcement.send',
   },
+  /** Rasmiy to'lov cheki PDF (FR-PAY-8, T-205). */
+  receipt_pdf: {
+    mimes: [PDF_MIME],
+    maxBytes: 5 * 1024 * 1024,
+    upload: 'payment.create',
+    view: 'billing.view',
+  },
 } as const satisfies Record<string, FilePurposeRule>;
 
 export type FilePurpose = keyof typeof FILE_PURPOSES;

@@ -248,3 +248,12 @@ export const SendReminderResponseSchema = z.object({
   sentAt: z.string(),
 });
 export type SendReminderResponse = z.infer<typeof SendReminderResponseSchema>;
+
+export const ReceiptVerifyResponseSchema = z.object({
+  kind: z.enum(['valid', 'reversed']),
+  number: z.string(),
+  date: z.string(),
+  amount: z.string(),
+  center: z.string(),
+});
+export type ReceiptVerifyResponse = z.infer<typeof ReceiptVerifyResponseSchema>;

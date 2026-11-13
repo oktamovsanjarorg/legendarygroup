@@ -78,7 +78,6 @@ beforeAll(async () => {
     studentId: student1Id,
     groupId,
     startDate: '2026-09-01',
-    status: 'active',
   });
 
   const [inv1] = await db
@@ -115,7 +114,6 @@ beforeAll(async () => {
     studentId: student2Id,
     groupId,
     startDate: '2026-09-01',
-    status: 'active',
   });
 
   const [inv2] = await db
