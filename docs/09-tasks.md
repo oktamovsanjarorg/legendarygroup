@@ -224,11 +224,12 @@
 - **AC:** shablonlar (i18n), `notify(userId, template, payload)` API → outbox → navbat; holatlar (queued/sent/failed/blocked); qayta urinish; foydalanuvchi sozlamalari (majburiy turlarni o'chirib bo'lmaydi); Admin uchun "yetib bormagan xabarlar" ro'yxati.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/notifications.ts` (`NOTIFICATION_TYPES`, `MANDATORY_NOTIFICATION_TYPES`, preferences, undelivered DTOlar); `packages/domain/src/notifications/` (`isNotificationMandatory`, `validatePreferenceUpdate`, `renderNotificationTemplate`); `packages/db` `0029_notifications.sql` migratsiyasi (`notifications`, `notification_preferences` jadvallari, indekslar); `apps/api/src/modules/notifications/` (`GET/PATCH /api/notifications/preferences`, `GET /api/notifications/undelivered`, `POST /api/notifications/undelivered/:id/retry`, `NotificationsService.notify` API); 5 ta integratsiya testi yashil.
 
-### ⬜ T-110 · Ota-ona onboarding (bot)
+### ✅ T-110 · Ota-ona onboarding (bot)
 
 - **Bog'liq:** T-007, T-105, T-109 · **Talablar:** FR-AUTH-1
 - **AC:** `/start` → maxfiylik roziligi → "Raqamni ulashish" (faqat o'z kontakti qabul qilinadi — `contact.user_id == from.id`) → mos ota-ona topilsa bog'lanadi va farzand(lar) ko'rsatiladi; topilmasa — Admin'ga so'rov; bir nechta farzand; qayta `/start` xavfsiz.
 - **Aniqlik:** so'rovlar web'da "Bog'lanish so'rovlari" ro'yxatida (O'quvchilar bo'limi); Admin ota-onani tanlab bog'laydi yoki rad etadi → botga natija.
+- **Bajarildi (2026-11-14):** `packages/contracts/src/guardian-link-requests.ts` (so'rov DTOlari, internal bot status/contact DTOlari); `packages/db` `0032_guardian_link_requests.sql` migratsiyasi (`guardian_link_requests` jadvali, indekslar, check constraintlar); `apps/api/src/modules/rbac/guardian-link.service.ts` va `internal-guardian.controller.ts` (`/internal/guardian/status`, `/internal/guardian/contact`); `apps/api/src/modules/students/guardian-link-requests.*` (`GET /api/guardians/link-requests`, `POST /:id/approve`, `POST /:id/reject`); `apps/bot` onboarding oqimi (T-101 va T-110 sintezi, maxfiylik roziligi, farzandlar ro'yxati, `cli-sim.ts` terminal simulyatori); 13 ta bot testi va 6 ta yangi integratsiya testi yashil.
 
 ### 🟨 T-111 · Davomat (Mini App, Ustoz)
 

@@ -29,3 +29,4 @@ export * from './progress.js';
 export * from './announcements.js';
 export * from './tickets.js';
 export * from './absence-notices.js';
+export * from './guardian-link-requests.js';

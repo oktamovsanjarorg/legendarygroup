@@ -225,6 +225,13 @@
       "when": 1794640000000,
       "tag": "0031_tickets_and_absence_notices",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794650000000,
+      "tag": "0032_guardian_link_requests",
+      "breakpoints": true
     }
   ]
 }

@@ -19,6 +19,25 @@ export const botMessages = {
     notFound:
       'Bu raqam boʻyicha faol taklif topilmadi. Direktor yoki administratorga murojaat qiling.',
   },
+  parentOnboarding: {
+    welcomeTitle: '👋 Legendary Group oʻquv markaziga xush kelibsiz!',
+    welcomeBody:
+      'Markaz yangiliklari, farzandingiz davomati, baholari va toʻlovlarini kuzatib borish uchun telefon raqamingizni ulashing.\n\n<i>Tugmani bosish orqali siz shaxsiy maʼlumotlarni qayta ishlashga rozilik bildirasiz.</i>',
+    shareButton: '📱 Telefon raqamni ulashish',
+    linkedTitle: '✅ Profilingiz muvaffaqiyatli bogʻlandi, {name}!',
+    linkedChildren:
+      'Farzand(lar)ingiz:\n{children}\n\nIlovani ochish uchun pastdagi tugmani bosing.',
+    alreadyLinked:
+      '✅ Profilingiz allaqachon bogʻlangan, {name}.\n\nFarzand(lar)ingiz:\n{children}',
+    staffGreeting: '👋 Assalomu alaykum, {name}!\n\nIlovani ochish uchun pastdagi tugmani bosing.',
+    pendingTitle: '⏳ Bogʻlanish soʻrovingiz koʻrib chiqilmoqda',
+    pendingBody: 'Administrator arizangizni tasdiqlashi bilanoq sizga xabar yuboriladi.',
+    requestCreatedTitle: 'ℹ️ Soʻrov qabul qilindi',
+    requestCreatedBody:
+      'Telefon raqamingiz ({phone}) oʻquv markaz bazasida topilmadi.\n\nAdministratorga bogʻlanish soʻrovi yuborildi. Administrator tasdiqlashi bilanoq sizga xabar beramiz yoki markaz maʼmuriyatiga murojaat qiling.',
+    rejectedBody:
+      'Sizning soʻrovingiz rad etilgan.\nSabab: {reason}\nSavollar boʻlsa, markaz administratoriga murojaat qiling.',
+  },
   openApp: 'Ilovani ochish',
   menuButton: 'Ilova',
   error: 'Kutilmagan xato yuz berdi. Birozdan keyin qayta urinib koʻring.',

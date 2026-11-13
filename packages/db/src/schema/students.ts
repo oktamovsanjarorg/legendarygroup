@@ -1,6 +1,12 @@
-import { ACQUISITION_SOURCES, GENDERS, GUARDIAN_RELATIONS } from '@lg/contracts';
+import {
+  ACQUISITION_SOURCES,
+  GENDERS,
+  GUARDIAN_LINK_REQUEST_STATUSES,
+  GUARDIAN_RELATIONS,
+} from '@lg/contracts';
 import { sql } from 'drizzle-orm';
 import {
+  bigint,
   boolean,
   check,
   date,
@@ -111,3 +117,37 @@ export const studentGuardians = pgTable(
 export type StudentRow = typeof students.$inferSelect;
 export type GuardianRow = typeof guardians.$inferSelect;
 export type StudentGuardianRow = typeof studentGuardians.$inferSelect;
+
+/**
+ * Bot orqali bog'lanish so'rovlari (FR-AUTH-1, T-110, W-07).
+ * Noma'lum ota-ona raqami kelganda yaratiladi va Admin ko'rib chiqadi.
+ */
+export const guardianLinkRequests = pgTable(
+  'guardian_link_requests',
+  {
+    id: primaryUuid(),
+    branchId: branchId(),
+    telegramId: bigint('telegram_id', { mode: 'bigint' }).notNull(),
+    telegramUsername: text('telegram_username'),
+    phone: text('phone').notNull(),
+    fullName: text('full_name').notNull(),
+    status: text('status', { enum: GUARDIAN_LINK_REQUEST_STATUSES }).notNull().default('pending'),
+    rejectReason: text('reject_reason'),
+    resolvedGuardianId: uuid('resolved_guardian_id').references(() => guardians.id, {
+      onDelete: 'set null',
+    }),
+    resolvedBy: uuid('resolved_by').references(() => users.id, { onDelete: 'set null' }),
+    resolvedAt: tstz('resolved_at'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index('guardian_link_requests_telegram_id_idx').on(t.telegramId),
+    index('guardian_link_requests_phone_idx').on(t.phone),
+    index('guardian_link_requests_status_idx').on(t.status),
+    check('guardian_link_requests_status_check', oneOf(t.status, GUARDIAN_LINK_REQUEST_STATUSES)),
+    check('guardian_link_requests_phone_e164_check', E164(t.phone)),
+  ],
+);
+
+export type GuardianLinkRequestRow = typeof guardianLinkRequests.$inferSelect;

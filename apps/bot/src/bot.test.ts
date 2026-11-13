@@ -42,6 +42,30 @@ function fakeApi(): InternalApi & { shared: unknown[] } {
         ? { result: 'staff_linked', fullName: 'Karimov Rustam' }
         : { result: 'not_found' };
     },
+    checkStatus: async (telegramId) => {
+      if (telegramId === 42) {
+        return {
+          status: 'linked',
+          role: 'guardian',
+          fullName: 'Ali',
+          students: [{ id: 's1', fullName: 'Farzand Ali' }],
+        };
+      }
+      if (telegramId === 102) {
+        return { status: 'pending_approval' };
+      }
+      return { status: 'not_registered' };
+    },
+    shareGuardianContact: async (input) => {
+      if (input.phone.replace(/\D/g, '') === '998901112233') {
+        return {
+          result: 'guardian_linked',
+          fullName: 'Valiyev Vali',
+          students: [{ id: 's1', fullName: 'Valiyeva Laylo' }],
+        };
+      }
+      return { result: 'request_created' };
+    },
   };
 }
 
@@ -63,35 +87,52 @@ function setup(miniAppUrl = 'https://app.example.uz/app', api = fakeApi()) {
 }
 
 let updateId = 1000;
-const command = (text: string): Update => ({
+const command = (text: string, userId = 42): Update => ({
   update_id: ++updateId,
   message: {
     message_id: updateId,
     date: 1_794_000_000,
-    chat: { id: 42, type: 'private', first_name: 'Ali' },
-    from: { id: 42, is_bot: false, first_name: 'Ali' },
+    chat: { id: userId, type: 'private', first_name: 'Ali' },
+    from: { id: userId, is_bot: false, first_name: 'Ali' },
     text,
-    // Telegram kabi: entity faqat buyruqni qamraydi (`/start`), parametrni emas.
     entities: [{ type: 'bot_command', offset: 0, length: text.split(' ')[0]!.length }],
   },
 });
 
-describe('Bot (T-010)', () => {
-  it('/start — salomlashuv va Mini App tugmasi (HTTPS — web_app)', async () => {
+describe('Bot (T-010, T-110)', () => {
+  it('/start bogʻlangan foydalanuvchi — salomlashuv va Mini App tugmasi', async () => {
     const { bot, calls } = setup();
-    await bot.handleUpdate(command('/start'));
+    await bot.handleUpdate(command('/start', 42));
     expect(calls).toHaveLength(1);
     const { method, payload } = calls[0]!;
     expect(method).toBe('sendMessage');
-    expect(payload['text']).toContain(botMessages.start.title);
+    expect(payload['text']).toContain('Ali');
+    expect(payload['text']).toContain('Farzand Ali');
     expect(JSON.stringify(payload['reply_markup'])).toContain(
       '"web_app":{"url":"https://app.example.uz/app"}',
     );
   });
 
+  it('/start yangi foydalanuvchi — maxfiylik roziligi va raqam ulashish tugmasi', async () => {
+    const { bot, calls } = setup();
+    await bot.handleUpdate(command('/start', 99));
+    expect(calls).toHaveLength(1);
+    const { method, payload } = calls[0]!;
+    expect(method).toBe('sendMessage');
+    expect(payload['text']).toContain(botMessages.parentOnboarding.welcomeTitle);
+    expect(JSON.stringify(payload['reply_markup'])).toContain('"request_contact":true');
+  });
+
+  it('/start soʻrovi kutilayotgan foydalanuvchi — kutilmoqda xabari', async () => {
+    const { bot, calls } = setup();
+    await bot.handleUpdate(command('/start', 102));
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.payload['text']).toContain(botMessages.parentOnboarding.pendingTitle);
+  });
+
   it("lokal http URL — web_app o'rniga oddiy havola (Telegram faqat HTTPS qabul qiladi)", async () => {
     const { bot, calls } = setup('http://localhost:5174');
-    await bot.handleUpdate(command('/start'));
+    await bot.handleUpdate(command('/start', 42));
     expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain(
       '"url":"http://localhost:5174"',
     );
@@ -112,18 +153,18 @@ describe('Bot (T-010)', () => {
   });
 });
 
-const contact = (phone: string, userId = 42): Update => ({
+const contact = (phone: string, contactUserId = 42): Update => ({
   update_id: ++updateId,
   message: {
     message_id: updateId,
     date: 1_794_000_000,
     chat: { id: 42, type: 'private', first_name: 'Rustam' },
     from: { id: 42, is_bot: false, first_name: 'Rustam', username: 'rustam_k' },
-    contact: { phone_number: phone, first_name: 'Rustam', user_id: userId },
+    contact: { phone_number: phone, first_name: 'Rustam', user_id: contactUserId },
   },
 });
 
-describe('Ustozni ulash (T-101)', () => {
+describe('Ustozni ulash (T-101) va Ota-ona onboarding (T-110)', () => {
   it('/start inv_<token> — ism (HTML escape) va "telefon ulashish" tugmasi', async () => {
     const { bot, calls } = setup();
     await bot.handleUpdate(command('/start inv_good-token'));
@@ -132,15 +173,13 @@ describe('Ustozni ulash (T-101)', () => {
     expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('"request_contact":true');
   });
 
-  it('eskirgan taklif — tushunarli xabar; oddiy /start — salomlashuv (taklifsiz)', async () => {
+  it('eskirgan taklif — tushunarli xabar', async () => {
     const { bot, calls } = setup();
     await bot.handleUpdate(command('/start inv_old'));
-    await bot.handleUpdate(command('/start'));
     expect(calls[0]?.payload['text']).toBe(botMessages.staffInvite.invalid);
-    expect(calls[1]?.payload['text']).toContain(botMessages.start.title);
   });
 
-  it("o'z kontakti — API'ga yuboriladi; ulandi → 2 xabar (klaviatura olinadi, ilova tugmasi)", async () => {
+  it("o'z kontakti xodim taklifi bilan — ulandi (klaviatura olinadi, ilova tugmasi)", async () => {
     const { bot, calls, api } = setup();
     await bot.handleUpdate(contact('998932220002'));
     expect(api.shared).toEqual([{ telegramId: 42, phone: '998932220002', username: 'rustam_k' }]);
@@ -156,10 +195,21 @@ describe('Ustozni ulash (T-101)', () => {
     expect(calls[0]?.payload['text']).toBe(botMessages.staffInvite.notOwn);
   });
 
-  it('taklifsiz raqam — "topilmadi"', async () => {
+  it('ota-ona raqami bazada mavjud — bogʻlanadi va farzandlar koʻrsatiladi', async () => {
     const { bot, calls } = setup();
     await bot.handleUpdate(contact('+998901112233'));
-    expect(calls[0]?.payload['text']).toBe(botMessages.staffInvite.notFound);
+    expect(calls).toHaveLength(2);
+    expect(calls[0]?.payload['text']).toContain('Valiyev Vali');
+    expect(calls[0]?.payload['text']).toContain('Valiyeva Laylo');
+    expect(JSON.stringify(calls[1]?.payload['reply_markup'])).toContain('web_app');
+  });
+
+  it('nomaʼlum raqam — adminga soʻrov yuborildi xabari', async () => {
+    const { bot, calls } = setup();
+    await bot.handleUpdate(contact('+998990001122'));
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.payload['text']).toContain(botMessages.parentOnboarding.requestCreatedTitle);
+    expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('"remove_keyboard":true');
   });
 });
 

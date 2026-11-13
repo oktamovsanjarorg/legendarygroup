@@ -114,6 +114,8 @@ export const errorMessages = {
   PAYROLL_RUN_NOT_FOUND: 'Oylik hisobi topilmadi.',
   PERIOD_INVALID: 'Davr formati notoʻgʻri (YYYY-MM).',
   EXPENSE_NOT_FOUND: 'Xarajat topilmadi.',
+  REQUEST_NOT_FOUND: 'Bogʻlanish soʻrovi topilmadi.',
+  STUDENT_NOT_FOUND: 'Oʻquvchi topilmadi.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

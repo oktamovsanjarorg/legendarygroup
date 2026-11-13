@@ -34,14 +34,8 @@ export function createBot(deps: BotDeps): Bot {
   const url = deps.env.TELEGRAM_MINIAPP_URL;
 
   bot.use(dedupeUpdates(deps.store));
-  // Avval: `/start inv_<token>` va kontakt (T-101); qolgan `/start` — pastdagi umumiy javob.
+  // Onboarding: `/start inv_<token>` (T-101), `/start` (T-110) va kontakt ulashish
   registerStaffOnboarding(bot, deps.api, () => openAppKeyboard(url));
-  bot.command('start', (ctx: Context) =>
-    ctx.reply(`<b>${t.start.title}</b>\n${t.start.body}`, {
-      parse_mode: 'HTML',
-      reply_markup: openAppKeyboard(url),
-    }),
-  );
   bot.command('help', (ctx: Context) =>
     ctx.reply(`<b>${t.help.title}</b>\n${t.help.body}`, { parse_mode: 'HTML' }),
   );

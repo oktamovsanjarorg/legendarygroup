@@ -9,6 +9,7 @@
     "lint": "eslint src --ext .ts",
     "test": "vitest run --passWithNoTests",
     "dev": "tsx watch --conditions=development src/main.ts",
+    "sim": "tsx --conditions=development src/cli-sim.ts",
     "start": "node dist/main.js"
   },
   "dependencies": {

@@ -7,6 +7,8 @@ import { EnrollmentsService } from './enrollments.service.js';
 import { FreezesService } from './freezes.service.js';
 import { LeadConvertService } from './leads/lead-convert.service.js';
 import { LeadsQueryService } from './leads/leads-query.service.js';
+import { GuardianLinkRequestsController } from './guardian-link-requests.controller.js';
+import { GuardianLinkRequestsService } from './guardian-link-requests.service.js';
 import { LeadsController } from './leads/leads.controller.js';
 import { LeadsService } from './leads/leads.service.js';
 import { PublicLeadsController } from './leads/public-leads.controller.js';
@@ -27,6 +29,7 @@ import { StudentsService } from './students.service.js';
   controllers: [
     StudentsController,
     StudentGuardiansController,
+    GuardianLinkRequestsController,
     EnrollmentsController,
     RosterController,
     LeadsController,
@@ -39,6 +42,7 @@ import { StudentsService } from './students.service.js';
     StudentsService,
     StudentsQueryService,
     StudentGuardiansService,
+    GuardianLinkRequestsService,
     StudentScopeService,
     LeadsQueryService,
     LeadsService,
