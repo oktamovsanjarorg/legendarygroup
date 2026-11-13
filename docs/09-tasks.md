@@ -449,7 +449,7 @@
 
 ## F5 — Analitika, sayt, mustahkamlash
 
-### ⬜ T-501 · Hisobotlar to'plami va eksport
+### ✅ T-501 · Hisobotlar to'plami va eksport
 
 - **Bog'liq:** T-405 · **Talablar:** FR-DASH-2, 4
 - **AC:** daromad (oy/kurs/guruh/ustoz), qarz aging, davomat, cohort (o'quvchi saqlanishi), lid konversiyasi, ustoz samaradorligi; Excel/PDF eksport; og'ir so'rovlar uchun materialized view'lar (tungi yangilanish).
