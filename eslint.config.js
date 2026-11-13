@@ -114,4 +114,15 @@ export default [
       '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
+  {
+    // k6 yuklama testlari global o'zgaruvchilari
+    files: ['tests/load/**/*.js'],
+    languageOptions: {
+      globals: {
+        __ENV: 'readonly',
+        __VU: 'readonly',
+        __ITER: 'readonly',
+      },
+    },
+  },
 ];

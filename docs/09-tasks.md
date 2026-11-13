@@ -474,10 +474,11 @@
 - **Bog'liq:** T-107 · **Talablar:** FR-SYS-4
 - **AC:** Astro, kurslar (API'dan build vaqtida), lid formasi (spam himoyasi — Turnstile), SEO, Lighthouse ≥ 95.
 
-### ⬜ T-504 · Yuklama testi va optimallashtirish
+### ✅ T-504 · Yuklama testi va optimallashtirish
 
 - **Bog'liq:** F1–F4
 - **AC:** k6 ssenariylar (200 VU, invoice generatsiyasi, 1000 ota-onaga e'lon); p95 < 300 ms; sekin so'rovlar indekslandi.
+- **Bajarildi (2026-11-14):** `tests/load/api-load.js` (200 VU ramp-up va barqaror yuklama, p95 < 300ms chegara); `tests/load/invoice-burst.js` (50 parallel billing hisob-kitobi); `tests/load/broadcast-burst.js` (1000 ta e'lon to'lqini); `tests/load/run-load-tests.sh` (mahalliy yoki Docker orqali avtomatik k6 ishga tushirish); barcha og'ir so'rovlar indekslangan; `docs/runbooks/load-testing.md` benchmark hisoboti yaratildi.
 
 ### ⬜ T-505 · Xavfsizlik auditi
 
