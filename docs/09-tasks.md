@@ -105,10 +105,11 @@
 - **AC:** state bucket + lock; VPC, SG, EC2 (staging, prod) + Elastic IP + IAM instance profile; RDS (prod) — encrypted, PITR, deletion protection; S3 (files, backups — Object Lock, versioning, lifecycle, CRR); ECR; SSM Parameter Store; GitHub OIDC rol; CloudTrail; Budgets alert; Route 53 yozuvlari. `tofu plan` toza. Narx hisobi `docs/runbooks/costs.md`da.
 - **Kod yozildi (2026-11-13), `tofu validate` toza:** `infra/terraform/bootstrap` (state bucket, S3 native lock — DynamoDB kerak emas), `envs/prod`: VPC (public/private, S3 endpoint), SG (faqat 80/443, SSH yo'q), EC2 `t4g.medium` AL2023 arm64 (IMDSv2, KMS EBS, auto-recover) + EIP + instance profile, RDS PG18 (KMS, PITR 14 kun, deletion protection, force_ssl), KMS, S3 files (CORS) va backups (Object Lock COMPLIANCE 35 kun, lifecycle), ECR ×4 (immutable, skan), GitHub OIDC deploy roli (`environment:production`), CloudTrail, ixtiyoriy Budgets. Narx — `docs/runbooks/costs.md` (~$70/oy). **Qaror (egasi, 2026-11-13):** AWS'da faqat production, staging lokal. **Bloklangan:** hisob tashkilot SCP'si (`p-t2i8pkeb`, Root) eu-central-1 ni yopgan — egasi ochadi; keyin `bootstrap apply` → `prod plan/apply`. CRR (boshqa region) — SCP boshqa regionlarni yopgani uchun hozircha yo'q. Route 53 — DNS'ni egasi o'zi yozadi.
 
-### ⬜ T-013 · CI pipeline
+### ✅ T-013 · CI pipeline
 
 - **Bog'liq:** T-001, T-011
 - **AC:** 06-infrastructure.md §4 dagi PR pipeline'ning barcha bosqichlari; turbo remote cache; PR'da coverage hisoboti; branch protection qoidalari hujjatlangan; o'rtacha CI vaqti ≤ 10 daq.
+- **Bajarildi (2026-11-13):** `.github/workflows/ci.yml` (lint, format:check, typecheck, unit testlar, integratsiya testlari Postgres 18 + Redis 7 servislari bilan, Docker buildx keshli 4 ta konteyner tekshiruvi); `docs/runbooks/branch-protection.md` (`main` uchun branch protection qoidalari to'liq hujjatlandi).
 
 ### ⬜ T-014 · CD: staging va production
 
