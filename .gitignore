@@ -47,3 +47,10 @@ temp/
 
 # Claude Code shaxsiy sozlamalari
 .claude/settings.local.json
+
+# OpenTofu (T-012): provider keshi, state va haqiqiy o'zgaruvchilar git'ga tushmaydi
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
