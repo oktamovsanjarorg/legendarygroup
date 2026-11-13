@@ -12,6 +12,7 @@ import { HomePage } from './pages/home.js';
 import { InvitePage } from './pages/invite.js';
 import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
+import { CoursesPage } from './routes/courses/index.js';
 import { StaffPage } from './routes/staff/index.js';
 
 const root = createRootRoute({
@@ -37,9 +38,18 @@ const sessions = createRoute({
   path: '/sessions',
   component: SessionsPage,
 });
+const courses = createRoute({
+  getParentRoute: () => app,
+  path: '/courses',
+  component: CoursesPage,
+});
 const staff = createRoute({ getParentRoute: () => app, path: '/staff', component: StaffPage });
 
-const routeTree = root.addChildren([login, invite, app.addChildren([home, staff, sessions])]);
+const routeTree = root.addChildren([
+  login,
+  invite,
+  app.addChildren([home, courses, staff, sessions]),
+]);
 
 /** Testlarda — `createMemoryHistory`. */
 export const createAppRouter = (history?: RouterHistory) => createRouter({ routeTree, history });

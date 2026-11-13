@@ -1,6 +1,6 @@
 import type { Permission } from '@lg/contracts';
 import { webMessages as t } from '@lg/i18n';
-import { Home, MonitorSmartphone, UserCog, type LucideIcon } from 'lucide-react';
+import { BookOpen, Home, MonitorSmartphone, UserCog, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
   /** docs/ux/screens.md ekran ID'si. */
@@ -18,6 +18,13 @@ export interface NavItem {
  */
 export const NAV: readonly NavItem[] = [
   { screen: 'W-04', to: '/', label: t.nav.home, icon: Home },
+  {
+    screen: 'W-09',
+    to: '/courses',
+    label: t.menu.courses,
+    icon: BookOpen,
+    permission: 'course.manage',
+  },
   { screen: 'W-28', to: '/staff', label: t.menu.staff, icon: UserCog, permission: 'staff.manage' },
   { screen: 'W-32', to: '/sessions', label: t.nav.sessions, icon: MonitorSmartphone },
 ];
