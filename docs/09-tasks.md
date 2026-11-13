@@ -111,10 +111,11 @@
 - **AC:** 06-infrastructure.md §4 dagi PR pipeline'ning barcha bosqichlari; turbo remote cache; PR'da coverage hisoboti; branch protection qoidalari hujjatlangan; o'rtacha CI vaqti ≤ 10 daq.
 - **Bajarildi (2026-11-13):** `.github/workflows/ci.yml` (lint, format:check, typecheck, unit testlar, integratsiya testlari Postgres 18 + Redis 7 servislari bilan, Docker buildx keshli 4 ta konteyner tekshiruvi); `docs/runbooks/branch-protection.md` (`main` uchun branch protection qoidalari to'liq hujjatlandi).
 
-### ⬜ T-014 · CD: staging va production
+### ✅ T-014 · CD: staging va production
 
 - **Bog'liq:** T-012, T-013
 - **AC:** main → staging avto-deploy; release-please; teg → prod (qo'lda tasdiqlash), deploydan oldin RDS snapshot, migratsiya, health-check bilan restart, smoke test, avtomatik rollback; `infra/scripts/deploy.sh` idempotent. Rollback qo'lda ham bitta buyruq.
+- **Bajarildi (2026-11-14):** `infra/scripts/deploy.sh` (idempotent deploy, pre-deploy snapshot, compose pull, migrate, rolling update, 60s healthcheck va xatolikda avtomatik rollback); `infra/scripts/rollback.sh` (bitta buyruqli tezkor rollback); `.github/workflows/cd-staging.yml` (main push'da avtomatik build va staging deploy); `.github/workflows/cd-production.yml` (reliz va manual approval bilan prod deploy); `.github/workflows/release-please.yml`, `.github/release-please-config.json`, `.release-please-manifest.json`; `docs/runbooks/deploy-rollback.md` runbook'i yaratildi.
 
 ### ✅ T-015 · Backup va restore drill
 

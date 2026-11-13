@@ -1,0 +1,46 @@
+name: CD — Staging Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: cd-staging
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Calculate image tag
+        id: meta
+        run: |
+          echo "tag=${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
+
+      - name: Build Docker images
+        run: |
+          echo "Building containers with tag ${{ steps.meta.outputs.tag }}..."
+          docker build -t lg-api:${{ steps.meta.outputs.tag }} --target api -f infra/docker/Dockerfile .
+          docker build -t lg-worker:${{ steps.meta.outputs.tag }} --target worker -f infra/docker/Dockerfile .
+          docker build -t lg-bot:${{ steps.meta.outputs.tag }} --target bot -f infra/docker/Dockerfile .
+          docker build -t lg-web:${{ steps.meta.outputs.tag }} --target web -f infra/docker/Dockerfile .
+
+      - name: Deploy to Staging Server via SSM / SSH
+        if: ${{ env.STAGING_SSH_HOST != '' }}
+        env:
+          STAGING_SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          echo "Deploying to Staging (${TAG})..."
+          # infra/scripts/deploy.sh staging "$TAG"
