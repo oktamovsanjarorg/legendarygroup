@@ -420,12 +420,12 @@
 
 ## F4 — Oylik va moliya
 
-### ⬜ T-401 · Payroll domen mantiqi
+### ✅ T-401 · Payroll domen mantiqi
 
 - **Bog'liq:** T-201 · **Talablar:** BR-23…BR-28
 - **AC:** `packages/domain/payroll`: fixed/percent/mixed/per-lesson, foiz bazasi (collected/accrued), o'rinbosar, avans ushlash; unit + property testlar.
 
-### ⬜ T-402 · Ustoz shartnomalari va oylik hisob
+### ✅ T-402 · Ustoz shartnomalari va oylik hisob
 
 - **Bog'liq:** T-401, T-202 · **Talablar:** FR-SAL-1…5
 - **AC:** shartnoma UI (Director), oylik hisob qoralamasi (tafsilot: qaysi o'quvchidan qancha), bonus/jarima, tasdiqlash, "to'landi", avans; Ustoz Mini App'da o'zining hisobini ko'radi; tasdiqlangandan keyin o'zgartirish faqat tuzatish yozuvi bilan.

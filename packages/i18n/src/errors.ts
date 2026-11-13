@@ -108,6 +108,11 @@ export const errorMessages = {
   TEST_ALREADY_PUBLISHED: 'Eʼlon qilingan testni tahrirlab boʻlmaydi.',
   TEST_SCORE_INVALID: 'Test bali 0 va maksimal ball oraligʻida boʻlishi kerak.',
   TEST_SECTION_SCORE_INVALID: 'Boʻlim bali ruxsat etilgan maksimal balldan oshib ketdi.',
+  CONTRACT_NOT_FOUND: 'Ustoz shartnomasi topilmadi.',
+  PAYROLL_ALREADY_APPROVED: 'Tasdiqlangan oylik hisobini oʻzgartirib boʻlmaydi.',
+  PAYROLL_NOT_DRAFT: 'Faqat qoralama (draft) holatidagi oylik hisobini tasdiqlash mumkin.',
+  PAYROLL_RUN_NOT_FOUND: 'Oylik hisobi topilmadi.',
+  PERIOD_INVALID: 'Davr formati notoʻgʻri (YYYY-MM).',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;
