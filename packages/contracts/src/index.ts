@@ -12,3 +12,4 @@ export * from './enrollments.js';
 export * from './lessons.js';
 export * from './leads.js';
 export * from './settings.js';
+export * from './billing.js';

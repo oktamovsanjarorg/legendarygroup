@@ -290,10 +290,16 @@
 - **AC:** `packages/domain/billing`: proporsional narx, invoice qatorlari, chegirma qo'llash, jarima hisobi, FIFO taqsimlash, balans ledger'dan; barcha funksiyalar sof, `bigint`; unit + property-based testlar, har BR uchun test; coverage ≥ 95%.
 - **Bajarildi (2026-11-13):** `packages/domain/src/billing/*`: `prorate` (BR-38) va `roundDownToThousand` (BR-3); `allocateFifo` (BR-12); `applyDiscounts`, `bestDiscount`, `validateAdminDiscount` (BR-18); `calculateMidMonthEnrollmentPrice` (BR-3), `calculateLessonCredit` (BR-5), `calculateFreezeCredit` (BR-9), `calculatePenalty` (BR-8), `lateToUnexcusedAbsences` (BR-10); `computeLedgerNet`, `computeStudentBalance` (BR-20), `isDebtCritical` (BR-22); `planEnrollmentInvoiceLines`, `computeInvoiceTotal` (BR-1, BR-6). Barcha funksiyalar sof `bigint`, fast-check property testlari va unit testlar bilan qoplangan.
 
-### ⬜ T-202 · Ledger, invoice jadvallari va avto-generatsiya
+### ✅ T-202 · Ledger, invoice jadvallari va avto-generatsiya
 
-- **Bog'liq:** T-201, T-106, T-005, T-115 · **Talablar:** FR-PAY-1, BR-2, 3, 5, 6
+- **Bog'liq:** T-201, T-106, T-005, T-115 · **Talablar:** FR-PAY-1, BR-2, 3, 5, 6, 20
 - **AC:** migratsiyalar (invoices, invoice_lines, ledger_entries, payments, allocations, receipts, receipt_cancellations, receipt_counters — 05-data-model.md; o'zgarmaslar `forbid_mutation()` trigger + `lg_app` grant bilan); oyning 1-sanasi 00:05 job — idempotent (qayta ishga tushsa dublikat yo'q), bekor qilingan darslar krediti, yangi enrollment uchun proporsional invoice darhol; job ishlamasa alert.
+- **Bajarildi (2026-11-13):**
+  - `@lg/contracts`: `INVOICE_STATUSES`, `INVOICE_LINE_KINDS`, `LEDGER_ENTRY_TYPES`, `PAYMENT_METHODS`, `PAYMENT_SUBMISSION_STATUSES`, `PeriodSchema`, `InvoiceSchema`, `InvoiceLineSchema`, `InvoiceWithLinesSchema`, `LedgerEntrySchema`, `StudentLedgerSummarySchema`, `InvoiceListQuery`, `LedgerListQuery`, `GenerateInvoicesRequest`.
+  - `@lg/db`: `0019_billing.sql` migratsiyasi (invoices, invoice_lines, payments, payment_allocations, payment_submissions, receipts, receipt_cancellations, receipt_counters, ledger_entries). `forbid_mutation()` triggerlari `ledger_entries`, `payments`, `receipts`, `receipt_cancellations` ustida (append-only); `lg_app` grantlari.
+  - `@lg/api`: `apps/api/src/modules/billing/` moduli (`BillingRepository`, `BillingGeneratorService`, `BillingService`, `BillingController`, `BillingCron`). API: `GET /api/billing/invoices`, `GET /api/billing/invoices/:id`, `GET /api/billing/ledger/:studentId`, `GET /api/billing/ledger/:studentId/summary`, `POST /api/billing/invoices/generate`.
+  - Worker: `billing.invoices-generate` cron job (`5 0 1 * *`) idempotent oylik invoice generatsiyasi.
+  - Integratsiya testlari: `billing.int.test.ts` (11 ta test: RBAC, avto-generatsiya, idempotensiya, qidiruv, ledger va balans, DB `forbid_mutation()` trigger immutability).
 
 ### ⬜ T-203 · Chegirma, muzlatish, jarima
 
