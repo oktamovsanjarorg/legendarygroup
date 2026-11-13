@@ -2,7 +2,8 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Database, NewInvoiceLineRow, NewLedgerEntryRow } from '@lg/db';
 import { applyDiscounts, calculateMidMonthEnrollmentPrice } from '@lg/domain';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
-import { type ActiveEnrollmentInfo, BillingRepository } from './billing.repository.js';
+import { BillingRepository } from './billing.repository.js';
+import type { ActiveEnrollmentInfo } from './billing.types.js';
 
 export interface GenerateResult {
   period: string;

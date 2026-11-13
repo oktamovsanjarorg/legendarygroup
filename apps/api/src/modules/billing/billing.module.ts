@@ -9,11 +9,18 @@ import { BillingController } from './billing.controller.js';
 import { BillingCron } from './billing.cron.js';
 import { BillingRepository } from './billing.repository.js';
 import { BillingService } from './billing.service.js';
+import { PaymentsService } from './payments.service.js';
 
 @Module({
   imports: [DbModule, AuditModule, ClockModule, SchedulerModule, StudentsModule],
   controllers: [BillingController],
-  providers: [BillingRepository, BillingGeneratorService, BillingService, BillingCron],
-  exports: [BillingService, BillingRepository, BillingGeneratorService],
+  providers: [
+    BillingRepository,
+    BillingGeneratorService,
+    BillingService,
+    BillingCron,
+    PaymentsService,
+  ],
+  exports: [BillingService, BillingRepository, BillingGeneratorService, PaymentsService],
 })
 export class BillingModule {}

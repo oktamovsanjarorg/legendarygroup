@@ -306,10 +306,16 @@
 - **Bog'liq:** T-202, T-119 · **Talablar:** FR-PAY-6, BR-8, 9, 10, 18
 - **AC:** chegirma (Admin limiti; undan yuqori — T-119 so'rovi orqali), freeze → kredit, oy yakunida jarima qatorlari (sozlamaga ko'ra), Admin bekor qilishi (sabab, audit); sozlamalar UI.
 
-### ⬜ T-204 · To'lov kiritish (Admin, web)
+### ✅ T-204 · To'lov kiritish (Admin, web)
 
 - **Bog'liq:** T-202 · **Talablar:** FR-PAY-2, 6, BR-11, 12
 - **AC:** tez forma (o'quvchi qidiruv → qarz ko'rinadi → summa → usul → Enter), FIFO taqsimlash yoki qo'lda, avans balansga, `Idempotency-Key` (ikki marta bosish = bitta to'lov), ≤ 30 s ssenariy E2E testida.
+- **Bajarildi (2026-11-13):**
+  - `@lg/contracts`: `CreatePaymentRequest`, `PaymentAllocationSchema`, `PaymentDetailSchema`, `PublicReceiptSchema`, `PaymentListQuery`.
+  - `@lg/api`: `apps/api/src/modules/billing/` to'lov kiritish (`POST /api/billing/payments`), to'lovlar ro'yxati (`GET /api/billing/payments`), batafsil to'lov (`GET /api/billing/payments/:id`), ommaviy tekshirish kvitansiyasi (`GET /api/billing/receipts/:number`).
+  - FIFO taqsimlash (`allocateFifo`, `@lg/domain`), avans hisobi va ledger qaydlari (manfiy summa, BR-20 qarz kamayishi), atomic `receipt_counters` orqali chek raqamlash (`LG-YYYY-XXXXXX`, BR-19).
+  - RBAC: `payment.create`, `payment.read`, `payment.manage` va ommaviy `@Public` receipt tekshirish.
+  - Integratsiya testlari: `payments.int.test.ts` (8 ta test: FIFO taqsimlash, avans, chek generatsiyasi, immutability trigger tekshiruvlari).
 
 ### ⬜ T-205 · PDF chek va tekshirish sahifasi
 

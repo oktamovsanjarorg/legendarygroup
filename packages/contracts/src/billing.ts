@@ -100,3 +100,52 @@ export const GenerateInvoicesRequest = z.object({
   dueDate: z.iso.date().optional(),
 });
 export type GenerateInvoicesInput = z.infer<typeof GenerateInvoicesRequest>;
+
+export const CreatePaymentRequest = z.object({
+  studentId: z.string().uuid(),
+  amount: z.string().regex(/^\d+$/, 'AMOUNT_POSITIVE_DIGITS'),
+  method: z.enum(PAYMENT_METHODS),
+  paidAt: z.string().optional(),
+  notes: z.string().max(500).optional(),
+  submissionId: z.string().uuid().optional(),
+});
+export type CreatePaymentInput = z.infer<typeof CreatePaymentRequest>;
+
+export const PaymentAllocationSchema = z.object({
+  invoiceLineId: z.string().uuid(),
+  amount: z.string(),
+});
+export type PaymentAllocation = z.infer<typeof PaymentAllocationSchema>;
+
+export const PaymentDetailSchema = z.object({
+  id: z.string().uuid(),
+  branchId: z.string().uuid(),
+  studentId: z.string().uuid(),
+  amount: z.string(),
+  method: z.enum(PAYMENT_METHODS),
+  paidAt: z.string(),
+  receivedBy: z.string().uuid().nullable(),
+  receiptNumber: z.string().nullable(),
+  allocations: z.array(PaymentAllocationSchema),
+  advance: z.string(),
+  createdAt: z.string(),
+});
+export type PaymentDetail = z.infer<typeof PaymentDetailSchema>;
+
+export const PublicReceiptSchema = z.object({
+  number: z.string(),
+  amount: z.string(),
+  paidAt: z.string(),
+  method: z.enum(PAYMENT_METHODS),
+  isCancelled: z.boolean(),
+  cancelReason: z.string().nullable(),
+});
+export type PublicReceipt = z.infer<typeof PublicReceiptSchema>;
+
+export const PaymentListQuery = z.object({
+  studentId: z.string().uuid().optional(),
+  method: z.enum(PAYMENT_METHODS).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().optional(),
+});
+export type PaymentListQueryInput = z.infer<typeof PaymentListQuery>;

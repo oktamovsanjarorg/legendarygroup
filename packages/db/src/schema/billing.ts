@@ -217,5 +217,7 @@ export type InvoiceLineRow = typeof invoiceLines.$inferSelect;
 export type NewInvoiceLineRow = typeof invoiceLines.$inferInsert;
 export type PaymentRow = typeof payments.$inferSelect;
 export type NewPaymentRow = typeof payments.$inferInsert;
+export type ReceiptRow = typeof receipts.$inferSelect;
+export type NewReceiptRow = typeof receipts.$inferInsert;
 export type LedgerEntryRow = typeof ledgerEntries.$inferSelect;
 export type NewLedgerEntryRow = typeof ledgerEntries.$inferInsert;

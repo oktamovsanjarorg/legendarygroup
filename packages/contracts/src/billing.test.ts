@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  CreatePaymentRequest,
   GenerateInvoicesRequest,
   InvoiceListQuery,
   InvoiceSchema,
@@ -69,5 +70,16 @@ describe('Billing contracts', () => {
   it('GenerateInvoicesRequest period talab qiladi', () => {
     expect(GenerateInvoicesRequest.safeParse({}).success).toBe(false);
     expect(GenerateInvoicesRequest.safeParse({ period: '2026-11' }).success).toBe(true);
+  });
+
+  it('CreatePaymentRequest summani tekshiradi', () => {
+    const valid = {
+      studentId: '01900000-0000-7000-8000-000000000001',
+      amount: '50000000',
+      method: 'cash',
+    };
+    expect(CreatePaymentRequest.safeParse(valid).success).toBe(true);
+    expect(CreatePaymentRequest.safeParse({ ...valid, amount: '-500' }).success).toBe(false);
+    expect(CreatePaymentRequest.safeParse({ ...valid, method: 'bitcoin' }).success).toBe(false);
   });
 });
