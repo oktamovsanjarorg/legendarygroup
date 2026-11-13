@@ -15,3 +15,4 @@ export * from './finance/pnl.calculator.js';
 export * from './audit/suspicious.detector.js';
 export * from './dashboard/dashboard.calculator.js';
 export * from './reports/reports.calculator.js';
+export * from './forecasts/forecast.calculator.js';

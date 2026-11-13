@@ -454,7 +454,7 @@
 - **Bog'liq:** T-405 · **Talablar:** FR-DASH-2, 4
 - **AC:** daromad (oy/kurs/guruh/ustoz), qarz aging, davomat, cohort (o'quvchi saqlanishi), lid konversiyasi, ustoz samaradorligi; Excel/PDF eksport; og'ir so'rovlar uchun materialized view'lar (tungi yangilanish).
 
-### ⬜ T-502 · Prognozlar va churn risk
+### ✅ T-502 · Prognozlar va churn risk
 
 - **Bog'liq:** T-501 · **Talablar:** FR-DASH-3, BR-36
 - **AC:** tushum prognozi (1–3 oy, ishonch oralig'i bilan), churn ball (komponentlar tushuntirilgan — "nega xavfli"), xavfli o'quvchilar ro'yxati, guruh to'lishi; haftalik Director xulosasi; tarixiy ma'lumotda backtest hisoboti.

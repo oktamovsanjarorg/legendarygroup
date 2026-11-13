@@ -23,3 +23,4 @@ export * from './expenses.js';
 export * from './audit.js';
 export * from './dashboard.js';
 export * from './reports.js';
+export * from './forecasts.js';
