@@ -6,6 +6,7 @@ import {
   Home,
   MonitorSmartphone,
   UserCog,
+  Users,
   UsersRound,
   type LucideIcon,
 } from 'lucide-react';
@@ -26,6 +27,13 @@ export interface NavItem {
  */
 export const NAV: readonly NavItem[] = [
   { screen: 'W-04', to: '/', label: t.nav.home, icon: Home },
+  {
+    screen: 'W-05',
+    to: '/students',
+    label: t.menu.students,
+    icon: Users,
+    permission: 'student.view',
+  },
   {
     screen: 'W-09',
     to: '/courses',

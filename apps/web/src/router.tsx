@@ -16,6 +16,8 @@ import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { GroupsPage } from './routes/groups/index.js';
 import { StaffPage } from './routes/staff/index.js';
+import { StudentCardPage } from './routes/students/card.js';
+import { StudentsPage } from './routes/students/index.js';
 
 const root = createRootRoute({
   component: Outlet,
@@ -51,12 +53,25 @@ const calendar = createRoute({
   path: '/calendar',
   component: CalendarPage,
 });
+const students = createRoute({
+  getParentRoute: () => app,
+  path: '/students',
+  component: StudentsPage,
+});
+const studentCard = createRoute({
+  getParentRoute: () => app,
+  path: '/students/$id',
+  component: function StudentCard() {
+    const { id } = studentCard.useParams();
+    return <StudentCardPage key={id} id={id} />;
+  },
+});
 const staff = createRoute({ getParentRoute: () => app, path: '/staff', component: StaffPage });
 
 const routeTree = root.addChildren([
   login,
   invite,
-  app.addChildren([home, courses, groups, calendar, staff, sessions]),
+  app.addChildren([home, students, studentCard, courses, groups, calendar, staff, sessions]),
 ]);
 
 /** Testlarda — `createMemoryHistory`. */

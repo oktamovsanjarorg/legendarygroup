@@ -33,10 +33,12 @@ export function AppLayout() {
       </div>
     );
   if (status === 'anonymous' || !me) return <Navigate to="/login" />;
+  // Ichki sahifa (masalan `/students/<id>`) ham o'z bo'limini belgilaydi.
+  const nav = visibleNav(permissions);
   return (
     <AppShell
-      nav={visibleNav(permissions)}
-      active={path}
+      nav={nav}
+      active={nav.find((i) => path === i.to || path.startsWith(`${i.to}/`))?.to ?? path}
       user={{ name: me.fullName, role: t.roles[me.activeRole] }}
       offline={!online}
       onLogout={() => void signOut()}
