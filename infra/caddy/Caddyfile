@@ -1,0 +1,68 @@
+# Legendary Group — kirish nuqtasi (T-011, 06 §1). Bitta host, yo'llar bilan:
+#   /api/*        → api:3000        /bot/webhook → bot:3002
+#   /app/*        → Mini App statik  /, /verify/* → web panel statik (SPA)
+# TLS — avtomatik (Let's Encrypt). `/internal/*` (bot ↔ api) va Bull Board tashqariga CHIQMAYDI.
+# Majburiy env (yashirin standart yo'q): APP_DOMAIN, ACME_EMAIL.
+{
+	# Admin API o'chiq — konfiguratsiyani tarmoqdan o'zgartirib bo'lmaydi.
+	admin off
+	email {$ACME_EMAIL}
+	log {
+		output stdout
+		format json
+	}
+}
+
+# SPA: hash'li asset'lar — uzoq kesh, index.html — har doim yangi; noma'lum yo'l → index.html.
+(spa) {
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+	@html path / /index.html
+	header @html Cache-Control "no-cache"
+	try_files {path} /index.html
+	file_server
+}
+
+# Faqat konteyner ichidagi healthcheck uchun (port publish qilinmaydi).
+:8080 {
+	bind 127.0.0.1
+	respond /healthz 200
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	# Caddy mijozdan kelgan X-Forwarded-For'ni tashlab, o'zinikini qo'yadi (ishonchli proksi
+	# ro'yxati yo'q) — API'dagi `trustProxy` shu sababli xavfsiz (rate limit IP bo'yicha).
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	handle /bot/webhook {
+		reverse_proxy bot:3002
+	}
+
+	redir /app /app/ 308
+	handle_path /app/* {
+		root * /srv/miniapp
+		# Telegram ichida iframe'da ochiladi (web.telegram.org) — faqat Telegram ramka qila oladi.
+		header Content-Security-Policy "default-src 'self'; script-src 'self' https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors https://web.telegram.org https://*.telegram.org"
+		import spa
+	}
+
+	handle {
+		root * /srv/web
+		header X-Frame-Options "DENY"
+		header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		import spa
+	}
+}

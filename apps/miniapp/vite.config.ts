@@ -6,7 +6,9 @@ import { defineConfig } from 'vite';
  * Telegram Mini App (MT/MG/MS/C-*). Dev'da `/api` — API'ga proksi (bitta host, 06 §1).
  * Telegram ichida sinash uchun HTTPS tunnel kerak (BotFather'da Web App URL).
  */
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // Prod/staging: Caddy `/app/*` ostida (06 §1); dev — ildizda.
+  base: command === 'build' ? '/app/' : '/',
   plugins: [react(), tailwindcss()],
   resolve: { conditions: ['development'] },
   server: {
@@ -14,4 +16,4 @@ export default defineConfig({
     host: true,
     proxy: { '/api': { target: 'http://localhost:3000', changeOrigin: false } },
   },
-});
+}));
