@@ -1,6 +1,7 @@
 import type { AttendanceGrid } from './attendance-grid.js';
 import type { Course, Room } from './courses.js';
 import type { WebKpi } from './dashboard.js';
+import type { GroupDraft, GroupFormOptions } from './group-form.js';
 import type { GroupRow } from './groups.js';
 import { GROUPS, NAMES } from './mock-people.js';
 import type { CenterSettings } from './settings.js';
@@ -138,6 +139,26 @@ export const ROOMS: Room[] = [
   { id: 'r2', name: '204-xona', capacity: 20, groups: 4 },
   { id: 'r3', name: '305-xona', capacity: 12, groups: 3 },
 ];
+
+export const GROUP_OPTIONS: GroupFormOptions = {
+  courses: COURSES.map((c) => ({ value: c.id, label: c.name })),
+  teachers: [
+    { value: 't1', label: 'Karimov Rustam' },
+    { value: 't2', label: 'Saidova Lola' },
+  ],
+  rooms: ROOMS.map((r) => ({ value: r.id, label: r.name })),
+};
+export const GROUP_DRAFT: GroupDraft = {
+  name: 'IELTS 7.0 — B3-guruh',
+  courseId: 'c1',
+  teacherId: 't1',
+  assistantId: '',
+  roomId: 'r2',
+  blocks: [{ days: [1, 3, 5], start: '15:00', end: '16:30' }],
+  maxStudents: '16',
+  startDate: '2026-11-16',
+  price: 650_000n,
+};
 
 export const GROUP_ROWS: GroupRow[] = [
   {
