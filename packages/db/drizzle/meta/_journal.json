@@ -155,6 +155,13 @@
       "when": 1794585663281,
       "tag": "0021_cash_closings",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794586800000,
+      "tag": "0022_payment_reminders",
+      "breakpoints": true
     }
   ]
 }

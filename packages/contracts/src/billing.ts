@@ -208,3 +208,43 @@ export const CashClosingListQuery = z.object({
   cursor: z.string().optional(),
 });
 export type CashClosingListQueryInput = z.infer<typeof CashClosingListQuery>;
+
+export const DEBTOR_BUCKETS = ['all', 'd0_7', 'd8_30', 'd30'] as const;
+export type DebtorBucket = (typeof DEBTOR_BUCKETS)[number];
+
+export const DebtorItemSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  code: z.string(),
+  group: z.string(),
+  debt: z.string(),
+  overdueDays: z.number().int().min(0),
+  lastPayment: z.string().nullable(),
+  reminders: z.number().int().min(0),
+  critical: z.boolean(),
+});
+export type DebtorItem = z.infer<typeof DebtorItemSchema>;
+
+export const DebtorListQuery = z.object({
+  bucket: z.enum(DEBTOR_BUCKETS).optional().default('all'),
+  groupId: z.string().uuid().optional(),
+  criticalOnly: z.coerce.boolean().optional(),
+  search: z.string().trim().max(100).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().optional(),
+});
+export type DebtorListQueryInput = z.infer<typeof DebtorListQuery>;
+
+export const DebtorListResponseSchema = z.object({
+  items: z.array(DebtorItemSchema),
+  totalDebt: z.string(),
+  nextCursor: z.string().nullable(),
+});
+export type DebtorListResponse = z.infer<typeof DebtorListResponseSchema>;
+
+export const SendReminderResponseSchema = z.object({
+  success: z.boolean(),
+  reminderCount: z.number().int(),
+  sentAt: z.string(),
+});
+export type SendReminderResponse = z.infer<typeof SendReminderResponseSchema>;

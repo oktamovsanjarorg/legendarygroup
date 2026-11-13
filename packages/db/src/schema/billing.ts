@@ -237,6 +237,31 @@ export const cashClosings = pgTable(
   ],
 );
 
+export const paymentReminders = pgTable(
+  'payment_reminders',
+  {
+    id: primaryUuid(),
+    branchId: branchId(),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => students.id, { onDelete: 'restrict' }),
+    guardianId: uuid('guardian_id').references(() => guardians.id, { onDelete: 'set null' }),
+    invoiceId: uuid('invoice_id').references(() => invoices.id, { onDelete: 'set null' }),
+    type: text('type').notNull(),
+    debtAmount: bigint('debt_amount', { mode: 'bigint' }).notNull(),
+    overdueDays: integer('overdue_days').notNull().default(0),
+    channel: text('channel').notNull().default('telegram'),
+    sentAt: tstz('sent_at').notNull().defaultNow(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('payment_reminders_student_id_idx').on(t.studentId),
+    index('payment_reminders_sent_at_idx').on(t.sentAt),
+    index('payment_reminders_branch_id_idx').on(t.branchId),
+    index('payment_reminders_type_idx').on(t.type),
+  ],
+);
+
 export type PaymentRow = typeof payments.$inferSelect;
 export type NewPaymentRow = typeof payments.$inferInsert;
 export type ReceiptRow = typeof receipts.$inferSelect;
@@ -245,3 +270,5 @@ export type LedgerEntryRow = typeof ledgerEntries.$inferSelect;
 export type NewLedgerEntryRow = typeof ledgerEntries.$inferInsert;
 export type CashClosingRow = typeof cashClosings.$inferSelect;
 export type NewCashClosingRow = typeof cashClosings.$inferInsert;
+export type PaymentReminderRow = typeof paymentReminders.$inferSelect;
+export type NewPaymentReminderRow = typeof paymentReminders.$inferInsert;

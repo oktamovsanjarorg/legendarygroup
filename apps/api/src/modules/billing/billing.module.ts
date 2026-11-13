@@ -5,11 +5,15 @@ import { DbModule } from '../../common/db/db.module.js';
 import { SchedulerModule } from '../../common/scheduler/scheduler.module.js';
 import { SettingsModule } from '../settings/index.js';
 import { StudentsModule } from '../students/index.js';
+import { TelegramModule } from '../telegram/index.js';
 import { BillingGeneratorService } from './billing-generator.service.js';
 import { BillingController } from './billing.controller.js';
 import { BillingCron } from './billing.cron.js';
 import { BillingRepository } from './billing.repository.js';
 import { BillingService } from './billing.service.js';
+import { DebtorsController } from './debtors.controller.js';
+import { DebtorsRepository } from './debtors.repository.js';
+import { DebtorsService } from './debtors.service.js';
 import { DiscountsRepository } from './discounts.repository.js';
 import { DiscountsService } from './discounts.service.js';
 import { PaymentsService } from './payments.service.js';
@@ -17,8 +21,16 @@ import { StornoCashRepository } from './storno-cash.repository.js';
 import { StornoCashService } from './storno-cash.service.js';
 
 @Module({
-  imports: [DbModule, AuditModule, ClockModule, SchedulerModule, StudentsModule, SettingsModule],
-  controllers: [BillingController],
+  imports: [
+    DbModule,
+    AuditModule,
+    ClockModule,
+    SchedulerModule,
+    StudentsModule,
+    SettingsModule,
+    TelegramModule,
+  ],
+  controllers: [BillingController, DebtorsController],
   providers: [
     BillingRepository,
     BillingGeneratorService,
@@ -29,6 +41,8 @@ import { StornoCashService } from './storno-cash.service.js';
     DiscountsService,
     StornoCashRepository,
     StornoCashService,
+    DebtorsRepository,
+    DebtorsService,
   ],
   exports: [
     BillingService,
@@ -39,6 +53,8 @@ import { StornoCashService } from './storno-cash.service.js';
     DiscountsRepository,
     StornoCashService,
     StornoCashRepository,
+    DebtorsService,
+    DebtorsRepository,
   ],
 })
 export class BillingModule {}

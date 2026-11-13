@@ -7,4 +7,6 @@ export * from './discounts.service.js';
 export * from './discounts.repository.js';
 export * from './storno-cash.service.js';
 export * from './storno-cash.repository.js';
+export * from './debtors.service.js';
+export * from './debtors.repository.js';
 export * from './billing.serializer.js';
