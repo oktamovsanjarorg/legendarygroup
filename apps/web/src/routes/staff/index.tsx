@@ -6,7 +6,8 @@ import { useAuth } from '../../auth/auth.js';
 import { type StaffRow, StaffView } from '../../screens/f1/staff.js';
 import { DetailDrawer } from './detail-drawer.js';
 import { InviteDrawer } from './invite-drawer.js';
-import { errorView, useStaffList } from './use-staff.js';
+import { errorView } from '../../api/errors.js';
+import { useStaffList } from './use-staff.js';
 
 const toRow = (s: StaffListItem): StaffRow => ({
   id: s.id,

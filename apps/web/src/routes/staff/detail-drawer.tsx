@@ -4,13 +4,8 @@ import { Badge, Button, Drawer, ErrorState, LoadingState } from '@lg/ui-web';
 import { useState } from 'react';
 import { InviteLink } from './invite-link.js';
 import { PermissionsSection } from './permissions.js';
-import {
-  errorText,
-  errorView,
-  type StaffAction,
-  useStaffAction,
-  useStaffDetail,
-} from './use-staff.js';
+import { errorText, errorView } from '../../api/errors.js';
+import { type StaffAction, useStaffAction, useStaffDetail } from './use-staff.js';
 
 const d = t.staff.detail;
 const TONE = { active: 'success', invited: 'info', blocked: 'danger' } as const;
@@ -134,7 +129,7 @@ export function DetailDrawer({ id, name, canPermissions, onClose }: Props) {
     action.mutate(a, { onSuccess: (issued) => issued && setInvite(issued) });
   const part = { busy: action.isPending, run };
   return (
-    <Drawer open title={name} closeLabel={t.staff.close} onClose={onClose}>
+    <Drawer open title={name} closeLabel={t.common.close} onClose={onClose}>
       {detail.isPending ? (
         <LoadingState rows={5} />
       ) : detail.isError ? (

@@ -3,7 +3,8 @@ import { webMessages as t } from '@lg/i18n';
 import { Button, Drawer, Field, SelectField } from '@lg/ui-web';
 import { type FormEvent, useState } from 'react';
 import { InviteLink } from './invite-link.js';
-import { errorText, useCreateStaff } from './use-staff.js';
+import { errorText } from '../../api/errors.js';
+import { useCreateStaff } from './use-staff.js';
 
 const f = t.staff.form;
 const FORM_ID = 'staff-invite-form';
@@ -77,7 +78,7 @@ export function InviteDrawer({ onClose }: { onClose: () => void }) {
     </>
   );
   return (
-    <Drawer open title={f.title} closeLabel={t.staff.close} onClose={onClose} footer={footer}>
+    <Drawer open title={f.title} closeLabel={t.common.close} onClose={onClose} footer={footer}>
       {result ? (
         <InviteLink invite={result.invite} />
       ) : (

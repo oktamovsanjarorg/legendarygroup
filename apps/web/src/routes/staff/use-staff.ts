@@ -9,20 +9,10 @@ import type {
   StaffRole,
 } from '@lg/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, ApiError } from '../../api/client.js';
+import { api } from '../../api/client.js';
 
 const LIST = ['staff'] as const;
 const detailKey = (id: string) => ['staff', id] as const;
-
-/** Xato → ko'rsatiladigan matn (server `message` — i18n'dan, 07 §2). */
-export const errorText = (e: unknown): string => (e instanceof ApiError ? e.message : String(e));
-
-/** `DataTable`/`ErrorState` uchun xato ko'rinishi. */
-export const errorView = (e: unknown, onRetry: () => void) => ({
-  message: errorText(e),
-  requestId: e instanceof ApiError ? e.requestId : undefined,
-  onRetry,
-});
 
 export const useStaffList = () =>
   useQuery({ queryKey: LIST, queryFn: () => api.request<StaffListItem[]>('/staff') });
