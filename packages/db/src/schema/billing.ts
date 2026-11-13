@@ -272,3 +272,5 @@ export type CashClosingRow = typeof cashClosings.$inferSelect;
 export type NewCashClosingRow = typeof cashClosings.$inferInsert;
 export type PaymentReminderRow = typeof paymentReminders.$inferSelect;
 export type NewPaymentReminderRow = typeof paymentReminders.$inferInsert;
+export type PaymentSubmissionRow = typeof paymentSubmissions.$inferSelect;
+export type NewPaymentSubmissionRow = typeof paymentSubmissions.$inferInsert;

@@ -3,6 +3,7 @@ import { AuditModule } from '../../common/audit/audit.module.js';
 import { ClockModule } from '../../common/clock/clock.module.js';
 import { DbModule } from '../../common/db/db.module.js';
 import { SchedulerModule } from '../../common/scheduler/scheduler.module.js';
+import { FilesModule } from '../files/index.js';
 import { SettingsModule } from '../settings/index.js';
 import { StudentsModule } from '../students/index.js';
 import { TelegramModule } from '../telegram/index.js';
@@ -20,6 +21,9 @@ import { PaymentsService } from './payments.service.js';
 import { ReceiptPdfService } from './receipt-pdf.service.js';
 import { StornoCashRepository } from './storno-cash.repository.js';
 import { StornoCashService } from './storno-cash.service.js';
+import { SubmissionsController } from './submissions.controller.js';
+import { SubmissionsRepository } from './submissions.repository.js';
+import { SubmissionsService } from './submissions.service.js';
 
 @Module({
   imports: [
@@ -30,8 +34,9 @@ import { StornoCashService } from './storno-cash.service.js';
     StudentsModule,
     SettingsModule,
     TelegramModule,
+    FilesModule,
   ],
-  controllers: [BillingController, DebtorsController],
+  controllers: [BillingController, DebtorsController, SubmissionsController],
   providers: [
     BillingRepository,
     BillingGeneratorService,
@@ -45,6 +50,8 @@ import { StornoCashService } from './storno-cash.service.js';
     DebtorsRepository,
     DebtorsService,
     ReceiptPdfService,
+    SubmissionsRepository,
+    SubmissionsService,
   ],
   exports: [
     BillingService,
@@ -58,6 +65,8 @@ import { StornoCashService } from './storno-cash.service.js';
     DebtorsService,
     DebtorsRepository,
     ReceiptPdfService,
+    SubmissionsService,
+    SubmissionsRepository,
   ],
 })
 export class BillingModule {}

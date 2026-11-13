@@ -93,6 +93,10 @@ export const errorMessages = {
   LEAD_CLOSED: 'Lid yopilgan (yozildi yoki rad etdi). Rad etilgan lidni avval qayta oching.',
   LOST_REASON_REQUIRED: 'Rad etish sababini kiriting.',
   ARCHIVED_READ_ONLY: 'Arxivdagi yozuvni tahrirlab boʻlmaydi. Avval arxivdan chiqaring.',
+  LOCKED_BY_OTHER: 'Bu chekni boshqa admin koʻrib chiqmoqda.',
+  ALREADY_REVIEWED: 'Bu chek allaqachon koʻrib chiqilgan.',
+  SUBMISSION_NOT_FOUND: 'Yuborilgan chek topilmadi.',
+  SUBMISSION_NOT_PENDING: 'Chek koʻrib chiqish kutilayotgan holatda emas.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;
