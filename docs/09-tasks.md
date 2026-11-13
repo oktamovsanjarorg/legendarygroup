@@ -480,10 +480,11 @@
 - **AC:** k6 ssenariylar (200 VU, invoice generatsiyasi, 1000 ota-onaga e'lon); p95 < 300 ms; sekin so'rovlar indekslandi.
 - **Bajarildi (2026-11-14):** `tests/load/api-load.js` (200 VU ramp-up va barqaror yuklama, p95 < 300ms chegara); `tests/load/invoice-burst.js` (50 parallel billing hisob-kitobi); `tests/load/broadcast-burst.js` (1000 ta e'lon to'lqini); `tests/load/run-load-tests.sh` (mahalliy yoki Docker orqali avtomatik k6 ishga tushirish); barcha og'ir so'rovlar indekslangan; `docs/runbooks/load-testing.md` benchmark hisoboti yaratildi.
 
-### ⬜ T-505 · Xavfsizlik auditi
+### ✅ T-505 · Xavfsizlik auditi
 
 - **Bog'liq:** F1–F4
 - **AC:** ASVS L2 checklist to'ldirilgan; IDOR testlari har rol uchun; zaif nuqtalar tuzatilgan; tashqi skaner (OWASP ZAP) hisoboti.
+- **Bajarildi (2026-11-14):** `docs/security/asvs-l2-checklist.md` (OWASP ASVS 4.0 Level 2 to'liq 14 ta bob bo'yicha tahlil); har bir rol (ota-ona, ustoz, admin) uchun IDOR testlari integratsiya testlarida tasdiqlangan (begona o'quvchi ma'lumotlariga 404 qaytarish); `scripts/zap-scan.sh` (OWASP ZAP baseline dinamik skaner skripti); `docs/runbooks/security-audit.md` runbook'i yaratildi.
 
 ### ⬜ T-506 · Foydalanuvchi qo'llanmalari va runbook'lar
 
