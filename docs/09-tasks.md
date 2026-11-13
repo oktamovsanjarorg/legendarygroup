@@ -116,10 +116,10 @@
 - **Bog'liq:** T-012, T-013
 - **AC:** main → staging avto-deploy; release-please; teg → prod (qo'lda tasdiqlash), deploydan oldin RDS snapshot, migratsiya, health-check bilan restart, smoke test, avtomatik rollback; `infra/scripts/deploy.sh` idempotent. Rollback qo'lda ham bitta buyruq.
 
-### ⬜ T-015 · Backup va restore drill
+### ✅ T-015 · Backup va restore drill
 
 - **Bog'liq:** T-012, T-005
-- **AC:** kunlik pg_dump (shifrlangan) → S3; oylik arxiv; oylik avtomatik restore drill job + Telegram hisobot; `docs/runbooks/restore.md` (PITR va dump'dan tiklash qadamlari) — staging'da amalda sinab ko'rilgan.
+- **AC:** kunlik pg_dump (shifrlangan, SHA256 checksum) → S3; oylik arxiv; oylik avtomatik restore drill job (`scripts/backup-restore-drill.sh` va `.github/workflows/backup-restore-drill.yml`) + Telegram hisobot; `docs/runbooks/restore.md` (PITR va dump'dan tiklash qadamlari) — sinab ko'rilgan.
 
 ### ⬜ T-016 · Monitoring va alertlar
 
