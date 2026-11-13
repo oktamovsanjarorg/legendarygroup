@@ -18,6 +18,7 @@ import {
   LEADS,
   LESSONS,
   LINK_REQUESTS,
+  MONTH,
   ROOMS,
 } from './mock.js';
 
@@ -29,10 +30,16 @@ type Story = StoryObj<typeof meta>;
 const frame = (active: string, node: React.ReactNode) => (
   <WebFrame active={active}>{node}</WebFrame>
 );
-const WEEK = [9, 10, 11, 12, 13, 14, 15].map((date) => ({
-  date,
-  holiday: undefined as string | undefined,
-}));
+const WEEK = ['09', '10', '11', '12', '13', '14', '15'].map((d) => ({ ymd: `2026-11-${d}` }));
+const calendar = {
+  today: '2026-11-12',
+  onMode: noop,
+  onPrev: noop,
+  onToday: noop,
+  onNext: noop,
+  onLesson: noop,
+  onDay: noop,
+};
 
 export const W07_LinkRequests: Story = {
   tags: ['primary'],
@@ -112,11 +119,25 @@ export const W11_Week: Story = {
     frame(
       '/calendar',
       <CalendarView
-        weekTitle="9–15-noyabr, 2026"
+        {...calendar}
+        mode="week"
+        title="9–15-noyabr, 2026"
         days={WEEK}
         lessons={LESSONS}
-        todayIndex={3}
-        onLesson={noop}
+      />,
+    ),
+};
+export const W11_Month: Story = {
+  render: () =>
+    frame(
+      '/calendar',
+      <CalendarView
+        {...calendar}
+        mode="month"
+        month="2026-11"
+        title="noyabr, 2026"
+        days={MONTH}
+        lessons={LESSONS}
       />,
     ),
 };

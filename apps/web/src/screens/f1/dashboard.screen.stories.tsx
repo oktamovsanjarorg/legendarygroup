@@ -5,7 +5,7 @@ import { DashboardView } from './dashboard.js';
 import { KPI, LESSONS } from './mock.js';
 
 const noop = () => undefined;
-const today = LESSONS.filter((l) => l.day === 3);
+const today = LESSONS.filter((l) => l.date === '2026-11-12');
 const meta: Meta = { title: 'web/F1/W-04 Bosh sahifa' };
 export default meta;
 type Story = StoryObj<typeof meta>;

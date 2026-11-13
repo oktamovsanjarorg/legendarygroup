@@ -14,11 +14,19 @@ export interface StudentRow {
 
 export interface LessonCell {
   id: string;
-  day: number;
+  /** Kalendar kuni `YYYY-MM-DD`. */
+  date: string;
   start: string;
   end: string;
   group: string;
   teacher: string;
   room: string;
-  kind?: 'cancelled' | 'substitute' | 'extra';
+  kind?: LessonCellKind;
+}
+
+export type LessonCellKind = 'cancelled' | 'substitute' | 'extra' | 'makeup';
+
+export interface CalendarDay {
+  ymd: string;
+  holiday?: string;
 }

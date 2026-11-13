@@ -5,7 +5,7 @@ import type { GroupDraft, GroupFormOptions } from './group-form.js';
 import type { GroupRow } from './groups.js';
 import { GROUPS, NAMES } from './mock-people.js';
 import type { CenterSettings } from './settings.js';
-import type { LessonCell } from './types.js';
+import type { CalendarDay, LessonCell } from './types.js';
 
 /** T-017c 5a maket ma'lumotlari — tashkiliy (W-04, W-09…W-12, W-29). */
 
@@ -25,10 +25,16 @@ export const KPI: WebKpi = {
   })),
 };
 
+/** 2026-yil noyabr to'ri: 26-oktabr (Du) … 6-dekabr (Ya); 3-noyabr — bayram namunasi. */
+export const MONTH: CalendarDay[] = Array.from({ length: 42 }, (_, i) => {
+  const ymd = new Date(Date.UTC(2026, 9, 26 + i)).toISOString().slice(0, 10);
+  return ymd === '2026-11-03' ? { ymd, holiday: 'Namuna bayram' } : { ymd };
+});
+
 export const LESSONS: LessonCell[] = [
   {
     id: 'l1',
-    day: 3,
+    date: '2026-11-12',
     start: '09:00',
     end: '10:30',
     group: 'Matematika — A1',
@@ -37,7 +43,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l2',
-    day: 3,
+    date: '2026-11-12',
     start: '11:00',
     end: '12:30',
     group: 'Matematika — A3',
@@ -46,7 +52,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l3',
-    day: 3,
+    date: '2026-11-12',
     start: '15:00',
     end: '16:30',
     group: 'IELTS 7.0 — B2-guruh',
@@ -55,7 +61,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l4',
-    day: 3,
+    date: '2026-11-12',
     start: '17:00',
     end: '18:30',
     group: 'IELTS 6.0 — B1',
@@ -65,7 +71,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l5',
-    day: 0,
+    date: '2026-11-09',
     start: '15:00',
     end: '16:30',
     group: 'IELTS 7.0 — B2-guruh',
@@ -74,7 +80,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l6',
-    day: 0,
+    date: '2026-11-09',
     start: '09:00',
     end: '10:30',
     group: 'Matematika — A1',
@@ -83,7 +89,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l7',
-    day: 1,
+    date: '2026-11-10',
     start: '17:00',
     end: '18:30',
     group: 'IELTS 6.0 — B1',
@@ -92,7 +98,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l8',
-    day: 2,
+    date: '2026-11-11',
     start: '11:00',
     end: '12:30',
     group: 'Matematika — A3',
@@ -102,7 +108,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l9',
-    day: 2,
+    date: '2026-11-11',
     start: '15:00',
     end: '16:30',
     group: 'IELTS 7.0 — B2-guruh',
@@ -111,7 +117,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l10',
-    day: 4,
+    date: '2026-11-13',
     start: '09:00',
     end: '10:30',
     group: 'Matematika — A1',
@@ -120,7 +126,7 @@ export const LESSONS: LessonCell[] = [
   },
   {
     id: 'l11',
-    day: 5,
+    date: '2026-11-14',
     start: '10:00',
     end: '11:30',
     group: 'IELTS 7.0 — B2-guruh',

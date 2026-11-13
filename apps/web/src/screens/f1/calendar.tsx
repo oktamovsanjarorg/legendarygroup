@@ -1,114 +1,189 @@
 import { webMessages as t } from '@lg/i18n';
-import { Badge, Button, cn, PageHeader, Tabs } from '@lg/ui-web';
+import { Badge, Button, cn, ErrorState, LoadingState, PageHeader, Tabs } from '@lg/ui-web';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { LessonCell } from './types.js';
+import type { ReactNode } from 'react';
+import { LessonBlock, LessonChip } from './calendar-cells.js';
+import type { CalendarDay, LessonCell } from './types.js';
 
-interface Props {
-  weekTitle: string;
-  /** 0 = Dushanba, kun raqami bilan. */
-  days: readonly { date: number; holiday?: string }[];
+export type CalendarMode = 'week' | 'month';
+const MONTH_VISIBLE = 4;
+
+interface GridProps {
+  days: readonly CalendarDay[];
   lessons: readonly LessonCell[];
-  todayIndex: number;
+  today: string;
   onLesson: (l: LessonCell) => void;
+  /** Oy ko'rinishida joriy oy (`YYYY-MM`) — qo'shni oy kunlari xira. */
+  month?: string;
+  /** Oy ko'rinishida kunni bosish — o'sha haftaga o'tish. */
+  onDay: (ymd: string) => void;
 }
 
-function LessonBlock({ l, onClick }: { l: LessonCell; onClick: () => void }) {
+interface Props extends GridProps {
+  /** `9–15-noyabr, 2026` yoki `noyabr, 2026`. */
+  title: string;
+  mode: CalendarMode;
+  loading?: boolean;
+  error?: { message: string; requestId?: string; onRetry: () => void };
+  /** Filtrlar (guruh, ustoz) va amallar (qo'shimcha dars, bayramlar). */
+  toolbar?: ReactNode;
+  onMode: (m: CalendarMode) => void;
+  onPrev: () => void;
+  onToday: () => void;
+  onNext: () => void;
+}
+
+const dayNumber = (ymd: string) => Number(ymd.slice(8));
+/** Kun darslari vaqt bo'yicha (filter — yangi massiv, props o'zgarmaydi). */
+const lessonsOn = (lessons: readonly LessonCell[], ymd: string) =>
+  lessons.filter((l) => l.date === ymd).sort((a, b) => a.start.localeCompare(b.start));
+
+function WeekGrid({ days, lessons, today, onLesson }: GridProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'flex w-full flex-col gap-0.5 rounded-md border-l-4 bg-bg p-2 text-left text-xs shadow-sm hover:bg-surface',
-        l.kind === 'cancelled'
-          ? 'border-danger opacity-70'
-          : l.kind === 'substitute'
-            ? 'border-warning'
-            : l.kind === 'extra'
-              ? 'border-success'
-              : 'border-primary',
-      )}
-    >
-      <span
-        className={cn(
-          'font-semibold tabular-nums text-text',
-          l.kind === 'cancelled' && 'line-through',
-        )}
-      >
-        {l.start}–{l.end}
-      </span>
-      <span className={cn('text-text', l.kind === 'cancelled' && 'line-through')}>{l.group}</span>
-      <span className="text-text-muted">
-        {l.teacher} · {l.room}
-      </span>
-      {l.kind && (
-        <Badge
-          tone={l.kind === 'cancelled' ? 'danger' : l.kind === 'substitute' ? 'warning' : 'success'}
-          className="mt-0.5 self-start no-underline"
+    <div className="grid grid-cols-7 gap-2">
+      {days.map((d, i) => (
+        <section
+          key={d.ymd}
+          className={cn(
+            'flex min-h-[28rem] flex-col gap-2 rounded-lg p-2',
+            d.ymd === today ? 'bg-primary/10' : 'bg-surface',
+          )}
         >
-          {l.kind === 'cancelled'
-            ? t.calendar.cancelled
-            : l.kind === 'substitute'
-              ? t.calendar.substitute
-              : t.calendar.extra}
-        </Badge>
-      )}
-    </button>
+          <h2 className="flex items-baseline justify-between px-1 text-sm">
+            <span className="font-semibold text-text">{t.calendar.days[i]}</span>
+            <span className="tabular-nums text-text-muted">{dayNumber(d.ymd)}</span>
+          </h2>
+          {d.holiday && <Badge tone="info">{`${t.calendar.holiday}: ${d.holiday}`}</Badge>}
+          {lessonsOn(lessons, d.ymd).map((l) => (
+            <LessonBlock key={l.id} l={l} onClick={() => onLesson(l)} />
+          ))}
+        </section>
+      ))}
+    </div>
   );
 }
 
-/** W-11 Jadval (FR-ORG-5): haftalik ko'rinish; bekor/o'rinbosar/qo'shimcha dars, bayramlar. */
-export function CalendarView({ weekTitle, days, lessons, todayIndex, onLesson }: Props) {
+function MonthCell({
+  d,
+  lessons,
+  today,
+  month,
+  onLesson,
+  onDay,
+}: Omit<GridProps, 'days'> & { d: CalendarDay }) {
+  const items = lessonsOn(lessons, d.ymd);
+  const rest = items.length - MONTH_VISIBLE;
+  return (
+    <section
+      className={cn(
+        'flex min-h-28 flex-col gap-1 rounded-md border border-border p-1.5',
+        d.ymd === today ? 'bg-primary/10' : 'bg-bg',
+        month && !d.ymd.startsWith(month) && 'opacity-50',
+      )}
+    >
+      <button
+        type="button"
+        onClick={() => onDay(d.ymd)}
+        className="self-end rounded px-1 text-xs font-medium tabular-nums text-text-muted hover:bg-surface-alt"
+      >
+        {dayNumber(d.ymd)}
+      </button>
+      {d.holiday && <Badge tone="info">{d.holiday}</Badge>}
+      {items.slice(0, MONTH_VISIBLE).map((l) => (
+        <LessonChip key={l.id} l={l} onClick={() => onLesson(l)} />
+      ))}
+      {rest > 0 && (
+        <button
+          type="button"
+          onClick={() => onDay(d.ymd)}
+          className="text-left text-xs text-link hover:underline"
+        >
+          {t.calendar.more.replace('{n}', String(rest))}
+        </button>
+      )}
+    </section>
+  );
+}
+
+function MonthGrid({ days, ...rest }: GridProps) {
+  return (
+    <div className="grid grid-cols-7 gap-1.5">
+      {t.calendar.daysShort.map((name) => (
+        <h2 key={name} className="px-1 text-xs font-semibold uppercase text-text-muted">
+          {name}
+        </h2>
+      ))}
+      {days.map((d) => (
+        <MonthCell key={d.ymd} d={d} {...rest} />
+      ))}
+    </div>
+  );
+}
+
+function Nav({
+  mode,
+  onPrev,
+  onToday,
+  onNext,
+}: Pick<Props, 'mode' | 'onPrev' | 'onToday' | 'onNext'>) {
+  const week = mode === 'week';
   return (
     <>
-      <PageHeader
-        title={t.calendar.title}
-        description={weekTitle}
-        actions={
-          <>
-            <Button variant="secondary" size="sm" aria-label={t.calendar.prev}>
-              <ChevronLeft className="size-4" aria-hidden />
-            </Button>
-            <Button variant="secondary" size="sm">
-              {t.calendar.today}
-            </Button>
-            <Button variant="secondary" size="sm" aria-label={t.calendar.next}>
-              <ChevronRight className="size-4" aria-hidden />
-            </Button>
-          </>
-        }
-      />
+      <Button
+        variant="secondary"
+        size="sm"
+        aria-label={week ? t.calendar.prev : t.calendar.prevMonth}
+        onClick={onPrev}
+      >
+        <ChevronLeft className="size-4" aria-hidden />
+      </Button>
+      <Button variant="secondary" size="sm" onClick={onToday}>
+        {t.calendar.today}
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        aria-label={week ? t.calendar.next : t.calendar.nextMonth}
+        onClick={onNext}
+      >
+        <ChevronRight className="size-4" aria-hidden />
+      </Button>
+    </>
+  );
+}
+
+/** W-11 Jadval (FR-ORG-5): hafta/oy; bekor/o'rinbosar/qo'shimcha/qoplovchi dars, bayramlar. */
+export function CalendarView(p: Props) {
+  const grid = {
+    days: p.days,
+    lessons: p.lessons,
+    today: p.today,
+    month: p.month,
+    onLesson: p.onLesson,
+    onDay: p.onDay,
+  };
+  return (
+    <>
+      <PageHeader title={t.calendar.title} description={p.title} actions={<Nav {...p} />} />
       <Tabs
         label={t.calendar.title}
-        value="week"
-        onChange={() => undefined}
+        value={p.mode}
+        onChange={p.onMode}
         items={[
           { value: 'week', label: t.calendar.week },
           { value: 'month', label: t.calendar.month },
         ]}
       />
-      <div className="grid grid-cols-7 gap-2">
-        {days.map((d, i) => (
-          <section
-            key={d.date}
-            className={cn(
-              'flex min-h-[28rem] flex-col gap-2 rounded-lg p-2',
-              i === todayIndex ? 'bg-primary/10' : 'bg-surface',
-            )}
-          >
-            <h2 className="flex items-baseline justify-between px-1 text-sm">
-              <span className="font-semibold text-text">{t.calendar.days[i]}</span>
-              <span className="tabular-nums text-text-muted">{d.date}</span>
-            </h2>
-            {d.holiday && <Badge tone="info">{`${t.calendar.holiday}: ${d.holiday}`}</Badge>}
-            {lessons
-              .filter((l) => l.day === i)
-              .sort((a, b) => a.start.localeCompare(b.start)) // filter — yangi massiv, props o'zgarmaydi
-              .map((l) => (
-                <LessonBlock key={l.id} l={l} onClick={() => onLesson(l)} />
-              ))}
-          </section>
-        ))}
-      </div>
+      {p.toolbar && <div className="mb-3 flex flex-wrap items-end gap-3">{p.toolbar}</div>}
+      {p.error ? (
+        <ErrorState {...p.error} />
+      ) : p.loading ? (
+        <LoadingState rows={6} />
+      ) : p.mode === 'week' ? (
+        <WeekGrid {...grid} />
+      ) : (
+        <MonthGrid {...grid} />
+      )}
     </>
   );
 }
