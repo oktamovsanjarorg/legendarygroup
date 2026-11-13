@@ -16,6 +16,7 @@ import { VerifyPage } from './pages/verify.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { GroupsPage } from './routes/groups/index.js';
+import { LandingPage } from './routes/landing/index.js';
 import { LeadsPage } from './routes/leads/index.js';
 import { StaffPage } from './routes/staff/index.js';
 import { StudentCardPage } from './routes/students/card.js';
@@ -46,6 +47,11 @@ const verify = createRoute({
   component: function Verify() {
     return <VerifyPage token={verify.useParams().token} />;
   },
+});
+const landing = createRoute({
+  getParentRoute: () => root,
+  path: '/landing',
+  component: () => <LandingPage />,
 });
 const app = createRoute({ getParentRoute: () => root, id: 'app', component: AppLayout });
 const home = createRoute({ getParentRoute: () => app, path: '/', component: HomePage });
@@ -86,6 +92,7 @@ const routeTree = root.addChildren([
   login,
   invite,
   verify,
+  landing,
   app.addChildren([
     home,
     students,

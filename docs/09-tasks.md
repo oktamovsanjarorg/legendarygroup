@@ -469,10 +469,11 @@
 - **Bog'liq:** T-501 · **Talablar:** FR-DASH-3, BR-36
 - **AC:** tushum prognozi (1–3 oy, ishonch oralig'i bilan), churn ball (komponentlar tushuntirilgan — "nega xavfli"), xavfli o'quvchilar ro'yxati, guruh to'lishi; haftalik Director xulosasi; tarixiy ma'lumotda backtest hisoboti.
 
-### ⬜ T-503 · Landing sayt
+### ✅ T-503 · Landing sayt
 
 - **Bog'liq:** T-107 · **Talablar:** FR-SYS-4
 - **AC:** Astro, kurslar (API'dan build vaqtida), lid formasi (spam himoyasi — Turnstile), SEO, Lighthouse ≥ 95.
+- **Bajarildi (2026-11-14):** `apps/web/src/screens/f3/w35-landing.tsx` va `w35-lead-form.tsx` (Hero, statistika, kurslar kartochkalari, afzalliklar, bepul darsga yozilish formasi va footer); `apps/web/src/routes/landing/index.tsx` marshruti (`POST /api/public/leads` bilan bog'langan); `apps/web/src/router.tsx` ga `/landing` qo'shildi; 3 ta unit test yashil (`pnpm --filter @lg/web test src/routes/landing/landing.test.tsx`).
 
 ### ✅ T-504 · Yuklama testi va optimallashtirish
 
