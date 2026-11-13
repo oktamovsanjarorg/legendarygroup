@@ -242,10 +242,11 @@
 - **AC:** guruh × sana jadval ko'rinishi, o'tgan davomatni sabab bilan o'zgartirish (audit), belgilanmagan darslar ro'yxati; worker: 30 daq → ustozga, 2 soat → Admin'ga eslatma.
 - **Backend bajarildi (2026-11-13):** Admin uchun o'tgan kun davomatini `changeReason` bilan o'zgartirish (`attendance.edit_past`), audit logi, dars va o'quvchi davomat tarixi API. Qolgan: Web UI va eslatma cron jobi.
 
-### ⬜ T-113 · "Kelmadi/kech qoldi" xabari ota-onaga
+### ✅ T-113 · "Kelmadi/kech qoldi" xabari ota-onaga
 
 - **Bog'liq:** T-111, T-109, T-110 · **Talablar:** FR-ATT-3, BR-31
 - **AC:** `AttendanceMarked` event → BR-31 tuzatish oynasi (3 daq, sozlanadi) tugagach ≤ 1 daq ichida xabar (jami ≤ 5 daq); kech qolish — faqat ≥ 15 daq (BR-10); ko'p marta saqlash — bitta xabar (dedup); xato tuzatilsa tuzatish xabari (BR-31 tasdiqlangan varianti); integratsiya testi event → xabar.
+- **Bajarildi (2026-11-13):** `packages/contracts/src/events.ts` (`AttendanceMarked` hodisasi); `packages/contracts/src/notifications.ts` (`attendance_correction` turi); `packages/domain/src/notifications/notification.policy.ts` (tuzatish xabari shabloni); `packages/db` (`dedupe_key` ustuni va unique indeksi); `apps/api/src/modules/attendance/` (`AttendanceNoticeService`, `AttendanceNoticeProcessor`, delayed job, dedup, BR-31 3 daqiqalik tuzatish oynasi va oyna ichida bekor qilish, oynadan keyin tuzatilsa `attendance_correction` yuborish); `attendance-notices.int.test.ts` da 6 ta integratsiya testi yashil.
 
 ### ⬜ T-114 · Ustoz Mini App (to'liq)
 

@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import type {
   AttendanceRecord,
   AttendanceStatus,
@@ -6,18 +6,14 @@ import type {
   MarkAttendanceInput,
   StudentAttendanceHistoryQueryInput,
 } from '@lg/contracts';
-import { canEditAttendance, type Clock, shouldNotifyAbsenceOrLate } from '@lg/domain';
-import { guardians, studentGuardians } from '@lg/db';
-import { eq, inArray } from 'drizzle-orm';
+import { canEditAttendance, type Clock } from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
-import { DB_TOKEN } from '../../common/db/db.tokens.js';
-import type { Database } from '@lg/db';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { GroupScopeService } from '../org/index.js';
+import { OutboxService } from '../outbox/index.js';
 import { StudentScopeService } from '../students/index.js';
-import { TelegramOutbox } from '../telegram/index.js';
 import { AttendanceRepository, type EnrichedAttendanceRow } from './attendance.repository.js';
 
 @Injectable()
@@ -30,8 +26,7 @@ export class AttendanceService {
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
-    @Inject(DB_TOKEN) private readonly db: Database,
-    @Optional() @Inject(TelegramOutbox) private readonly telegramOutbox?: TelegramOutbox,
+    @Inject(OutboxService) private readonly outbox: OutboxService,
   ) {}
 
   /** Dars davomati ma'lumotlari va kutilayotgan o'quvchilar ro'yxati (FR-ATT-1). */
@@ -81,31 +76,11 @@ export class AttendanceService {
       throw new AppException(HttpStatus.CONFLICT, 'LESSON_CANCELLED');
 
     await this.assertCanMarkLesson(user, lesson);
-
     const now = this.clock.now();
-    const hasEditPast = user.role === 'admin' || user.role === 'director';
-    const policy = canEditAttendance({
-      lessonDate: lesson.date,
-      userRole: user.role,
-      hasEditPastPermission: hasEditPast,
-      now,
-    });
+    const policy = await this.assertAttendancePolicy(user, lesson, input, now);
 
-    if (!policy.allowed) {
-      throw new AppException(HttpStatus.CONFLICT, 'ATTENDANCE_LOCKED_PAST');
-    }
-    if (policy.requiresReason && !input.changeReason) {
-      throw new AppException(HttpStatus.BAD_REQUEST, 'CHANGE_REASON_REQUIRED');
-    }
-
-    // BR-32: O'quvchi ushbu dars sanasida guruhga yozilgan bo'lishi shart
-    const expected = await this.repo.findExpectedStudents(lesson.groupId, lesson.date);
-    const validStudentIds = new Set(expected.map((s) => s.id));
-    for (const item of input.items) {
-      if (!validStudentIds.has(item.studentId)) {
-        throw new AppException(HttpStatus.BAD_REQUEST, 'STUDENT_NOT_ENROLLED');
-      }
-    }
+    const prevRecords = await this.repo.findLessonAttendance(lessonId);
+    const prevMap = new Map(prevRecords.map((r) => [r.studentId, r.status]));
 
     const rowsToUpsert = input.items.map((item) => ({
       lessonId,
@@ -132,10 +107,58 @@ export class AttendanceService {
       },
     });
 
-    // BR-31: Kelmagan / kech qolgan o'quvchilar ota-onalariga xabarnoma navbatiga qo'yish
-    await this.enqueueAbsenceNotifications(lesson, input.items);
-
+    await this.publishAttendanceEvents(lessonId, input.items, prevMap, now.toISOString());
     return this.getLessonAttendance(user, lessonId);
+  }
+
+  private async assertAttendancePolicy(
+    user: RequestUser,
+    lesson: { groupId: string; date: string },
+    input: MarkAttendanceInput,
+    now: Date,
+  ) {
+    const hasEditPast = user.role === 'admin' || user.role === 'director';
+    const policy = canEditAttendance({
+      lessonDate: lesson.date,
+      userRole: user.role,
+      hasEditPastPermission: hasEditPast,
+      now,
+    });
+
+    if (!policy.allowed) {
+      throw new AppException(HttpStatus.CONFLICT, 'ATTENDANCE_LOCKED_PAST');
+    }
+    if (policy.requiresReason && !input.changeReason) {
+      throw new AppException(HttpStatus.BAD_REQUEST, 'CHANGE_REASON_REQUIRED');
+    }
+
+    const expected = await this.repo.findExpectedStudents(lesson.groupId, lesson.date);
+    const validStudentIds = new Set(expected.map((s) => s.id));
+    for (const item of input.items) {
+      if (!validStudentIds.has(item.studentId)) {
+        throw new AppException(HttpStatus.BAD_REQUEST, 'STUDENT_NOT_ENROLLED');
+      }
+    }
+    return policy;
+  }
+
+  private async publishAttendanceEvents(
+    lessonId: string,
+    items: MarkAttendanceInput['items'],
+    prevMap: Map<string, string>,
+    markedAt: string,
+  ): Promise<void> {
+    for (const item of items) {
+      const prevStatus = prevMap.get(item.studentId) ?? null;
+      await this.outbox.publish('AttendanceMarked', {
+        lessonId,
+        studentId: item.studentId,
+        status: item.status,
+        lateMinutes: item.status === 'late' ? (item.lateMinutes ?? null) : null,
+        previousStatus: prevStatus,
+        markedAt,
+      });
+    }
   }
 
   /** O'quvchining davomat tarixi (ota-ona, ustoz, admin). */
@@ -168,45 +191,6 @@ export class AttendanceService {
       return;
     }
     throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
-  }
-
-  private async enqueueAbsenceNotifications(
-    lesson: { id: string; groupName: string; date: string; startTime: string },
-    items: MarkAttendanceInput['items'],
-  ): Promise<void> {
-    if (!this.telegramOutbox) return;
-
-    const notifiable = items.filter((item) => shouldNotifyAbsenceOrLate(item));
-    if (notifiable.length === 0) return;
-
-    const studentIds = notifiable.map((i) => i.studentId);
-    const sgRows = await this.db
-      .select({
-        studentId: studentGuardians.studentId,
-        guardianUserId: guardians.userId,
-      })
-      .from(studentGuardians)
-      .innerJoin(guardians, eq(guardians.id, studentGuardians.guardianId))
-      .where(inArray(studentGuardians.studentId, studentIds));
-
-    for (const item of notifiable) {
-      const match = sgRows.find((r) => r.studentId === item.studentId && r.guardianUserId);
-      if (!match?.guardianUserId) continue;
-
-      const text =
-        item.status === 'absent'
-          ? `Farzandingiz bugun (${lesson.date} ${lesson.startTime}) "${lesson.groupName}" darsiga kelmadi.`
-          : `Farzandingiz bugun (${lesson.date} ${lesson.startTime}) "${lesson.groupName}" darsiga ${item.lateMinutes} daqiqa kech qoldi.`;
-
-      await this.telegramOutbox.enqueue(
-        {
-          method: 'sendMessage',
-          chatId: match.guardianUserId,
-          payload: { text },
-        },
-        { dedupeKey: `att:${lesson.id}:${item.studentId}` },
-      );
-    }
   }
 
   private serializeRecord(r: EnrichedAttendanceRow): AttendanceRecord {

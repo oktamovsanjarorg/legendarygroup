@@ -37,14 +37,8 @@ export class NotificationsService {
 
   /** Bildirishnoma yuborish (AC: T-109 notify API) */
   async notify(params: NotifyParams): Promise<string | null> {
-    const isMandatory = isNotificationMandatory(params.type);
-    if (!isMandatory) {
-      const prefs = await this.repo.getUserPreferences(params.userId);
-      const userPref = prefs.find((p) => p.type === params.type);
-      if (userPref && !userPref.enabled) {
-        return null; // Foydalanuvchi bu xabarni o'chirib qo'ygan
-      }
-    }
+    const enabled = await this.isTypeEnabled(params.userId, params.type);
+    if (!enabled) return null;
 
     const [user] = await this.db.select().from(users).where(eq(users.id, params.userId));
     if (!user) {
@@ -65,7 +59,10 @@ export class NotificationsService {
       body: rendered.body,
       payload: params.payload,
       status: 'queued',
+      dedupeKey: params.dedupeKey,
     });
+
+    if (!notif) return null;
 
     if (user.telegramId) {
       const jobId = await this.telegramOutbox.enqueue(
@@ -76,13 +73,18 @@ export class NotificationsService {
         },
         { dedupeKey: params.dedupeKey },
       );
-      if (notif) {
-        await this.repo.updateStatus(notif.id, 'queued', { sentAt: null });
-      }
+      await this.repo.updateStatus(notif.id, 'queued', { sentAt: null });
       return jobId;
     }
 
-    return notif?.id ?? null;
+    return notif.id;
+  }
+
+  private async isTypeEnabled(userId: string, type: NotificationType): Promise<boolean> {
+    if (isNotificationMandatory(type)) return true;
+    const prefs = await this.repo.getUserPreferences(userId);
+    const userPref = prefs.find((p) => p.type === type);
+    return userPref ? userPref.enabled : true;
   }
 
   /** Foydalanuvchi bildirishnoma sozlamalarini oladi */

@@ -21,6 +21,7 @@ export interface CreateNotificationParams {
   payload: Record<string, unknown>;
   status?: NotificationStatus;
   jobId?: string;
+  dedupeKey?: string;
 }
 
 @Injectable()
@@ -40,9 +41,14 @@ export class NotificationsRepository {
       payload: params.payload,
       status: params.status ?? 'queued',
       jobId: params.jobId,
+      dedupeKey: params.dedupeKey ?? null,
     };
 
-    const [created] = await this.db.insert(notifications).values(row).returning();
+    const [created] = await this.db
+      .insert(notifications)
+      .values(row)
+      .onConflictDoNothing()
+      .returning();
     return created;
   }
 

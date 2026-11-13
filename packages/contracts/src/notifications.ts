@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const NOTIFICATION_TYPES = [
   'attendance_absent',
   'attendance_late',
+  'attendance_correction',
   'billing_invoice_created',
   'billing_payment_confirmed',
   'billing_reminder',
@@ -14,6 +15,7 @@ export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 export const MANDATORY_NOTIFICATION_TYPES = [
   'attendance_absent',
+  'attendance_correction',
   'billing_invoice_created',
   'billing_payment_confirmed',
 ] as const;

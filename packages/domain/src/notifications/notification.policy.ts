@@ -3,6 +3,7 @@ import { MANDATORY_NOTIFICATION_TYPES, type NotificationType } from '@lg/contrac
 export const NOTIFICATION_TITLES_UZ: Record<NotificationType, string> = {
   attendance_absent: 'Darsga kelmadi',
   attendance_late: 'Darsga kechikdi',
+  attendance_correction: 'Davomat tuzatildi',
   billing_invoice_created: 'Yangi toʻlov hisobi',
   billing_payment_confirmed: 'Toʻlov qabul qilindi',
   billing_reminder: 'Toʻlov muddati eslatmasi',
@@ -45,6 +46,10 @@ const TEMPLATE_RENDERERS: Record<NotificationType, TemplateRenderer> = {
   attendance_late: (p) => ({
     title: 'Davomat: Darsga kechikish',
     body: `${p.studentName ?? 'Oʻquvchi'} ${p.groupName ?? 'Guruh'} guruh darsiga ${p.minutes ?? 15} daqiqa kechikib keldi.`,
+  }),
+  attendance_correction: (p) => ({
+    title: 'Davomat: Farzandingiz darsda',
+    body: `Uzr, xatolik yuz bergan: ${p.studentName ?? 'Farzandingiz'} bugun darsda qatnashmoqda.`,
   }),
   billing_invoice_created: (p) => ({
     title: 'Toʻlov hisob-fakturasi',

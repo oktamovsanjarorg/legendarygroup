@@ -9,6 +9,7 @@ import {
   pgTable,
   primaryKey,
   text,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { createdAt, oneOf, primaryUuid, tstz, updatedAt } from './common.js';
@@ -32,6 +33,7 @@ export const notifications = pgTable(
       .$type<Record<string, unknown>>()
       .notNull()
       .default(sql`'{}'::jsonb`),
+    dedupeKey: text('dedupe_key'),
     status: text('status', { enum: NOTIFICATION_STATUSES }).notNull().default('queued'),
     jobId: text('job_id'),
     attempts: integer('attempts').notNull().default(0),
@@ -45,6 +47,7 @@ export const notifications = pgTable(
     index('notifications_branch_id_idx').on(t.branchId),
     index('notifications_status_created_idx').on(t.status, t.createdAt),
     index('notifications_type_idx').on(t.type),
+    uniqueIndex('notifications_dedupe_key_idx').on(t.dedupeKey),
     check('notifications_type_check', oneOf(t.type, NOTIFICATION_TYPES)),
     check('notifications_channel_check', oneOf(t.channel, NOTIFICATION_CHANNELS)),
     check('notifications_status_check', oneOf(t.status, NOTIFICATION_STATUSES)),
