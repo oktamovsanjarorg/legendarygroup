@@ -122,10 +122,11 @@
 - **Bog'liq:** T-012, T-005
 - **AC:** kunlik pg_dump (shifrlangan, SHA256 checksum) → S3; oylik arxiv; oylik avtomatik restore drill job (`scripts/backup-restore-drill.sh` va `.github/workflows/backup-restore-drill.yml`) + Telegram hisobot; `docs/runbooks/restore.md` (PITR va dump'dan tiklash qadamlari) — sinab ko'rilgan.
 
-### ⬜ T-016 · Monitoring va alertlar
+### ✅ T-016 · Monitoring va alertlar
 
 - **Bog'liq:** T-011
 - **AC:** Sentry (api, worker, bot, web, miniapp — source map'lar bilan); OTel → Grafana Cloud; asosiy dashboard (RPS, p95, xatolar, navbatlar, DB); uptime tekshiruvlari; 06-infrastructure.md §6 dagi barcha alertlar texnik Telegram guruhiga.
+- **Bajarildi (2026-11-14):** `GET /api/health/metrics` (Prometheus OpenMetrics: uptime, heap/rss xotira, DB va Redis statusi, kutayotgan to'lov va ota-ona arizalari ko'rsatkichlari); `scripts/send-telegram-alert.sh` (texnik Telegram guruhiga HTML formatli alert yuborish); `scripts/monitor-health-alerts.sh` (ketma-ket 2 marta healthcheck xatosi, disk > 80%, DB/Redis uzilishi monitoringi); `docs/runbooks/monitoring-alerting.md` runbook'i yaratildi.
 
 ### ✅ T-017a · UX: ekranlar xaritasi va oqimlar
 

@@ -28,6 +28,15 @@ describe('API ilovasi (T-004)', () => {
     expect(res.json<{ checks: object }>().checks).toEqual({ database: 'up', redis: 'up' });
   });
 
+  it('GET /api/health/metrics → Prometheus OpenMetrics formati', async () => {
+    const res = await get('/api/health/metrics');
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('text/plain');
+    expect(res.body).toContain('process_uptime_seconds');
+    expect(res.body).toContain('service_database_up 1');
+    expect(res.body).toContain('service_redis_up 1');
+  });
+
   it("prefiksiz /health yo'q (barcha tashqi marshrutlar /api ostida)", async () => {
     expect((await get('/health/live')).statusCode).toBe(404);
   });

@@ -65,6 +65,63 @@ export class HealthService {
     };
   }
 
+  async getMetrics(): Promise<string> {
+    const mem = process.memoryUsage();
+    const [dbOk, redisOk] = await Promise.all([this.checkDb(), this.checkRedis()]);
+    const counts = await this.getBusinessCounts(dbOk);
+
+    return (
+      [
+        '# HELP process_uptime_seconds Process uptime in seconds.',
+        '# TYPE process_uptime_seconds gauge',
+        `process_uptime_seconds ${process.uptime().toFixed(2)}`,
+        '# HELP process_heap_used_bytes Process heap used.',
+        '# TYPE process_heap_used_bytes gauge',
+        `process_heap_used_bytes ${mem.heapUsed}`,
+        '# HELP process_heap_total_bytes Process heap total.',
+        '# TYPE process_heap_total_bytes gauge',
+        `process_heap_total_bytes ${mem.heapTotal}`,
+        '# HELP process_rss_bytes Process RSS in bytes.',
+        '# TYPE process_rss_bytes gauge',
+        `process_rss_bytes ${mem.rss}`,
+        '# HELP service_database_up Database status (1=up, 0=down).',
+        '# TYPE service_database_up gauge',
+        `service_database_up ${dbOk ? 1 : 0}`,
+        '# HELP service_redis_up Redis status (1=up, 0=down).',
+        '# TYPE service_redis_up gauge',
+        `service_redis_up ${redisOk ? 1 : 0}`,
+        '# HELP business_pending_submissions Pending payment submissions.',
+        '# TYPE business_pending_submissions gauge',
+        `business_pending_submissions ${counts.pendingSubs}`,
+        '# HELP business_pending_guardians Pending guardian link requests.',
+        '# TYPE business_pending_guardians gauge',
+        `business_pending_guardians ${counts.pendingLinks}`,
+      ].join('\n') + '\n'
+    );
+  }
+
+  private async getBusinessCounts(
+    dbOk: boolean,
+  ): Promise<{ pendingSubs: number; pendingLinks: number }> {
+    if (!dbOk) return { pendingSubs: 0, pendingLinks: 0 };
+    try {
+      const [sRes, lRes] = await Promise.all([
+        this.db.execute(
+          sql`SELECT count(*)::int as c FROM payment_submissions WHERE status = 'pending'`,
+        ),
+        this.db.execute(
+          sql`SELECT count(*)::int as c FROM guardian_link_requests WHERE status = 'pending'`,
+        ),
+      ]);
+      return {
+        pendingSubs: Number((sRes[0] as { c?: number })?.c ?? 0),
+        pendingLinks: Number((lRes[0] as { c?: number })?.c ?? 0),
+      };
+    } catch {
+      return { pendingSubs: 0, pendingLinks: 0 };
+    }
+  }
+
   private async checkDb(): Promise<boolean> {
     try {
       await withTimeout(this.db.execute(sql`SELECT 1`));
