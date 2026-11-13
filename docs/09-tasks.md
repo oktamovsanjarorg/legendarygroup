@@ -152,10 +152,10 @@
 - **5b-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** W-13 (sichqonchasiz: Enter/Esc/1–4, FIFO preview — serverdan), W-14, W-15 (aging, BR-22 kritik), W-16 (farq — izoh majburiy), W-17 (storno — teskari yozuv, refund — faqat Direktor), W-18 (BR-18 limit), W-31, W-34 (PII'siz). `ui-web`: `MoneyField` (bigint). `packages/domain`: `allocateFifo` (BR-12) + property-based testlar — T-202/T-204 serverda ishlatadi (UI domenni import qilmaydi, 03 §2). Jami 185 story, 372 skrinshot.
 - **6-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** web F3–F5 — W-19 (testlar, import tarixi), W-20 (e'lonlar, Telegram ko'rinishi), W-21 (murojaatlar), W-22 (yetib bormagan xabarlar), W-23 (xarajatlar), W-24 (P&L), W-25 (oylik), W-26 (hisobotlar, aging), W-27 (prognozlar), W-30 (audit), W-35 (landing). Antigravity (A-1) yozdi, Claude review qildi: matnlar i18n'da, sanalar `formatDateShort`/`formatDateTime`/`formatMonth` (yangi), pul faqat `formatMoney`, mock raqamlari mosligi testlangan (`mocks.test.ts`). `ui-tg`/`ui-web` har komponent story'lari (A-2/A-3) va komponent testlari (A-4). **Barcha maketlar tayyor** — egasi qabuli qoldi.
 
-### ⬜ T-018 · Staging uchun anonimlashtirish
+### ✅ T-018 · Staging uchun anonimlashtirish
 
 - **Bog'liq:** T-015
-- **AC:** prod dump → ism, telefon, telegram_id, rasm, izohlar soxtalashtiriladi (deterministik, bog'lanishlar saqlanadi) → staging'ga; haftalik avtomatik; anonimlashtirilmagan ma'lumot staging'ga tushishi CI testida tekshiriladi (namunaviy qatorlar).
+- **AC:** prod dump → ism, telefon, telegram_id, rasm, izohlar soxtalashtiriladi (deterministik HMAC-SHA256, bog'lanishlar saqlanadi) → staging'ga; `packages/db/src/anonymize.ts` va `scripts/anonymize.sh`; anonimlashtirilmagan ma'lumot staging'ga tushmasligi CI unit testida tekshirilgan (`packages/db/src/anonymize.test.ts`).
 
 ### ✅ T-019 · Fayllar moduli (S3)
 
