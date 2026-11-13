@@ -83,6 +83,18 @@ export function formatTime(date: Date): string {
   return `${hh}:${mm}`;
 }
 
+/** `Date` → Toshkent kalendar kuni `2026-11-10` (API `date` maydonlari uchun). */
+export function toYmd(date: Date): string {
+  const { y, m, d } = tashkentParts(date);
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
+/** Kalendar kuni `2026-11-10` → `10.11.2026` (vaqt zonasiga bog'liq emas). */
+export function formatYmd(ymd: string): string {
+  const [y, m, d] = ymd.split('-');
+  return `${d}.${m}.${y}`;
+}
+
 /** Jadval/jurnal uchun: `11.11.2026 00:30` (Toshkent). */
 export function formatDateTime(date: Date): string {
   return `${formatDateShort(date)} ${formatTime(date)}`;

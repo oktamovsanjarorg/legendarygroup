@@ -1,13 +1,7 @@
-/**
- * Guruh holatlari (FR-ORG-3): yig'ilmoqda → faol ⇄ to'xtatilgan → yakunlangan.
- * Yakunlangan — oxirgi holat (tarix sifatida qoladi).
- */
-export const GROUP_STATUS_FLOW = {
-  forming: ['active', 'finished'],
-  active: ['paused', 'finished'],
-  paused: ['active', 'finished'],
-  finished: [],
-} as const satisfies Record<string, readonly string[]>;
+import { GROUP_STATUS_FLOW } from '@lg/contracts';
+
+/** Guruh holatlari oqimi — kanonik jadval `@lg/contracts` da (UI ham ishlatadi). */
+export { GROUP_STATUS_FLOW };
 
 export type GroupStatusCode = keyof typeof GROUP_STATUS_FLOW;
 

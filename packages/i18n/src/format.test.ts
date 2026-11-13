@@ -103,3 +103,12 @@ describe('normalizeUz (qidiruv)', () => {
     expect(normalizeUz('  Maʼmur   Aliyev ')).toBe("ma'mur aliyev");
   });
 });
+
+describe('kalendar kuni (API `date` maydonlari)', () => {
+  it('toYmd — Toshkent kuni (UTC 20:00 — ertasi kun)', async () => {
+    const { toYmd, formatYmd } = await import('./format.js');
+    expect(toYmd(new Date('2026-11-10T20:00:00Z'))).toBe('2026-11-11');
+    expect(toYmd(new Date('2026-11-10T05:00:00Z'))).toBe('2026-11-10');
+    expect(formatYmd('2026-11-10')).toBe('10.11.2026');
+  });
+});

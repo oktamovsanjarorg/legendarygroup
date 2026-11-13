@@ -9,6 +9,17 @@ export const GROUP_TEACHER_ROLES = ['main', 'assistant'] as const;
 export const GRADED_KINDS = ['homework', 'activity'] as const;
 
 export type GroupStatus = (typeof GROUP_STATUSES)[number];
+
+/**
+ * Guruh holatlari (FR-ORG-3): yig'ilmoqda → faol ⇄ to'xtatilgan → yakunlangan.
+ * Yakunlangan — oxirgi holat. API (`@lg/domain`) va UI (W-10 tugmalari) bitta jadvaldan.
+ */
+export const GROUP_STATUS_FLOW = {
+  forming: ['active', 'finished'],
+  active: ['paused', 'finished'],
+  paused: ['active', 'finished'],
+  finished: [],
+} as const satisfies Record<GroupStatus, readonly GroupStatus[]>;
 export type GroupTeacherRole = (typeof GROUP_TEACHER_ROLES)[number];
 
 const IsoDate = z.iso.date();
@@ -148,6 +159,9 @@ export const ScheduleConflict = z.object({
   startTime: z.string(),
   endTime: z.string(),
 });
+
+/** 409 `SCHEDULE_CONFLICT` xatosining `details` maydoni. */
+export const ScheduleConflictDetails = z.object({ conflicts: z.array(ScheduleConflict) });
 
 export type CreateGroupRequest = z.input<typeof CreateGroupRequest>;
 export type UpdateGroupRequest = z.infer<typeof UpdateGroupRequest>;
