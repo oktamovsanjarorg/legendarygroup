@@ -1,5 +1,5 @@
 import { webMessages as t } from '@lg/i18n';
-import { EmptyState } from '@lg/ui-web';
+import { EmptyState, ErrorState } from '@lg/ui-web';
 import {
   createRootRoute,
   createRoute,
@@ -15,6 +15,7 @@ import { SessionsPage } from './pages/sessions.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { GroupsPage } from './routes/groups/index.js';
+import { LeadsPage } from './routes/leads/index.js';
 import { StaffPage } from './routes/staff/index.js';
 import { StudentCardPage } from './routes/students/card.js';
 import { StudentsPage } from './routes/students/index.js';
@@ -22,6 +23,8 @@ import { StudentsPage } from './routes/students/index.js';
 const root = createRootRoute({
   component: Outlet,
   notFoundComponent: () => <EmptyState title={t.states.notFound} />,
+  // Ekrandagi kutilmagan xato butun ilovani oq sahifaga aylantirmasin.
+  errorComponent: ({ reset }) => <ErrorState message={t.states.crashed} onRetry={reset} />,
 });
 const login = createRoute({
   getParentRoute: () => root,
@@ -66,12 +69,13 @@ const studentCard = createRoute({
     return <StudentCardPage key={id} id={id} />;
   },
 });
+const leads = createRoute({ getParentRoute: () => app, path: '/leads', component: LeadsPage });
 const staff = createRoute({ getParentRoute: () => app, path: '/staff', component: StaffPage });
 
 const routeTree = root.addChildren([
   login,
   invite,
-  app.addChildren([home, students, studentCard, courses, groups, calendar, staff, sessions]),
+  app.addChildren([home, students, studentCard, leads, courses, groups, calendar, staff, sessions]),
 ]);
 
 /** Testlarda — `createMemoryHistory`. */

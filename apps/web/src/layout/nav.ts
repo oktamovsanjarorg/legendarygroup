@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Home,
   MonitorSmartphone,
+  Target,
   UserCog,
   Users,
   UsersRound,
@@ -34,6 +35,7 @@ export const NAV: readonly NavItem[] = [
     icon: Users,
     permission: 'student.view',
   },
+  { screen: 'W-08', to: '/leads', label: t.menu.leads, icon: Target, permission: 'lead.manage' },
   {
     screen: 'W-09',
     to: '/courses',
