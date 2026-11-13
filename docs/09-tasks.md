@@ -440,7 +440,7 @@
 - **Bog'liq:** T-008, T-009 · **Talablar:** FR-AUD-2, 3
 - **AC:** filtrlanadigan audit jurnali (kim/nima/qachon, diff ko'rinishi), shubhali harakatlar qoidalari va Director'ga bot ogohlantirishi, xodim faolligi hisoboti.
 
-### ⬜ T-405 · Director dashboard
+### ✅ T-405 · Director dashboard
 
 - **Bog'liq:** T-208, T-112, T-207 · **Talablar:** FR-DASH-1, 5
 - **AC:** web bosh sahifa KPI'lar + Mini App ixcham versiya; ma'lumotlar ≤ 5 daq kesh; kunlik xulosa botga (21:00).

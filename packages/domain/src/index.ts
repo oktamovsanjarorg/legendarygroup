@@ -13,3 +13,4 @@ export * from './tests/test.policy.js';
 export * from './payroll/payroll.policy.js';
 export * from './finance/pnl.calculator.js';
 export * from './audit/suspicious.detector.js';
+export * from './dashboard/dashboard.calculator.js';

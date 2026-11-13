@@ -21,3 +21,4 @@ export * from './payroll.js';
 export * from './approvals.js';
 export * from './expenses.js';
 export * from './audit.js';
+export * from './dashboard.js';
