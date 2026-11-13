@@ -19,6 +19,7 @@ import { StudentsModule } from './modules/students/students.module.js';
 import { BillingModule } from './modules/billing/billing.module.js';
 import { ApprovalsModule } from './modules/approvals/approvals.module.js';
 import { AttendanceModule } from './modules/attendance/attendance.module.js';
+import { GradesModule } from './modules/grades/grades.module.js';
 import { OrgModule } from './modules/org/org.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
 import { RbacModule } from './modules/rbac/rbac.module.js';
@@ -59,6 +60,7 @@ export class AppModule {
         BillingModule,
         ApprovalsModule,
         AttendanceModule,
+        GradesModule,
         HealthModule,
         InternalModule,
         ...(opts.role === 'worker' ? [WorkerModule] : []),

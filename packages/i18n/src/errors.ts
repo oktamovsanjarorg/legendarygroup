@@ -102,6 +102,8 @@ export const errorMessages = {
   CHANGE_REASON_REQUIRED: 'Oʻtgan davomatni oʻzgartirish uchun sabab koʻrsatish majburiy.',
   STUDENT_NOT_ENROLLED: 'Oʻquvchi ushbu dars sanasida guruhga yozilmagan.',
   LESSON_CANCELLED: 'Bekor qilingan dars uchun davomat kiritilmaydi.',
+  GRADE_SCALE_EXCEEDED: 'Kiritilgan baho guruh baholash shkalasidan oshib ketdi.',
+  GRADE_KIND_NOT_ALLOWED: 'Ushbu guruhda bu baho turi yoqilmagan.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

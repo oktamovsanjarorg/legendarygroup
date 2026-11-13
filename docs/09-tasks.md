@@ -371,10 +371,18 @@
 
 ## F3 — Natijalar va hisobotlar
 
-### ⬜ T-301 · Baholar va izohlar
+### ✅ T-301 · Baholar va izohlar
 
 - **Bog'liq:** T-111 · **Talablar:** FR-GRD-1, 2, BR-33
 - **AC:** guruh baholash sozlamasi; davomat ekranida baho qo'yish (bir oqimda); izoh (ko'rinish turi bilan); ota-onaga baho xabari (sozlamaga ko'ra).
+- **Bajarildi (2026-11-13):**
+  - `@lg/contracts`: `TEACHER_COMMENT_VISIBILITIES`, `GradeItemSchema`, `LessonCommentItemSchema`, `SetLessonGradesRequest`, `GradeRecordSchema`, `TeacherCommentSchema`, `LessonGradesResponseSchema`, `StudentGradesQuery`.
+  - `@lg/domain`: `validateGradeValue` (BR-33 `0_5` va `0_100` shkalalari), `validateGradeKind` (guruh `gradingConfig.kinds` tekshiruvi), unit testlar.
+  - `@lg/db`: `0024_grades.sql` migratsiyasi (`grades` jadvali: `lesson_id`, `student_id`, `kind`, `value`, `client_mutation_id`, unique `(lesson_id, student_id, kind)`; `teacher_comments` jadvali: `visibility` guardian/internal).
+  - `@lg/api`: `apps/api/src/modules/grades/` moduli (`GradesRepository`, `GradesService`, `GradesController`, `GradesModule`).
+    - API: `GET /api/grades/lessons/:lessonId` (dars baholari va izohlari), `POST /api/grades/lessons/:lessonId` (baholar va izohlarni batch upsert qilish, BR-33 tekshiruvi), `GET /api/grades/history` (o'quvchi baholar va izohlar tarixi).
+    - Scope & IDOR: Ustoz faqat o'z darsiga baho qo'yadi; ota-ona faqat o'z farzandini va faqat `guardian` ko'rinishidagi izohlarni ko'radi (`internal` izohlar yashiriladi).
+  - Integratsiya testlari: `grades.int.test.ts` (6 ta test: RBAC, baholash, izohlar, BR-33 shkala cheklovi, ustoz scope himoyasi, ota-ona IDOR himoyasi).
 
 ### ⬜ T-302 · Testlar va Excel import
 

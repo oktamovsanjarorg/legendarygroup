@@ -15,4 +15,5 @@ export * from './settings.js';
 export * from './billing.js';
 export * from './submissions.js';
 export * from './attendance.js';
+export * from './grades.js';
 export * from './approvals.js';

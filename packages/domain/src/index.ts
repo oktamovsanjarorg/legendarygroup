@@ -8,3 +8,4 @@ export * from './students/enrollment.js';
 export * from './org/lessons.js';
 export * from './students/lead-status.js';
 export * from './attendance/attendance.policy.js';
+export * from './grades/grades.policy.js';

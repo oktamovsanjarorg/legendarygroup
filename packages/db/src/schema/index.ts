@@ -14,4 +14,5 @@ export * from './leads.js';
 export * from './billing.js';
 export * from './approvals.js';
 export * from './attendance.js';
+export * from './grades.js';
 export * from './relations.js';

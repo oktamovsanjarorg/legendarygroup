@@ -169,6 +169,13 @@
       "when": 1794587600000,
       "tag": "0023_attendance",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794588400000,
+      "tag": "0024_grades",
+      "breakpoints": true
     }
   ]
 }

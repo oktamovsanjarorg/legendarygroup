@@ -7,6 +7,7 @@ export const GROUP_STATUSES = ['forming', 'active', 'paused', 'finished'] as con
 export const GROUP_TEACHER_ROLES = ['main', 'assistant'] as const;
 /** Baholanadigan turlar (BR-33). */
 export const GRADED_KINDS = ['homework', 'activity'] as const;
+export type GradedKind = (typeof GRADED_KINDS)[number];
 
 export type GroupStatus = (typeof GROUP_STATUSES)[number];
 
