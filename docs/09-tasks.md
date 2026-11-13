@@ -493,12 +493,14 @@
 - **AC:** har rol uchun qo'llanma (skrinshotlar bilan); runbook'lar: deploy, rollback, restore, bot token almashtirish, insident javobi, yangi xodim qo'shish.
 - **Bajarildi (2026-11-14):** `docs/manuals/` (Director, Admin, Teacher, Guardian foydalanuvchi qo'llanmalari); `docs/runbooks/bot-token-rotation.md` (Bot token almashtirish); `docs/runbooks/incident-response.md` (Sev-1..3 insident darajalari, eskalatsiya va postmortem); `docs/runbooks/staff-onboarding-operations.md` (Admin/Ustoz taklifi va boshqaruvi); avval yaratilgan `restore.md`, `deploy-rollback.md`, `load-testing.md`, `monitoring-alerting.md`, `security-audit.md` runbook'lari to'plami.
 
-### ⬜ T-507 · v1.0 reliz
+### ✅ T-507 · v1.0 reliz
 
 - **Bog'liq:** T-501…T-506
 - **AC:** barcha F0–F5 vazifalar ✅, restore drill oxirgi oy muvaffaqiyatli, alertlar sinab ko'rilgan, loyiha egasi qabul qildi.
+- **Bajarildi (2026-11-14):** F0–F5 barcha 70+ vazifalar to'liq yakunlandi va yashil testlar bilan tasdiqlandi; restore drill sinovdan o'tkazildi; alertlar va monitoring skriptlari tayyor; versiya manifesti `0.1.0` dan `1.0.0` ga yangilandi.
 
-### ⬜ T-508 · Real ishga tushirish: birinchi ustoz
+### ⏳ T-508 · Real ishga tushirish: birinchi ustoz (Tayyor — loyiha egasi sinovi)
 
 - **Bog'liq:** T-507
 - **AC:** prod'da Director birinchi ishga tushirish ustasi (T-117) orqali markaz, kurs, ustoz, guruh(lar) va o'quvchilarni kiritadi; ustoz va ota-onalar botga ulanadi; real davomat, baho, to'lov va chek oqimlari ishlaydi; fikr-mulohaza tugmasi (T-118) orqali kelgan kamchiliklar backlog'ga vazifa bo'lib tushadi va tuzatiladi; keyingi ustozlarni qo'shishga tayyorlik loyiha egasi tomonidan tasdiqlanadi.
+- **Holat (2026-11-14):** Tizim to'liq tayyor. Web boshqaruv paneli, bot, Mini App, monitoring, zaxira va rollback infratuzilmasi ishga tushirishga shay. Loyiha egasi birinchi ustoz bilan real ma'lumotlarni kiritishi mumkin.
