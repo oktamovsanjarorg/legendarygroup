@@ -486,10 +486,11 @@
 - **AC:** ASVS L2 checklist to'ldirilgan; IDOR testlari har rol uchun; zaif nuqtalar tuzatilgan; tashqi skaner (OWASP ZAP) hisoboti.
 - **Bajarildi (2026-11-14):** `docs/security/asvs-l2-checklist.md` (OWASP ASVS 4.0 Level 2 to'liq 14 ta bob bo'yicha tahlil); har bir rol (ota-ona, ustoz, admin) uchun IDOR testlari integratsiya testlarida tasdiqlangan (begona o'quvchi ma'lumotlariga 404 qaytarish); `scripts/zap-scan.sh` (OWASP ZAP baseline dinamik skaner skripti); `docs/runbooks/security-audit.md` runbook'i yaratildi.
 
-### ⬜ T-506 · Foydalanuvchi qo'llanmalari va runbook'lar
+### ✅ T-506 · Foydalanuvchi qo'llanmalari va runbook'lar
 
 - **Bog'liq:** F1–F4
 - **AC:** har rol uchun qo'llanma (skrinshotlar bilan); runbook'lar: deploy, rollback, restore, bot token almashtirish, insident javobi, yangi xodim qo'shish.
+- **Bajarildi (2026-11-14):** `docs/manuals/` (Director, Admin, Teacher, Guardian foydalanuvchi qo'llanmalari); `docs/runbooks/bot-token-rotation.md` (Bot token almashtirish); `docs/runbooks/incident-response.md` (Sev-1..3 insident darajalari, eskalatsiya va postmortem); `docs/runbooks/staff-onboarding-operations.md` (Admin/Ustoz taklifi va boshqaruvi); avval yaratilgan `restore.md`, `deploy-rollback.md`, `load-testing.md`, `monitoring-alerting.md`, `security-audit.md` runbook'lari to'plami.
 
 ### ⬜ T-507 · v1.0 reliz
 
