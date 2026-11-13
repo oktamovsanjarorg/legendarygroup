@@ -20,4 +20,6 @@ export * from './payroll.js';
 export * from './expenses.js';
 export * from './notifications.js';
 export * from './announcements.js';
+export * from './tickets.js';
+export * from './absence-notices.js';
 export * from './relations.js';

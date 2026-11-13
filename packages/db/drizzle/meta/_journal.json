@@ -218,6 +218,13 @@
       "when": 1794630000000,
       "tag": "0030_announcements",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794640000000,
+      "tag": "0031_tickets_and_absence_notices",
+      "breakpoints": true
     }
   ]
 }

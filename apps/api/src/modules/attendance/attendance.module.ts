@@ -9,6 +9,9 @@ import { OutboxModule } from '../outbox/index.js';
 import { SettingsModule } from '../settings/index.js';
 import { StudentsModule } from '../students/index.js';
 import { TelegramModule } from '../telegram/index.js';
+import { AbsenceNoticesController } from './absence-notices.controller.js';
+import { AbsenceNoticesRepository } from './absence-notices.repository.js';
+import { AbsenceNoticesService } from './absence-notices.service.js';
 import { AttendanceController } from './attendance.controller.js';
 import { AttendanceNoticeProcessor } from './attendance-notice.processor.js';
 import { AttendanceNoticeService } from './attendance-notice.service.js';
@@ -28,18 +31,21 @@ import { AttendanceService } from './attendance.service.js';
     NotificationsModule,
     SettingsModule,
   ],
-  controllers: [AttendanceController],
+  controllers: [AttendanceController, AbsenceNoticesController],
   providers: [
     AttendanceRepository,
     AttendanceService,
     AttendanceNoticeService,
     AttendanceNoticeProcessor,
+    AbsenceNoticesRepository,
+    AbsenceNoticesService,
   ],
   exports: [
     AttendanceService,
     AttendanceRepository,
     AttendanceNoticeService,
     AttendanceNoticeProcessor,
+    AbsenceNoticesService,
   ],
 })
 export class AttendanceModule {}

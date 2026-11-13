@@ -14,6 +14,7 @@ import type { RequestUser } from '../auth/index.js';
 import { GroupScopeService } from '../org/index.js';
 import { OutboxService } from '../outbox/index.js';
 import { StudentScopeService } from '../students/index.js';
+import { AbsenceNoticesRepository } from './absence-notices.repository.js';
 import { AttendanceRepository, type EnrichedAttendanceRow } from './attendance.repository.js';
 
 @Injectable()
@@ -27,6 +28,7 @@ export class AttendanceService {
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(OutboxService) private readonly outbox: OutboxService,
+    @Inject(AbsenceNoticesRepository) private readonly absenceRepo: AbsenceNoticesRepository,
   ) {}
 
   /** Dars davomati ma'lumotlari va kutilayotgan o'quvchilar ro'yxati (FR-ATT-1). */
@@ -46,6 +48,14 @@ export class AttendanceService {
     });
 
     const expected = await this.repo.findExpectedStudents(lesson.groupId, lesson.date);
+    const absenceMap = await this.absenceRepo.findMapByStudentsAndDate(
+      expected.map((s) => s.id),
+      lesson.date,
+    );
+    const enrichedExpected = expected.map((s) => ({
+      ...s,
+      advanceAbsenceReason: absenceMap.get(s.id) ?? null,
+    }));
     const records = await this.repo.findLessonAttendance(lessonId);
 
     return {
@@ -59,7 +69,7 @@ export class AttendanceService {
       teacherName: lesson.teacherName ?? '—',
       canEdit: policy.allowed,
       records: records.map((r) => this.serializeRecord(r)),
-      expectedStudents: expected,
+      expectedStudents: enrichedExpected,
     };
   }
 

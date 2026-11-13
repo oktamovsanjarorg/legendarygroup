@@ -57,6 +57,7 @@ export const LessonAttendanceSchema = z.object({
       id: z.string().uuid(),
       fullName: z.string(),
       code: z.string(),
+      advanceAbsenceReason: z.string().optional().nullable(),
     }),
   ),
 });

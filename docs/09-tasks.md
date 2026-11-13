@@ -416,10 +416,11 @@
 - **AC:** auditoriya tanlash (hamma / kurs / guruh / qarzdorlar), matn + rasm/fayl, oldindan ko'rish, yetkazilish statistikasi.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/announcements.ts` (`CreateAnnouncementSchema`, `AnnouncementPreviewResponseSchema`, `AnnouncementStatsSchema` DTOlari); `packages/db` da `0030_announcements.sql` migratsiyasi (`announcements`, `announcement_recipients` jadvallari); `apps/api/src/modules/announcements/` (`AnnouncementsRepository`, `AnnouncementsService`, `AnnouncementsController` preview, create, list, stats endpointlari, teacher faqat o'z guruhiga yuborish scope tekshiruvi); 5 ta integratsiya testi yashil.
 
-### ⬜ T-306 · Murojaatlar va "sababli" oldindan xabar
+### ✅ T-306 · Murojaatlar va "sababli" oldindan xabar
 
 - **Bog'liq:** T-110, T-111 · **Talablar:** FR-RPT-7, FR-ATT-7
 - **AC:** ota-ona botda savol → ticket → Admin web'da javob → botga; "Farzandim kela olmaydi" (sana, sabab) → ustoz ro'yxatida "sababli" oldindan belgilangan.
+- **Bajarildi (2026-11-13):** `packages/contracts` da `tickets.ts` va `absence-notices.ts` DTOlari; `packages/db` da `0031_tickets_and_absence_notices.sql` migratsiyasi (`tickets`, `ticket_messages`, `absence_notices` jadvallari); `apps/api/src/modules/tickets/` (ota-ona savol yo'llashi, xodim javobi va bildirishnoma integratsiyasi); `apps/api/src/modules/attendance/absence-notices.*` (oldindan sababli xabar berish va ustoz dars davomatini ochganda `expectedStudents` ichida sababli izoh ko'rinishi); 8 ta integratsiya testi yashil.
 
 ---
 
