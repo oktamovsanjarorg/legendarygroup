@@ -2,6 +2,7 @@ import type { Permission } from '@lg/contracts';
 import { webMessages as t } from '@lg/i18n';
 import {
   BookOpen,
+  CalendarDays,
   Home,
   MonitorSmartphone,
   UserCog,
@@ -37,6 +38,13 @@ export const NAV: readonly NavItem[] = [
     to: '/groups',
     label: t.menu.groups,
     icon: UsersRound,
+    permission: 'group.view',
+  },
+  {
+    screen: 'W-11',
+    to: '/calendar',
+    label: t.menu.calendar,
+    icon: CalendarDays,
     permission: 'group.view',
   },
   { screen: 'W-28', to: '/staff', label: t.menu.staff, icon: UserCog, permission: 'staff.manage' },

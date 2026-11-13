@@ -12,6 +12,7 @@ import { HomePage } from './pages/home.js';
 import { InvitePage } from './pages/invite.js';
 import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
+import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { GroupsPage } from './routes/groups/index.js';
 import { StaffPage } from './routes/staff/index.js';
@@ -45,12 +46,17 @@ const courses = createRoute({
   component: CoursesPage,
 });
 const groups = createRoute({ getParentRoute: () => app, path: '/groups', component: GroupsPage });
+const calendar = createRoute({
+  getParentRoute: () => app,
+  path: '/calendar',
+  component: CalendarPage,
+});
 const staff = createRoute({ getParentRoute: () => app, path: '/staff', component: StaffPage });
 
 const routeTree = root.addChildren([
   login,
   invite,
-  app.addChildren([home, courses, groups, staff, sessions]),
+  app.addChildren([home, courses, groups, calendar, staff, sessions]),
 ]);
 
 /** Testlarda — `createMemoryHistory`. */
