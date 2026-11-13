@@ -39,6 +39,20 @@ export function createBot(deps: BotDeps): Bot {
   bot.command('help', (ctx: Context) =>
     ctx.reply(`<b>${t.help.title}</b>\n${t.help.body}`, { parse_mode: 'HTML' }),
   );
+  // To'lov cheki (rasm yoki fayl) kelganda — ilovaga yo'naltirish (T-206)
+  bot.on(['message:photo', 'message:document'], (ctx: Context) =>
+    ctx.reply(`<b>${t.receiptUploadHelp.title}</b>\n\n${t.receiptUploadHelp.body}`, {
+      parse_mode: 'HTML',
+      reply_markup: openAppKeyboard(url),
+    }),
+  );
+  // Erkin matnli xabarlar uchun yo'naltiruvchi javob
+  bot.on('message:text', (ctx: Context) =>
+    ctx.reply(`<b>${t.unknownMessage.title}</b>\n\n${t.unknownMessage.body}`, {
+      parse_mode: 'HTML',
+      reply_markup: openAppKeyboard(url),
+    }),
+  );
 
   // Xato bot'ni to'xtatmaydi; foydalanuvchiga qisqa javob, tafsilot — logga (T-016: Sentry).
   bot.catch(async (err) => {

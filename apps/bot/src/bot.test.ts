@@ -151,6 +151,40 @@ describe('Bot (T-010, T-110)', () => {
     await bot.handleUpdate(u);
     expect(calls).toHaveLength(1);
   });
+
+  it('erkin matn yuborilganda — yoʻnaltiruvchi salomlashuv va ilova tugmasi', async () => {
+    const { bot, calls } = setup();
+    await bot.handleUpdate({
+      update_id: ++updateId,
+      message: {
+        message_id: updateId,
+        date: 1_794_000_000,
+        chat: { id: 42, type: 'private', first_name: 'Ali' },
+        from: { id: 42, is_bot: false, first_name: 'Ali' },
+        text: 'Salom, dars qachon?',
+      },
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.payload['text']).toContain(botMessages.unknownMessage.title);
+    expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('web_app');
+  });
+
+  it('chek rasmi yoki hujjat yuborilganda — chek yuborish boʻyicha yoʻriqnoma', async () => {
+    const { bot, calls } = setup();
+    await bot.handleUpdate({
+      update_id: ++updateId,
+      message: {
+        message_id: updateId,
+        date: 1_794_000_000,
+        chat: { id: 42, type: 'private', first_name: 'Ali' },
+        from: { id: 42, is_bot: false, first_name: 'Ali' },
+        photo: [{ file_id: 'ph1', file_unique_id: 'u1', width: 100, height: 100 }],
+      },
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.payload['text']).toContain(botMessages.receiptUploadHelp.title);
+    expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('web_app');
+  });
 });
 
 const contact = (phone: string, contactUserId = 42): Update => ({

@@ -38,6 +38,14 @@ export const botMessages = {
     rejectedBody:
       'Sizning soʻrovingiz rad etilgan.\nSabab: {reason}\nSavollar boʻlsa, markaz administratoriga murojaat qiling.',
   },
+  receiptUploadHelp: {
+    title: '🧾 Toʻlov cheki',
+    body: 'Chekni hisobingizga biriktirish uchun ilovadagi «Toʻlov» boʻlimiga kiring yoki administratorga murojaat qiling.',
+  },
+  unknownMessage: {
+    title: 'ℹ️ Assalomu alaykum!',
+    body: 'Barcha maʼlumotlar (davomat, dars jadvali, baholar va toʻlovlar) ilova ichida joylashgan.\n\nIlovani ochish uchun pastdagi tugmani bosing yoki /help buyrugʻidan foydalaning.',
+  },
   openApp: 'Ilovani ochish',
   menuButton: 'Ilova',
   error: 'Kutilmagan xato yuz berdi. Birozdan keyin qayta urinib koʻring.',
