@@ -410,10 +410,11 @@
 - **AC:** yakshanba 19:00 haftalik, oy oxiri oylik (PDF + Mini App havolasi); har farzand alohida; navbat orqali (yuzlab ota-ona — rate limit); oldindan ko'rish (Admin uchun namunaviy hisobot).
 - **Bajarildi (2026-11-13):** `@lg/contracts` da `ParentDigestReportSchema`, `ParentDigestQuerySchema`, `weekly_parent_report`, `monthly_parent_report`; `@lg/domain` da shablon generatorlari; `0029_notifications.sql` check constraintlari; `ParentDigestRepository`, `ParentDigestService` (pdf-lib bilan A4 hisobot, preview, avtomatik navbatga qo'yish); `reports.cron.ts` (yakshanba 19:00, oy oxiri 20:00); `reports.controller.ts` (`GET /api/reports/parent-digest/preview`, `GET /api/reports/parent-digest/:studentId/pdf`, `POST /api/reports/parent-digest/dispatch`); 10 ta integratsiya testi yashil.
 
-### ⬜ T-305 · Ommaviy e'lonlar
+### ✅ T-305 · Ommaviy e'lonlar
 
 - **Bog'liq:** T-109 · **Talablar:** FR-RPT-5
 - **AC:** auditoriya tanlash (hamma / kurs / guruh / qarzdorlar), matn + rasm/fayl, oldindan ko'rish, yetkazilish statistikasi.
+- **Bajarildi (2026-11-13):** `packages/contracts/src/announcements.ts` (`CreateAnnouncementSchema`, `AnnouncementPreviewResponseSchema`, `AnnouncementStatsSchema` DTOlari); `packages/db` da `0030_announcements.sql` migratsiyasi (`announcements`, `announcement_recipients` jadvallari); `apps/api/src/modules/announcements/` (`AnnouncementsRepository`, `AnnouncementsService`, `AnnouncementsController` preview, create, list, stats endpointlari, teacher faqat o'z guruhiga yuborish scope tekshiruvi); 5 ta integratsiya testi yashil.
 
 ### ⬜ T-306 · Murojaatlar va "sababli" oldindan xabar
 

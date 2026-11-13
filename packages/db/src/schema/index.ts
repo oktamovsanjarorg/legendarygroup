@@ -19,4 +19,5 @@ export * from './tests.js';
 export * from './payroll.js';
 export * from './expenses.js';
 export * from './notifications.js';
+export * from './announcements.js';
 export * from './relations.js';

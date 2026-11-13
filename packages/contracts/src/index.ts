@@ -26,3 +26,4 @@ export * from './reports.js';
 export * from './forecasts.js';
 export * from './notifications.js';
 export * from './progress.js';
+export * from './announcements.js';

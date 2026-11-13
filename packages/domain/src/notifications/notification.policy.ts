@@ -83,7 +83,7 @@ const TEMPLATE_RENDERERS: Record<NotificationType, TemplateRenderer> = {
   }),
   announcement: (p) => ({
     title: String(p.title ?? 'Markaz eʼloni'),
-    body: String(p.message ?? ''),
+    body: String(p.message ?? p.body ?? ''),
   }),
 };
 

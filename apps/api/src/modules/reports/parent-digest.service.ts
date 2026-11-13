@@ -3,7 +3,7 @@ import type { ParentDigestReport } from '@lg/contracts';
 import { type Clock } from '@lg/domain';
 import { students } from '@lg/db';
 import { eq } from 'drizzle-orm';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, type PDFFont, type PDFPage, rgb, StandardFonts } from 'pdf-lib';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import type { Database } from '@lg/db';
@@ -100,6 +100,20 @@ export class ParentDigestService {
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     const { height } = page.getSize();
+    this.drawPdfHeader({ page, report, fontBold, fontRegular, height });
+    this.drawPdfMetrics({ page, report, fontBold, fontRegular, startY: height - 140 });
+
+    return pdfDoc.save();
+  }
+
+  private drawPdfHeader(opts: {
+    page: PDFPage;
+    report: ParentDigestReport;
+    fontBold: PDFFont;
+    fontRegular: PDFFont;
+    height: number;
+  }): void {
+    const { page, report, fontBold, fontRegular, height } = opts;
     page.drawText('LEGENDARY GROUP - OTA-ONA HISOBOTI', {
       x: 50,
       y: height - 50,
@@ -107,7 +121,6 @@ export class ParentDigestService {
       font: fontBold,
       color: rgb(0.1, 0.2, 0.5),
     });
-
     page.drawText(`O'quvchi: ${report.studentName}`, {
       x: 50,
       y: height - 80,
@@ -116,16 +129,19 @@ export class ParentDigestService {
     });
     page.drawText(
       `Davr: ${report.periodFrom} dan ${report.periodTo} gacha (${report.periodType})`,
-      {
-        x: 50,
-        y: height - 100,
-        size: 10,
-        font: fontRegular,
-        color: rgb(0.3, 0.3, 0.3),
-      },
+      { x: 50, y: height - 100, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.3) },
     );
+  }
 
-    let y = height - 140;
+  private drawPdfMetrics(opts: {
+    page: PDFPage;
+    report: ParentDigestReport;
+    fontBold: PDFFont;
+    fontRegular: PDFFont;
+    startY: number;
+  }): void {
+    const { page, report, fontBold, fontRegular, startY } = opts;
+    let y = startY;
     const drawRow = (label: string, value: string) => {
       page.drawText(label, { x: 50, y, size: 11, font: fontBold });
       page.drawText(value, { x: 260, y, size: 11, font: fontRegular });
@@ -150,15 +166,12 @@ export class ParentDigestService {
     y -= 20;
     if (report.comments.length === 0) {
       page.drawText("Ushbu davrda izohlar yo'q.", { x: 50, y, size: 10, font: fontRegular });
-      y -= 20;
     } else {
       for (const c of report.comments) {
         page.drawText(`- ${c}`, { x: 50, y, size: 10, font: fontRegular });
         y -= 18;
       }
     }
-
-    return pdfDoc.save();
   }
 
   /** Yakshanba 19:00: Haftalik hisobotlarni ota-onalarga yuborish (FR-RPT-2) */

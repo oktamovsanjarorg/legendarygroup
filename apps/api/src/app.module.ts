@@ -28,6 +28,7 @@ import { DashboardModule } from './modules/dashboard/index.js';
 import { ReportsModule } from './modules/reports/index.js';
 import { ForecastsModule } from './modules/forecasts/index.js';
 import { NotificationsModule } from './modules/notifications/index.js';
+import { AnnouncementsModule } from './modules/announcements/index.js';
 import { OrgModule } from './modules/org/org.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
 import { RbacModule } from './modules/rbac/rbac.module.js';
@@ -77,6 +78,7 @@ export class AppModule {
         ReportsModule,
         ForecastsModule,
         NotificationsModule,
+        AnnouncementsModule,
         HealthModule,
         InternalModule,
         ...(opts.role === 'worker' ? [WorkerModule] : []),
