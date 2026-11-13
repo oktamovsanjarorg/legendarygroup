@@ -6,9 +6,12 @@ export interface StudentRow {
   code: string;
   name: string;
   groups: readonly string[];
-  guardian: string;
-  guardianPhone: string;
-  debt: bigint;
+  /** Asosiy ota-ona; `null` — kiritilmagan. */
+  guardian: string | null;
+  /** `null` — yo'q yoki ko'rishga ruxsat yo'q (02 §3). */
+  guardianPhone: string | null;
+  /** Qarz (T-208); `undefined` — ustun ko'rsatilmaydi. */
+  debt?: bigint;
   status: StudentStatus;
 }
 

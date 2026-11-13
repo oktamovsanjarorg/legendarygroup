@@ -45,8 +45,21 @@ export const STUDENT: StudentDetail = {
   birthDate: d('2011-04-17T00:00:00'),
   school: '64-maktab, 9-sinf',
   guardians: [
-    { name: 'Aliyev Bahodir', relation: 'Otasi', phone: '+998901234567', linked: true },
-    { name: 'Aliyeva Dilnoza', relation: 'Onasi', phone: '+998909876543', linked: false },
+    {
+      id: 'gd1',
+      name: 'Aliyev Bahodir',
+      relation: 'Otasi',
+      phone: '+998901234567',
+      linked: true,
+      primary: true,
+    },
+    {
+      id: 'gd2',
+      name: 'Aliyeva Dilnoza',
+      relation: 'Onasi',
+      phone: '+998909876543',
+      linked: false,
+    },
   ],
   history: [
     { group: 'IELTS 7.0 — B2-guruh', from: d('2026-09-01T00:00:00') },
