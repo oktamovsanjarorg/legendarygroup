@@ -282,10 +282,11 @@
 
 ## F2 — To'lovlar
 
-### ⬜ T-201 · Billing domen paketi (sof mantiq)
+### ✅ T-201 · Billing domen paketi (sof mantiq)
 
 - **Bog'liq:** T-001 · **Talablar:** BR-1…BR-20
 - **AC:** `packages/domain/billing`: proporsional narx, invoice qatorlari, chegirma qo'llash, jarima hisobi, FIFO taqsimlash, balans ledger'dan; barcha funksiyalar sof, `bigint`; unit + property-based testlar, har BR uchun test; coverage ≥ 95%.
+- **Bajarildi (2026-11-13):** `packages/domain/src/billing/*`: `prorate` (BR-38) va `roundDownToThousand` (BR-3); `allocateFifo` (BR-12); `applyDiscounts`, `bestDiscount`, `validateAdminDiscount` (BR-18); `calculateMidMonthEnrollmentPrice` (BR-3), `calculateLessonCredit` (BR-5), `calculateFreezeCredit` (BR-9), `calculatePenalty` (BR-8), `lateToUnexcusedAbsences` (BR-10); `computeLedgerNet`, `computeStudentBalance` (BR-20), `isDebtCritical` (BR-22); `planEnrollmentInvoiceLines`, `computeInvoiceTotal` (BR-1, BR-6). Barcha funksiyalar sof `bigint`, fast-check property testlari va unit testlar bilan qoplangan.
 
 ### ⬜ T-202 · Ledger, invoice jadvallari va avto-generatsiya
 
