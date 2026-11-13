@@ -14,6 +14,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { FilesModule } from './modules/files/files.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { InternalModule } from './modules/internal/internal.module.js';
+import { SettingsModule } from './modules/settings/settings.module.js';
 import { StudentsModule } from './modules/students/students.module.js';
 import { OrgModule } from './modules/org/org.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
@@ -51,6 +52,7 @@ export class AppModule {
         FilesModule,
         OrgModule,
         StudentsModule,
+        SettingsModule,
         HealthModule,
         InternalModule,
         ...(opts.role === 'worker' ? [WorkerModule] : []),

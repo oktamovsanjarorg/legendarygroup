@@ -259,10 +259,11 @@
 - **Bog'liq:** T-007, T-008, T-009, T-017c
 - **AC:** 11-ux.md §2: Bugun, Navbat (F2 da to'ldiriladi), So'rovlar (T-119), Qidiruv (o'quvchi kartochkasi, qo'ng'iroq tugmasi); ruxsatga qarab tablar.
 
-### ⬜ T-115 · Tizim sozlamalari
+### ✅ T-115 · Tizim sozlamalari
 
 - **Bog'liq:** T-008 · **Talablar:** FR-SYS-1
 - **AC:** Director uchun sozlamalar sahifasi: markaz ma'lumotlari, logo, karta rekvizitlari (bir nechta), to'lov muddati kuni (1–28, standart 10), jarima va kech qolish qoidalari, bildirishnoma vaqtlari, bayramlar, Admin chegirma limiti; har o'zgarish audit'da; sozlama tiplangan (Zod) va standart qiymatlar `10-open-questions.md` takliflariga mos.
+- **Backend bajarildi (2026-11-13):** `@lg/contracts` `settings.ts` (Zod sxemalar: `centerInfo`, `paymentCards`, `billingDueDay`, `penaltyConfig`, `notificationTimes`, `adminDiscountLimitPercent`, `DEFAULT_SYSTEM_SETTINGS`); `apps/api/src/modules/settings` (`GET /api/settings/public` ommaviy, `GET/PATCH /api/settings` faqat Director `settings.manage` ruxsati bilan, audit jurnali diff bilan yoziladi). Integratsiya testlari `settings.int.test.ts`.
 
 ### ⬜ T-116 · Ota-ona Mini App bosh sahifasi
 
