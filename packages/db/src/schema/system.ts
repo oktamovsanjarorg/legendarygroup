@@ -1,3 +1,4 @@
+import { FEEDBACK_PLATFORMS, FEEDBACK_TYPES } from '@lg/contracts';
 import { sql } from 'drizzle-orm';
 import {
   bigint,
@@ -12,7 +13,7 @@ import {
   unique,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { createdAt, primaryUuid, tstz, updatedAt } from './common.js';
+import { createdAt, oneOf, primaryUuid, tstz, updatedAt } from './common.js';
 import { users } from './users.js';
 
 export const settings = pgTable('settings', {
@@ -128,3 +129,35 @@ export type FileRecord = typeof files.$inferSelect;
 export type NewFileRecord = typeof files.$inferInsert;
 export type IdempotencyKey = typeof idempotencyKeys.$inferSelect;
 export type NewIdempotencyKey = typeof idempotencyKeys.$inferInsert;
+
+/**
+ * Ichki fikr-mulohaza va xatolik hisobotlari (FR-SYS-4 / T-118).
+ * Har bir ekrandan kelgan taklif/xatolik saqlanadi va Telegram alert outbox yaratiladi.
+ */
+export const feedbacks = pgTable(
+  'feedbacks',
+  {
+    id: primaryUuid(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+    type: text('type', { enum: FEEDBACK_TYPES }).notNull().default('general'),
+    text: text('text').notNull(),
+    fileId: uuid('file_id').references(() => files.id, { onDelete: 'set null' }),
+    screen: text('screen'),
+    appVersion: text('app_version'),
+    platform: text('platform', { enum: FEEDBACK_PLATFORMS }).notNull().default('web'),
+    requestId: text('request_id'),
+    clientContext: jsonb('client_context').$type<Record<string, unknown>>(),
+    status: text('status').notNull().default('received'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('feedbacks_user_id_idx').on(t.userId),
+    index('feedbacks_created_at_idx').on(t.createdAt),
+    index('feedbacks_type_idx').on(t.type),
+    check('feedbacks_type_check', oneOf(t.type, FEEDBACK_TYPES)),
+    check('feedbacks_platform_check', oneOf(t.platform, FEEDBACK_PLATFORMS)),
+  ],
+);
+
+export type FeedbackRow = typeof feedbacks.$inferSelect;
+export type NewFeedbackRow = typeof feedbacks.$inferInsert;

@@ -286,10 +286,10 @@
 - **Bog'liq:** T-115, T-102, T-103, T-101
 - **AC:** bo'sh tizimda Director birinchi kirganda qadamma-qadam usta: markaz ma'lumotlari → karta rekvizitlari → kurs → xona → ustoz taklifi → guruh va jadval → o'quvchilar va ota-onalar → ota-onalarga taklif havolasi/QR. Har qadamni o'tkazib yuborish va keyin qaytish mumkin; progress saqlanadi.
 
-### ⬜ T-118 · Ichki fikr-mulohaza tugmasi
+### ✅ T-118 · Ichki fikr-mulohaza tugmasi
 
 - **Bog'liq:** T-009, T-109
-- **AC:** Mini App va web'da "Taklif / xato haqida xabar" — matn + ixtiyoriy skrinshot + avtomatik kontekst (ekran, rol, versiya, requestId) → loyiha egasining Telegram chatiga va DB'ga; foydalanuvchiga "qabul qilindi" javobi.
+- **AC:** Mini App va web'da "Taklif / xato haqida xabar" — matn + ixtiyoriy skrinshot + avtomatik kontekst (ekran, rol, versiya, requestId) → DB'ga (`feedbacks`) va outbox (`feedback.created`); `POST /api/feedback`, `GET /api/feedback` (Direktor); UI: `FeedbackDialog` (`packages/ui-web`), 5/5 integratsiya testlari yashil.
 
 ---
 
