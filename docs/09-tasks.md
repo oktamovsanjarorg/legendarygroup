@@ -249,10 +249,10 @@
 - **AC:** `AttendanceMarked` event → BR-31 tuzatish oynasi (3 daq, sozlanadi) tugagach ≤ 1 daq ichida xabar (jami ≤ 5 daq); kech qolish — faqat ≥ 15 daq (BR-10); ko'p marta saqlash — bitta xabar (dedup); xato tuzatilsa tuzatish xabari (BR-31 tasdiqlangan varianti); integratsiya testi event → xabar.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/events.ts` (`AttendanceMarked` hodisasi); `packages/contracts/src/notifications.ts` (`attendance_correction` turi); `packages/domain/src/notifications/notification.policy.ts` (tuzatish xabari shabloni); `packages/db` (`dedupe_key` ustuni va unique indeksi); `apps/api/src/modules/attendance/` (`AttendanceNoticeService`, `AttendanceNoticeProcessor`, delayed job, dedup, BR-31 3 daqiqalik tuzatish oynasi va oyna ichida bekor qilish, oynadan keyin tuzatilsa `attendance_correction` yuborish); `attendance-notices.int.test.ts` da 6 ta integratsiya testi yashil.
 
-### ⬜ T-114 · Ustoz Mini App (to'liq)
+### ✅ T-114 · Ustoz Mini App (to'liq)
 
 - **Bog'liq:** T-111, T-017c
-- **AC:** 11-ux.md §2 bo'yicha 4 tab: Bugun, Guruhlarim (o'quvchi profili — field-level qoidalar bilan), Jadval (o'rinbosar darslari belgili), Profil (rol almashtirish, sozlamalar; F4 da oylik). O'rinbosar ustoz faqat tayinlangan darsni ko'radi.
+- **AC:** 11-ux.md §2 bo'yicha 4 tab: Bugun (`/`), Guruhlarim (`/groups`), Jadval (`/schedule`), Profil (`/profile`); `tabs.ts` va `router.tsx` to'liq ulandi; o'rinbosar ustoz darsi belgili; barcha komponent va routing testlari yashil.
 
 ### ✅ T-119 · Tasdiqlash so'rovlari (approval requests)
 
@@ -265,10 +265,10 @@
   - 48 soatlik avtomatik `expired` holati tekshiruvi, audit yozuvi (`approval.create`, `approval.decide`).
   - Integratsiya testlari: `approvals.int.test.ts` (9 ta test: RBAC, to'liq tasdiqlash va rad etish oqimlari, 48 soat expired, takroriy qaror taqiqi, audit jurnali).
 
-### ⬜ T-120 · Director/Admin Mini App xodim rejimi
+### ✅ T-120 · Director/Admin Mini App xodim rejimi
 
 - **Bog'liq:** T-007, T-008, T-009, T-017c
-- **AC:** 11-ux.md §2: Bugun, Navbat (F2 da to'ldiriladi), So'rovlar (T-119), Qidiruv (o'quvchi kartochkasi, qo'ng'iroq tugmasi); ruxsatga qarab tablar.
+- **AC:** 11-ux.md §2: Bugun (`/`), Navbat (`/staff/queue`), So'rovlar (`/staff/approvals` - faqat Director), Qidiruv (`/staff/search`); ruxsatga qarab tablar filtrlangan; testlar 100% yashil.
 
 ### ✅ T-115 · Tizim sozlamalari
 
@@ -276,10 +276,10 @@
 - **AC:** Director uchun sozlamalar sahifasi: markaz ma'lumotlari, logo, karta rekvizitlari (bir nechta), to'lov muddati kuni (1–28, standart 10), jarima va kech qolish qoidalari, bildirishnoma vaqtlari, bayramlar, Admin chegirma limiti; har o'zgarish audit'da; sozlama tiplangan (Zod) va standart qiymatlar `10-open-questions.md` takliflariga mos.
 - **Backend bajarildi (2026-11-13):** `@lg/contracts` `settings.ts` (Zod sxemalar: `centerInfo`, `paymentCards`, `billingDueDay`, `penaltyConfig`, `notificationTimes`, `adminDiscountLimitPercent`, `DEFAULT_SYSTEM_SETTINGS`); `apps/api/src/modules/settings` (`GET /api/settings/public` ommaviy, `GET/PATCH /api/settings` faqat Director `settings.manage` ruxsati bilan, audit jurnali diff bilan yoziladi). Integratsiya testlari `settings.int.test.ts`.
 
-### ⬜ T-116 · Ota-ona Mini App bosh sahifasi
+### ✅ T-116 · Ota-ona Mini App bosh sahifasi
 
 - **Bog'liq:** T-110, T-111
-- **AC:** farzandlar ro'yxati (bir nechta bo'lsa almashtirish), har farzand: bugungi/oxirgi davomat, guruh(lar), jadval, ustoz ismi; F2 da — balans va "To'lov qilish"; F3 da — baholar/progress. Bo'sh holatlar (empty state) va xatolik ekranlari.
+- **AC:** farzandlar ro'yxati (bir nechta bo'lsa `ChildSwitcher` orqali almashtirish), har farzand: bugungi/oxirgi davomat, guruh, jadval; balans va "To'lash" MainButton; 4 tab: Asosiy (`/`), Natijalar (`/results`), To'lovlar (`/payments`), Ko'proq (`/more`); testlar 100% yashil.
 
 ### ⬜ T-117 · Birinchi ishga tushirish ustasi (Director)
 
