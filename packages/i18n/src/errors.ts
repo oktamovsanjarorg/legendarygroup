@@ -104,6 +104,10 @@ export const errorMessages = {
   LESSON_CANCELLED: 'Bekor qilingan dars uchun davomat kiritilmaydi.',
   GRADE_SCALE_EXCEEDED: 'Kiritilgan baho guruh baholash shkalasidan oshib ketdi.',
   GRADE_KIND_NOT_ALLOWED: 'Ushbu guruhda bu baho turi yoqilmagan.',
+  TEST_NOT_FOUND: 'Test topilmadi.',
+  TEST_ALREADY_PUBLISHED: 'Eʼlon qilingan testni tahrirlab boʻlmaydi.',
+  TEST_SCORE_INVALID: 'Test bali 0 va maksimal ball oraligʻida boʻlishi kerak.',
+  TEST_SECTION_SCORE_INVALID: 'Boʻlim bali ruxsat etilgan maksimal balldan oshib ketdi.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

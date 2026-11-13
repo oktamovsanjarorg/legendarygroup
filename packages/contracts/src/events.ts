@@ -12,6 +12,8 @@ export const EVENT_TYPES = [
   'StaffSessionReuseDetected',
   // T-010: foydalanuvchi botni bloklagan (403) — T-109 bildirishnomani `blocked` qiladi, Admin ko'radi.
   'TelegramChatBlocked',
+  // T-302: Test natijalari e'lon qilindi — ota-onaga xabar (T-109/T-302).
+  'TestResultsPublished',
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
@@ -21,6 +23,7 @@ export interface EventPayloads {
   StaffTelegramLoginRequested: { challengeId: string; userId: string; expiresAt: string };
   StaffSessionReuseDetected: { userId: string; familyId: string };
   TelegramChatBlocked: { chatId: string; description: string };
+  TestResultsPublished: { testId: string; groupId: string; title: string };
 }
 
 /** Navbatdagi job ma'lumoti — outbox qatoridan. */

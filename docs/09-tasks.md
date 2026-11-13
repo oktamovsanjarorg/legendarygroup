@@ -384,10 +384,17 @@
     - Scope & IDOR: Ustoz faqat o'z darsiga baho qo'yadi; ota-ona faqat o'z farzandini va faqat `guardian` ko'rinishidagi izohlarni ko'radi (`internal` izohlar yashiriladi).
   - Integratsiya testlari: `grades.int.test.ts` (6 ta test: RBAC, baholash, izohlar, BR-33 shkala cheklovi, ustoz scope himoyasi, ota-ona IDOR himoyasi).
 
-### ⬜ T-302 · Testlar va Excel import
+### ✅ T-302 · Testlar va Excel import
 
 - **Bog'liq:** T-301, T-019 · **Talablar:** FR-GRD-3, 4, 6, BR-34, 35
 - **AC:** test yaratish (bo'limlar), shablon yuklab olish (botdan ham), `.xlsx` — ustoz faylni **botga yuboradi** yoki Mini App'da yuklaydi → Mini App ko'rib chiqish ekrani ochiladi → ustun moslashtirish (eslab qolinadi) → moslashtirish (ID → aniq ism → fuzzy taklif) → oldindan ko'rish va xatolar → atomar import → versiya; e'lon qilish → ota-onaga xabar. 500 qatorli fayl ≤ 10 s.
+- **Bajarildi (2026-11-13):**
+  - `@lg/contracts`: `TEST_STATUSES`, `TestSectionSchema`, `TestSectionScoreSchema`, `CreateTestRequest`, `UpdateTestRequest`, `RecordTestResultsRequest`, `TestSchema`, `TestResultItemSchema`, `TestDetailResponseSchema`, `ImportPreviewResponseSchema`, `ExcelImportConfirmRequest`, `TestResultsPublished` transactional outbox event turi.
+  - `@lg/domain`: `validateTestScore`, `validateSectionScores` (BR-34 ballar cheklovi), `calculatePercentage`, `matchStudent` (BR-35 code, exact name, fuzzy bigram similarity moslashtirish zanjiri), unit testlar.
+  - `@lg/db`: `0025_tests.sql` migratsiyasi (`tests` jadvali bo'limlar bilan, `test_results` jadvali `(test_id, student_id)` unique, `version` hisoblagichi, `imports` jadvali import auditi uchun).
+  - `@lg/api`: `apps/api/src/modules/tests/` moduli (`TestsRepository`, `ExcelTestService` exceljs asosida, `TestsService`, `TestsController`, `TestsModule`).
+    - API: `POST /api/tests`, `GET /api/tests?groupId=...`, `GET /api/tests/:id`, `PATCH /api/tests/:id` (draft tekshiruvi), `POST /api/tests/:id/results` (BR-34 tekshiruvi va versiya oshishi), `POST /api/tests/:id/publish` (outbox orqali `TestResultsPublished` navbatga yoziladi), `GET /api/tests/:id/template` (Excel shablonini generatsiya qilish va yuklab olish), `POST /api/tests/:id/import-preview` (Excel faylni tahlil qilib mos kelgan, o'xshash va topilmagan qatorlarni ko'rsatish), `POST /api/tests/:id/import-confirm` (atomar import va import auditi), `GET /api/tests/student/:studentId` (ota-ona uchun o'z farzandi testlari va IDOR 404 himoyasi).
+  - Integratsiya testlari: `tests.int.test.ts` (13 ta test: RBAC, test yaratish, guruh testlari ro'yxati, BR-34 ball cheklovi, BR-34 bo'lim bali cheklovi, versiyalanish, Excel shablon yuklab olish, BR-35 Excel preview, BR-35 Excel import confirm, test e'lon qilish va outbox event, e'lon qilingan testni o'zgartirish taqiqi, ota-ona scope va IDOR himoyasi).
 
 ### ⬜ T-303 · O'quvchi progressi va reyting
 

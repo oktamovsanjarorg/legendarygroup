@@ -176,6 +176,13 @@
       "when": 1794588400000,
       "tag": "0024_grades",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794589200000,
+      "tag": "0025_tests",
+      "breakpoints": true
     }
   ]
 }
