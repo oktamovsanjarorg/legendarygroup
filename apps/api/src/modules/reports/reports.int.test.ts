@@ -11,11 +11,13 @@ import {
   type Database,
   enrollments,
   groups,
+  guardians,
   invoices,
   leads,
   ledgerEntries,
   payments,
   seed,
+  studentGuardians,
   students,
 } from '@lg/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -27,6 +29,7 @@ let db: Database;
 let tokens: Map<RoleCode, string>;
 let directorToken: string;
 let parentToken: string;
+let studentId: string;
 
 const call = (method: 'GET' | 'POST', url: string, token: string, payload?: object) =>
   t.app.inject({
@@ -81,6 +84,23 @@ beforeAll(async () => {
     })
     .returning();
   if (!student) throw new Error('student not created');
+  studentId = student.id;
+
+  const [guardianRow] = await db
+    .insert(guardians)
+    .values({
+      branchId: DEFAULT_BRANCH_ID,
+      userId: parentUserId,
+      fullName: 'Ota-ona Test',
+      phone: '+998907771122',
+    })
+    .returning();
+
+  await db.insert(studentGuardians).values({
+    studentId,
+    guardianId: guardianRow!.id,
+    relation: 'father',
+  });
 
   await db.insert(enrollments).values({
     groupId: group.id,
@@ -215,5 +235,47 @@ describe('T-501: Hisobotlar toʻplami va eksport (FR-DASH-2, 4)', () => {
     expect(res.headers['content-type']).toBe('application/pdf');
     expect(res.headers['content-disposition']).toContain('.pdf');
     expect(res.rawPayload.length).toBeGreaterThan(100);
+  });
+
+  describe('T-304 Haftalik va oylik ota-ona hisobotlari (FR-RPT-2, 3)', () => {
+    it('FR-RPT-2, 3: Ota-ona hisobotini oldindan koʻrish (preview) ishlaydi', async () => {
+      const res = await call(
+        'GET',
+        `reports/parent-digest/preview?studentId=${studentId}&period=weekly`,
+        directorToken,
+      );
+      expect(res.statusCode).toBe(200);
+      const data = res.json<{
+        studentId: string;
+        studentName: string;
+        periodType: string;
+        attendanceRatePercent: number;
+        paymentStatus: { status: string };
+      }>();
+
+      expect(data.studentId).toBe(studentId);
+      expect(data.studentName).toBe('Sardor Qodirov');
+      expect(data.periodType).toBe('weekly');
+      expect(data.paymentStatus.status).toBe('overdue');
+    });
+
+    it('FR-RPT-3: Oylik hisobot PDF formatida muvaffaqiyatli generatsiya qilinadi', async () => {
+      const res = await call(
+        'GET',
+        `reports/parent-digest/${studentId}/pdf?period=monthly`,
+        directorToken,
+      );
+      expect(res.statusCode).toBe(200);
+      expect(res.headers['content-type']).toBe('application/pdf');
+      expect(res.headers['content-disposition']).toContain(`parent-report-${studentId}.pdf`);
+      expect(res.rawPayload.length).toBeGreaterThan(500);
+    });
+
+    it('FR-RPT-2, 3: Ota-onalarga hisobotlarni yuborish (dispatch) muvaffaqiyatli navbatga qoʻyiladi', async () => {
+      const res = await call('POST', 'reports/parent-digest/dispatch?period=weekly', directorToken);
+      expect(res.statusCode).toBe(201);
+      const data = res.json<{ dispatchedCount: number }>();
+      expect(data.dispatchedCount).toBeGreaterThanOrEqual(1);
+    });
   });
 });

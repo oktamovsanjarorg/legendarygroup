@@ -9,6 +9,8 @@ export const NOTIFICATION_TITLES_UZ: Record<NotificationType, string> = {
   billing_reminder: 'Toʻlov muddati eslatmasi',
   grade_recorded: 'Yangi baho',
   test_results_published: 'Test natijasi',
+  weekly_parent_report: 'Haftalik xulosa',
+  monthly_parent_report: 'Oylik hisobot',
   announcement: 'Markaz eʼloni',
 };
 
@@ -70,6 +72,14 @@ const TEMPLATE_RENDERERS: Record<NotificationType, TemplateRenderer> = {
   test_results_published: (p) => ({
     title: 'Test natijasi',
     body: `${p.studentName ?? 'Oʻquvchi'} qatnashgan "${p.testTitle ?? ''}" testi natijalari eʼlon qilindi: ${p.score ?? ''} ball.`,
+  }),
+  weekly_parent_report: (p) => ({
+    title: `Haftalik xulosa: ${p.studentName ?? 'Farzandingiz'}`,
+    body: `📅 Davomat: ${p.attendedLessons ?? 0}/${p.totalLessons ?? 0} dars\n⭐️ Oʻrtacha baho: ${p.averageGrade ?? 0}\n💳 Toʻlov holati: ${p.paymentStatus ?? 'Toʻlangan'}${p.comments ? `\n📝 Ustoz izohi: ${p.comments}` : ''}${p.miniAppUrl ? `\n\nBatafsil: ${p.miniAppUrl}` : ''}`,
+  }),
+  monthly_parent_report: (p) => ({
+    title: `Oylik hisobot: ${p.studentName ?? 'Farzandingiz'}`,
+    body: `📊 Davomat: ${p.attendancePercent ?? 0}%\n⭐️ Oʻrtacha baho: ${p.averageGrade ?? 0}\n📝 Test natijalari: ${p.testScore ?? '—'}\n🏆 Guruhdagi oʻrni: ${p.rank ?? '—'}/${p.totalStudents ?? '—'}${p.miniAppUrl ? `\n\nBatafsil: ${p.miniAppUrl}` : ''}`,
   }),
   announcement: (p) => ({
     title: String(p.title ?? 'Markaz eʼloni'),

@@ -198,3 +198,39 @@ export const TeacherPerformanceReportResponseSchema = z.object({
 export type TeacherPerformanceReportResponse = z.infer<
   typeof TeacherPerformanceReportResponseSchema
 >;
+
+// 7. Parent Digest (FR-RPT-2 Haftalik, FR-RPT-3 Oylik)
+export const ParentDigestQuerySchema = z.object({
+  studentId: z.string().uuid(),
+  period: z.enum(['weekly', 'monthly']).default('weekly'),
+});
+export type ParentDigestQuery = z.infer<typeof ParentDigestQuerySchema>;
+
+export const ParentDigestReportSchema = z.object({
+  studentId: z.string().uuid(),
+  studentName: z.string(),
+  periodType: z.enum(['weekly', 'monthly']),
+  periodFrom: z.string(),
+  periodTo: z.string(),
+  totalLessons: z.number().int().nonnegative(),
+  attendedLessons: z.number().int().nonnegative(),
+  attendanceRatePercent: z.number().min(0).max(100),
+  averageGrade: z.number().min(0).max(100),
+  comments: z.array(z.string()),
+  paymentStatus: z.object({
+    status: z.enum(['paid', 'pending', 'overdue']),
+    debtAmount: z.string(),
+  }),
+  testResults: z.array(
+    z.object({
+      title: z.string(),
+      score: z.number(),
+      maxScore: z.number(),
+      percent: z.number(),
+    }),
+  ),
+  rank: z.number().int().positive().nullable(),
+  totalStudents: z.number().int().positive().nullable(),
+  miniAppUrl: z.string().optional(),
+});
+export type ParentDigestReport = z.infer<typeof ParentDigestReportSchema>;

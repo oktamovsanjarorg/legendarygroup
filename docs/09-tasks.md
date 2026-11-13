@@ -404,10 +404,11 @@
 - **AC:** o'quvchi profilida grafiklar (davomat, baho, test), guruh reytingi (Ustoz/Admin), ota-ona Mini App'da farzand progressi.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/progress.ts` (`GroupLeaderboardResponse`, `StudentProgressResponse` DTOlari); `packages/domain/src/progress/progress.calculator.ts` (`calculateStudentCompositeScore` 45% baho, 35% test, 20% davomat, `calculateLeaderboardRankings`); `apps/api/src/modules/grades/` (`ProgressRepository`, `ProgressService`, `GET /api/grades/groups/:groupId/leaderboard`, `GET /api/grades/students/:studentId/progress`); 9 ta integratsiya testi yashil.
 
-### ⬜ T-304 · Haftalik va oylik ota-ona hisobotlari
+### ✅ T-304 · Haftalik va oylik ota-ona hisobotlari
 
 - **Bog'liq:** T-303, T-208 · **Talablar:** FR-RPT-2, 3
 - **AC:** yakshanba 19:00 haftalik, oy oxiri oylik (PDF + Mini App havolasi); har farzand alohida; navbat orqali (yuzlab ota-ona — rate limit); oldindan ko'rish (Admin uchun namunaviy hisobot).
+- **Bajarildi (2026-11-13):** `@lg/contracts` da `ParentDigestReportSchema`, `ParentDigestQuerySchema`, `weekly_parent_report`, `monthly_parent_report`; `@lg/domain` da shablon generatorlari; `0029_notifications.sql` check constraintlari; `ParentDigestRepository`, `ParentDigestService` (pdf-lib bilan A4 hisobot, preview, avtomatik navbatga qo'yish); `reports.cron.ts` (yakshanba 19:00, oy oxiri 20:00); `reports.controller.ts` (`GET /api/reports/parent-digest/preview`, `GET /api/reports/parent-digest/:studentId/pdf`, `POST /api/reports/parent-digest/dispatch`); 10 ta integratsiya testi yashil.
 
 ### ⬜ T-305 · Ommaviy e'lonlar
 

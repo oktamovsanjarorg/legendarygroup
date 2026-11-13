@@ -9,6 +9,8 @@ export const NOTIFICATION_TYPES = [
   'billing_reminder',
   'grade_recorded',
   'test_results_published',
+  'weekly_parent_report',
+  'monthly_parent_report',
   'announcement',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

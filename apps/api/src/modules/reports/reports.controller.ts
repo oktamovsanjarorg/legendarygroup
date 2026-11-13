@@ -1,4 +1,14 @@
-import { Controller, Get, HttpStatus, Inject, Param, Query, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpStatus,
+  Inject,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { FastifyReply } from 'fastify';
 import {
@@ -10,6 +20,8 @@ import {
   type DebtAgingResponse,
   type LeadsConversionReportQuery,
   type LeadsConversionReportResponse,
+  type ParentDigestQuery,
+  type ParentDigestReport,
   REPORT_TYPES,
   type ReportType,
   type RevenueReportQuery,
@@ -18,15 +30,19 @@ import {
   type TeacherPerformanceReportResponse,
 } from '@lg/contracts';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
-import { NoAudit } from '../../common/audit/audit.decorator.js';
+import { Audit, NoAudit } from '../../common/audit/audit.decorator.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import { ParentDigestService } from './parent-digest.service.js';
 import { ReportsService } from './reports.service.js';
 
 @ApiTags('Reports')
 @Controller('reports')
 export class ReportsController {
-  constructor(@Inject(ReportsService) private readonly service: ReportsService) {}
+  constructor(
+    @Inject(ReportsService) private readonly service: ReportsService,
+    @Inject(ParentDigestService) private readonly parentDigest: ParentDigestService,
+  ) {}
 
   @Get('revenue')
   @RequirePermission('finance.view')
@@ -150,5 +166,43 @@ export class ReportsController {
     res.header('Content-Type', mimeType);
     res.header('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(buffer);
+  }
+
+  @Get('parent-digest/preview')
+  @RequirePermission('results.view')
+  @NoAudit('Ota-ona xulosasi preview')
+  @ApiOperation({ summary: 'FR-RPT-2, 3: Ota-ona hisoboti oldindan koʻrish (preview)' })
+  async getParentDigestPreview(@Query() query: ParentDigestQuery): Promise<ParentDigestReport> {
+    return this.parentDigest.getDigestReport(query.studentId, query.period ?? 'weekly');
+  }
+
+  @Get('parent-digest/:studentId/pdf')
+  @RequirePermission('results.view')
+  @NoAudit('Ota-ona xulosasi PDF')
+  @ApiOperation({ summary: 'FR-RPT-3: Oylik ota-ona hisoboti PDF formatida' })
+  async getParentDigestPdf(
+    @Param('studentId', ParseUUIDPipe) studentId: string,
+    @Res() res: FastifyReply,
+    @Query('period') period: 'weekly' | 'monthly' = 'monthly',
+  ): Promise<void> {
+    const report = await this.parentDigest.getDigestReport(studentId, period);
+    const pdfBuffer = await this.parentDigest.generateDigestPdf(report);
+    res.header('Content-Type', 'application/pdf');
+    res.header('Content-Disposition', `attachment; filename="parent-report-${studentId}.pdf"`);
+    res.send(Buffer.from(pdfBuffer));
+  }
+
+  @Post('parent-digest/dispatch')
+  @RequirePermission('settings.manage')
+  @Audit({ action: 'reports.parent_digest_dispatch', entity: 'report' })
+  @ApiOperation({ summary: 'FR-RPT-2, 3: Ota-ona xulosalarini navbatga chiqarish (dispatch)' })
+  async dispatchParentDigest(
+    @Query('period') period: 'weekly' | 'monthly' = 'weekly',
+  ): Promise<{ dispatchedCount: number }> {
+    const dispatchedCount =
+      period === 'monthly'
+        ? await this.parentDigest.dispatchMonthlyDigest()
+        : await this.parentDigest.dispatchWeeklyDigest();
+    return { dispatchedCount };
   }
 }
