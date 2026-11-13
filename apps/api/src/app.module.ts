@@ -23,6 +23,7 @@ import { GradesModule } from './modules/grades/grades.module.js';
 import { TestsModule } from './modules/tests/index.js';
 import { PayrollModule } from './modules/payroll/index.js';
 import { FinanceModule } from './modules/finance/index.js';
+import { AuditLogModule } from './modules/audit-logs/index.js';
 import { OrgModule } from './modules/org/org.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
 import { RbacModule } from './modules/rbac/rbac.module.js';
@@ -67,6 +68,7 @@ export class AppModule {
         TestsModule,
         PayrollModule,
         FinanceModule,
+        AuditLogModule,
         HealthModule,
         InternalModule,
         ...(opts.role === 'worker' ? [WorkerModule] : []),

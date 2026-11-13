@@ -435,7 +435,7 @@
 - **Bog'liq:** T-202 · **Talablar:** FR-FIN-1…3
 - **AC:** xarajat CRUD (chek rasmi), kategoriyalar, oylik P&L (tushum − xarajat − oylik), `finance.view` ruxsati.
 
-### ⬜ T-404 · Audit UI va shubhali harakatlar
+### ✅ T-404 · Audit UI va shubhali harakatlar
 
 - **Bog'liq:** T-008, T-009 · **Talablar:** FR-AUD-2, 3
 - **AC:** filtrlanadigan audit jurnali (kim/nima/qachon, diff ko'rinishi), shubhali harakatlar qoidalari va Director'ga bot ogohlantirishi, xodim faolligi hisoboti.
