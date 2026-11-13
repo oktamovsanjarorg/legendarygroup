@@ -2,11 +2,11 @@
 
 ## 1. Muhitlar
 
-| Muhit        | Maqsad                                                                | Domen (misol)                 | Bot                                 | Ma'lumot                                            |
-| ------------ | --------------------------------------------------------------------- | ----------------------------- | ----------------------------------- | --------------------------------------------------- |
-| `local`      | Dasturchi kompyuteri                                                  | localhost                     | `@legendary_dev_bot` (long polling) | Test ma'lumotlari (seed)                            |
-| `staging`    | Relizdan oldingi to'liq tekshiruv (prod bilan bir xil konfiguratsiya) | `staging.<domen>`             | `@legendary_staging_bot`            | Test ma'lumotlari + anonimlashtirilgan prod nusxasi |
-| `production` | Haqiqiy ishlash                                                       | `app.<domen>` (yo'llar bilan) | `@legendary_bot` (asosiy)           | Haqiqiy                                             |
+| Muhit        | Maqsad                                                                                                                                                  | Domen (misol)                 | Bot                                 | Ma'lumot                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- | --------------------------------------------------- |
+| `local`      | Dasturchi kompyuteri                                                                                                                                    | localhost                     | `@legendary_dev_bot` (long polling) | Test ma'lumotlari (seed)                            |
+| `staging`    | Relizdan oldingi to'liq tekshiruv (prod bilan bir xil konfiguratsiya) — **lokal** (`compose.prod.yml` + `compose.staging.yml`, egasi qarori 2026-11-13) | lokal                         | `@legendary_staging_bot`            | Test ma'lumotlari + anonimlashtirilgan prod nusxasi |
+| `production` | Haqiqiy ishlash                                                                                                                                         | `app.<domen>` (yo'llar bilan) | `@legendary_bot` (asosiy)           | Haqiqiy                                             |
 
 - Har muhit uchun **alohida bot token, alohida AWS resurslari, alohida S3 bucket, alohida sirlar**.
 - **Marshrutlash (bitta host, yo'llar bilan — CORS va `SameSite=Strict` cookie oddiy qoladi):** `/api/*` → api · `/bot/webhook` → bot · `/app/*` → miniapp · `/verify/*` va `/` → web. Landing (Faza 4) — apex domen `<domen>`. Staging: `staging.<domen>` xuddi shu yo'llar bilan.
@@ -14,7 +14,7 @@
 
 ## 2. AWS arxitekturasi
 
-**Region:** `eu-central-1` (Frankfurt) — Toshkentga eng yaqin, barcha xizmatlar mavjud.
+**Region:** `eu-central-1` (Frankfurt) — Toshkentga eng yaqin, barcha xizmatlar mavjud. AWS'da faqat production (staging — lokal). Kod: `infra/terraform` (T-012), narx: `docs/runbooks/costs.md`.
 
 ```
                          Route 53 (DNS)  ─── ACM yo'q (TLS — Caddy, Let's Encrypt)
