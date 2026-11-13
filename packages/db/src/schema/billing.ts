@@ -215,9 +215,33 @@ export type InvoiceRow = typeof invoices.$inferSelect;
 export type NewInvoiceRow = typeof invoices.$inferInsert;
 export type InvoiceLineRow = typeof invoiceLines.$inferSelect;
 export type NewInvoiceLineRow = typeof invoiceLines.$inferInsert;
+export const cashClosings = pgTable(
+  'cash_closings',
+  {
+    id: primaryUuid(),
+    branchId: branchId(),
+    date: date('date', { mode: 'string' }).notNull(),
+    expectedCash: bigint('expected_cash', { mode: 'bigint' }).notNull(),
+    countedCash: bigint('counted_cash', { mode: 'bigint' }).notNull(),
+    diff: bigint('diff', { mode: 'bigint' }).notNull(),
+    closedBy: uuid('closed_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    note: text('note'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('cash_closings_branch_date_uq').on(t.branchId, t.date),
+    index('cash_closings_branch_id_idx').on(t.branchId),
+    index('cash_closings_date_idx').on(t.date),
+  ],
+);
+
 export type PaymentRow = typeof payments.$inferSelect;
 export type NewPaymentRow = typeof payments.$inferInsert;
 export type ReceiptRow = typeof receipts.$inferSelect;
 export type NewReceiptRow = typeof receipts.$inferInsert;
 export type LedgerEntryRow = typeof ledgerEntries.$inferSelect;
 export type NewLedgerEntryRow = typeof ledgerEntries.$inferInsert;
+export type CashClosingRow = typeof cashClosings.$inferSelect;
+export type NewCashClosingRow = typeof cashClosings.$inferInsert;

@@ -148,6 +148,13 @@
       "when": 1794584834287,
       "tag": "0020_approval_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794585663281,
+      "tag": "0021_cash_closings",
+      "breakpoints": true
     }
   ]
 }

@@ -160,3 +160,51 @@ export const WaivePenaltyRequest = z.object({
   reason: z.string().trim().min(3).max(500),
 });
 export type WaivePenaltyInput = z.infer<typeof WaivePenaltyRequest>;
+
+export const ReversePaymentRequest = z.object({
+  reason: z.string().trim().min(3).max(500),
+});
+export type ReversePaymentInput = z.infer<typeof ReversePaymentRequest>;
+
+export const RefundPaymentRequest = z.object({
+  studentId: z.string().uuid(),
+  amount: z.string().regex(/^\d+$/, 'AMOUNT_MUST_BE_DIGITS'),
+  method: z.enum(PAYMENT_METHODS),
+  reason: z.string().trim().min(3).max(500),
+});
+export type RefundPaymentInput = z.infer<typeof RefundPaymentRequest>;
+
+export const CloseCashRequest = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'INVALID_DATE'),
+  countedCash: z.string().regex(/^\d+$/, 'COUNTED_CASH_MUST_BE_DIGITS'),
+  note: z.string().trim().max(500).optional(),
+});
+export type CloseCashInput = z.infer<typeof CloseCashRequest>;
+
+export const CashClosingSchema = z.object({
+  id: z.string().uuid(),
+  branchId: z.string().uuid(),
+  date: z.string(),
+  expectedCash: z.string(),
+  countedCash: z.string(),
+  diff: z.string(),
+  closedBy: z.string().uuid(),
+  closedByName: z.string().optional(),
+  note: z.string().nullable(),
+  createdAt: z.string(),
+});
+export type CashClosing = z.infer<typeof CashClosingSchema>;
+
+export const CashClosingListQuery = z.object({
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().optional(),
+});
+export type CashClosingListQueryInput = z.infer<typeof CashClosingListQuery>;

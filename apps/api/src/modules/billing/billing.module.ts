@@ -13,6 +13,8 @@ import { BillingService } from './billing.service.js';
 import { DiscountsRepository } from './discounts.repository.js';
 import { DiscountsService } from './discounts.service.js';
 import { PaymentsService } from './payments.service.js';
+import { StornoCashRepository } from './storno-cash.repository.js';
+import { StornoCashService } from './storno-cash.service.js';
 
 @Module({
   imports: [DbModule, AuditModule, ClockModule, SchedulerModule, StudentsModule, SettingsModule],
@@ -25,6 +27,8 @@ import { PaymentsService } from './payments.service.js';
     PaymentsService,
     DiscountsRepository,
     DiscountsService,
+    StornoCashRepository,
+    StornoCashService,
   ],
   exports: [
     BillingService,
@@ -33,6 +37,8 @@ import { PaymentsService } from './payments.service.js';
     PaymentsService,
     DiscountsService,
     DiscountsRepository,
+    StornoCashService,
+    StornoCashRepository,
   ],
 })
 export class BillingModule {}

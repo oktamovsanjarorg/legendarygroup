@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  CloseCashRequest,
   CreatePaymentRequest,
   GenerateInvoicesRequest,
   InvoiceListQuery,
   InvoiceSchema,
   LedgerEntrySchema,
   PeriodSchema,
+  RefundPaymentRequest,
+  ReversePaymentRequest,
   SetEnrollmentDiscountRequest,
   StudentLedgerSummarySchema,
   WaivePenaltyRequest,
@@ -95,5 +98,24 @@ describe('Billing contracts', () => {
     const waive = { reason: 'Kasal boʻlganligi tasdiqlandi' };
     expect(WaivePenaltyRequest.safeParse(waive).success).toBe(true);
     expect(WaivePenaltyRequest.safeParse({ reason: 'a' }).success).toBe(false);
+  });
+
+  it('ReversePaymentRequest, RefundPaymentRequest va CloseCashRequest validatsiyasi', () => {
+    const reverse = { reason: 'Adashib kiritilgan' };
+    expect(ReversePaymentRequest.safeParse(reverse).success).toBe(true);
+    expect(ReversePaymentRequest.safeParse({ reason: 'ok' }).success).toBe(false);
+
+    const refund = {
+      studentId: '01900000-0000-7000-8000-000000000001',
+      amount: '30000000',
+      method: 'cash',
+      reason: 'Oʻqishni toʻxtatdi',
+    };
+    expect(RefundPaymentRequest.safeParse(refund).success).toBe(true);
+    expect(RefundPaymentRequest.safeParse({ ...refund, amount: '-100' }).success).toBe(false);
+
+    const closeCash = { date: '2026-11-13', countedCash: '15000000', note: 'Ortiqcha yoʻq' };
+    expect(CloseCashRequest.safeParse(closeCash).success).toBe(true);
+    expect(CloseCashRequest.safeParse({ ...closeCash, date: '13-11-2026' }).success).toBe(false);
   });
 });

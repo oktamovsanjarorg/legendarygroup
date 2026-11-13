@@ -1,6 +1,11 @@
 import { Controller, Get, Inject, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
+  CashClosingListQuery,
+  type CashClosing,
+  type CashClosingListQueryInput,
+  CloseCashRequest,
+  type CloseCashInput,
   CreatePaymentRequest,
   type CreatePaymentInput,
   GenerateInvoicesRequest,
@@ -16,6 +21,10 @@ import {
   PaymentListQuery,
   type PaymentListQueryInput,
   type PublicReceipt,
+  RefundPaymentRequest,
+  type RefundPaymentInput,
+  ReversePaymentRequest,
+  type ReversePaymentInput,
   SetEnrollmentDiscountRequest,
   type SetEnrollmentDiscountInput,
   type StudentLedgerSummary,
@@ -33,6 +42,7 @@ import type { GenerateResult } from './billing-generator.service.js';
 import { BillingService } from './billing.service.js';
 import { DiscountsService } from './discounts.service.js';
 import { PaymentsService } from './payments.service.js';
+import { StornoCashService } from './storno-cash.service.js';
 
 @ApiTags('Billing')
 @ApiBearerAuth()
@@ -42,6 +52,7 @@ export class BillingController {
     @Inject(BillingService) private readonly billing: BillingService,
     @Inject(PaymentsService) private readonly payments: PaymentsService,
     @Inject(DiscountsService) private readonly discounts: DiscountsService,
+    @Inject(StornoCashService) private readonly stornoCash: StornoCashService,
   ) {}
 
   @Get('invoices')
@@ -169,5 +180,64 @@ export class BillingController {
       input: body,
       ctx: auditContext(req),
     });
+  }
+
+  @Post('payments/:id/reverse')
+  @RequirePermission('payment.reverse')
+  @NoAudit('StornoCashService ichida audit yoziladi')
+  @ApiOperation({
+    summary: "To'lovni bekor qilish (storno) — BR-16 (kunlik tekshiruv, Director tasdig'i)",
+  })
+  async reversePayment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: RequestUser,
+    @Req() req: FastifyRequest,
+    @ZodBody(ReversePaymentRequest) body: ReversePaymentInput,
+  ): Promise<{ paymentId: string; reversalId: string }> {
+    return this.stornoCash.reversePayment(id, body, user, auditContext(req));
+  }
+
+  @Post('payments/refund')
+  @RequirePermission('payment.refund')
+  @NoAudit('StornoCashService ichida audit yoziladi')
+  @ApiOperation({ summary: 'Pulni qaytarish (refund) — faqat Director (BR-17)' })
+  async refundPayment(
+    @CurrentUser() user: RequestUser,
+    @Req() req: FastifyRequest,
+    @ZodBody(RefundPaymentRequest) body: RefundPaymentInput,
+  ): Promise<{ refundId: string; amount: string }> {
+    return this.stornoCash.refundPayment(body, user, auditContext(req));
+  }
+
+  @Post('cash/close')
+  @RequirePermission('cash.close')
+  @NoAudit('StornoCashService ichida audit yoziladi')
+  @ApiOperation({ summary: "Kunlik kassani yopish — FR-PAY-10 (farq bo'lsa izoh majburiy)" })
+  async closeCash(
+    @CurrentUser() user: RequestUser,
+    @Req() req: FastifyRequest,
+    @ZodBody(CloseCashRequest) body: CloseCashInput,
+  ): Promise<CashClosing> {
+    return this.stornoCash.closeCash(body, user, auditContext(req));
+  }
+
+  @Get('cash/expected')
+  @RequirePermission('cash.close')
+  @NoAudit('GET query')
+  @ApiOperation({ summary: 'Berilgan sana uchun tizimdagi kutilayotgan naqd summa' })
+  async getExpectedCash(
+    @ZodQuery(CloseCashRequest.pick({ date: true })) query: { date: string },
+  ): Promise<{ date: string; expectedCash: string }> {
+    return this.stornoCash.getExpectedCash(query.date);
+  }
+
+  @Get('cash/closings')
+  @RequirePermission('cash.close')
+  @NoAudit('GET query')
+  @ApiOperation({ summary: "Yopilgan kassalar tarixi ro'yxati" })
+  async listCashClosings(
+    @ZodQuery(CashClosingListQuery) query: CashClosingListQueryInput,
+  ): Promise<CashClosing[]> {
+    return this.stornoCash.getCashClosings(query);
   }
 }

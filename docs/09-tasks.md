@@ -348,10 +348,18 @@
 - **Bog'liq:** T-202, T-109 · **Talablar:** FR-PAY-7, BR-20, 21, 22
 - **AC:** qarzdorlar ro'yxati (filtr, saralash, eksport), aging, kritik belgisi; eslatma jadvali (BR-21) worker'da; ota-ona Mini App'da balans va to'lovlar tarixi.
 
-### ⬜ T-209 · Storno, refund, kassa yopish
+### ✅ T-209 · Storno, refund, kassa yopish
 
 - **Bog'liq:** T-204 · **Talablar:** FR-PAY-9, 10, BR-16, 17
 - **AC:** storno (teskari ledger, chek bekor; kiritilgan kundan keyin — T-119 so'rovi), refund (Director yoki T-119 so'rovi), kunlik kassa yopish (kutilgan vs sanalgan, farq izohi); hammasi audit'da.
+- **Bajarildi (2026-11-13):**
+  - `@lg/contracts`: `ReversePaymentRequest`, `RefundPaymentRequest`, `CloseCashRequest`, `CashClosingSchema`, `CashClosingListQuery`.
+  - `@lg/db`: `0021_cash_closings.sql` migratsiyasi (`cash_closings` jadvali: date, expectedCash, countedCash, diff, closedBy, note).
+  - `@lg/api`: `apps/api/src/modules/billing/` moduli (`StornoCashRepository`, `StornoCashService`, `billing.controller.ts`).
+    - Storno (`POST /api/billing/payments/:id/reverse`, `payment.reverse` ruxsati). To'lov shu kuni kiritilgan bo'lsa Admin ruxsati yetarli; kiritilgan kundan keyin bo'lsa `403 FORBIDDEN` qaytarilib Director tasdig'i talab etiladi (BR-16). `receipt_cancellations` ga sabab bilan yoziladi, teskari manfiy to'lov yozuvi kiritiladi, ledgerga `reversal` qaydi (musbat summa) tushadi. Chek ommaviy tekshiruvda `isCancelled: true` bo'lib ko'rinadi.
+    - Refund (`POST /api/billing/payments/refund`, faqat Director `payment.refund` ruxsati bilan, BR-17). Manfiy to'lov va ledgerga musbat `refund` yozuvi tushadi.
+    - Kunlik kassa yopish (`POST /api/billing/cash/close`, `GET /api/billing/cash/expected`, `GET /api/billing/cash/closings`, `cash.close` ruxsati bilan). Naqd pul tushumlari jamlanadi, hisoblangan va sanalgan summa solishtiriladi, farq bo'lsa izoh majburiy.
+  - Integratsiya testlari: `storno-refund-cash.int.test.ts` (12 ta test: RBAC, storno, bekor qilingan kvitansiya tekshiruvi, muddat o'tgan stornoni cheklash, refund, kassa balansi va farq izohi, audit jurnali).
 
 ---
 
