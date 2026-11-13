@@ -114,6 +114,19 @@ export const StudentListItem = z.object({
   archivedAt: z.string().nullable(),
 });
 
+/**
+ * Ro'yxat qatori (W-05): kartochkani ochmasdan ko'rinadigan qo'shimcha ma'lumot.
+ * `guardian.phone` — field-level (02 §3): Ustozga `null`, Ota-onaga faqat o'ziniki.
+ */
+export const StudentListRow = StudentListItem.extend({
+  /** Bugun yozilgan guruhlar (T-106). */
+  groups: z.array(z.object({ id: z.string(), name: z.string() })),
+  /** Bugun yozilgan guruhlarining hammasida muzlatilgan (BR-9). */
+  frozen: z.boolean(),
+  /** Asosiy ota-ona. */
+  guardian: z.object({ fullName: z.string(), phone: z.string().nullable() }).nullable(),
+});
+
 export const StudentDetail = StudentListItem.extend({
   gender: z.enum(GENDERS).nullable(),
   school: z.string().nullable(),
@@ -128,7 +141,7 @@ export const StudentDetail = StudentListItem.extend({
 });
 
 export const StudentListResult = z.object({
-  items: z.array(StudentListItem),
+  items: z.array(StudentListRow),
   nextCursor: z.string().nullable(),
 });
 
@@ -149,6 +162,7 @@ export type GuardianInput = z.infer<typeof GuardianInput>;
 export type UpdateGuardianLinkRequest = z.infer<typeof UpdateGuardianLinkRequest>;
 export type StudentGuardian = z.infer<typeof StudentGuardianSchema>;
 export type StudentListItem = z.infer<typeof StudentListItem>;
+export type StudentListRow = z.infer<typeof StudentListRow>;
 export type StudentDetail = z.infer<typeof StudentDetail>;
 export type StudentListResult = z.infer<typeof StudentListResult>;
 export type GuardianLookupResult = z.infer<typeof GuardianLookupResult>;

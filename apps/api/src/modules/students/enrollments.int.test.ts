@@ -228,3 +228,50 @@ describe('Koʻchirish, chiqarish, roʻyxat (BR-32)', () => {
     });
   });
 });
+
+describe('Oʻquvchilar roʻyxati qatori (W-05): guruhlar, asosiy ota-ona, muzlatish', () => {
+  interface Row {
+    id: string;
+    groups: { id: string; name: string }[];
+    frozen: boolean;
+    guardian: { fullName: string; phone: string | null } | null;
+  }
+  const vali = async (token?: string) =>
+    (await call('GET', `students?groupId=${g.small}`, undefined, token))
+      .json<{ items: Row[] }>()
+      .items.find((r) => r.id === s['Vali']);
+
+  it('bugungi guruh va asosiy ota-ona; Ustozga telefon berilmaydi (02 §3)', async () => {
+    const link = await call('POST', `students/${s['Vali']}/guardians`, {
+      fullName: 'Valiyeva Nodira',
+      phone: '+998937770001',
+      relation: 'mother',
+      isPrimary: true,
+    });
+    expect(link.statusCode).toBe(201);
+    const row = await vali();
+    expect(row?.groups).toEqual([{ id: g.small, name: 'Kichik' }]);
+    expect(row?.guardian).toEqual({ fullName: 'Valiyeva Nodira', phone: '+998937770001' });
+    expect(row?.frozen).toBe(false);
+    expect((await vali(teacherToken))?.guardian).toEqual({
+      fullName: 'Valiyeva Nodira',
+      phone: null,
+    });
+  });
+
+  it('BR-9: bugun muzlatilgan — frozen=true', async () => {
+    const created = await call('POST', 'students', { fullName: 'Muzlat Testov' });
+    const id = created.json<{ id: string }>().id;
+    const enr = (
+      await call('POST', 'enrollments', { studentId: id, groupId: g.big, startDate: start })
+    ).json<Enr>();
+    const res = await call('POST', `enrollments/${enr.id}/freezes`, {
+      from: today,
+      to: addDays(today, 14),
+      reason: 'Safar',
+    });
+    expect(res.statusCode).toBe(201);
+    const rows = (await call('GET', `students?groupId=${g.big}`)).json<{ items: Row[] }>().items;
+    expect(rows.find((r) => r.id === id)?.frozen).toBe(true);
+  });
+});

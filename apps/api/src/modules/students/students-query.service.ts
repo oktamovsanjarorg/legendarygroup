@@ -7,12 +7,16 @@ import {
   type StudentListResult,
 } from '@lg/contracts';
 import { type Database, guardians, studentGuardians, students, type Transaction } from '@lg/db';
+import type { Clock } from '@lg/domain';
 import { normalizeUz } from '@lg/i18n';
 import { and, asc, desc, eq, exists, ilike, inArray, or, type SQL, sql } from 'drizzle-orm';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import type { RequestUser } from '../auth/index.js';
 import { archivedFilter } from '../../common/db/archive.js';
+import { GroupsQueryService } from '../org/index.js';
+import { studentListExtras } from './student-list-extras.js';
 import { StudentScopeService } from './student-scope.service.js';
 import { type GuardianLink, toDetail, toListItem } from './students.serializer.js';
 
@@ -66,6 +70,8 @@ export class StudentsQueryService {
   constructor(
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(StudentScopeService) private readonly scope: StudentScopeService,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(GroupsQueryService) private readonly groups: GroupsQueryService,
   ) {}
 
   /** Saralash `created_at desc, id desc`, cursor pagination (12-ai-playbook.md §5). */
@@ -90,8 +96,15 @@ export class StudentsQueryService {
       .limit(p.limit + 1);
     const page = rows.slice(0, p.limit);
     const last = page.at(-1);
+    const extras = await studentListExtras(this.db, {
+      ids: page.map((r) => r.id),
+      today: this.clock.today(),
+      viewer: { role: user.role, guardianId: await this.scope.guardianIdOf(user) },
+      groupNames: (ids) => this.groups.namesOf(ids),
+    });
+    const none = { groups: [], frozen: false, guardian: null };
     return {
-      items: page.map(toListItem),
+      items: page.map((r) => ({ ...toListItem(r), ...(extras.get(r.id) ?? none) })),
       nextCursor: rows.length > p.limit && last ? encodeCursor(last.id) : null,
     };
   }

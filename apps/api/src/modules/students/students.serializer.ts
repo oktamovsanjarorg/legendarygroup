@@ -29,7 +29,10 @@ export function toListItem(r: StudentRow): StudentListItem {
  * Ota-ona telefoni: Director/Admin — hammasi; Ota-ona — faqat o'ziniki; Ustoz — yo'q
  * (Q-63: Director yoqishi mumkin — T-114).
  */
-function guardianPhone(link: GuardianLink, v: Viewer): string | null {
+export function guardianPhone(
+  link: { guardian: Pick<GuardianRow, 'id' | 'phone'> },
+  v: Viewer,
+): string | null {
   if (isStaff(v)) return link.guardian.phone;
   if (v.guardianId !== null && v.guardianId === link.guardian.id) return link.guardian.phone;
   return null;
