@@ -9,6 +9,7 @@ import { StaffDirectoryService } from './staff-directory.service.js';
 import { StaffLinkService } from './staff-link.service.js';
 import { StaffQueryService } from './staff-query.service.js';
 import { StaffController } from './staff.controller.js';
+import { TeachersController } from './teachers.controller.js';
 import { StaffService } from './staff.service.js';
 
 /**
@@ -17,7 +18,7 @@ import { StaffService } from './staff.service.js';
  */
 @Global()
 @Module({
-  controllers: [RbacController, StaffController, InternalStaffController],
+  controllers: [RbacController, StaffController, TeachersController, InternalStaffController],
   providers: [
     PermissionsService,
     RbacService,

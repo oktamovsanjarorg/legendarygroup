@@ -1,8 +1,8 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { EnrollmentDto, RosterResult } from '@lg/contracts';
+import type { EnrollmentDto, GroupStudentCounts, RosterResult } from '@lg/contracts';
 import { type Database, enrollmentFreezes, enrollments, students } from '@lg/db';
 import { type Clock, enrollmentState } from '@lg/domain';
-import { and, asc, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
@@ -54,6 +54,33 @@ export class EnrollmentsQueryService {
   async forLesson(user: RequestUser, lessonId: string): Promise<RosterResult> {
     const lesson = await this.lessons.assertVisible(user, lessonId);
     return this.rosterOn(lesson.groupId, lesson.date);
+  }
+
+  /**
+   * Joriy guruhlarda bugun yozilganlar soni (W-10 "To'lganlik"; muzlatilgan ham o'rin egallaydi —
+   * Q-85). Scope — guruh ro'yxati bilan bir xil: Ustoz faqat o'z guruhlarini ko'radi.
+   */
+  async studentCounts(user: RequestUser): Promise<GroupStudentCounts> {
+    const day = this.clock.today();
+    const visible = await this.groups.list(user, { status: 'current' });
+    const counts: Record<string, number> = Object.fromEntries(visible.map((g) => [g.id, 0]));
+    if (visible.length === 0) return { date: day, counts };
+    const rows = await this.db
+      .select({ groupId: enrollments.groupId, n: count() })
+      .from(enrollments)
+      .where(
+        and(
+          inArray(
+            enrollments.groupId,
+            visible.map((g) => g.id),
+          ),
+          lte(enrollments.startDate, day),
+          or(isNull(enrollments.endDate), gte(enrollments.endDate, day)),
+        ),
+      )
+      .groupBy(enrollments.groupId);
+    for (const r of rows) counts[r.groupId] = r.n;
+    return { date: day, counts };
   }
 
   private async rosterOn(groupId: string, day: string): Promise<RosterResult> {

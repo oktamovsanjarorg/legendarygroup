@@ -157,6 +157,24 @@ describe('Koʻchirish, chiqarish, roʻyxat (BR-32)', () => {
     ]);
   });
 
+  it('guruhlar toʻlganligi: bugun yozilganlar soni; Ustoz — faqat oʻz guruhi; ota-ona — 403', async () => {
+    const counts = async (token?: string) =>
+      (await call('GET', 'groups/student-counts', undefined, token)).json<{
+        date: string;
+        counts: Record<string, number>;
+      }>();
+    const all = await counts();
+    expect(all.date).toBe(today);
+    for (const id of Object.values(g)) {
+      const roster = ids(await call('GET', `groups/${id}/students`));
+      expect(all.counts[id], id).toBe(roster.length);
+    }
+    expect(Object.keys((await counts(teacherToken)).counts)).toEqual([g.small]);
+    expect(
+      (await call('GET', 'groups/student-counts', undefined, tokens.get('guardian')!)).statusCode,
+    ).toBe(403);
+  });
+
   it('Ustoz: oʻz guruhi roʻyxati va oʻquvchilari; boshqa guruhga koʻchgan — 404', async () => {
     expect(
       (await call('GET', `groups/${g.small}/students`, undefined, teacherToken)).statusCode,

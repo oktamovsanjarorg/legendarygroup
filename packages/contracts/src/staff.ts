@@ -51,6 +51,9 @@ export const StaffDetail = StaffListItem.extend({
   inviteExpiresAt: z.string().nullable(),
 });
 
+/** `GET /api/teachers` — faol ustozlar (guruh/dars formalarida tanlash uchun; faqat ism). */
+export const TeacherOption = z.object({ id: z.string(), fullName: z.string() });
+
 /** Bot → API (ichki): `/start inv_<token>` tekshiruvi. */
 export const StaffInviteCheckRequest = z.object({ token: z.string().min(20).max(64) });
 export const StaffInviteCheckResult = z.discriminatedUnion('valid', [
@@ -75,5 +78,6 @@ export type CreateStaffResult = z.infer<typeof CreateStaffResult>;
 export type StaffInvite = z.infer<typeof StaffInvite>;
 export type StaffListItem = z.infer<typeof StaffListItem>;
 export type StaffDetail = z.infer<typeof StaffDetail>;
+export type TeacherOption = z.infer<typeof TeacherOption>;
 export type StaffInviteCheckResult = z.infer<typeof StaffInviteCheckResult>;
 export type TelegramContactResult = z.infer<typeof TelegramContactResult>;

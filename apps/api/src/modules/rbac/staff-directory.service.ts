@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { RoleCode } from '@lg/contracts';
 import { type Database, roles, type Transaction, userRoles, users } from '@lg/db';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 /**
@@ -19,6 +19,17 @@ export class StaffDirectoryService {
       .from(users)
       .where(inArray(users.id, [...new Set(ids)]));
     return new Map(rows.map((r) => [r.id, r.fullName]));
+  }
+
+  /** Faol ustozlar, ism bo'yicha (guruh/dars formalari uchun). */
+  async activeTeachers(): Promise<{ id: string; fullName: string }[]> {
+    return this.db
+      .select({ id: users.id, fullName: users.fullName })
+      .from(users)
+      .innerJoin(userRoles, eq(userRoles.userId, users.id))
+      .innerJoin(roles, eq(roles.id, userRoles.roleId))
+      .where(and(eq(users.status, 'active'), eq(roles.code, 'teacher')))
+      .orderBy(asc(users.fullName));
   }
 
   /** Faol (bloklanmagan) va `teacher` roli bor. */

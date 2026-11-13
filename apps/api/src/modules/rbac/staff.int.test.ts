@@ -245,3 +245,18 @@ describe('Qayta taklif, mavjud foydalanuvchi, blokdan chiqarish', () => {
     ).toBe('NOT_BLOCKED');
   });
 });
+
+describe('Ustozlar katalogi (GET /teachers, group.view) — guruh/dars formalari uchun', () => {
+  it('faqat faol ustozlar, faqat ism; bloklangan chiqmaydi; ota-ona — 403', async () => {
+    const active = await createUser(['teacher']);
+    const blocked = await createUser(['teacher']);
+    await db.update(users).set({ status: 'blocked' }).where(eq(users.id, blocked));
+    const res = await call('GET', 'teachers', tokenFor.get('admin')!);
+    expect(res.statusCode).toBe(200);
+    const list = res.json<Record<string, string>[]>();
+    expect(list.map((x) => x['id'])).toContain(active);
+    expect(list.map((x) => x['id'])).not.toContain(blocked);
+    expect(Object.keys(list[0]!).sort()).toEqual(['fullName', 'id']);
+    expect((await call('GET', 'teachers', tokenFor.get('guardian')!)).statusCode).toBe(403);
+  });
+});

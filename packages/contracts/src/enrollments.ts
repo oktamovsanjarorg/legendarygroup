@@ -79,6 +79,13 @@ export const RosterResult = z.object({
   items: z.array(RosterItem),
 });
 
+/** `GET /api/groups/student-counts` — guruhda shu kuni yozilganlar soni (W-10 "To'lganlik"). */
+export const GroupStudentCounts = z.object({
+  date: z.string(),
+  counts: z.record(z.string(), z.number().int()),
+});
+
+export type GroupStudentCounts = z.infer<typeof GroupStudentCounts>;
 export type EnrollmentDto = z.infer<typeof EnrollmentSchema>;
 export type FreezeDto = z.infer<typeof FreezeSchema>;
 export type RosterItem = z.infer<typeof RosterItem>;
