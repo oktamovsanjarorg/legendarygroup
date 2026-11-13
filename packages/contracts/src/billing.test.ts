@@ -6,7 +6,9 @@ import {
   InvoiceSchema,
   LedgerEntrySchema,
   PeriodSchema,
+  SetEnrollmentDiscountRequest,
   StudentLedgerSummarySchema,
+  WaivePenaltyRequest,
 } from './billing.js';
 
 describe('Billing contracts', () => {
@@ -81,5 +83,17 @@ describe('Billing contracts', () => {
     expect(CreatePaymentRequest.safeParse(valid).success).toBe(true);
     expect(CreatePaymentRequest.safeParse({ ...valid, amount: '-500' }).success).toBe(false);
     expect(CreatePaymentRequest.safeParse({ ...valid, method: 'bitcoin' }).success).toBe(false);
+  });
+
+  it('SetEnrollmentDiscountRequest va WaivePenaltyRequest validatsiyasi', () => {
+    const discount = { percent: 15, reason: 'Iqtidorli oʻquvchi' };
+    expect(SetEnrollmentDiscountRequest.safeParse(discount).success).toBe(true);
+    expect(SetEnrollmentDiscountRequest.safeParse({ percent: 105, reason: 'katta' }).success).toBe(
+      false,
+    );
+
+    const waive = { reason: 'Kasal boʻlganligi tasdiqlandi' };
+    expect(WaivePenaltyRequest.safeParse(waive).success).toBe(true);
+    expect(WaivePenaltyRequest.safeParse({ reason: 'a' }).success).toBe(false);
   });
 });

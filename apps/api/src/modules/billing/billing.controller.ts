@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Param, ParseUUIDPipe, Post, Req } from '@nestjs/common';
+import { Controller, Get, Inject, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CreatePaymentRequest,
@@ -16,7 +16,11 @@ import {
   PaymentListQuery,
   type PaymentListQueryInput,
   type PublicReceipt,
+  SetEnrollmentDiscountRequest,
+  type SetEnrollmentDiscountInput,
   type StudentLedgerSummary,
+  WaivePenaltyRequest,
+  type WaivePenaltyInput,
 } from '@lg/contracts';
 import type { FastifyRequest } from 'fastify';
 import { NoAudit } from '../../common/audit/audit.decorator.js';
@@ -27,6 +31,7 @@ import { ZodBody, ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import type { GenerateResult } from './billing-generator.service.js';
 import { BillingService } from './billing.service.js';
+import { DiscountsService } from './discounts.service.js';
 import { PaymentsService } from './payments.service.js';
 
 @ApiTags('Billing')
@@ -36,6 +41,7 @@ export class BillingController {
   constructor(
     @Inject(BillingService) private readonly billing: BillingService,
     @Inject(PaymentsService) private readonly payments: PaymentsService,
+    @Inject(DiscountsService) private readonly discounts: DiscountsService,
   ) {}
 
   @Get('invoices')
@@ -129,5 +135,39 @@ export class BillingController {
   @ApiOperation({ summary: 'Chekni ommaviy tekshirish sahifasi (mehmon va ota-onalar uchun)' })
   async verifyReceipt(@Param('number') number: string): Promise<PublicReceipt> {
     return this.payments.getPublicReceipt(number);
+  }
+
+  @Patch('enrollments/:id/discount')
+  @RequirePermission('discount.grant')
+  @NoAudit('DiscountsService ichida audit yoziladi')
+  @ApiOperation({
+    summary: 'Guruhga yozilishga chegirma belgilash (Admin limiti tekshiriladi, BR-18)',
+  })
+  async setDiscount(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: RequestUser,
+    @Req() req: FastifyRequest,
+    @ZodBody(SetEnrollmentDiscountRequest) body: SetEnrollmentDiscountInput,
+  ): Promise<{ id: string; discountPercent: number | null }> {
+    const row = await this.discounts.setEnrollmentDiscount(id, body, user, auditContext(req));
+    return { id: row.id, discountPercent: row.discountPercent };
+  }
+
+  @Post('invoices/:invoiceId/lines/:lineId/waive')
+  @RequirePermission('penalty.waive')
+  @NoAudit('DiscountsService ichida audit yoziladi')
+  @ApiOperation({ summary: 'Jarima qatorini bekor qilish (Admin/Director, BR-8)' })
+  async waivePenalty(
+    @Param('invoiceId', ParseUUIDPipe) invoiceId: string,
+    @Param('lineId', ParseUUIDPipe) lineId: string,
+    @Req() req: FastifyRequest,
+    @ZodBody(WaivePenaltyRequest) body: WaivePenaltyInput,
+  ): Promise<{ invoiceId: string; newTotal: string }> {
+    return this.discounts.waivePenalty({
+      invoiceId,
+      lineId,
+      input: body,
+      ctx: auditContext(req),
+    });
   }
 }

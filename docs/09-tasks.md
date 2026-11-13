@@ -307,10 +307,15 @@
   - Worker: `billing.invoices-generate` cron job (`5 0 1 * *`) idempotent oylik invoice generatsiyasi.
   - Integratsiya testlari: `billing.int.test.ts` (11 ta test: RBAC, avto-generatsiya, idempotensiya, qidiruv, ledger va balans, DB `forbid_mutation()` trigger immutability).
 
-### ⬜ T-203 · Chegirma, muzlatish, jarima
+### ✅ T-203 · Chegirma, muzlatish, jarima
 
 - **Bog'liq:** T-202, T-119 · **Talablar:** FR-PAY-6, BR-8, 9, 10, 18
 - **AC:** chegirma (Admin limiti; undan yuqori — T-119 so'rovi orqali), freeze → kredit, oy yakunida jarima qatorlari (sozlamaga ko'ra), Admin bekor qilishi (sabab, audit); sozlamalar UI.
+- **Bajarildi (2026-11-13):**
+  - `@lg/contracts`: `SetEnrollmentDiscountRequest`, `WaivePenaltyRequest`.
+  - `@lg/api`: `apps/api/src/modules/billing/` chegirma boshqaruvi (`PATCH /api/billing/enrollments/:id/discount`, `discount.grant` ruxsati bilan). Admin chegirma limiti (`adminDiscountLimitPercent`, BR-18) avtomatik tekshiriladi; limitdan oshganda `403` qaytarilib T-119 tasdiqlash so'rovi talab etiladi, Director uchun cheklovsiz.
+  - Jarimani bekor qilish (`POST /api/billing/invoices/:invoiceId/lines/:lineId/waive`, `penalty.waive` ruxsati bilan). Jarima qatori o'chiriladi, invoice total qayta hisoblanadi, ledgerga kamayish yoziladi (`entryType: 'discount'`), audit jurnali saqlanadi.
+  - Integratsiya testlari: `discounts.int.test.ts` (8 ta test: RBAC, limit tekshiruvi, Director istisnosi, noto'g'ri line xatosi, invoice va ledger kamayishi, audit jurnali).
 
 ### ✅ T-204 · To'lov kiritish (Admin, web)
 

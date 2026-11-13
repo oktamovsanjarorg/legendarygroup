@@ -149,3 +149,14 @@ export const PaymentListQuery = z.object({
   cursor: z.string().optional(),
 });
 export type PaymentListQueryInput = z.infer<typeof PaymentListQuery>;
+
+export const SetEnrollmentDiscountRequest = z.object({
+  percent: z.number().int().min(0).max(100),
+  reason: z.string().trim().min(3).max(500),
+});
+export type SetEnrollmentDiscountInput = z.infer<typeof SetEnrollmentDiscountRequest>;
+
+export const WaivePenaltyRequest = z.object({
+  reason: z.string().trim().min(3).max(500),
+});
+export type WaivePenaltyInput = z.infer<typeof WaivePenaltyRequest>;

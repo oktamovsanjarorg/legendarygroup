@@ -3,16 +3,19 @@ import { AuditModule } from '../../common/audit/audit.module.js';
 import { ClockModule } from '../../common/clock/clock.module.js';
 import { DbModule } from '../../common/db/db.module.js';
 import { SchedulerModule } from '../../common/scheduler/scheduler.module.js';
+import { SettingsModule } from '../settings/index.js';
 import { StudentsModule } from '../students/index.js';
 import { BillingGeneratorService } from './billing-generator.service.js';
 import { BillingController } from './billing.controller.js';
 import { BillingCron } from './billing.cron.js';
 import { BillingRepository } from './billing.repository.js';
 import { BillingService } from './billing.service.js';
+import { DiscountsRepository } from './discounts.repository.js';
+import { DiscountsService } from './discounts.service.js';
 import { PaymentsService } from './payments.service.js';
 
 @Module({
-  imports: [DbModule, AuditModule, ClockModule, SchedulerModule, StudentsModule],
+  imports: [DbModule, AuditModule, ClockModule, SchedulerModule, StudentsModule, SettingsModule],
   controllers: [BillingController],
   providers: [
     BillingRepository,
@@ -20,7 +23,16 @@ import { PaymentsService } from './payments.service.js';
     BillingService,
     BillingCron,
     PaymentsService,
+    DiscountsRepository,
+    DiscountsService,
   ],
-  exports: [BillingService, BillingRepository, BillingGeneratorService, PaymentsService],
+  exports: [
+    BillingService,
+    BillingRepository,
+    BillingGeneratorService,
+    PaymentsService,
+    DiscountsService,
+    DiscountsRepository,
+  ],
 })
 export class BillingModule {}
