@@ -2,15 +2,18 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   attendance,
   type AttendanceRow,
+  courses,
   type Database,
   enrollments,
   groups,
   lessons,
   type NewAttendanceRow,
+  roles,
   students,
+  userRoles,
   users,
 } from '@lg/db';
-import { and, desc, eq, gte, isNull, lte, or } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface EnrichedAttendanceRow extends AttendanceRow {
@@ -144,5 +147,51 @@ export class AttendanceRepository {
           });
       }
     });
+  }
+
+  async findUnmarkedLessons(params: { date?: string; branchId?: string }) {
+    const conds = [eq(lessons.status, 'scheduled'), isNull(attendance.id)];
+    if (params.date) {
+      conds.push(eq(lessons.date, params.date));
+    } else {
+      conds.push(lte(lessons.date, sql`CURRENT_DATE`));
+    }
+    if (params.branchId) {
+      conds.push(eq(groups.branchId, params.branchId));
+    }
+
+    return this.db
+      .select({
+        lessonId: lessons.id,
+        groupId: lessons.groupId,
+        groupName: groups.name,
+        courseName: courses.name,
+        teacherId: lessons.teacherId,
+        teacherName: users.fullName,
+        date: lessons.date,
+        startTime: lessons.startTime,
+        endTime: lessons.endTime,
+      })
+      .from(lessons)
+      .innerJoin(groups, eq(groups.id, lessons.groupId))
+      .innerJoin(courses, eq(courses.id, groups.courseId))
+      .innerJoin(users, eq(users.id, lessons.teacherId))
+      .leftJoin(attendance, eq(attendance.lessonId, lessons.id))
+      .where(and(...conds))
+      .groupBy(lessons.id, groups.id, courses.id, users.id)
+      .orderBy(desc(lessons.date), desc(lessons.startTime));
+  }
+
+  async findAdminUsers() {
+    return this.db
+      .select({
+        id: users.id,
+        fullName: users.fullName,
+        telegramId: users.telegramId,
+      })
+      .from(users)
+      .innerJoin(userRoles, eq(userRoles.userId, users.id))
+      .innerJoin(roles, eq(roles.id, userRoles.roleId))
+      .where(and(eq(users.status, 'active'), inArray(roles.code, ['admin', 'director'])));
   }
 }

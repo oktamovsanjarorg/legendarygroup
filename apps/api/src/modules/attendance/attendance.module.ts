@@ -15,6 +15,7 @@ import { AbsenceNoticesService } from './absence-notices.service.js';
 import { AttendanceController } from './attendance.controller.js';
 import { AttendanceNoticeProcessor } from './attendance-notice.processor.js';
 import { AttendanceNoticeService } from './attendance-notice.service.js';
+import { AttendanceCron } from './attendance.cron.js';
 import { AttendanceRepository } from './attendance.repository.js';
 import { AttendanceService } from './attendance.service.js';
 
@@ -39,6 +40,7 @@ import { AttendanceService } from './attendance.service.js';
     AttendanceNoticeProcessor,
     AbsenceNoticesRepository,
     AbsenceNoticesService,
+    AttendanceCron,
   ],
   exports: [
     AttendanceService,

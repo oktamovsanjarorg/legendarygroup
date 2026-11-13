@@ -82,3 +82,31 @@ export const StudentAttendanceHistoryQuery = z.object({
     .optional(),
 });
 export type StudentAttendanceHistoryQueryInput = z.infer<typeof StudentAttendanceHistoryQuery>;
+
+export const UnmarkedLessonsQuerySchema = z.object({
+  branchId: z.string().uuid().optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+});
+export type UnmarkedLessonsQuery = z.infer<typeof UnmarkedLessonsQuerySchema>;
+
+export const UnmarkedLessonItemSchema = z.object({
+  lessonId: z.string().uuid(),
+  groupId: z.string().uuid(),
+  groupName: z.string(),
+  courseName: z.string(),
+  teacherId: z.string().uuid(),
+  teacherName: z.string(),
+  date: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  minutesPassed: z.number(),
+});
+export type UnmarkedLessonItem = z.infer<typeof UnmarkedLessonItemSchema>;
+
+export const UnmarkedLessonsResponseSchema = z.object({
+  items: z.array(UnmarkedLessonItemSchema),
+});
+export type UnmarkedLessonsResponse = z.infer<typeof UnmarkedLessonsResponseSchema>;

@@ -241,7 +241,7 @@
 
 - **Bog'liq:** T-111 · **Talablar:** FR-ATT-4, 5
 - **AC:** guruh × sana jadval ko'rinishi, o'tgan davomatni sabab bilan o'zgartirish (audit), belgilanmagan darslar ro'yxati; worker: 30 daq → ustozga, 2 soat → Admin'ga eslatma.
-- **Backend bajarildi (2026-11-13):** Admin uchun o'tgan kun davomatini `changeReason` bilan o'zgartirish (`attendance.edit_past`), audit logi, dars va o'quvchi davomat tarixi API. Qolgan: Web UI va eslatma cron jobi.
+- **Backend bajarildi (2026-11-14):** Admin uchun o'tgan kun davomatini `changeReason` bilan o'zgartirish (`attendance.edit_past`), audit logi, dars va o'quvchi davomat tarixi API; `GET /api/attendance/unmarked` belgilanmagan darslar ro'yxati (W-12); `AttendanceCron` va `AttendanceService.sendAttendanceReminders` (FR-ATT-5: 30 daq ustozga, 2 soat adminga eslatma). Qolgan: Web UI.
 
 ### ✅ T-113 · "Kelmadi/kech qoldi" xabari ota-onaga
 

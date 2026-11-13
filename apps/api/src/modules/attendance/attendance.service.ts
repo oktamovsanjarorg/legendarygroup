@@ -5,12 +5,15 @@ import type {
   LessonAttendance,
   MarkAttendanceInput,
   StudentAttendanceHistoryQueryInput,
+  UnmarkedLessonItem,
+  UnmarkedLessonsQuery,
 } from '@lg/contracts';
 import { canEditAttendance, type Clock } from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
+import { NotificationsService } from '../notifications/index.js';
 import { GroupScopeService } from '../org/index.js';
 import { OutboxService } from '../outbox/index.js';
 import { StudentScopeService } from '../students/index.js';
@@ -29,6 +32,7 @@ export class AttendanceService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(OutboxService) private readonly outbox: OutboxService,
     @Inject(AbsenceNoticesRepository) private readonly absenceRepo: AbsenceNoticesRepository,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   /** Dars davomati ma'lumotlari va kutilayotgan o'quvchilar ro'yxati (FR-ATT-1). */
@@ -219,5 +223,86 @@ export class AttendanceService {
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
     };
+  }
+
+  async getUnmarkedLessons(
+    user: RequestUser,
+    query: UnmarkedLessonsQuery,
+  ): Promise<{ items: UnmarkedLessonItem[] }> {
+    const branchId = user.role === 'admin' || user.role === 'director' ? query.branchId : undefined;
+    const rows = await this.repo.findUnmarkedLessons({
+      date: query.date,
+      branchId,
+    });
+
+    const now = this.clock.now();
+    const items: UnmarkedLessonItem[] = [];
+
+    for (const r of rows) {
+      const lessonStartTime = new Date(`${r.date}T${r.startTime}`);
+      const minutesPassed = Math.floor((now.getTime() - lessonStartTime.getTime()) / 60000);
+
+      if (minutesPassed > 0) {
+        items.push({
+          lessonId: r.lessonId,
+          groupId: r.groupId,
+          groupName: r.groupName,
+          courseName: r.courseName,
+          teacherId: r.teacherId ?? '',
+          teacherName: r.teacherName ?? '',
+          date: r.date,
+          startTime: r.startTime,
+          endTime: r.endTime,
+          minutesPassed,
+        });
+      }
+    }
+
+    return { items };
+  }
+
+  async sendAttendanceReminders(): Promise<{ teacherReminders: number; adminReminders: number }> {
+    const now = this.clock.now();
+    const today = now.toISOString().slice(0, 10);
+    const unmarked = await this.repo.findUnmarkedLessons({ date: today });
+
+    let teacherReminders = 0;
+    let adminReminders = 0;
+    const admins = await this.repo.findAdminUsers();
+
+    for (const lesson of unmarked) {
+      const lessonStartTime = new Date(`${lesson.date}T${lesson.startTime}`);
+      const minutesPassed = Math.floor((now.getTime() - lessonStartTime.getTime()) / 60000);
+
+      if (lesson.teacherId && minutesPassed >= 30 && minutesPassed < 120) {
+        await this.notifications.notify({
+          userId: lesson.teacherId,
+          type: 'announcement',
+          payload: {
+            title: '⏰ Davomat belgilanmagan',
+            message: `${lesson.groupName} guruhida dars boshlanganiga ${minutesPassed} daqiqa boʻldi. Iltimos, davomatni belgilang.`,
+          },
+          dedupeKey: `att_rem_teacher_${lesson.lessonId}_${lesson.date}`,
+        });
+        teacherReminders += 1;
+      }
+
+      if (minutesPassed >= 120) {
+        for (const admin of admins) {
+          await this.notifications.notify({
+            userId: admin.id,
+            type: 'announcement',
+            payload: {
+              title: '⏰ Davomat belgilanmagan (ogohlantirish)',
+              message: `${lesson.teacherName} (${lesson.groupName}) dars boshlanganidan 2 soat oʻtsa ham davomat belgilanmadi.`,
+            },
+            dedupeKey: `att_rem_admin_${admin.id}_${lesson.lessonId}_${lesson.date}`,
+          });
+          adminReminders += 1;
+        }
+      }
+    }
+
+    return { teacherReminders, adminReminders };
   }
 }

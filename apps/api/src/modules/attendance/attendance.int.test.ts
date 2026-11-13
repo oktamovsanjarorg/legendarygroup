@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { AttendanceService } from './attendance.service.js';
 
 let t: TestApp;
 let db: Database;
@@ -232,5 +233,23 @@ describe('T-111, T-112, T-113 Davomat tizimi (BR-29, BR-30, BR-31, BR-32)', () =
   it('ota-ona begona oʻquvchining davomat tarixini koʻra olmaydi (IDOR himoyasi — 404)', async () => {
     const res = await call('GET', `attendance/history?studentId=${foreignStudentId}`, parentToken);
     expect(res.statusCode).toBe(404);
+  });
+
+  it('FR-ATT-5 Admin belgilanmagan darslar roʻyxatini koʻra oladi (W-12)', async () => {
+    const adminToken = tokens.get('admin')!;
+    const res = await call('GET', 'attendance/unmarked', adminToken);
+    expect(res.statusCode).toBe(200);
+    const body = res.json<{ items: { lessonId: string; groupName: string }[] }>();
+    expect(Array.isArray(body.items)).toBe(true);
+
+    const teacherRes = await call('GET', 'attendance/unmarked', teacherToken);
+    expect(teacherRes.statusCode).toBe(403);
+  });
+
+  it('FR-ATT-5 Davomat eslatmalari yuborish servisi (AttendanceCron)', async () => {
+    const service = t.app.get(AttendanceService);
+    const result = await service.sendAttendanceReminders();
+    expect(result).toHaveProperty('teacherReminders');
+    expect(result).toHaveProperty('adminReminders');
   });
 });

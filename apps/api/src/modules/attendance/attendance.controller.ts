@@ -6,6 +6,9 @@ import {
   type MarkAttendanceInput,
   StudentAttendanceHistoryQuery,
   type StudentAttendanceHistoryQueryInput,
+  type UnmarkedLessonItem,
+  type UnmarkedLessonsQuery,
+  UnmarkedLessonsQuerySchema,
 } from '@lg/contracts';
 import type { FastifyRequest } from 'fastify';
 import { Audit, NoAudit } from '../../common/audit/audit.decorator.js';
@@ -54,5 +57,16 @@ export class AttendanceController {
     @ZodQuery(StudentAttendanceHistoryQuery) query: StudentAttendanceHistoryQueryInput,
   ) {
     return this.attendance.getStudentHistory(user, query);
+  }
+
+  @Get('unmarked')
+  @RequirePermission('attendance.edit_past')
+  @NoAudit('GET query')
+  @ApiOperation({ summary: 'FR-ATT-5 Belgilanmagan darslar roʻyxati (W-12)' })
+  async getUnmarkedLessons(
+    @CurrentUser() user: RequestUser,
+    @ZodQuery(UnmarkedLessonsQuerySchema) query: UnmarkedLessonsQuery,
+  ): Promise<{ items: UnmarkedLessonItem[] }> {
+    return this.attendance.getUnmarkedLessons(user, query);
   }
 }
