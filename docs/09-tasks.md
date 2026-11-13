@@ -430,7 +430,7 @@
 - **Bog'liq:** T-401, T-202 · **Talablar:** FR-SAL-1…5
 - **AC:** shartnoma UI (Director), oylik hisob qoralamasi (tafsilot: qaysi o'quvchidan qancha), bonus/jarima, tasdiqlash, "to'landi", avans; Ustoz Mini App'da o'zining hisobini ko'radi; tasdiqlangandan keyin o'zgartirish faqat tuzatish yozuvi bilan.
 
-### ⬜ T-403 · Xarajatlar va P&L
+### ✅ T-403 · Xarajatlar va P&L
 
 - **Bog'liq:** T-202 · **Talablar:** FR-FIN-1…3
 - **AC:** xarajat CRUD (chek rasmi), kategoriyalar, oylik P&L (tushum − xarajat − oylik), `finance.view` ruxsati.
