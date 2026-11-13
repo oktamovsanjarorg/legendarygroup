@@ -1,5 +1,6 @@
 /** Web panel — F1 ekranlari (W-04…W-12, W-28, W-29, W-33; docs/ux/screens.md §2). */
 import { webF1OrgMessages } from './web-f1-org.js';
+import { webF1StudentsMessages } from './web-f1-students.js';
 
 export const webF1Messages = {
   menu: {
@@ -48,50 +49,7 @@ export const webF1Messages = {
     revenueChart: 'Tushum (kunlar boʻyicha)',
     todayLessons: 'Bugungi darslar',
   },
-  students: {
-    title: 'Oʻquvchilar',
-    new: 'Yangi oʻquvchi',
-    filters: { active: 'Faol', debtors: 'Qarzdorlar', frozen: 'Muzlatilgan', archived: 'Arxiv' },
-    cols: {
-      name: 'F.I.Sh',
-      code: 'ID',
-      groups: 'Guruhlar',
-      guardian: 'Ota-ona',
-      debt: 'Qarz',
-      status: 'Holat',
-    },
-    status: { active: 'Faol', frozen: 'Muzlatilgan', archived: 'Arxiv' },
-    empty: 'Oʻquvchi topilmadi',
-    emptyHint: 'Filtrni oʻzgartiring yoki yangi oʻquvchi qoʻshing.',
-  },
-  studentCard: {
-    tabs: {
-      info: 'Maʼlumot',
-      groups: 'Guruhlar',
-      attendance: 'Davomat',
-      grades: 'Baholar',
-      ledger: 'Hisob',
-      receipts: 'Cheklar',
-    },
-    birthDate: 'Tugʻilgan sana',
-    school: 'Maktab / sinf',
-    guardians: 'Ota-onalar',
-    telegram: 'Telegram',
-    linked: 'Ulangan',
-    notLinked: 'Ulanmagan',
-    discount: 'Chegirma berish',
-    freeze: 'Muzlatish',
-    enroll: 'Guruhga yozish',
-    since: '{date} dan',
-    left: '{date} da chiqqan',
-    ledgerCols: {
-      date: 'Sana',
-      what: 'Yozuv',
-      debit: 'Hisoblandi',
-      credit: 'Toʻlandi',
-      balance: 'Qoldiq',
-    },
-  },
+  ...webF1StudentsMessages,
   linkRequests: {
     title: 'Bogʻlanish soʻrovlari',
     hint: 'Botda telefon ulashgan, lekin bazada topilmagan raqamlar.',
