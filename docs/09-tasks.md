@@ -93,10 +93,11 @@
 - **AC:** grammY, webhook (`secret_token`), lokal — long polling; `/start`, `/help`, menyu tugmasi → Mini App; xatolarni Sentry'ga; xabar yuborish faqat worker navbati orqali (25 msg/s limiter, 429 `retry_after`, bloklangan foydalanuvchini belgilash).
 - **Aniqlik:** webhook `update_id` Redis'da 24 soat saqlanadi — takroriy update e'tiborsiz qoldiriladi. **Bajarildi (2026-11-11):** `apps/bot` (grammY, `BOT_MODE` polling/webhook, `secret_token`, `/start` `/help`, menyu tugmasi — faqat HTTPS URL'da, lokal http'da oddiy havola); chiquvchi xabarlar — `TelegramOutbox.enqueue()` → worker `TelegramSender` (25/s, chatga 1/s, 429 `retry_after`, 403 → `TelegramChatBlocked` event, 4xx → dead-letter). Sentry — T-016 (hozircha strukturali log). Haqiqiy ishga tushirish uchun BotFather tokeni kerak (10-open-questions: egasidan).
 
-### ⬜ T-011 · Dockerfile'lar va compose (staging/prod)
+### 🟨 T-011 · Dockerfile'lar va compose (staging/prod)
 
 - **Bog'liq:** T-004, T-005, T-009, T-010
 - **AC:** multi-stage, non-root, healthcheck, arm64+amd64; `compose.staging.yml`, `compose.prod.yml`; Caddy (TLS avtomatik, marshrutlar `/api`, `/bot/webhook`, `/`, `/app`, xavfsizlik headerlari); image hajmi api ≤ 250 MB.
+- **Bajarildi (2026-11-13, amd64 da sinalgan):** `infra/docker/Dockerfile` (targetlar api/worker/bot/web; cross-build — deps/build `BUILDPLATFORM`da, native paketlar `TARGETARCH` uchun), `infra/caddy/Caddyfile` (TLS avtomatik, `/api` `/bot/webhook` `/app` `/`, HSTS/CSP/X-Frame, admin o'chiq, `/internal` va Bull Board tashqariga chiqmaydi), `compose.prod.yml` + `compose.staging.yml` qatlami (Postgres konteynerda), `migrate` servisi (`cli db:migrate`: migratsiya + seed + ilova login'iga `lg_app`), `deploy.env.example`. Hamma o'zgaruvchi `${X:?}` — standartsiz. Lokal smoke: barcha servislar healthy, marshrutlar va sarlavhalar tekshirildi, ilova DB login'i audit'ni o'zgartira olmaydi. Hajm: api siqilgan 119 MB (ochilgan 467 MB, shundan 257 MB — `node:slim` asosi). **Qolgan:** arm64 build — `pnpm fetch` arm64 bosqichida segfault (izolyatsiyada takrorlanmadi; CI'da `--no-cache` bilan tekshiriladi, T-013); bot haqiqiy token/domen bilan (BotFather — egasidan).
 
 ### ⬜ T-012 · AWS infratuzilma (Terraform/OpenTofu)
 

@@ -1,0 +1,144 @@
+# Legendary Group — production (T-011, 06 §2–3). EC2 (Graviton) + RDS + S3.
+#
+#   docker compose --env-file /etc/lg/prod.env -f compose.prod.yml up -d
+#
+# Staging xuddi shu fayl + `compose.staging.yml` qatlami (Postgres konteynerda) — konfiguratsiya
+# prod bilan bir xil qoladi. O'zgaruvchilar ro'yxati: `infra/docker/deploy.env.example`.
+#
+# Qoidalar:
+# - Yashirin standart qiymat yo'q: har o'zgaruvchi `${X:?}` — berilmasa compose ishga tushmaydi.
+# - Har servisga faqat o'ziga kerak sirlar (bot JWT sirini, api webhook sirini ko'rmaydi).
+# - Tashqariga faqat Caddy (80/443). api/worker/bot/redis — ichki tarmoqda.
+# - Image tegi — git sha yoki semver; `latest` ishlatilmaydi.
+name: lg-prod
+
+x-service: &service
+  restart: unless-stopped
+  init: true
+  security_opt: ['no-new-privileges:true']
+  logging:
+    driver: json-file
+    options: { max-size: '10m', max-file: '5' }
+
+x-node-env: &node-env
+  NODE_ENV: ${NODE_ENV:?}
+  LOG_LEVEL: ${LOG_LEVEL:?}
+
+x-api-env: &api-env
+  <<: *node-env
+  DATABASE_URL: ${DATABASE_URL:?}
+  REDIS_URL: redis://redis:6379
+  INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:?}
+  TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?}
+  TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:?}
+  PUBLIC_APP_URL: https://${APP_DOMAIN:?}
+  CORS_ORIGINS: https://${APP_DOMAIN:?}
+  JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?}
+  TOTP_ENCRYPTION_KEY: ${TOTP_ENCRYPTION_KEY:?}
+  S3_REGION: ${S3_REGION:?}
+  S3_BUCKET_FILES: ${S3_BUCKET_FILES:?}
+
+services:
+  caddy:
+    <<: *service
+    image: ${LG_REGISTRY:?}/lg-web:${LG_TAG:?}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?}
+      ACME_EMAIL: ${ACME_EMAIL:?}
+    volumes:
+      # Sertifikatlar — yo'qolsa Let's Encrypt limitiga urilish mumkin, shuning uchun doimiy.
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api: { condition: service_healthy }
+    deploy:
+      resources: { limits: { memory: 256M, cpus: '0.5' } }
+
+  # Bir martalik: migratsiya + rollar seed'i + ilova login'iga `lg_app`. Idempotent.
+  migrate:
+    <<: *service
+    restart: 'no'
+    image: ${LG_REGISTRY:?}/lg-api:${LG_TAG:?}
+    command: ['node', 'dist/cli.js', 'db:migrate']
+    environment:
+      NODE_ENV: ${NODE_ENV:?}
+      # Jadval egasi (DDL huquqi) — faqat shu servisda. Ilova `APP_DB_LOGIN` bilan ulanadi.
+      DATABASE_URL: ${MIGRATION_DATABASE_URL:?}
+      APP_DB_LOGIN: ${APP_DB_LOGIN:?}
+    healthcheck: { disable: true }
+
+  api:
+    <<: *service
+    image: ${LG_REGISTRY:?}/lg-api:${LG_TAG:?}
+    environment:
+      <<: *api-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    deploy:
+      resources: { limits: { memory: 768M, cpus: '1.0' } }
+
+  worker:
+    <<: *service
+    image: ${LG_REGISTRY:?}/lg-worker:${LG_TAG:?}
+    environment:
+      <<: *api-env
+      # Bull Board — faqat ichki tarmoq (SSM port-forward orqali), basic auth bilan.
+      BULL_BOARD_USER: ${BULL_BOARD_USER:?}
+      BULL_BOARD_PASSWORD: ${BULL_BOARD_PASSWORD:?}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    deploy:
+      resources: { limits: { memory: 768M, cpus: '1.0' } }
+
+  bot:
+    <<: *service
+    image: ${LG_REGISTRY:?}/lg-bot:${LG_TAG:?}
+    environment:
+      <<: *node-env
+      BOT_MODE: webhook
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?}
+      TELEGRAM_BOT_WEBHOOK_SECRET: ${TELEGRAM_BOT_WEBHOOK_SECRET:?}
+      TELEGRAM_MINIAPP_URL: https://${APP_DOMAIN:?}/app/
+      REDIS_URL: redis://redis:6379
+      API_INTERNAL_URL: http://api:3000
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:?}
+    depends_on:
+      api: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    deploy:
+      resources: { limits: { memory: 256M, cpus: '0.5' } }
+
+  redis:
+    <<: *service
+    image: redis:7.4-alpine
+    # AOF — navbat qayta ishga tushganda saqlanadi; `noeviction` — BullMQ talabi.
+    command:
+      [
+        'redis-server',
+        '--appendonly',
+        'yes',
+        '--maxmemory',
+        '256mb',
+        '--maxmemory-policy',
+        'noeviction',
+      ]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources: { limits: { memory: 384M, cpus: '0.5' } }
+
+volumes:
+  caddy_data:
+  caddy_config:
+  redis_data:
