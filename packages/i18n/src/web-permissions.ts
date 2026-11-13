@@ -1,0 +1,42 @@
+/**
+ * Ruxsat kodlari uchun ko'rinadigan nomlar (docs/02-roles-permissions.md §4 "Tavsif" ustuni).
+ * Kalitlar to'liqligi `apps/web` da `Record<Permission, string>` orqali tekshiriladi
+ * (i18n paketi contracts'ga bog'liq emas).
+ */
+export const permissionLabels = {
+  'staff.manage': 'Xodim qoʻshish, bloklash',
+  'staff.permissions': 'Ruxsat berish va olish',
+  'settings.manage': 'Tizim sozlamalari, rekvizitlar, shablonlar',
+  'audit.view': 'Audit jurnali',
+  'course.manage': 'Kurs va xonalar',
+  'group.manage': 'Guruh, jadval, ustoz biriktirish',
+  'group.view': 'Guruhlarni koʻrish',
+  'lesson.manage': 'Darsni bekor qilish, koʻchirish, oʻrinbosar',
+  'student.manage': 'Oʻquvchi, ota-ona, guruhga yozish, muzlatish',
+  'student.view': 'Oʻquvchi kartochkasi',
+  'lead.manage': 'Lidlar',
+  'attendance.mark': 'Davomat belgilash',
+  'attendance.edit_past': 'Oʻtgan davomatni oʻzgartirish',
+  'absence.notify': '«Kela olmaydi» xabari',
+  'grade.write': 'Baho va izoh',
+  'test.manage': 'Test, Excel import, eʼlon qilish',
+  'results.view': 'Baho va test natijalari',
+  'payment.create': 'Toʻlov kiritish (naqd, terminal)',
+  'payment.submit': 'Oʻtkazma chekini yuborish',
+  'payment.review': 'Chekni tasdiqlash yoki rad etish',
+  'payment.reverse': 'Storno',
+  'payment.refund': 'Pulni qaytarish',
+  'discount.grant': 'Chegirma',
+  'penalty.waive': 'Jarimani bekor qilish',
+  'billing.view': 'Qarz, balans, toʻlovlar tarixi',
+  'cash.close': 'Kassani kunlik yopish',
+  'expense.manage': 'Xarajatlar',
+  'finance.view': 'Foyda-zarar, tushum hisobotlari, prognoz',
+  'payroll.manage': 'Ustoz shartnomasi va oylik hisobi',
+  'payroll.view_own': 'Oʻz oyligini koʻrish',
+  'announcement.send': 'Ommaviy eʼlon',
+  'ticket.handle': 'Ota-ona murojaatlariga javob',
+  'ticket.create': 'Murojaat yuborish',
+  'stats.operational': 'Davomat va natija statistikasi',
+  'approval.decide': 'Tasdiqlash soʻrovlarini hal qilish',
+} as const;

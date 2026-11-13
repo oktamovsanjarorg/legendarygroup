@@ -1,12 +1,15 @@
 import { webF1Messages } from './web-f1.js';
 import { webF2Messages } from './web-f2.js';
 import { webF3Messages } from './web-f3.js';
+import { permissionLabels } from './web-permissions.js';
 
 /** Web panel matnlari (W-*, docs/ux/screens.md). */
 export const webMessages = {
   ...webF1Messages,
   ...webF2Messages,
   ...webF3Messages,
+  /** Ruxsat nomlari (02 §4) — W-28 override ro'yxati. */
+  permissions: permissionLabels,
   appTitle: 'Legendary Group — boshqaruv paneli',
   login: {
     title: 'Tizimga kirish',

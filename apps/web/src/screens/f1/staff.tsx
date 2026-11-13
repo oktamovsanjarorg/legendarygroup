@@ -6,7 +6,8 @@ export interface StaffRow {
   id: string;
   name: string;
   phone: string;
-  role: keyof typeof t.roles;
+  /** FR-AUTH-5: bir xodimda bir nechta rol bo'lishi mumkin. */
+  roles: readonly (keyof typeof t.roles)[];
   status: keyof typeof t.staff.status;
   lastLogin?: Date;
   /** 02 §4 override soni. */
@@ -36,7 +37,12 @@ const columns: ColumnDef<StaffRow, unknown>[] = [
     enableSorting: false,
     cell: ({ row }) => formatPhone(row.original.phone),
   },
-  { accessorKey: 'role', header: t.staff.cols.role, cell: ({ row }) => t.roles[row.original.role] },
+  {
+    id: 'roles',
+    header: t.staff.cols.role,
+    enableSorting: false,
+    cell: ({ row }) => row.original.roles.map((r) => t.roles[r]).join(', '),
+  },
   {
     accessorKey: 'status',
     header: t.staff.cols.status,
@@ -55,10 +61,14 @@ const columns: ColumnDef<StaffRow, unknown>[] = [
 /** W-28 Xodimlar (T-101): taklif, bloklash, rol, ruxsat override (02 §4). */
 export function StaffView({
   rows,
+  loading,
+  error,
   onInvite,
   onOpen,
 }: {
   rows: readonly StaffRow[];
+  loading?: boolean;
+  error?: { message: string; requestId?: string; onRetry: () => void };
   onInvite: () => void;
   onOpen: (s: StaffRow) => void;
 }) {
@@ -77,7 +87,9 @@ export function StaffView({
         columns={columns}
         data={rows}
         getRowId={(r) => r.id}
-        empty={{ title: '—' }}
+        loading={loading}
+        error={error}
+        empty={{ title: t.staff.empty }}
         onRowClick={onOpen}
       />
     </>
