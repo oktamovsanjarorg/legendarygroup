@@ -18,4 +18,5 @@ export * from './grades.js';
 export * from './tests.js';
 export * from './payroll.js';
 export * from './expenses.js';
+export * from './notifications.js';
 export * from './relations.js';
