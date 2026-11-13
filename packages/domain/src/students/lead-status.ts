@@ -1,15 +1,11 @@
+import { LEAD_STATUS_FLOW } from '@lg/contracts';
+
 /**
  * Lid holatlari (FR-STU-4, T-107): yangi → qo'ng'iroq qilindi → sinovga keldi → yozildi / rad etdi.
  * `won` — faqat o'quvchiga aylantirish orqali (ma'lumot ko'chadi), qo'lda qo'yilmaydi.
  * Rad etilgan lid qayta ochilishi mumkin (`new`).
  */
-export const LEAD_STATUS_FLOW = {
-  new: ['contacted', 'trial', 'lost'],
-  contacted: ['trial', 'lost'],
-  trial: ['contacted', 'lost'],
-  lost: ['new'],
-  won: [],
-} as const satisfies Record<string, readonly string[]>;
+export { LEAD_STATUS_FLOW };
 
 export type LeadStatusCode = keyof typeof LEAD_STATUS_FLOW;
 

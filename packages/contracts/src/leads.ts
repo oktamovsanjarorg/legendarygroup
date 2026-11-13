@@ -6,6 +6,22 @@ import { ACQUISITION_SOURCES, CreateStudentRequest, PhoneInput } from './student
 export const LEAD_STATUSES = ['new', 'contacted', 'trial', 'won', 'lost'] as const;
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
 
+/**
+ * Lid holatlari oqimi (FR-STU-4): yangi → bog'lanildi → sinov → yozildi / rad etdi.
+ * `won` — faqat o'quvchiga aylantirish orqali; rad etilgan lid qayta ochilishi mumkin (`new`).
+ * API (`@lg/domain`) va UI (W-08 tugmalari) bitta jadvaldan.
+ */
+export const LEAD_STATUS_FLOW = {
+  new: ['contacted', 'trial', 'lost'],
+  contacted: ['trial', 'lost'],
+  trial: ['contacted', 'lost'],
+  lost: ['new'],
+  won: [],
+} as const satisfies Record<LeadStatus, readonly LeadStatus[]>;
+
+/** 409 `LEAD_EXISTS` xatosining `details` maydoni. */
+export const LeadExistsDetails = z.object({ leadId: z.string() });
+
 const FullName = z.string().trim().min(2).max(120);
 const Notes = z.string().trim().max(2000);
 const IsoDate = z.iso.date();

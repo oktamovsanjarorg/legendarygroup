@@ -1,4 +1,5 @@
 /** Web panel — F1 ekranlari (W-04…W-12, W-28, W-29, W-33; docs/ux/screens.md §2). */
+import { webF1LeadsMessages } from './web-f1-leads.js';
 import { webF1OrgMessages } from './web-f1-org.js';
 import { webF1StudentsMessages } from './web-f1-students.js';
 
@@ -58,20 +59,7 @@ export const webF1Messages = {
     reject: 'Rad etish',
     empty: 'Yangi soʻrov yoʻq',
   },
-  leads: {
-    title: 'Lidlar',
-    stages: {
-      new: 'Yangi',
-      contacted: 'Bogʻlanildi',
-      trial: 'Sinov darsi',
-      won: 'Oʻquvchi boʻldi',
-      lost: 'Yoʻqotildi',
-    },
-    trialAt: 'Sinov: {date}',
-    convert: 'Oʻquvchiga aylantirish',
-    source: 'Manba: {s}',
-    sources: 'Manbalar (oy)',
-  },
+  ...webF1LeadsMessages,
   ...webF1OrgMessages,
   attendanceGrid: {
     title: 'Davomat',

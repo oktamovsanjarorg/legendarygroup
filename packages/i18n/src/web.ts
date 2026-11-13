@@ -72,5 +72,6 @@ export const webMessages = {
     forbiddenTitle: 'Bu sahifa siz uchun emas',
     forbiddenAction: 'Bosh sahifaga',
     notFound: 'Sahifa topilmadi',
+    crashed: 'Sahifani koʻrsatishda xatolik yuz berdi. Qayta urinib koʻring.',
   },
 } as const;
