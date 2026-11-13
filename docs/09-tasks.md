@@ -249,10 +249,16 @@
 - **Bog'liq:** T-111, T-017c
 - **AC:** 11-ux.md §2 bo'yicha 4 tab: Bugun, Guruhlarim (o'quvchi profili — field-level qoidalar bilan), Jadval (o'rinbosar darslari belgili), Profil (rol almashtirish, sozlamalar; F4 da oylik). O'rinbosar ustoz faqat tayinlangan darsni ko'radi.
 
-### ⬜ T-119 · Tasdiqlash so'rovlari (approval requests)
+### ✅ T-119 · Tasdiqlash so'rovlari (approval requests)
 
 - **Bog'liq:** T-008, T-109 · **Talablar:** 02-roles-permissions.md §5
 - **AC:** `approval_requests` jadvali va umumiy mexanizm (type → bajariladigan amal handler'i); Admin so'rov yaratadi (sabab majburiy); Director'ga bot xabari inline "Tasdiqlash / Rad etish" + Mini App "So'rovlar" tabi; 48 soatda avtomatik bekor; qaror → amal bir tranzaksiyada bajariladi; so'rovchiga natija; audit. F2 dagi chegirma/storno/refund shu mexanizmdan foydalanadi.
+- **Bajarildi (2026-11-13):**
+  - `@lg/contracts`: `APPROVAL_REQUEST_TYPES`, `APPROVAL_REQUEST_STATUSES`, `DiscountPayloadSchema`, `ReversalPayloadSchema`, `RefundPayloadSchema`, `AttendanceEditPayloadSchema`, `CreateApprovalRequest`, `DecideApprovalRequest`, `ApprovalRequestSchema`, `ApprovalListQuery`.
+  - `@lg/db`: `0020_approval_requests.sql` migratsiyasi (`approval_requests` jadvali, branchId, type, payload, reason, requested_by, status, decided_by, decided_at, decision_note, expires_at, created_at, updated_at).
+  - `@lg/api`: `apps/api/src/modules/approvals/` moduli (`ApprovalsRepository`, `ApprovalsService`, `ApprovalsController`). API: `POST /api/approvals`, `GET /api/approvals`, `GET /api/approvals/:id`, `POST /api/approvals/:id/decide` (`approval.decide` faqat Director).
+  - 48 soatlik avtomatik `expired` holati tekshiruvi, audit yozuvi (`approval.create`, `approval.decide`).
+  - Integratsiya testlari: `approvals.int.test.ts` (9 ta test: RBAC, to'liq tasdiqlash va rad etish oqimlari, 48 soat expired, takroriy qaror taqiqi, audit jurnali).
 
 ### ⬜ T-120 · Director/Admin Mini App xodim rejimi
 
