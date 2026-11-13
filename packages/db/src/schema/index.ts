@@ -13,4 +13,5 @@ export * from './lessons.js';
 export * from './leads.js';
 export * from './billing.js';
 export * from './approvals.js';
+export * from './attendance.js';
 export * from './relations.js';

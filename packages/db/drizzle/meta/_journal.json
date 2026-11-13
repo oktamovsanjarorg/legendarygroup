@@ -162,6 +162,13 @@
       "when": 1794586800000,
       "tag": "0022_payment_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794587600000,
+      "tag": "0023_attendance",
+      "breakpoints": true
     }
   ]
 }

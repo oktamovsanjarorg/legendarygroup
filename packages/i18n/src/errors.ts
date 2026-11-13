@@ -97,6 +97,11 @@ export const errorMessages = {
   ALREADY_REVIEWED: 'Bu chek allaqachon koʻrib chiqilgan.',
   SUBMISSION_NOT_FOUND: 'Yuborilgan chek topilmadi.',
   SUBMISSION_NOT_PENDING: 'Chek koʻrib chiqish kutilayotgan holatda emas.',
+  LATE_MINUTES_REQUIRED: 'Kech qolgan daqiqani kiriting.',
+  ATTENDANCE_LOCKED_PAST: 'Ustoz faqat dars kuni davomatni oʻzgartirishi mumkin.',
+  CHANGE_REASON_REQUIRED: 'Oʻtgan davomatni oʻzgartirish uchun sabab koʻrsatish majburiy.',
+  STUDENT_NOT_ENROLLED: 'Oʻquvchi ushbu dars sanasida guruhga yozilmagan.',
+  LESSON_CANCELLED: 'Bekor qilingan dars uchun davomat kiritilmaydi.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

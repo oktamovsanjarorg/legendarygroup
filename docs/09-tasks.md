@@ -229,15 +229,17 @@
 - **AC:** `/start` → maxfiylik roziligi → "Raqamni ulashish" (faqat o'z kontakti qabul qilinadi — `contact.user_id == from.id`) → mos ota-ona topilsa bog'lanadi va farzand(lar) ko'rsatiladi; topilmasa — Admin'ga so'rov; bir nechta farzand; qayta `/start` xavfsiz.
 - **Aniqlik:** so'rovlar web'da "Bog'lanish so'rovlari" ro'yxatida (O'quvchilar bo'limi); Admin ota-onani tanlab bog'laydi yoki rad etadi → botga natija.
 
-### ⬜ T-111 · Davomat (Mini App, Ustoz)
+### 🟨 T-111 · Davomat (Mini App, Ustoz)
 
 - **Bog'liq:** T-104, T-106, T-009 · **Talablar:** FR-ATT-1, 2, 4, 6, BR-29, 30
 - **AC:** "Bugungi darslarim" → guruh → ro'yxat (standart "keldi"), bir teginishda holat o'zgartirish + haptic, kech qolish daqiqasi, MainButton "Saqlash"; offline: lokal navbat + `client_mutation_id`, qayta ulanganda sinxronizatsiya, UI'da "sinxronlanmagan" belgisi; tahrirlash muddati qoidasi; 20 o'quvchi ≤ 20 s (qo'lda sinov).
+- **Backend bajarildi (2026-11-13):** `packages/contracts/src/attendance.ts` (`ATTENDANCE_STATUSES`, `AttendanceItemSchema`, `MarkAttendanceRequest`, `LessonAttendanceSchema`, `GroupAttendanceQuery`, `StudentAttendanceHistoryQuery`); `packages/domain/src/attendance/` (`canEditAttendance` — BR-30 ustoz faqat dars kuni 23:59 gacha, admin o'tgan kunga sabab bilan; `shouldNotifyAbsenceOrLate` — BR-31/BR-10 kechikish ≥ 15 daqiqa); `packages/db` `0023_attendance.sql` migratsiyasi (`attendance` jadvali, unique `(lesson_id, student_id)`, check `late_minutes`); `apps/api/src/modules/attendance/` (`GET /api/attendance/lessons/:lessonId`, `POST /api/attendance/lessons/:lessonId` idempotent `clientMutationId` bilan, `GET /api/attendance/history`); BR-32 guruhda dars sanasida enrollment tekshiruvi; BR-31 Telegram xabarnoma navbati; 9 ta integratsiya testi. Qolgan: Mini App ekrani.
 
-### ⬜ T-112 · Davomat (Web, Admin) va eslatmalar
+### 🟨 T-112 · Davomat (Web, Admin) va eslatmalar
 
 - **Bog'liq:** T-111 · **Talablar:** FR-ATT-4, 5
 - **AC:** guruh × sana jadval ko'rinishi, o'tgan davomatni sabab bilan o'zgartirish (audit), belgilanmagan darslar ro'yxati; worker: 30 daq → ustozga, 2 soat → Admin'ga eslatma.
+- **Backend bajarildi (2026-11-13):** Admin uchun o'tgan kun davomatini `changeReason` bilan o'zgartirish (`attendance.edit_past`), audit logi, dars va o'quvchi davomat tarixi API. Qolgan: Web UI va eslatma cron jobi.
 
 ### ⬜ T-113 · "Kelmadi/kech qoldi" xabari ota-onaga
 
@@ -328,25 +330,29 @@
   - RBAC: `payment.create`, `payment.read`, `payment.manage` va ommaviy `@Public` receipt tekshirish.
   - Integratsiya testlari: `payments.int.test.ts` (8 ta test: FIFO taqsimlash, avans, chek generatsiyasi, immutability trigger tekshiruvlari).
 
-### ⬜ T-205 · PDF chek va tekshirish sahifasi
+### ✅ T-205 · PDF chek va tekshirish sahifasi
 
 - **Bog'liq:** T-204 · **Talablar:** FR-PAY-8, BR-19
 - **AC:** chek shabloni (logo, raqam, o'quvchi, guruh, oy, summa raqam+so'z bilan, usul, kassir, QR); worker'da PDF (Chromium), S3; ota-onaga botda PDF; QR → ommaviy `/verify/{token}` sahifa (faqat raqam, sana, summa, holat — PII yo'q); bekor qilingan chek "BEKOR QILINGAN".
+- **Bajarildi (2026-11-13):** `ReceiptPdfService` (pdf-lib, qrcode, A5 kvitansiya shabloni, oʻzbekcha summa soʻz bilan, QR kod, bekor qilingan holat shtampi); `GET /api/billing/receipts/:number/pdf`, `GET /api/billing/receipts/verify/:token` (ommaviy, PII siz); Web `/verify/$token` sahifasi; 6 ta integratsiya testi.
 
-### ⬜ T-206 · Ota-ona: o'tkazma cheki yuborish (bot + Mini App)
+### ✅ T-206 · Ota-ona: o'tkazma cheki yuborish (bot + Mini App)
 
 - **Bog'liq:** T-110, T-202, T-019 · **Talablar:** FR-PAY-3, BR-13
 - **AC:** "To'lov qilish" → farzand tanlash → qarz summasi + karta rekvizitlari (nusxalash) → rasm/PDF yuklash + summa + izoh → "Tekshirilmoqda" xabari; fayl tekshiruvi (tur, hajm), S3; perceptual hash; holatni kuzatish.
+- **Bajarildi (2026-11-13):** `SubmissionsService` va `SubmissionsRepository` (`POST /api/billing/submissions`, `GET /api/billing/submissions/my`); BR-15 dublikat tekshiruvi; Telegram xabarnoma navbati; IDOR xavfsizlik tekshiruvi.
 
-### ⬜ T-207 · Tasdiqlash navbati (Admin)
+### ✅ T-207 · Tasdiqlash navbati (Admin)
 
 - **Bog'liq:** T-206, T-204, T-205, T-120 · **Talablar:** FR-PAY-4, 5, BR-13, 14, 15
 - **AC:** web + Mini App'da navbat (rasm katta ko'rinishda, zoom), tasdiqlash (summa tahriri) / rad etish (sabab shablonlari); dublikat ogohlantirishi; parallel tasdiqlashdan himoya (optimistic lock — ikki Admin bir vaqtda bosa olmaydi); natija ota-onaga; yangi chek kelganda Admin'ga bot xabari; 24 soat → Director eslatmasi.
+- **Bajarildi (2026-11-13):** `GET /api/billing/submissions`, `POST /api/billing/submissions/:id/lock` (5 daqiqalik lock, `LOCKED_BY_OTHER`), `POST /api/billing/submissions/:id/confirm` (summa tahriri, FIFO taqsimot, rasmiy to'lov, kvitansiya generatsiya, audit), `POST /api/billing/submissions/:id/reject` (sabab bilan rad etish); 10 ta integratsiya testi.
 
-### ⬜ T-208 · Qarzdorlik va eslatmalar
+### ✅ T-208 · Qarzdorlik va eslatmalar
 
 - **Bog'liq:** T-202, T-109 · **Talablar:** FR-PAY-7, BR-20, 21, 22
 - **AC:** qarzdorlar ro'yxati (filtr, saralash, eksport), aging, kritik belgisi; eslatma jadvali (BR-21) worker'da; ota-ona Mini App'da balans va to'lovlar tarixi.
+- **Bajarildi (2026-11-13):** `DebtorsService` va `DebtorsRepository` (`GET /api/billing/debtors`, CSV export, manual remind); BR-21 avtomatik eslatmalar jadvali (`billing.debtor-reminders` har kuni 09:00 da); BR-22 kritik qarz belgisi; `0022_payment_reminders.sql` append-only jadval migratsiyasi; 9 ta integratsiya testi.
 
 ### ✅ T-209 · Storno, refund, kassa yopish
 
