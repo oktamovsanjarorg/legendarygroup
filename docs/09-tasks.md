@@ -398,10 +398,11 @@
     - API: `POST /api/tests`, `GET /api/tests?groupId=...`, `GET /api/tests/:id`, `PATCH /api/tests/:id` (draft tekshiruvi), `POST /api/tests/:id/results` (BR-34 tekshiruvi va versiya oshishi), `POST /api/tests/:id/publish` (outbox orqali `TestResultsPublished` navbatga yoziladi), `GET /api/tests/:id/template` (Excel shablonini generatsiya qilish va yuklab olish), `POST /api/tests/:id/import-preview` (Excel faylni tahlil qilib mos kelgan, o'xshash va topilmagan qatorlarni ko'rsatish), `POST /api/tests/:id/import-confirm` (atomar import va import auditi), `GET /api/tests/student/:studentId` (ota-ona uchun o'z farzandi testlari va IDOR 404 himoyasi).
   - Integratsiya testlari: `tests.int.test.ts` (13 ta test: RBAC, test yaratish, guruh testlari ro'yxati, BR-34 ball cheklovi, BR-34 bo'lim bali cheklovi, versiyalanish, Excel shablon yuklab olish, BR-35 Excel preview, BR-35 Excel import confirm, test e'lon qilish va outbox event, e'lon qilingan testni o'zgartirish taqiqi, ota-ona scope va IDOR himoyasi).
 
-### ⬜ T-303 · O'quvchi progressi va reyting
+### ✅ T-303 · O'quvchi progressi va reyting
 
 - **Bog'liq:** T-302 · **Talablar:** FR-GRD-5
 - **AC:** o'quvchi profilida grafiklar (davomat, baho, test), guruh reytingi (Ustoz/Admin), ota-ona Mini App'da farzand progressi.
+- **Bajarildi (2026-11-13):** `packages/contracts/src/progress.ts` (`GroupLeaderboardResponse`, `StudentProgressResponse` DTOlari); `packages/domain/src/progress/progress.calculator.ts` (`calculateStudentCompositeScore` 45% baho, 35% test, 20% davomat, `calculateLeaderboardRankings`); `apps/api/src/modules/grades/` (`ProgressRepository`, `ProgressService`, `GET /api/grades/groups/:groupId/leaderboard`, `GET /api/grades/students/:studentId/progress`); 9 ta integratsiya testi yashil.
 
 ### ⬜ T-304 · Haftalik va oylik ota-ona hisobotlari
 

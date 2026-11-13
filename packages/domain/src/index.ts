@@ -17,3 +17,4 @@ export * from './dashboard/dashboard.calculator.js';
 export * from './reports/reports.calculator.js';
 export * from './forecasts/forecast.calculator.js';
 export * from './notifications/notification.policy.js';
+export * from './progress/progress.calculator.js';

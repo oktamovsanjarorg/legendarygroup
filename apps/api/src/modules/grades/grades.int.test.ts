@@ -213,4 +213,57 @@ describe('T-301 Baholar va ustoz izohlari (FR-GRD-1, 2, BR-33)', () => {
     const res = await call('GET', `grades/history?studentId=${foreignStudentId}`, parentToken);
     expect(res.statusCode).toBe(404);
   });
+
+  describe('T-303 Oʻquvchi progressi va guruh reytingi (FR-GRD-5)', () => {
+    it('ustoz guruh reytingini (leaderboard) koʻra oladi', async () => {
+      const res = await call('GET', `grades/groups/${groupId}/leaderboard`, teacherToken);
+      expect(res.statusCode).toBe(200);
+      const data = res.json<{
+        groupId: string;
+        groupName: string;
+        students: Array<{
+          studentId: string;
+          studentName: string;
+          rank: number;
+          compositeScore: number;
+          averageGrade: number;
+        }>;
+      }>();
+
+      expect(data.groupId).toBe(groupId);
+      expect(data.groupName).toBe('PHYS-101');
+      expect(data.students.length).toBe(2);
+
+      // Olimjon Toirov baholari yuqori bo'lgani sababli 1-o'rinda
+      expect(data.students[0]?.studentId).toBe(student1Id);
+      expect(data.students[0]?.rank).toBe(1);
+      expect(data.students[0]?.averageGrade).toBeGreaterThan(data.students[1]!.averageGrade);
+      expect(data.students[1]?.studentId).toBe(student2Id);
+      expect(data.students[1]?.rank).toBe(2);
+    });
+
+    it('ota-ona oʻz farzandining toʻliq progress dinamikasini oladi (FR-GRD-5)', async () => {
+      const res = await call('GET', `grades/students/${student1Id}/progress`, parentToken);
+      expect(res.statusCode).toBe(200);
+      const data = res.json<{
+        studentId: string;
+        studentName: string;
+        rank: number;
+        totalStudents: number;
+        averageGrade: number;
+        gradesTrend: Array<{ kind: string; value: number }>;
+      }>();
+
+      expect(data.studentId).toBe(student1Id);
+      expect(data.studentName).toBe('Olimjon Toirov');
+      expect(data.rank).toBe(1);
+      expect(data.totalStudents).toBe(2);
+      expect(data.gradesTrend.length).toBe(2);
+    });
+
+    it('ota-ona begona oʻquvchining progressini koʻra olmaydi (404 IDOR himoyasi)', async () => {
+      const res = await call('GET', `grades/students/${foreignStudentId}/progress`, parentToken);
+      expect(res.statusCode).toBe(404);
+    });
+  });
 });
