@@ -20,6 +20,7 @@ import { LeadsPage } from './routes/leads/index.js';
 import { StaffPage } from './routes/staff/index.js';
 import { StudentCardPage } from './routes/students/card.js';
 import { StudentsPage } from './routes/students/index.js';
+import { WizardPage } from './routes/wizard/index.js';
 
 const root = createRootRoute({
   component: Outlet,
@@ -79,12 +80,24 @@ const studentCard = createRoute({
 });
 const leads = createRoute({ getParentRoute: () => app, path: '/leads', component: LeadsPage });
 const staff = createRoute({ getParentRoute: () => app, path: '/staff', component: StaffPage });
+const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
 const routeTree = root.addChildren([
   login,
   invite,
   verify,
-  app.addChildren([home, students, studentCard, leads, courses, groups, calendar, staff, sessions]),
+  app.addChildren([
+    home,
+    students,
+    studentCard,
+    leads,
+    courses,
+    groups,
+    calendar,
+    staff,
+    sessions,
+    wizard,
+  ]),
 ]);
 
 /** Testlarda — `createMemoryHistory`. */

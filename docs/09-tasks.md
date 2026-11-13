@@ -281,10 +281,11 @@
 - **Bog'liq:** T-110, T-111
 - **AC:** farzandlar ro'yxati (bir nechta bo'lsa `ChildSwitcher` orqali almashtirish), har farzand: bugungi/oxirgi davomat, guruh, jadval; balans va "To'lash" MainButton; 4 tab: Asosiy (`/`), Natijalar (`/results`), To'lovlar (`/payments`), Ko'proq (`/more`); testlar 100% yashil.
 
-### ⬜ T-117 · Birinchi ishga tushirish ustasi (Director)
+### ✅ T-117 · Birinchi ishga tushirish ustasi (Director)
 
 - **Bog'liq:** T-115, T-102, T-103, T-101
 - **AC:** bo'sh tizimda Director birinchi kirganda qadamma-qadam usta: markaz ma'lumotlari → karta rekvizitlari → kurs → xona → ustoz taklifi → guruh va jadval → o'quvchilar va ota-onalar → ota-onalarga taklif havolasi/QR. Har qadamni o'tkazib yuborish va keyin qaytish mumkin; progress saqlanadi.
+- **Bajarildi (2026-11-14):** `apps/web/src/screens/f1/wizard.tsx` to'liq 8 qadamli W-33 ustasi (markaz, rekvizitlar, kurs, xona, ustoz, guruh, o'quvchi, taklif QR); `apps/web/src/routes/wizard/index.tsx` (progress `localStorage` da saqlanadi, o'tkazib yuborish va yakunlash); `apps/web/src/router.tsx` ga `/wizard` marshruti qo'shildi; 5 ta unit testi yashil (`pnpm --filter @lg/web test src/routes/wizard/wizard.test.tsx`).
 
 ### ✅ T-118 · Ichki fikr-mulohaza tugmasi
 
