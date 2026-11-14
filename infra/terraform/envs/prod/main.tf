@@ -7,7 +7,7 @@ terraform {
     aws = { source = "hashicorp/aws", version = "~> 6.0" }
   }
   backend "s3" {
-    bucket       = "lg-tfstate-237004325959"
+    bucket       = "lg-tfstate-560418470850"
     key          = "prod/terraform.tfstate"
     region       = "eu-central-1"
     encrypt      = true

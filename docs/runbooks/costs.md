@@ -1,8 +1,10 @@
 # Narx hisobi — production (T-012)
 
 > **Taxminiy** — AWS ochiq on-demand narxlari, eu-central-1 (Frankfurt), oyiga 730 soat.
-> `mycli` IAM foydalanuvchisida `pricing:GetProducts` ruxsati yo'q, shuning uchun API'dan
-> tekshirilmagan; `apply`dan keyin birinchi oy Cost Explorer'da solishtiriladi.
+> Pricing API orqali tekshirilmagan; `apply`dan keyin birinchi oy Cost Explorer'da solishtiriladi.
+> Hisob — management `560418470850` (profil `root`), unda boshqa loyihalar ham bor
+> (eu-central-1'da 3 ta EC2, 1–12 noyabr ~$36 — kreditlar qoplagan): budjet alertini
+> faqat shu loyiha resurslariga (`Project=legendary-group` tegi) qo'yish kerak.
 > Staging — AWS'da yo'q (egasi qarori, 2026-11-13): lokal `compose.staging.yml`.
 
 | Resurs                           | Hajm                       | Narx (taxm.)          | Oyiga       |
