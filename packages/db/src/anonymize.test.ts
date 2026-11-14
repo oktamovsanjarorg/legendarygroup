@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Anonymizer } from './anonymize.js';
+import { Anonymizer, assertAnonymizableEnv } from './anonymize.js';
 
 describe('T-018: Staging Anonymizer (Unit Tests)', () => {
   const anon = new Anonymizer('test-salt-secret-42');
@@ -67,5 +67,19 @@ describe('T-018: Staging Anonymizer (Unit Tests)', () => {
       expect(anonymized.phone).toMatch(/^\+998\d{9}$/);
       expect(anonymized.name.length).toBeGreaterThan(3);
     }
+  });
+});
+
+describe('T-018: anonimlashtirish xavfsizligi (yashirin standart yo‘q)', () => {
+  it("salt bo'sh yoki qisqa bo'lsa — xato (kodda standart salt yo'q)", () => {
+    expect(() => new Anonymizer('')).toThrow(/ANONYMIZE_SALT/);
+    expect(() => new Anonymizer('short')).toThrow(/ANONYMIZE_SALT/);
+  });
+
+  it('production yoki nomaʼlum muhitda ishga tushmaydi', () => {
+    expect(() => assertAnonymizableEnv('production')).toThrow(/production/);
+    expect(() => assertAnonymizableEnv(undefined)).toThrow(/NODE_ENV/);
+    expect(() => assertAnonymizableEnv('staging')).not.toThrow();
+    expect(() => assertAnonymizableEnv('development')).not.toThrow();
   });
 });

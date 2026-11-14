@@ -52,11 +52,26 @@ const LAST_NAMES = [
   'Rustamov',
 ];
 
+const MIN_SALT_LENGTH = 16;
+const ANONYMIZABLE_ENVS = ['development', 'test', 'staging'] as const;
+
+/** Anonimlashtirish faqat aniq ruxsat etilgan muhitda — production yoki noma'lum muhitda to'xtaydi. */
+export function assertAnonymizableEnv(nodeEnv: string | undefined): void {
+  if (nodeEnv === undefined)
+    throw new Error("NODE_ENV o'rnatilmagan — anonimlashtirish to'xtatildi");
+  if (!(ANONYMIZABLE_ENVS as readonly string[]).includes(nodeEnv)) {
+    throw new Error(`NODE_ENV=${nodeEnv}: production'da anonimlashtirish taqiqlangan`);
+  }
+}
+
 export class Anonymizer {
   private readonly salt: string;
 
-  constructor(salt?: string) {
-    this.salt = salt ?? process.env.ANONYMIZE_SALT ?? 'lg-staging-salt-2026';
+  constructor(salt: string) {
+    if (salt.length < MIN_SALT_LENGTH) {
+      throw new Error(`ANONYMIZE_SALT kamida ${MIN_SALT_LENGTH} belgi bo'lishi shart`);
+    }
+    this.salt = salt;
   }
 
   private hash(value: string): bigint {
@@ -188,7 +203,7 @@ async function anonymizeRequestsAndSubmissions(tx: Transaction, anon: Anonymizer
 
 export async function anonymizeDatabase(
   db: Database,
-  salt?: string,
+  salt: string,
 ): Promise<{ users: number; students: number; guardians: number; leads: number }> {
   const anon = new Anonymizer(salt);
   return db.transaction(async (tx: Transaction) => {
@@ -203,11 +218,14 @@ export async function anonymizeDatabase(
 
 async function main(): Promise<void> {
   loadRootEnv();
+  assertAnonymizableEnv(process.env['NODE_ENV']);
+  const salt = process.env['ANONYMIZE_SALT'];
+  if (!salt) throw new Error("ANONYMIZE_SALT o'rnatilmagan (.env.example ga qarang)");
   const url = requireDatabaseUrl();
   console.info(`[T-018] Staging ma'lumotlarini anonimlashtirish boshlandi: ${maskUrl(url)}`);
   const db = createDb(url);
   try {
-    const stats = await anonymizeDatabase(db);
+    const stats = await anonymizeDatabase(db, salt);
     console.info(
       `[T-018] Anonimlashtirish muvaffaqiyatli: Users=${stats.users}, Students=${stats.students}, Guardians=${stats.guardians}, Leads=${stats.leads}`,
     );
