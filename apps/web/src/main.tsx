@@ -6,7 +6,11 @@ import { createRoot } from 'react-dom/client';
 import { AuthProvider } from './auth/auth.js';
 import { router } from './router.js';
 import './styles.css';
+import { miniAppRedirect } from './telegram-redirect.js';
 import { applyTheme } from './theme.js';
+
+const toMiniApp = miniAppRedirect(window.location);
+if (toMiniApp) window.location.replace(toMiniApp);
 
 applyTheme();
 document.title = t.appTitle;
