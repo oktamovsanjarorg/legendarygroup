@@ -1,5 +1,17 @@
-import { type RoleCode } from '@lg/contracts';
-import { approvalRequests, auditLogs, closeDb, createDb, type Database, seed } from '@lg/db';
+import { DEFAULT_BRANCH_ID, type RoleCode } from '@lg/contracts';
+import {
+  approvalRequests,
+  auditLogs,
+  closeDb,
+  courses,
+  createDb,
+  type Database,
+  enrollments,
+  groups,
+  payments,
+  seed,
+  students,
+} from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
@@ -186,6 +198,122 @@ describe('Approvals API (T-119, 02-roles-permissions.md §5)', () => {
       const actions = logs.map((l) => l.action);
       expect(actions).toContain('approval.create');
       expect(actions).toContain('approval.decide');
+    });
+  });
+
+  describe('Amalning haqiqiy bajarilishi (docs/02 §5)', () => {
+    it('Chegirma soʻrovi tasdiqlangach, oʻquvchining shartnomasida chegirma yangilanadi', async () => {
+      const [course] = await db
+        .insert(courses)
+        .values({
+          branchId: DEFAULT_BRANCH_ID,
+          name: 'Chegirma Test Kursi',
+          defaultMonthlyPrice: 1000000n,
+          lessonDurationMin: 80,
+        })
+        .returning();
+
+      const [group] = await db
+        .insert(groups)
+        .values({
+          branchId: DEFAULT_BRANCH_ID,
+          courseId: course!.id,
+          name: 'Chegirma Guruhi',
+          monthlyPrice: 1000000n,
+          maxStudents: 20,
+          startDate: '2026-09-01',
+          gradingConfig: { scale: '0_5', kinds: ['homework'] },
+        })
+        .returning();
+
+      const [student] = await db
+        .insert(students)
+        .values({
+          branchId: DEFAULT_BRANCH_ID,
+          fullName: 'Test Chegirma Oʻquvchi',
+          searchName: 'test chegirma',
+        })
+        .returning();
+
+      const [enr] = await db
+        .insert(enrollments)
+        .values({
+          groupId: group!.id,
+          studentId: student!.id,
+          startDate: '2026-09-01',
+          discountPercent: 0,
+        })
+        .returning();
+
+      // Admin 35% chegirma so'rovi yaratadi (limitdan yuqori)
+      const createRes = await call('POST', 'approvals', 'admin', {
+        type: 'discount',
+        payload: {
+          studentId: student!.id,
+          courseId: course!.id,
+          percent: 35,
+          reason: 'Olimpiada gʻolibi',
+        },
+        reason: 'Maxsus 35% chegirma',
+      });
+      expect(createRes.statusCode).toBe(201);
+      const approvalId = createRes.json<{ id: string }>().id;
+
+      // Director tasdiqlaydi
+      const decideRes = await call('POST', `approvals/${approvalId}/decide`, 'director', {
+        decision: 'approve',
+        note: 'Marhamat, berilsin',
+      });
+      expect(decideRes.statusCode).toBe(201);
+
+      // Shartnomada haqiqatan 35% chegirma bo'lganini tekshiramiz
+      const [updatedEnr] = await db.select().from(enrollments).where(eq(enrollments.id, enr!.id));
+      expect(updatedEnr?.discountPercent).toBe(35);
+    });
+
+    it('Storno soʻrovi tasdiqlangach, haqiqiy toʻlov manfiy storno qilinadi', async () => {
+      const [student] = await db
+        .insert(students)
+        .values({
+          branchId: DEFAULT_BRANCH_ID,
+          fullName: 'Test Storno Oʻquvchi',
+          searchName: 'test storno',
+        })
+        .returning();
+
+      const [pmt] = await db
+        .insert(payments)
+        .values({
+          branchId: DEFAULT_BRANCH_ID,
+          studentId: student!.id,
+          amount: 500000n,
+          method: 'cash',
+        })
+        .returning();
+
+      // Admin storno so'rovi yaratadi
+      const createRes = await call('POST', 'approvals', 'admin', {
+        type: 'reversal',
+        payload: {
+          paymentId: pmt!.id,
+          reason: 'Notoʻgʻri summa kiritilgan',
+        },
+        reason: 'Eski toʻlovni bekor qilish',
+      });
+      expect(createRes.statusCode).toBe(201);
+      const approvalId = createRes.json<{ id: string }>().id;
+
+      // Director tasdiqlaydi
+      const decideRes = await call('POST', `approvals/${approvalId}/decide`, 'director', {
+        decision: 'approve',
+        note: 'Stornoga ruxsat berildi',
+      });
+      expect(decideRes.statusCode).toBe(201);
+
+      // Bazada storno to'lovi paydo bo'lganini tekshiramiz
+      const revRows = await db.select().from(payments).where(eq(payments.reversalOf, pmt!.id));
+      expect(revRows).toHaveLength(1);
+      expect(revRows[0]?.amount).toBe(-500000n);
     });
   });
 });

@@ -12,6 +12,7 @@ import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
+import { ApprovalExecutorService } from './approval-executor.service.js';
 import { ApprovalsRepository, type ApprovalWithUsers } from './approvals.repository.js';
 import { serializeApproval } from './approvals.serializer.js';
 
@@ -24,6 +25,7 @@ export class ApprovalsService {
     @Inject(ApprovalsRepository) private readonly repo: ApprovalsRepository,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(ApprovalExecutorService) private readonly executor: ApprovalExecutorService,
   ) {}
 
   async createRequest(
@@ -133,6 +135,10 @@ export class ApprovalsService {
 
       if (!updated) {
         throw new AppException(HttpStatus.CONFLICT, 'CONFLICT', 'Soʻrov holati oʻzgargan');
+      }
+
+      if (newStatus === 'approved') {
+        await this.executor.execute({ ...req, decidedBy: user.id }, tx);
       }
 
       await this.audit.record(
