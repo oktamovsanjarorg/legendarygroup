@@ -100,17 +100,33 @@ export class ForecastsService {
     };
   }
 
-  /** 3. Guruh to'lishi prognozi */
+  /** 3. Guruh to'lishi prognozi (BR-36 churn modeli asosida) */
   async getGroupOccupancyForecast(
     actor: RequestUser,
     branchId?: string,
   ): Promise<GroupOccupancyResponse> {
     const targetBranch = this.resolveBranchId(actor, branchId);
     const today = this.clock.today();
-    const groupsList = await this.repo.getGroupOccupancies(targetBranch, today);
+    const [groupsList, churnInputs] = await Promise.all([
+      this.repo.getGroupOccupancies(targetBranch, today),
+      this.repo.getStudentsChurnInputs(targetBranch, today),
+    ]);
+
+    const atRiskByGroup = new Map<string, number>();
+    for (const input of churnInputs) {
+      const res = calculateChurnScore({
+        attendanceDropPercent: input.attendanceDropPercent,
+        paymentDelayDays: input.paymentDelayDays,
+        gradeDropPercent: input.gradeDropPercent,
+        botUnresponsive: input.botUnresponsive,
+      });
+      if (res.isAtRisk) {
+        atRiskByGroup.set(input.groupId, (atRiskByGroup.get(input.groupId) ?? 0) + 1);
+      }
+    }
 
     const items = groupsList.map((g) => {
-      const projectedChurn = Math.round(g.currentActive * 0.1); // ~10% prognoz churn
+      const projectedChurn = atRiskByGroup.get(g.groupId) ?? 0;
       const occ = calculateGroupOccupancy(g.capacity, g.currentActive, projectedChurn);
 
       return {
@@ -127,20 +143,40 @@ export class ForecastsService {
     return { items };
   }
 
-  /** 4. Tarixiy backtest hisoboti */
+  /** 4. Tarixiy backtest hisoboti (BR-36 churn modeli asosida) */
   async getBacktestReport(actor: RequestUser, branchId?: string): Promise<BacktestReportResponse> {
-    this.resolveBranchId(actor, branchId);
+    const targetBranch = this.resolveBranchId(actor, branchId);
+    const today = this.clock.today();
     const prevMonthDate = new Date();
     prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
     const prevMonthStr = prevMonthDate.toISOString().slice(0, 7);
+    const monthStart = `${prevMonthStr}-01`;
+    const monthEnd = `${prevMonthStr}-31`;
+
+    const churnInputs = await this.repo.getStudentsChurnInputs(targetBranch, today);
+    const predictedChurnCount = churnInputs.filter((input) => {
+      const res = calculateChurnScore({
+        attendanceDropPercent: input.attendanceDropPercent,
+        paymentDelayDays: input.paymentDelayDays,
+        gradeDropPercent: input.gradeDropPercent,
+        botUnresponsive: input.botUnresponsive,
+      });
+      return res.isAtRisk;
+    }).length;
+
+    const actualChurnCount = await this.repo.getActualChurnCount(
+      targetBranch,
+      monthStart,
+      monthEnd,
+    );
 
     return {
       period: prevMonthStr,
       predictedRevenue: '12500000',
       actualRevenue: '12100000',
       errorPercentage: 3.2,
-      predictedChurnCount: 4,
-      actualChurnCount: 3,
+      predictedChurnCount,
+      actualChurnCount,
     };
   }
 }

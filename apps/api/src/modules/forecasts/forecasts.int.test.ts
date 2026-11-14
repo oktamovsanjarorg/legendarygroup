@@ -7,6 +7,7 @@ import {
   type RoleCode,
 } from '@lg/contracts';
 import {
+  attendance,
   closeDb,
   courses,
   createDb,
@@ -15,6 +16,7 @@ import {
   groups,
   invoices,
   ledgerEntries,
+  lessons,
   seed,
   students,
 } from '@lg/db';
@@ -195,5 +197,113 @@ describe('T-502: Prognozlar va churn risk (FR-DASH-3, BR-36)', () => {
 
     const forecastsCron = t.app.get(ForecastsCron);
     await expect(forecastsCron.generateWeeklySummary()).resolves.not.toThrow();
+  });
+
+  it('BR-36: guruh toʻlishi prognozi (occupancy churn) va backtest predictedChurnCount qatʼiy koeffitsient emas, churn modelidan hisoblanadi', async () => {
+    // Yangi guruh va 2 ta o'quvchi
+    const [c] = await db
+      .insert(courses)
+      .values({
+        branchId: DEFAULT_BRANCH_ID,
+        name: 'BR36 Test Kurs',
+        defaultMonthlyPrice: 500000n,
+        lessonDurationMin: 60,
+      })
+      .returning();
+
+    const [g] = await db
+      .insert(groups)
+      .values({
+        branchId: DEFAULT_BRANCH_ID,
+        courseId: c!.id,
+        name: 'BR-36 Guruh',
+        monthlyPrice: 500000n,
+        maxStudents: 10,
+        startDate: '2026-09-01',
+        gradingConfig: { scale: '0_5', kinds: ['homework', 'activity'] },
+      })
+      .returning();
+
+    // 1-o'quvchi: Safe (xavfsiz)
+    const [safeStudent] = await db
+      .insert(students)
+      .values({
+        branchId: DEFAULT_BRANCH_ID,
+        fullName: 'Safe Student',
+        searchName: 'safe student',
+      })
+      .returning();
+    await db.insert(enrollments).values({
+      groupId: g!.id,
+      studentId: safeStudent!.id,
+      startDate: '2026-09-01',
+    });
+
+    // 2-o'quvchi: At-Risk (xavfli - to'lov 35 kun kechikkan, dars qoldirgan)
+    const [riskStudent] = await db
+      .insert(students)
+      .values({
+        branchId: DEFAULT_BRANCH_ID,
+        fullName: 'Risk Student',
+        searchName: 'risk student',
+      })
+      .returning();
+    await db.insert(enrollments).values({
+      groupId: g!.id,
+      studentId: riskStudent!.id,
+      startDate: '2026-09-01',
+    });
+
+    const pastDueDate = new Date(Date.now() - 35 * 86400000).toISOString().slice(0, 10);
+    await db.insert(invoices).values({
+      branchId: DEFAULT_BRANCH_ID,
+      studentId: riskStudent!.id,
+      period: '2026-09',
+      dueDate: pastDueDate,
+      total: 500000n,
+      status: 'open',
+    });
+
+    // O'qituvchi va dars (oxirgi 4 haftada qoldirilgan dars)
+    const recentLessonDate = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+    const teacherId = await createUserWithRole(db, 'teacher', '+998901239988');
+    const [lesson] = await db
+      .insert(lessons)
+      .values({
+        groupId: g!.id,
+        teacherId,
+        date: recentLessonDate,
+        startTime: '10:00',
+        endTime: '11:00',
+        status: 'done',
+      })
+      .returning();
+
+    await db.insert(attendance).values({
+      lessonId: lesson!.id,
+      studentId: riskStudent!.id,
+      status: 'absent',
+      markedBy: teacherId,
+    });
+
+    // 1) Guruh to'lishi prognozini tekshiramiz
+    const occRes = await call('GET', 'forecasts/occupancy', directorToken);
+    expect(occRes.statusCode).toBe(200);
+    const occBody = occRes.json() as GroupOccupancyResponse;
+    const targetGroup = occBody.items.find((item) => item.groupId === g!.id);
+    expect(targetGroup).toBeDefined();
+    expect(targetGroup?.currentActive).toBe(2);
+    // Eski qat'iy koeffitsient: Math.round(2 * 0.1) = 0 bo'lardi.
+    // BR-36 modeli bo'yicha: 1 ta at-risk o'quvchi bor -> projectedChurn = 1 bo'lishi shart!
+    expect(targetGroup?.projectedChurn).toBe(1);
+
+    // 2) Backtest hisobotini tekshiramiz
+    const backRes = await call('GET', 'forecasts/backtest', directorToken);
+    expect(backRes.statusCode).toBe(200);
+    const backBody = backRes.json() as BacktestReportResponse;
+    // Eski qat'iy qiymat: predictedChurnCount = 4 edi.
+    // BR-36 churn modeli bo'yicha hisoblangan at-risk o'quvchilar soniga teng bo'lishi kerak.
+    expect(backBody.predictedChurnCount).not.toBe(4);
+    expect(backBody.predictedChurnCount).toBeGreaterThanOrEqual(1);
   });
 });
