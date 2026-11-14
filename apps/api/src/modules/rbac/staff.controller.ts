@@ -21,9 +21,10 @@ import {
 import type { FastifyRequest } from 'fastify';
 import type { z } from 'zod';
 import { NoAudit } from '../../common/audit/audit.decorator.js';
-import { RequirePermission } from '../../common/decorators/access.decorators.js';
+import { Authenticated, RequirePermission } from '../../common/decorators/access.decorators.js';
+import { AppException } from '../../common/errors/app.exception.js';
 import { ZodBody } from '../../common/decorators/zod.decorators.js';
-import { auditContext } from '../auth/index.js';
+import { auditContext, CurrentUser, type RequestUser } from '../auth/index.js';
 import { StaffQueryService } from './staff-query.service.js';
 import { StaffService } from './staff.service.js';
 
@@ -64,6 +65,20 @@ export class StaffController {
     @Req() req: FastifyRequest,
   ): Promise<CreateStaffResult> {
     return this.staff.create(auditContext(req), body);
+  }
+
+  /** Xodim o'z Telegram'ini bog'lash havolasini oladi (Mini App xodim rejimi uchun). */
+  @Post('me/telegram-invite')
+  @HttpCode(HttpStatus.OK)
+  @Authenticated()
+  @NoAudit('StaffService.telegramInviteForSelf ichida')
+  @ApiOperation({ summary: "O'z Telegram'ini bog'lash havolasi (bot, 24 soat)" })
+  telegramInvite(
+    @CurrentUser() user: RequestUser,
+    @Req() req: FastifyRequest,
+  ): Promise<StaffInvite> {
+    if (user.role === 'guardian') throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+    return this.staff.telegramInviteForSelf(auditContext(req), user.id);
   }
 
   @Post(':userId/invite')

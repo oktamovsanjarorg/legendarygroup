@@ -4,6 +4,7 @@ import { Button, Card, CardTitle, EmptyState, ErrorState, LoadingState } from '@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../api/client.js';
 import { useAuth } from '../auth/auth.js';
+import { TelegramLinkCard } from '../components/telegram-link-card.js';
 
 interface RowProps {
   s: SessionInfo;
@@ -72,19 +73,22 @@ export function SessionsPage() {
   );
 
   return (
-    <Card className="max-w-3xl">
-      <div className="mb-4 flex items-center justify-between">
-        <CardTitle>{t.sessions.title}</CardTitle>
-        <Button
-          variant="danger"
-          size="sm"
-          loading={revokeAll.isPending}
-          onClick={() => window.confirm(t.sessions.confirmRevokeAll) && revokeAll.mutate()}
-        >
-          {t.sessions.revokeAll}
-        </Button>
-      </div>
-      {body}
-    </Card>
+    <div className="flex flex-col gap-4">
+      <TelegramLinkCard />
+      <Card className="max-w-3xl">
+        <div className="mb-4 flex items-center justify-between">
+          <CardTitle>{t.sessions.title}</CardTitle>
+          <Button
+            variant="danger"
+            size="sm"
+            loading={revokeAll.isPending}
+            onClick={() => window.confirm(t.sessions.confirmRevokeAll) && revokeAll.mutate()}
+          >
+            {t.sessions.revokeAll}
+          </Button>
+        </div>
+        {body}
+      </Card>
+    </div>
   );
 }

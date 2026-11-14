@@ -50,7 +50,9 @@ export function NotLinkedPage() {
       icon={<Link2Off className="size-10" aria-hidden />}
       title={t.notLinked.title}
       hint={errorMessages.TELEGRAM_NOT_LINKED}
-    />
+    >
+      <p className="text-sm text-text-muted">{t.notLinked.staffHint}</p>
+    </StateShell>
   );
 }
 

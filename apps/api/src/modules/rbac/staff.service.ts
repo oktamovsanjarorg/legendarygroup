@@ -111,6 +111,30 @@ export class StaffService {
     });
   }
 
+  /**
+   * O'z Telegram'ini bog'lash (T-120): web'da parol + 2FA bilan kirgan xodim (Director/Admin
+   * ham — ularga bot taklifi avtomatik berilmaydi) o'zi uchun bot havolasini oladi. Havola —
+   * bir martalik, 24 soat; bot raqamni ulashganda telefon mosligi ham tekshiriladi.
+   */
+  async telegramInviteForSelf(ctx: AuditContext, userId: string): Promise<StaffInvite> {
+    return this.db.transaction(async (tx) => {
+      const user = await this.lockUser(tx, userId);
+      if (user.telegramId !== null)
+        throw new AppException(HttpStatus.CONFLICT, 'TELEGRAM_ALREADY_LINKED');
+      const invite = await issueInvite(tx, this.links, {
+        userId,
+        channel: 'bot',
+        now: this.clock.now(),
+      });
+      await this.audit.record(
+        ctx,
+        { action: 'staff.telegram_invite_self', entity: 'user', entityId: userId },
+        tx,
+      );
+      return invite;
+    });
+  }
+
   /** Blokdan chiqarish (blokdagi sessiyalar qaytmaydi — qayta kiradi). */
   async unblock(ctx: AuditContext, userId: string): Promise<void> {
     await this.db.transaction(async (tx) => {

@@ -43,6 +43,7 @@ export const errorMessages = {
   ALREADY_STAFF: 'Bu xodimda shu rol allaqachon bor.',
   USER_BLOCKED: 'Foydalanuvchi bloklangan. Avval blokdan chiqaring.',
   INVITE_NOT_NEEDED: 'Taklif kerak emas: xodim allaqachon tizimga kira oladi.',
+  TELEGRAM_ALREADY_LINKED: 'Telegram akkauntingiz allaqachon bogʻlangan.',
   NOT_BLOCKED: 'Foydalanuvchi bloklanmagan.',
   COURSE_NAME_TAKEN: 'Bu nomdagi faol kurs allaqachon bor. Boshqa nom tanlang.',
   ROOM_NAME_TAKEN: 'Bu nomdagi faol xona allaqachon bor. Boshqa nom tanlang.',
