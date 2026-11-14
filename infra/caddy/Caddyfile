@@ -2,11 +2,11 @@
 #   /api/*        → api:3000        /bot/webhook → bot:3002
 #   /app/*        → Mini App statik  /, /verify/* → web panel statik (SPA)
 # TLS — avtomatik (Let's Encrypt). `/internal/*` (bot ↔ api) va Bull Board tashqariga CHIQMAYDI.
-# Majburiy env (yashirin standart yo'q): APP_DOMAIN, ACME_EMAIL.
+# Majburiy env (yashirin standart yo'q): APP_DOMAIN. ACME email yo'q — Let's Encrypt 2025-yildan
+# muddat eslatmalarini yubormaydi; hisob emailsiz ro'yxatdan o'tadi (shaxsiy ma'lumot ketmaydi).
 {
 	# Admin API o'chiq — konfiguratsiyani tarmoqdan o'zgartirib bo'lmaydi.
 	admin off
-	email {$ACME_EMAIL}
 	log {
 		output stdout
 		format json

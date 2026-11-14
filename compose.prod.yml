@@ -48,7 +48,6 @@ services:
       - '443:443/udp'
     environment:
       APP_DOMAIN: ${APP_DOMAIN:?}
-      ACME_EMAIL: ${ACME_EMAIL:?}
     volumes:
       # Sertifikatlar — yo'qolsa Let's Encrypt limitiga urilish mumkin, shuning uchun doimiy.
       - caddy_data:/data

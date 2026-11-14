@@ -16,7 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$ROOT_DIR"
 
-STATE_DIR="${STATE_DIR:-/var/run/lg}"
+STATE_DIR="${STATE_DIR:-/var/lib/lg}" # /var/run — tmpfs (reboot'da yo'qoladi)
 [[ -d "$STATE_DIR" ]] || STATE_DIR="$ROOT_DIR/.deploy_state"
 
 LAST_TAG_FILE="$STATE_DIR/${ENV}.last_tag"
