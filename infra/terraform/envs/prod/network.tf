@@ -55,7 +55,7 @@ resource "aws_vpc_endpoint" "s3" {
 # Tashqaridan faqat 80/443 (Caddy). SSH yopiq — kirish SSM Session Manager orqali (06 §2).
 resource "aws_security_group" "app" {
   name        = "${local.name}-app"
-  description = "Caddy: 80/443; SSH yo'q"
+  description = "Caddy 80/443, no SSH"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -89,7 +89,7 @@ resource "aws_security_group" "app" {
 
 resource "aws_security_group" "db" {
   name        = "${local.name}-db"
-  description = "PostgreSQL faqat ilova serveridan"
+  description = "PostgreSQL from app server only"
   vpc_id      = aws_vpc.main.id
 
   ingress {
