@@ -84,6 +84,11 @@ jobs:
         if: steps.exists.outputs.all != 'true'
         uses: docker/setup-buildx-action@v3
 
+      # `docker buildx build --cache-to type=gha` uchun ACTIONS_RUNTIME_TOKEN/cache URL kerak.
+      - name: GHA kesh muhiti
+        if: steps.exists.outputs.all != 'true'
+        uses: crazy-max/ghaction-github-runtime@v3
+
       # Bitta builder — deps/build bosqichlari 4 target uchun bir marta yig'iladi (kesh — GHA).
       - name: Build & push (api, worker, bot, web)
         if: steps.exists.outputs.all != 'true'

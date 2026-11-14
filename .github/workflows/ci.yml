@@ -107,14 +107,13 @@ jobs:
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/legendary_test
           REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-jwt-secret-at-least-32-chars-long-for-testing
-          INTERNAL_API_TOKEN: test-internal-api-token
-          TOTP_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+        # Qolgan env — testlarning o'zida (apps/api/src/test/env.ts); turbo faqat shu ikkisini o'tkazadi.
         run: pnpm test:int
 
   docker-build:
-    name: Docker Build Check
-    runs-on: ubuntu-latest
+    name: Docker Build Check (arm64)
+    # Prod server — Graviton: image'lar prod bilan bir xil platformada, native runner'da (QEMU yo'q).
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -122,42 +121,17 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build API image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: infra/docker/Dockerfile.api
-          push: false
-          tags: lg-api:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      # `docker buildx build --cache-to type=gha` uchun ACTIONS_RUNTIME_TOKEN/cache URL kerak.
+      - name: GHA kesh muhiti
+        uses: crazy-max/ghaction-github-runtime@v3
 
-      - name: Build Worker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: infra/docker/Dockerfile.worker
-          push: false
-          tags: lg-worker:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build Bot image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: infra/docker/Dockerfile.bot
-          push: false
-          tags: lg-bot:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build Caddy image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: infra/docker/Dockerfile.caddy
-          push: false
-          tags: lg-caddy:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      # Bitta Dockerfile, 4 target (infra/docker/Dockerfile). Kesh — prod deploy bilan umumiy.
+      - name: Build api, worker, bot, web
+        run: |
+          for t in api worker bot web; do
+            echo "::group::$t"
+            docker buildx build --platform linux/arm64 -f infra/docker/Dockerfile --target "$t" \
+              --cache-from type=gha,scope=prod-arm64 --cache-to type=gha,scope=prod-arm64,mode=max \
+              -t "lg-$t:ci" .
+            echo "::endgroup::"
+          done
