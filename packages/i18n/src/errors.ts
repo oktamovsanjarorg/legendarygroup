@@ -43,6 +43,7 @@ export const errorMessages = {
   LAST_DIRECTOR: 'Oxirgi faol Direktorni bloklab yoki rolini olib boʻlmaydi.',
   ALREADY_STAFF: 'Bu xodimda shu rol allaqachon bor.',
   USER_BLOCKED: 'Foydalanuvchi bloklangan. Avval blokdan chiqaring.',
+  PENALTY_ALREADY_WAIVED: 'Bu jarima allaqachon bekor qilingan.',
   INVITE_NOT_NEEDED: 'Taklif kerak emas: xodim allaqachon tizimga kira oladi.',
   TELEGRAM_ALREADY_LINKED: 'Telegram akkauntingiz allaqachon bogʻlangan.',
   NOT_BLOCKED: 'Foydalanuvchi bloklanmagan.',

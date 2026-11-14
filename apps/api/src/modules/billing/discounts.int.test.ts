@@ -195,7 +195,7 @@ describe('Discounts & Penalties API (T-203, BR-8, BR-18)', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('BR-8: Admin jarima qatorini bekor qiladi: qator oʻchirilmaydi, teskari qator va ledger yoziladi (201)', async () => {
+    it('BR-8: jarima bekor qilinadi — qator saqlanadi (summa 0), ledger kamayadi; taqsimot unga ketmaydi', async () => {
       const res = await call(
         'POST',
         `billing/invoices/${testInvoiceId}/lines/${testPenaltyLineId}/waive`,
@@ -204,36 +204,44 @@ describe('Discounts & Penalties API (T-203, BR-8, BR-18)', () => {
       );
       expect(res.statusCode).toBe(201);
       expect(res.json<{ newTotal: string }>().newTotal).toBe('50000000');
-
-      // Bazada invoice total tekshiriladi
       const [inv] = await db.select().from(invoices).where(eq(invoices.id, testInvoiceId));
       expect(inv!.total).toBe(50000000n);
 
-      // BR-8: Asl jarima qatori invoice_lines dan oʻchirilmasligi tekshiriladi
-      const [originalLine] = await db
-        .select()
-        .from(invoiceLines)
-        .where(eq(invoiceLines.id, testPenaltyLineId));
-      expect(originalLine).toBeDefined();
-      expect(originalLine?.amount).toBe(10000000n);
-
-      // BR-8: Teskari (manfiy) qator invoice_lines ga qoʻshilganligi tekshiriladi
-      const allLines = await db
+      // Qator o'chirilmaydi (ledger havolasi butun), summasi 0 — to'lov unga taqsimlanmaydi;
+      // manfiy qo'shimcha qator yo'q (taqsimot manfiy qatorni e'tiborsiz qoldiradi).
+      const lines = await db
         .select()
         .from(invoiceLines)
         .where(eq(invoiceLines.invoiceId, testInvoiceId));
-      const reverseLine = allLines.find((l) => l.amount === -10000000n);
-      expect(reverseLine).toBeDefined();
-      expect(reverseLine?.kind).toBe('penalty');
-
-      // Ledgerga kamayish tushganligi tekshiriladi
+      expect(
+        lines.map((l) => [l.id === testPenaltyLineId ? 'penalty' : l.kind, l.amount]).sort(),
+      ).toEqual([
+        ['penalty', 0n],
+        ['tuition', 50000000n],
+      ]);
       const entries = await db
         .select()
         .from(ledgerEntries)
         .where(eq(ledgerEntries.studentId, testStudentId));
-      const discountEntry = entries.find((e) => e.entryType === 'discount');
-      expect(discountEntry).toBeDefined();
-      expect(discountEntry!.amount).toBe(-10000000n);
+      const discount = entries.find((e) => e.entryType === 'discount');
+      expect([discount?.amount, discount?.refId]).toEqual([-10000000n, testPenaltyLineId]);
+    });
+
+    it('BR-8: bir jarimani ikki marta bekor qilib boʻlmaydi (409) — qarz ikki marta kamaymaydi', async () => {
+      const res = await call(
+        'POST',
+        `billing/invoices/${testInvoiceId}/lines/${testPenaltyLineId}/waive`,
+        'admin',
+        { reason: 'Takroriy urinish' },
+      );
+      expect(res.statusCode).toBe(409);
+      const [inv] = await db.select().from(invoices).where(eq(invoices.id, testInvoiceId));
+      expect(inv!.total).toBe(50000000n);
+      const entries = await db
+        .select()
+        .from(ledgerEntries)
+        .where(eq(ledgerEntries.studentId, testStudentId));
+      expect(entries.filter((e) => e.entryType === 'discount')).toHaveLength(1);
     });
   });
 

@@ -87,12 +87,15 @@ export class DiscountsService {
       );
     }
 
+    // Allaqachon bekor qilingan (summa 0) — qayta bekor qilish qarzni ikkinchi marta kamaytirardi.
+    if (line.amount <= 0n) throw new AppException(HttpStatus.CONFLICT, 'PENALTY_ALREADY_WAIVED');
+
     return this.executeWaiveTx(invoice, line, p.input, p.ctx);
   }
 
   private async executeWaiveTx(
     invoice: { id: string; branchId: string; studentId: string },
-    line: { id: string; enrollmentId: string | null; amount: bigint; description: string },
+    line: { id: string; amount: bigint },
     input: WaivePenaltyInput,
     ctx: AuditContext,
   ): Promise<{ invoiceId: string; newTotal: string }> {
@@ -105,17 +108,10 @@ export class DiscountsService {
         throw new AppException(HttpStatus.CONFLICT, 'PENALTY_ALREADY_PAID');
       }
 
-      // BR-8: invoice_lines dan qator o'chirilmaydi — teskari (manfiy) qator qo'shiladi
-      const [reverseLine] = await this.repo.insertInvoiceLine(
-        {
-          invoiceId: invoice.id,
-          enrollmentId: line.enrollmentId,
-          kind: 'penalty',
-          amount: -line.amount,
-          description: `Bekor qilingan jarima: ${line.description}`,
-        },
-        tx,
-      );
+      // BR-8: qator o'chirilmaydi (ledger refId butun qoladi) va manfiy qator qo'shilmaydi
+      // (taqsimot manfiy qatorni e'tiborsiz qoldiradi — keyingi to'lov bekor qilingan jarimaga
+      // ketib qolardi). Summa 0 — asl summa audit `before`da.
+      await this.repo.setInvoiceLineAmount(line.id, 0n, tx);
 
       const allLines = await this.repo.findInvoiceLines(invoice.id, tx);
       const newTotal = computeInvoiceTotal(allLines);
@@ -129,7 +125,7 @@ export class DiscountsService {
           entryType: 'discount',
           amount: -line.amount,
           refTable: 'invoice_lines',
-          refId: reverseLine?.id ?? line.id,
+          refId: line.id,
         },
         tx,
       );
@@ -141,7 +137,7 @@ export class DiscountsService {
           entity: 'invoice_line',
           entityId: line.id,
           before: { amount: line.amount.toString() },
-          after: { reason: input.reason, reverseLineId: reverseLine?.id },
+          after: { amount: '0', reason: input.reason },
         },
         tx,
       );

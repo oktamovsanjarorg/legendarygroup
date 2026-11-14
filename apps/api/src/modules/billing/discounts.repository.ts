@@ -52,12 +52,10 @@ export class DiscountsRepository {
     return client.select().from(invoiceLines).where(eq(invoiceLines.invoiceId, invoiceId));
   }
 
-  async insertInvoiceLine(
-    line: typeof invoiceLines.$inferInsert,
-    tx?: Transaction,
-  ): Promise<InvoiceLineRow[]> {
+  /** Qator summasini o'zgartirish (jarimani bekor qilish — qator va ledger havolasi saqlanadi). */
+  async setInvoiceLineAmount(id: string, amount: bigint, tx?: Transaction): Promise<void> {
     const client = tx ?? this.db;
-    return client.insert(invoiceLines).values(line).returning();
+    await client.update(invoiceLines).set({ amount }).where(eq(invoiceLines.id, id));
   }
 
   async deleteInvoiceLine(id: string, tx?: Transaction): Promise<boolean> {
