@@ -108,9 +108,15 @@ describe('Yozish va sigʻim (FR-STU-3)', () => {
   });
 
   it('parallel: 1 oʻrinli guruhga ikki soʻrov — faqat bittasi', async () => {
-    const codes = (await Promise.all([enroll('Sami', g.tiny), enroll('Vali', g.tiny)])).map(
-      (r) => r.statusCode,
-    );
+    const rival = (await call('POST', 'students', { fullName: 'Rival Testov' })).json<{
+      id: string;
+    }>().id;
+    const codes = (
+      await Promise.all([
+        enroll('Sami', g.tiny),
+        call('POST', 'enrollments', { studentId: rival, groupId: g.tiny, startDate: start }),
+      ])
+    ).map((r) => r.statusCode);
     expect(codes.sort()).toEqual([201, 409]);
   });
 });

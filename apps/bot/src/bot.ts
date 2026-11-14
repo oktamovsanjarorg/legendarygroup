@@ -34,16 +34,24 @@ export function createBot(deps: BotDeps): Bot {
   const url = deps.env.TELEGRAM_MINIAPP_URL;
 
   bot.use(dedupeUpdates(deps.store));
-  // Avval: `/start inv_<token>` va kontakt (T-101); qolgan `/start` — pastdagi umumiy javob.
+  // Onboarding: `/start inv_<token>` (T-101), `/start` (T-110) va kontakt ulashish
   registerStaffOnboarding(bot, deps.api, () => openAppKeyboard(url));
-  bot.command('start', (ctx: Context) =>
-    ctx.reply(`<b>${t.start.title}</b>\n${t.start.body}`, {
+  bot.command('help', (ctx: Context) =>
+    ctx.reply(`<b>${t.help.title}</b>\n${t.help.body}`, { parse_mode: 'HTML' }),
+  );
+  // To'lov cheki (rasm yoki fayl) kelganda — ilovaga yo'naltirish (T-206)
+  bot.on(['message:photo', 'message:document'], (ctx: Context) =>
+    ctx.reply(`<b>${t.receiptUploadHelp.title}</b>\n\n${t.receiptUploadHelp.body}`, {
       parse_mode: 'HTML',
       reply_markup: openAppKeyboard(url),
     }),
   );
-  bot.command('help', (ctx: Context) =>
-    ctx.reply(`<b>${t.help.title}</b>\n${t.help.body}`, { parse_mode: 'HTML' }),
+  // Erkin matnli xabarlar uchun yo'naltiruvchi javob
+  bot.on('message:text', (ctx: Context) =>
+    ctx.reply(`<b>${t.unknownMessage.title}</b>\n\n${t.unknownMessage.body}`, {
+      parse_mode: 'HTML',
+      reply_markup: openAppKeyboard(url),
+    }),
   );
 
   // Xato bot'ni to'xtatmaydi; foydalanuvchiga qisqa javob, tafsilot — logga (T-016: Sentry).

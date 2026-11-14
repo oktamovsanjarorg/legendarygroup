@@ -64,7 +64,24 @@ export function parseStartParam(
  * Ekran → yo'l. Har ekran vazifasi (T-111 MT-02, T-116 MG-01 ...) shu yerga qo'shadi;
  * hali qurilmagan ekranga link — bosh sahifa (bo'sh "tez orada" sahifa yo'q).
  */
-export const SCREEN_PATHS: Readonly<Record<string, (id?: string) => string>> = {};
+export const SCREEN_PATHS: Readonly<Record<string, (id?: string) => string>> = {
+  'MT-01': () => '/',
+  'MT-02': (id) => (id ? `/lessons/${id}/attendance` : '/'),
+  'MT-03': () => '/groups',
+  'MT-05': () => '/schedule',
+  'MT-08': () => '/profile',
+  'MG-01': () => '/',
+  'MG-03': () => '/results',
+  'MG-04': () => '/payments',
+  'MG-06': (id) => (id ? `/pay/${id}` : '/payments'),
+  'MG-07': (id) => (id ? `/submissions/${id}` : '/payments'),
+  'MG-08': () => '/more',
+  'MS-01': () => '/',
+  'MS-02': () => '/staff/queue',
+  'MS-03': (id) => (id ? `/staff/approvals/${id}` : '/staff/approvals'),
+  'MS-04': () => '/staff/search',
+  'MS-05': (id) => (id ? `/staff/students/${id}` : '/staff/search'),
+};
 
 export function deepLinkPath(
   link: DeepLink,

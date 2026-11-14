@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
@@ -41,8 +41,28 @@ export function parseBotEnv(raw: Record<string, unknown>): BotEnv {
   return r.data;
 }
 
+function parseEnvLine(line: string): [string, string] | null {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith('#')) return null;
+  const idx = trimmed.indexOf('=');
+  if (idx <= 0) return null;
+  const k = trimmed.slice(0, idx).trim();
+  let v = trimmed.slice(idx + 1).trim();
+  const hashIdx = v.indexOf(' #');
+  if (hashIdx >= 0) v = v.slice(0, hashIdx).trim();
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+    v = v.slice(1, -1);
+  }
+  return [k, v];
+}
+
 /** Lokal: ildiz `.env` (bot DB paketiga bog'liq emas — o'z yuklovchisi). */
 export function loadRootEnv(): void {
   const file = fileURLToPath(new URL('../../../.env', import.meta.url));
-  if (existsSync(file)) process.loadEnvFile(file);
+  if (!existsSync(file)) return;
+  const lines = readFileSync(file, 'utf8').split('\n');
+  for (const line of lines) {
+    const pair = parseEnvLine(line);
+    if (pair) process.env[pair[0]] = pair[1];
+  }
 }

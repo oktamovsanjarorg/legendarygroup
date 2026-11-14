@@ -13,6 +13,8 @@ export const QUEUES = {
   cron: 'cron',
   /** Telegram'ga chiquvchi xabarlar (T-010): limit 25/s, 429 retry_after, bloklash. */
   telegram: 'telegram',
+  /** Davomat bildirishnomalari (T-113, BR-31 3 daqiqalik tuzatish oynasi). */
+  attendanceNotice: 'attendance-notice',
 } as const;
 
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];

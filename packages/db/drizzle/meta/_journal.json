@@ -134,6 +134,111 @@
       "when": 1794505705330,
       "tag": "0018_leads",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794583472251,
+      "tag": "0019_billing",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794584834287,
+      "tag": "0020_approval_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794585663281,
+      "tag": "0021_cash_closings",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794586800000,
+      "tag": "0022_payment_reminders",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794587600000,
+      "tag": "0023_attendance",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794588400000,
+      "tag": "0024_grades",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794589200000,
+      "tag": "0025_tests",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794590000000,
+      "tag": "0026_payroll",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1794600000000,
+      "tag": "0027_expenses",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794610000000,
+      "tag": "0028_analytics_views",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794620000000,
+      "tag": "0029_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1794630000000,
+      "tag": "0030_announcements",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794640000000,
+      "tag": "0031_tickets_and_absence_notices",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794650000000,
+      "tag": "0032_guardian_link_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794660000000,
+      "tag": "0033_feedbacks",
+      "breakpoints": true
     }
   ]
 }

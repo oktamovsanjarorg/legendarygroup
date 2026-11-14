@@ -1,4 +1,8 @@
 import {
+  BotGuardianContactResult,
+  type BotGuardianContactResult as GuardianContactResult,
+  BotTelegramStatusResult,
+  type BotTelegramStatusResult as StatusResult,
   StaffInviteCheckResult,
   type StaffInviteCheckResult as CheckResult,
   TelegramContactResult,
@@ -15,6 +19,13 @@ export interface InternalApi {
     phone: string;
     username?: string;
   }): Promise<ContactResult>;
+  checkStatus(telegramId: number): Promise<StatusResult>;
+  shareGuardianContact(input: {
+    telegramId: number;
+    phone: string;
+    fullName: string;
+    username?: string;
+  }): Promise<GuardianContactResult>;
 }
 
 type Fetch = typeof fetch;
@@ -44,6 +55,14 @@ export function createInternalApi(
         'staff/contact',
         { ...input, telegramId: String(input.telegramId) },
         TelegramContactResult,
+      ),
+    checkStatus: (telegramId) =>
+      post('guardian/status', { telegramId: String(telegramId) }, BotTelegramStatusResult),
+    shareGuardianContact: (input) =>
+      post(
+        'guardian/contact',
+        { ...input, telegramId: String(input.telegramId) },
+        BotGuardianContactResult,
       ),
   };
 }

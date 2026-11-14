@@ -1,19 +1,19 @@
 import { miniappMessages as t } from '@lg/i18n';
-import { Navigate } from '@tanstack/react-router';
 import { useMe } from '../session/session.js';
-import { tabsFor } from '../tabs.js';
+import { GuardianHomePage, StaffDashboardPage, TeacherTodayPage } from './tab-pages.js';
 
-/** Bosh sahifa: rolning birinchi tabi; tab hali yo'q bo'lsa — salomlashish. */
+/** Bosh sahifa: rolga mos boshlang'ich ekran va salomlashish (T-114, T-116, T-120). */
 export function HomePage() {
   const me = useMe();
-  const first = tabsFor(me.activeRole)[0];
-  if (first && first.to !== '/') return <Navigate to={first.to} replace />;
   return (
-    <main className="flex flex-col gap-2 p-4">
-      <h1 className="text-xl font-semibold text-text">
-        {t.home.greeting.replace('{name}', me.fullName)}
-      </h1>
-      <p className="text-base text-text-muted">{t.home.intro}</p>
-    </main>
+    <div className="flex flex-col">
+      <div className="sr-only">
+        <h1>{t.home.greeting.replace('{name}', me.fullName)}</h1>
+        <p>{t.home.intro}</p>
+      </div>
+      {me.activeRole === 'teacher' && <TeacherTodayPage />}
+      {me.activeRole === 'guardian' && <GuardianHomePage />}
+      {(me.activeRole === 'admin' || me.activeRole === 'director') && <StaffDashboardPage />}
+    </div>
   );
 }

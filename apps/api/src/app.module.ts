@@ -14,7 +14,23 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { FilesModule } from './modules/files/files.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { InternalModule } from './modules/internal/internal.module.js';
+import { SettingsModule } from './modules/settings/settings.module.js';
 import { StudentsModule } from './modules/students/students.module.js';
+import { BillingModule } from './modules/billing/billing.module.js';
+import { ApprovalsModule } from './modules/approvals/approvals.module.js';
+import { AttendanceModule } from './modules/attendance/attendance.module.js';
+import { GradesModule } from './modules/grades/grades.module.js';
+import { TestsModule } from './modules/tests/index.js';
+import { PayrollModule } from './modules/payroll/index.js';
+import { FinanceModule } from './modules/finance/index.js';
+import { AuditLogModule } from './modules/audit-logs/index.js';
+import { DashboardModule } from './modules/dashboard/index.js';
+import { ReportsModule } from './modules/reports/index.js';
+import { ForecastsModule } from './modules/forecasts/index.js';
+import { NotificationsModule } from './modules/notifications/index.js';
+import { AnnouncementsModule } from './modules/announcements/index.js';
+import { TicketsModule } from './modules/tickets/index.js';
+import { FeedbackModule } from './modules/feedback/index.js';
 import { OrgModule } from './modules/org/org.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
 import { RbacModule } from './modules/rbac/rbac.module.js';
@@ -51,6 +67,22 @@ export class AppModule {
         FilesModule,
         OrgModule,
         StudentsModule,
+        SettingsModule,
+        BillingModule,
+        ApprovalsModule,
+        AttendanceModule,
+        GradesModule,
+        TestsModule,
+        PayrollModule,
+        FinanceModule,
+        AuditLogModule,
+        DashboardModule,
+        ReportsModule,
+        ForecastsModule,
+        NotificationsModule,
+        AnnouncementsModule,
+        TicketsModule,
+        FeedbackModule,
         HealthModule,
         InternalModule,
         ...(opts.role === 'worker' ? [WorkerModule] : []),

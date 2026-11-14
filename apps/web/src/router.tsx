@@ -12,13 +12,16 @@ import { HomePage } from './pages/home.js';
 import { InvitePage } from './pages/invite.js';
 import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
+import { VerifyPage } from './pages/verify.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { GroupsPage } from './routes/groups/index.js';
+import { LandingPage } from './routes/landing/index.js';
 import { LeadsPage } from './routes/leads/index.js';
 import { StaffPage } from './routes/staff/index.js';
 import { StudentCardPage } from './routes/students/card.js';
 import { StudentsPage } from './routes/students/index.js';
+import { WizardPage } from './routes/wizard/index.js';
 
 const root = createRootRoute({
   component: Outlet,
@@ -37,6 +40,18 @@ const invite = createRoute({
   component: function Invite() {
     return <InvitePage token={invite.useParams().token} />;
   },
+});
+const verify = createRoute({
+  getParentRoute: () => root,
+  path: '/verify/$token',
+  component: function Verify() {
+    return <VerifyPage token={verify.useParams().token} />;
+  },
+});
+const landing = createRoute({
+  getParentRoute: () => root,
+  path: '/landing',
+  component: () => <LandingPage />,
 });
 const app = createRoute({ getParentRoute: () => root, id: 'app', component: AppLayout });
 const home = createRoute({ getParentRoute: () => app, path: '/', component: HomePage });
@@ -71,11 +86,25 @@ const studentCard = createRoute({
 });
 const leads = createRoute({ getParentRoute: () => app, path: '/leads', component: LeadsPage });
 const staff = createRoute({ getParentRoute: () => app, path: '/staff', component: StaffPage });
+const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
 const routeTree = root.addChildren([
   login,
   invite,
-  app.addChildren([home, students, studentCard, leads, courses, groups, calendar, staff, sessions]),
+  verify,
+  landing,
+  app.addChildren([
+    home,
+    students,
+    studentCard,
+    leads,
+    courses,
+    groups,
+    calendar,
+    staff,
+    sessions,
+    wizard,
+  ]),
 ]);
 
 /** Testlarda — `createMemoryHistory`. */

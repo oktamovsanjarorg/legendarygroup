@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Inject } from '@nestjs/common';
+import { Controller, Get, Header, HttpCode, HttpStatus, Inject } from '@nestjs/common';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { LivenessResult, ReadinessResult } from './health.service.js';
@@ -25,5 +25,14 @@ export class HealthController {
   @ApiResponse({ status: 503, description: 'Kamida bitta xizmat ishlamayapti' })
   async getReady(): Promise<ReadinessResult> {
     return this.healthService.getReadiness();
+  }
+
+  @Get('metrics')
+  @HttpCode(HttpStatus.OK)
+  @Header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
+  @ApiOperation({ summary: 'Prometheus metrikalari (OpenMetrics formati)' })
+  @ApiResponse({ status: 200, description: 'Prometheus metrikalari matni' })
+  async getMetrics(): Promise<string> {
+    return this.healthService.getMetrics();
   }
 }
