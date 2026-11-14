@@ -97,12 +97,20 @@ export class PayrollGenerator {
       });
     }
     if (c.type === 'percent' || c.type === 'mixed') {
-      const collected = await this.metrics.collectedBase(c.teacherId, period, scope);
+      const isAccrued = c.base === 'accrued';
+      const baseAmount = isAccrued
+        ? await this.metrics.accruedBase(c.teacherId, period, scope)
+        : await this.metrics.collectedBase(c.teacherId, period, scope);
       items.push({
         ...base,
         kind: 'percent',
-        amount: calculatePercentSalary(collected, c.percentBp),
-        details: { contractId: c.id, collectedBase: collected.toString(), percentBp: c.percentBp },
+        amount: calculatePercentSalary(baseAmount, c.percentBp),
+        details: {
+          contractId: c.id,
+          base: c.base,
+          collectedBase: baseAmount.toString(),
+          percentBp: c.percentBp,
+        },
         note: `${c.percentBp / 100}% ulush`,
       });
     }

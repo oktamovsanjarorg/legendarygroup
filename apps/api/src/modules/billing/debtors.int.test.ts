@@ -256,4 +256,26 @@ describe('Qarzdorlik va Eslatmalar (T-208, FR-PAY-7, BR-20, 21, 22)', () => {
     const secondRun = await debtorsService.processScheduledReminders();
     expect(secondRun.sentCount).toBe(0);
   });
+
+  it('BR-21: haftalik eslatma har hafta (weekly_1, weekly_2) ketsin va cron kechiksa ham oraliq eslatma yoʻqolmasin', async () => {
+    // 1) Cron 1 kun kechikkanda (masalan 4 kun o'tganda overdue_3 yuborilishi)
+    const type4 = debtorsService.determineMilestoneType('2026-11-01', '2026-11-05');
+    expect(type4).toBe('overdue_3');
+
+    // 2) 8 kun o'tganda (7-kun o'tkazib yuborilgan bo'lsa ham overdue_7)
+    const type8 = debtorsService.determineMilestoneType('2026-11-01', '2026-11-09');
+    expect(type8).toBe('overdue_7');
+
+    // 3) 14 kun o'tganda (1-hafta) -> weekly_1
+    const typeW1 = debtorsService.determineMilestoneType('2026-11-01', '2026-11-15');
+    expect(typeW1).toBe('weekly_1');
+
+    // 4) 15 kun o'tganda (14-kun o'tkazib yuborilgan bo'lsa ham) -> weekly_1
+    const typeW1Late = debtorsService.determineMilestoneType('2026-11-01', '2026-11-16');
+    expect(typeW1Late).toBe('weekly_1');
+
+    // 5) 21 kun o'tganda (2-hafta) -> weekly_2
+    const typeW2 = debtorsService.determineMilestoneType('2026-11-01', '2026-11-22');
+    expect(typeW2).toBe('weekly_2');
+  });
 });

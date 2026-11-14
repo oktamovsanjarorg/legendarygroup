@@ -1,6 +1,6 @@
 import type { PaymentDetail, PublicReceipt, RoleCode, StudentLedgerSummary } from '@lg/contracts';
 import { closeDb, createDb, type Database, payments, receipts, seed } from '@lg/db';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
@@ -12,15 +12,18 @@ let studentId: string;
 let receiptNumber: string;
 
 type Method = 'GET' | 'POST';
-const call = (method: Method, url: string, role?: RoleCode, payload?: object) => {
+const call = (method: Method, url: string, role?: RoleCode, payload?: Record<string, unknown>) => {
   const headers: Record<string, string> = {};
   if (role) {
     headers['authorization'] = `Bearer ${tokens.get(role)!}`;
   }
+  // Kalit — faqat sarlavhada (body'dagi maydon API'da yo'q).
+  const { idempotencyKey, ...body } = payload ?? {};
+  if (typeof idempotencyKey === 'string') headers['idempotency-key'] = idempotencyKey;
   return t.app.inject({
     method,
     url: `/api/${url}`,
-    payload,
+    payload: payload ? body : undefined,
     headers,
   });
 };
@@ -71,6 +74,69 @@ afterAll(async () => {
 
 describe('Payments API (T-204, FR-PAY-2, 6, BR-11, 12, 19)', () => {
   describe('Ruxsatlar va cheklovlar', () => {
+    it('BR-11 & Idempotency: Idempotency-Key majburiy (yoʻq boʻlsa 400), takroriy soʻrovda oʻsha toʻlov qaytadi', async () => {
+      const sepStudent = await call('POST', 'students', 'admin', {
+        fullName: 'Idempotency Oʻquvchi',
+        phone: '+998901112233',
+      });
+      const sepStudentId = sepStudent.json<{ id: string }>().id;
+
+      // 1) Idempotency-Key siz so'rov yuborilsa -> 400
+      const missingKeyRes = await call('POST', 'billing/payments', 'admin', {
+        studentId: sepStudentId,
+        amount: '100000',
+        method: 'cash',
+      });
+      expect(missingKeyRes.statusCode).toBe(400);
+
+      // 2) Idempotency-Key bilan so'rov -> 201 va payments.idempotency_key to'ldiriladi
+      const idemKey = 'idem_test_key_001';
+      const firstRes = await call('POST', 'billing/payments', 'admin', {
+        studentId: sepStudentId,
+        amount: '100000',
+        method: 'cash',
+        idempotencyKey: idemKey,
+      });
+      expect(firstRes.statusCode).toBe(201);
+      const firstData = firstRes.json<PaymentDetail>();
+      expect(firstData.id).toBeDefined();
+
+      const [dbPmt] = await db.select().from(payments).where(eq(payments.id, firstData.id));
+      expect(dbPmt?.idempotencyKey).toBe(idemKey);
+
+      // 3) Aynan shu Idempotency-Key bilan takroriy so'rov -> o'sha to'lov qaytadi, takror yaratilmaydi
+      const repeatRes = await call('POST', 'billing/payments', 'admin', {
+        studentId: sepStudentId,
+        amount: '100000',
+        method: 'cash',
+        idempotencyKey: idemKey,
+      });
+      expect([200, 201]).toContain(repeatRes.statusCode);
+      const repeatData = repeatRes.json<PaymentDetail>();
+      expect(repeatData.id).toBe(firstData.id);
+      expect(repeatData.receiptNumber).toBe(firstData.receiptNumber);
+
+      const allWithKey = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.idempotencyKey, idemKey));
+      expect(allWithKey.length).toBe(1);
+    });
+
+    it('BR-11: shu kalit boshqa foydalanuvchi/boshqa oʻquvchi bilan — eski toʻlov qaytmaydi (409)', async () => {
+      const other = (
+        await call('POST', 'students', 'admin', { fullName: 'Boshqa Oʻquvchi' })
+      ).json<{ id: string }>().id;
+      const res = await call('POST', 'billing/payments', 'director', {
+        studentId: other,
+        amount: '999000',
+        method: 'cash',
+        idempotencyKey: 'idem_test_key_001',
+      });
+      expect(res.statusCode).toBe(409);
+      expect(res.json<{ code: string }>().code).toBe('IDEMPOTENCY_CONFLICT');
+    });
+
     it("tokensiz so'rov 401 UNAUTHORIZED qaytaradi", async () => {
       const res = await call('POST', 'billing/payments', undefined, {
         studentId,
@@ -97,6 +163,7 @@ describe('Payments API (T-204, FR-PAY-2, 6, BR-11, 12, 19)', () => {
         studentId,
         amount: '300000',
         method: 'cash',
+        idempotencyKey: 'idem_fifo_part1',
       });
 
       expect(res.statusCode).toBe(201);
@@ -117,6 +184,7 @@ describe('Payments API (T-204, FR-PAY-2, 6, BR-11, 12, 19)', () => {
         studentId,
         amount: '700000',
         method: 'card',
+        idempotencyKey: 'idem_fifo_part2',
       });
 
       expect(res.statusCode).toBe(201);

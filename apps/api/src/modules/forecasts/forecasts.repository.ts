@@ -1,21 +1,24 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
+  attendance,
   type Database,
   enrollments,
   groups,
   guardians,
   invoices,
+  lessons,
   payments,
   studentGuardians,
   students,
 } from '@lg/db';
-import { and, eq, inArray, isNull, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface RawStudentChurnData {
   studentId: string;
   studentName: string;
   studentCode: number;
+  groupId: string;
   groupName: string | null;
   attendanceDropPercent: number;
   paymentDelayDays: number;
@@ -84,13 +87,15 @@ export class ForecastsRepository {
     const studentIds = activeStudents.map((s) => s.id);
     const delaysMap = await this.fetchPaymentDelays(studentIds, today);
     const botMap = await this.fetchBotUnresponsiveMap(studentIds);
+    const attendanceMap = await this.fetchAttendanceDropMap(studentIds, today);
 
     return activeStudents.map((s) => ({
       studentId: s.id,
       studentName: s.fullName,
       studentCode: Number(s.code),
+      groupId: s.groupId,
       groupName: s.groupName,
-      attendanceDropPercent: 15, // o'rtacha dinamika
+      attendanceDropPercent: attendanceMap.get(s.id) ?? 15,
       paymentDelayDays: delaysMap.get(s.id) ?? 0,
       gradeDropPercent: 10,
       botUnresponsive: botMap.get(s.id) ?? false,
@@ -103,6 +108,7 @@ export class ForecastsRepository {
         id: students.id,
         code: students.code,
         fullName: students.fullName,
+        groupId: groups.id,
         groupName: groups.name,
       })
       .from(students)
@@ -116,6 +122,41 @@ export class ForecastsRepository {
           sql`(${enrollments.endDate} IS NULL OR ${enrollments.endDate} >= ${today})`,
         ),
       );
+  }
+
+  private async fetchAttendanceDropMap(
+    studentIds: string[],
+    today: string,
+  ): Promise<Map<string, number>> {
+    const fourWeeksAgo = new Date(new Date(today).getTime() - 28 * 86400000)
+      .toISOString()
+      .slice(0, 10);
+
+    const rows = await this.db
+      .select({
+        studentId: attendance.studentId,
+        total: sql<number>`count(*)::int`,
+        absent: sql<number>`count(*) filter (where ${attendance.status} = 'absent')::int`,
+      })
+      .from(attendance)
+      .innerJoin(lessons, eq(lessons.id, attendance.lessonId))
+      .where(
+        and(
+          inArray(attendance.studentId, studentIds),
+          gte(lessons.date, fourWeeksAgo),
+          lte(lessons.date, today),
+        ),
+      )
+      .groupBy(attendance.studentId);
+
+    const map = new Map<string, number>();
+    for (const r of rows) {
+      if (r.total > 0) {
+        const drop = Math.round((r.absent / r.total) * 100);
+        map.set(r.studentId, drop);
+      }
+    }
+    return map;
   }
 
   private async fetchPaymentDelays(
@@ -190,5 +231,25 @@ export class ForecastsRepository {
       capacity: Number(g.capacity),
       currentActive: Number(g.currentActive),
     }));
+  }
+
+  async getActualChurnCount(
+    branchId: string,
+    monthStart: string,
+    endExclusive: string,
+  ): Promise<number> {
+    const rows = await this.db
+      .select({ count: sql<number>`count(distinct ${enrollments.studentId})::int` })
+      .from(enrollments)
+      .innerJoin(groups, eq(groups.id, enrollments.groupId))
+      .where(
+        and(
+          eq(groups.branchId, branchId),
+          sql`${enrollments.endDate} IS NOT NULL`,
+          gte(enrollments.endDate, monthStart),
+          lt(enrollments.endDate, endExclusive),
+        ),
+      );
+    return Number(rows[0]?.count ?? 0);
   }
 }

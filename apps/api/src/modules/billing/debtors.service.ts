@@ -297,13 +297,26 @@ export class DebtorsService {
     return { sentCount };
   }
 
-  private determineMilestoneType(dueDate: string, today: string): string | null {
-    const diff = diffInDays(dueDate, today); // dueDate - today
-    if (diff === 3) return 'due_minus_3';
-    if (diff === 0) return 'due_day';
-    if (diff === -3) return 'overdue_3';
-    if (diff === -7) return 'overdue_7';
-    if (diff < -7 && (-diff - 7) % 7 === 0) return 'weekly';
+  determineMilestoneType(dueDate: string, today: string): string | null {
+    // overdueDays: today - dueDate (musbat = kechikkan kunlar soni)
+    const overdueDays = diffInDays(today, dueDate);
+
+    if (overdueDays >= 14) {
+      const weekNum = Math.floor((overdueDays - 7) / 7);
+      return `weekly_${weekNum}`;
+    }
+    if (overdueDays >= 7) {
+      return 'overdue_7';
+    }
+    if (overdueDays >= 3) {
+      return 'overdue_3';
+    }
+    if (overdueDays >= 0) {
+      return 'due_day';
+    }
+    if (overdueDays >= -3) {
+      return 'due_minus_3';
+    }
     return null;
   }
 }

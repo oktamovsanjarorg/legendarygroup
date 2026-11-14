@@ -15,6 +15,7 @@ export const errorMessages = {
   INTERNAL_SERVER_ERROR: 'Kutilmagan xato yuz berdi. Birozdan keyin qayta urinib koʻring.',
   HTTP_ERROR: 'Soʻrovni bajarib boʻlmadi.',
   INVALID_IDEMPOTENCY_KEY: 'Soʻrov kaliti notoʻgʻri. Sahifani yangilab, qayta urinib koʻring.',
+  IDEMPOTENCY_KEY_REQUIRED: 'Idempotency-Key sarlavhasi majburiy.',
   IDEMPOTENCY_CONFLICT: 'Bu soʻrov boshqa maʼlumotlar bilan allaqachon yuborilgan.',
   IDEMPOTENCY_IN_PROGRESS:
     'Soʻrov hali bajarilmoqda. Bir necha soniyadan keyin natijani tekshiring.',
@@ -42,6 +43,7 @@ export const errorMessages = {
   LAST_DIRECTOR: 'Oxirgi faol Direktorni bloklab yoki rolini olib boʻlmaydi.',
   ALREADY_STAFF: 'Bu xodimda shu rol allaqachon bor.',
   USER_BLOCKED: 'Foydalanuvchi bloklangan. Avval blokdan chiqaring.',
+  PENALTY_ALREADY_WAIVED: 'Bu jarima allaqachon bekor qilingan.',
   INVITE_NOT_NEEDED: 'Taklif kerak emas: xodim allaqachon tizimga kira oladi.',
   TELEGRAM_ALREADY_LINKED: 'Telegram akkauntingiz allaqachon bogʻlangan.',
   NOT_BLOCKED: 'Foydalanuvchi bloklanmagan.',

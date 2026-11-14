@@ -104,4 +104,34 @@ export class PayrollMetricsRepository {
     `);
     return BigInt(rows[0]?.total ?? '0');
   }
+
+  /**
+   * BR-24 muqobil baza (sozlama): shu davr uchun chiqarilgan invoice qatorlari jami (void
+   * bo'lmagan), davrdagi birinchi asosiy ustozga.
+   */
+  async accruedBase(teacherId: string, period: string, scope: GroupScope): Promise<bigint> {
+    const { first, next } = periodDays(period);
+    // Hisob bitta ustozga: davrdagi birinchi asosiy ustoz (oy o'rtasida almashsa — ikki marta
+    // hisoblanmaydi; collectedBase to'lov kunidagi ustozga beradi).
+    const teacherOwns = sql`${teacherId} = (
+      SELECT gt.teacher_id FROM group_teachers gt
+      WHERE gt.group_id = e.group_id AND gt.role = 'main'
+        AND gt.from_date < ${next}::date
+        AND (gt.to_date IS NULL OR gt.to_date >= ${first}::date)
+      ORDER BY gt.from_date, gt.id
+      LIMIT 1
+    ) ${scopeSql(sql`e.group_id`, scope)}`;
+
+    const rows = await this.db.execute<{ total: string }>(sql`
+      SELECT COALESCE(sum(il.amount), 0)::text AS total
+      FROM invoice_lines il
+      JOIN invoices inv ON inv.id = il.invoice_id
+      JOIN enrollments e ON e.id = il.enrollment_id
+      WHERE inv.period = ${period}
+        AND inv.status <> 'void'
+        AND ${teacherOwns}
+    `);
+    const total = BigInt(rows[0]?.total ?? '0');
+    return total > 0n ? total : 0n;
+  }
 }

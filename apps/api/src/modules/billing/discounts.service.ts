@@ -87,6 +87,9 @@ export class DiscountsService {
       );
     }
 
+    // Allaqachon bekor qilingan (summa 0) — qayta bekor qilish qarzni ikkinchi marta kamaytirardi.
+    if (line.amount <= 0n) throw new AppException(HttpStatus.CONFLICT, 'PENALTY_ALREADY_WAIVED');
+
     return this.executeWaiveTx(invoice, line, p.input, p.ctx);
   }
 
@@ -104,9 +107,14 @@ export class DiscountsService {
       if (BigInt(paid?.allocated ?? '0') > 0n) {
         throw new AppException(HttpStatus.CONFLICT, 'PENALTY_ALREADY_PAID');
       }
-      await this.repo.deleteInvoiceLine(line.id, tx);
-      const remaining = await this.repo.findInvoiceLines(invoice.id, tx);
-      const newTotal = computeInvoiceTotal(remaining);
+
+      // BR-8: qator o'chirilmaydi (ledger refId butun qoladi) va manfiy qator qo'shilmaydi
+      // (taqsimot manfiy qatorni e'tiborsiz qoldiradi — keyingi to'lov bekor qilingan jarimaga
+      // ketib qolardi). Summa 0 — asl summa audit `before`da.
+      await this.repo.setInvoiceLineAmount(line.id, 0n, tx);
+
+      const allLines = await this.repo.findInvoiceLines(invoice.id, tx);
+      const newTotal = computeInvoiceTotal(allLines);
       await this.repo.updateInvoiceTotal(invoice.id, newTotal, tx);
 
       // Jarima bekor qilingani uchun qarz kamayadi (manfiy ledger yozuvi)
@@ -129,7 +137,7 @@ export class DiscountsService {
           entity: 'invoice_line',
           entityId: line.id,
           before: { amount: line.amount.toString() },
-          after: { reason: input.reason },
+          after: { amount: '0', reason: input.reason },
         },
         tx,
       );

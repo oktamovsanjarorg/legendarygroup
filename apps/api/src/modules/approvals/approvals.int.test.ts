@@ -23,13 +23,15 @@ const f = { student: '', enrollment: '', payment: '', receipt: '', lesson: '' };
 const today = formatDateToYmd(new Date());
 
 type Method = 'GET' | 'POST';
-const call = (method: Method, url: string, role?: RoleCode, payload?: object) =>
-  t.app.inject({
-    method,
-    url: `/api/${url}`,
-    payload,
-    headers: role ? { authorization: `Bearer ${tokens.get(role)!}` } : {},
-  });
+const call = (method: Method, url: string, role?: RoleCode, payload?: object) => {
+  // BR-11: Idempotency-Key — faqat sarlavhada.
+  const { idempotencyKey, ...rest } = (payload ?? {}) as Record<string, unknown>;
+  const headers: Record<string, string> = role
+    ? { authorization: `Bearer ${tokens.get(role)!}` }
+    : {};
+  if (typeof idempotencyKey === 'string') headers['idempotency-key'] = idempotencyKey;
+  return t.app.inject({ method, url: `/api/${url}`, payload: payload ? rest : undefined, headers });
+};
 const idOf = async (url: string, body: object) =>
   (await call('POST', url, 'admin', body)).json<{ id: string }>().id;
 
@@ -72,6 +74,7 @@ beforeAll(async () => {
     amount: '2000000',
     method: 'cash',
     paidAt: new Date(Date.now() - 86_400_000).toISOString(),
+    idempotencyKey: 'appr-init-pay-1',
   });
   const p = paid.json<{ id: string; receiptNumber: string }>();
   f.payment = p.id;

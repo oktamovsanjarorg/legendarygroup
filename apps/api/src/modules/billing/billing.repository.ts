@@ -250,6 +250,11 @@ export class BillingRepository {
     return row ?? null;
   }
 
+  async findPaymentByIdempotencyKey(key: string): Promise<PaymentRow | null> {
+    const [row] = await this.db.select().from(payments).where(eq(payments.idempotencyKey, key));
+    return row ?? null;
+  }
+
   async findAllocationsByPaymentId(
     paymentId: string,
   ): Promise<{ invoiceLineId: string; amount: bigint }[]> {

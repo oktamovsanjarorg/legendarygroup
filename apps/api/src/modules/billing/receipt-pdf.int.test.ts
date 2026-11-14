@@ -19,10 +19,13 @@ const call = (method: Method, url: string, role?: RoleCode, payload?: object) =>
   if (role) {
     headers['authorization'] = `Bearer ${tokens.get(role)!}`;
   }
+  // BR-11: Idempotency-Key — faqat sarlavhada.
+  const { idempotencyKey, ...rest } = (payload ?? {}) as Record<string, unknown>;
+  if (typeof idempotencyKey === 'string') headers['idempotency-key'] = idempotencyKey;
   return t.app.inject({
     method,
     url: `/api/${url}`,
-    payload,
+    payload: payload ? rest : undefined,
     headers,
   });
 };
@@ -71,6 +74,7 @@ beforeAll(async () => {
     studentId,
     amount: '50000000',
     method: 'card',
+    idempotencyKey: 'receipt-pdf-pay-1',
   });
   expect(payRes.statusCode).toBe(201);
   const payJson = payRes.json<{ id: string; receiptNumber: string }>();

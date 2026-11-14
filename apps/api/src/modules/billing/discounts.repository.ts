@@ -52,6 +52,12 @@ export class DiscountsRepository {
     return client.select().from(invoiceLines).where(eq(invoiceLines.invoiceId, invoiceId));
   }
 
+  /** Qator summasini o'zgartirish (jarimani bekor qilish — qator va ledger havolasi saqlanadi). */
+  async setInvoiceLineAmount(id: string, amount: bigint, tx?: Transaction): Promise<void> {
+    const client = tx ?? this.db;
+    await client.update(invoiceLines).set({ amount }).where(eq(invoiceLines.id, id));
+  }
+
   async deleteInvoiceLine(id: string, tx?: Transaction): Promise<boolean> {
     const client = tx ?? this.db;
     const res = await client.delete(invoiceLines).where(eq(invoiceLines.id, id)).returning();
