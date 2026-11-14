@@ -3,6 +3,7 @@ import {
   closeDb,
   createDb,
   type Database,
+  guardianLinkRequests,
   roles,
   seed,
   staffInvites,
@@ -258,5 +259,36 @@ describe('Ustozlar katalogi (GET /teachers, group.view) — guruh/dars formalari
     expect(list.map((x) => x['id'])).not.toContain(blocked);
     expect(Object.keys(list[0]!).sort()).toEqual(['fullName', 'id']);
     expect((await call('GET', 'teachers', tokenFor.get('guardian')!)).statusCode).toBe(403);
+  });
+});
+
+describe("O'z Telegram'ini bog'lash (T-120): Director/Admin'ga bot taklifi avtomatik berilmaydi", () => {
+  it('Director havola oladi → raqam ulashadi → bogʻlanadi; avvalgi ota-ona soʻrovi yopiladi', async () => {
+    const p = phone();
+    const id = await createUser(['director'], p);
+    const token = await tokenOf(id, 'director');
+    // Raqam hali tanilmagan paytda bot ota-ona so'rovi yaratgan (prod'dagi holat).
+    await db
+      .insert(guardianLinkRequests)
+      .values({ telegramId: 7900n, phone: p, fullName: 'Direktor' });
+
+    const res = await call('POST', 'staff/me/telegram-invite', token);
+    expect(res.statusCode).toBe(200);
+    expect(res.json<{ channel: string; url: string }>()).toMatchObject({ channel: 'bot' });
+    expect(res.json<{ url: string }>().url).toMatch(/^https:\/\/t\.me\/.+\?start=inv_/);
+
+    const linked = await internal('contact', { telegramId: '7900', phone: p.replace('+', '') });
+    expect(linked.json()).toMatchObject({ result: 'staff_linked' });
+    const [req] = await db
+      .select()
+      .from(guardianLinkRequests)
+      .where(eq(guardianLinkRequests.telegramId, 7900n));
+    expect(req?.status).toBe('rejected');
+
+    // Bog'langandan keyin — qayta havola kerak emas (409); ota-ona — 403.
+    expect((await call('POST', 'staff/me/telegram-invite', token)).statusCode).toBe(409);
+    expect(
+      (await call('POST', 'staff/me/telegram-invite', tokenFor.get('guardian')!)).statusCode,
+    ).toBe(403);
   });
 });

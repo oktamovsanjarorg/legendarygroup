@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { StaffInviteCheckResult, TelegramContactResult } from '@lg/contracts';
-import { type Database, staffInvites, users } from '@lg/db';
+import { type Database, guardianLinkRequests, staffInvites, users } from '@lg/db';
+import { webMessages } from '@lg/i18n';
 import type { Clock } from '@lg/domain';
 import { and, eq, gt, isNull } from 'drizzle-orm';
 import { AuditService } from '../../common/audit/audit.service.js';
@@ -9,6 +10,9 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { sha256 } from '../auth/index.js';
 
 /** Telegram kontakt raqami ba'zan `+`siz keladi: faqat raqamlar → E.164. */
+/** Admin navbatida ko'rinadi (i18n). */
+const STAFF_LINKED_REASON = webMessages.linkRequests.staffLinkedReason;
+
 export const normalizePhone = (raw: string): string => `+${raw.replace(/\D/g, '')}`;
 
 /**
@@ -77,6 +81,17 @@ export class StaffLinkService {
         .update(users)
         .set({ telegramId: input.telegramId, telegramUsername: input.username ?? null })
         .where(eq(users.id, user.id));
+      // Shu Telegram'dan avval (raqam tanilmagan paytda) yuborilgan ota-ona so'rovi — endi
+      // ortiqcha: admin navbatida chalg'itmasin.
+      await tx
+        .update(guardianLinkRequests)
+        .set({ status: 'rejected', rejectReason: STAFF_LINKED_REASON, resolvedAt: now })
+        .where(
+          and(
+            eq(guardianLinkRequests.telegramId, input.telegramId),
+            eq(guardianLinkRequests.status, 'pending'),
+          ),
+        );
       await this.audit.record(
         { actorId: user.id, actorRole: null, ip: null, userAgent: null, requestId: null },
         { action: 'staff.telegram_linked', entity: 'user', entityId: user.id },

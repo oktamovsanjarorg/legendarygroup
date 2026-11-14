@@ -52,6 +52,7 @@ export const webF1Messages = {
   },
   ...webF1StudentsMessages,
   linkRequests: {
+    staffLinkedReason: 'Bu raqam xodimniki — Telegram xodim akkauntiga bogʻlandi',
     title: 'Bogʻlanish soʻrovlari',
     hint: 'Botda telefon ulashgan, lekin bazada topilmagan raqamlar.',
     cols: { phone: 'Telefon', tgName: 'Telegram nomi', at: 'Vaqt', match: 'Ehtimoliy moslik' },

@@ -38,6 +38,10 @@ export const botMessages = {
     rejectedBody:
       'Sizning soʻrovingiz rad etilgan.\nSabab: {reason}\nSavollar boʻlsa, markaz administratoriga murojaat qiling.',
   },
+  submission: {
+    confirmed: 'Toʻlovingiz tasdiqlandi. Chek raqami: {number}',
+    rejected: 'Toʻlov chekingiz rad etildi. Sabab: {reason}',
+  },
   receiptUploadHelp: {
     title: '🧾 Toʻlov cheki',
     body: 'Chekni hisobingizga biriktirish uchun ilovadagi «Toʻlov» boʻlimiga kiring yoki administratorga murojaat qiling.',

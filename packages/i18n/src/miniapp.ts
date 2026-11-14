@@ -18,6 +18,7 @@ export const miniappMessages = {
   notLinked: {
     title: 'Akkaunt bogʻlanmagan',
     backToBot: 'Botga qaytish',
+    staffHint: 'Xodim boʻlsangiz: web panel → Bosh sahifa → «Telegramni ulash».',
   },
   home: {
     greeting: 'Xush kelibsiz, {name}!',

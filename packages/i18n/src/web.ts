@@ -55,6 +55,14 @@ export const webMessages = {
     greeting: 'Xush kelibsiz, {name}!',
     intro: 'Boʻlimlar ruxsatlaringizga qarab chap menyuda koʻrinadi.',
   },
+  telegramLink: {
+    title: 'Telegramni ulash',
+    hint: 'Mini App va bot sizni taniydi: jadval, chek navbati va tasdiqlashlar telefonda.',
+    get: 'Ulash havolasini olish',
+    open: 'Botni ochish va ulash',
+    steps: 'Botda «Start» bosing va raqamingizni ulashing. Havola 24 soat, bir marta ishlaydi.',
+    linked: 'Telegram akkauntingiz ulangan.',
+  },
   sessions: {
     title: 'Mening sessiyalarim',
     current: 'Joriy qurilma',

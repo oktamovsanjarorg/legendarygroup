@@ -11,6 +11,14 @@ export interface TelegramMessage {
 export const SEND_ATTEMPTS = 8;
 
 /**
+ * BullMQ 6: `:` bor jobId faqat 3 qismli bo'lsa qabul qilinadi (eski repeat formati), aks holda
+ * `Custom Id cannot contain :` — xabar navbatga tushmaydi. Deterministik almashtirish: bir xil
+ * kalit — bir xil jobId, dedupe saqlanadi.
+ */
+export const toJobId = (dedupeKey: string | undefined): string | undefined =>
+  dedupeKey?.replaceAll(':', '_');
+
+/**
  * Chiquvchi Telegram xabarlari navbati (CLAUDE.md: xabar yuborish faqat navbat orqali).
  * Odatda `notifications` moduli (T-109) chaqiradi. `dedupeKey` — bir hodisa uchun bitta xabar
  * (masalan `attendance:<lessonId>:<studentId>`), BullMQ `jobId` sifatida.
@@ -24,7 +32,7 @@ export class TelegramOutbox {
     opts: { dedupeKey?: string; delayMs?: number } = {},
   ): Promise<string> {
     const job = await this.queues.queue(QUEUES.telegram).add(message.method, message, {
-      jobId: opts.dedupeKey,
+      jobId: toJobId(opts.dedupeKey),
       delay: opts.delayMs,
       attempts: SEND_ATTEMPTS,
       backoff: { type: 'exponential', delay: 2000 },
