@@ -1,5 +1,5 @@
 import type { DirectorDashboardKpi, RoleCode } from '@lg/contracts';
-import { closeDb, createDb, type Database, lessons, payments, seed } from '@lg/db';
+import { attendance, closeDb, createDb, type Database, lessons, payments, seed } from '@lg/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
@@ -96,6 +96,33 @@ beforeAll(async () => {
     roomId,
     status: 'scheduled',
   });
+  // "Belgilanmagan" — faqat tugagan, bekor qilinmagan va davomatsiz darslar (FR-ATT-5).
+  const mk = (startTime: string, endTime: string, cancelled = false) =>
+    db
+      .insert(lessons)
+      .values({
+        groupId,
+        date: todayYmd,
+        startTime,
+        endTime,
+        roomId,
+        ...(cancelled
+          ? {
+              status: 'cancelled' as const,
+              cancelSource: 'manual' as const,
+              cancelledAt: new Date(),
+            }
+          : { status: 'scheduled' as const }),
+      })
+      .returning();
+  await mk('00:00', '00:01');
+  await mk('00:01', '00:02', true);
+  await mk('23:58', '23:59');
+  const [marked] = await mk('00:02', '00:03');
+  const markerId = await createUserWithRole(db, 'teacher');
+  await db
+    .insert(attendance)
+    .values({ lessonId: marked!.id, studentId, status: 'absent', markedBy: markerId });
 });
 
 afterAll(async () => {
@@ -125,7 +152,16 @@ describe('T-405: Director Dashboard (FR-DASH-1, 5)', () => {
     expect(kpi.daily.length).toBeGreaterThanOrEqual(1);
     expect(kpi.todayLessons.length).toBeGreaterThanOrEqual(1);
     expect(kpi.todayLessons[0]?.group).toBe('ROBO-01');
-    expect(kpi.unmarked).toBeGreaterThanOrEqual(1);
+    // 00:00–00:01 tugagan (davomatsiz) + 10:00–11:30 (tugagan bo'lsa); bekor qilingan, 23:58
+    // dagi va davomati bor darslar sanalmaydi.
+    const nowHm = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Tashkent',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).format(new Date());
+    expect(kpi.unmarked).toBe(1 + (nowHm >= '11:30' ? 1 : 0));
+    expect(kpi.absentToday).toBe(1);
     expect(kpi.cachedAt).toBeDefined();
   });
 
