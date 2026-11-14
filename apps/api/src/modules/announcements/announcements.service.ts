@@ -17,12 +17,15 @@ import {
   type AudienceRecipient,
   AnnouncementsRepository as RepoToken,
 } from './announcements.repository.js';
+import type { Clock } from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 @Injectable()
 export class AnnouncementsService {
   constructor(
     @Inject(RepoToken) private readonly repo: AnnouncementsRepository,
     @Inject(NotificationsService) private readonly notificationsService: NotificationsService,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
   /** O'qituvchi doirasini tekshirish */
@@ -101,7 +104,7 @@ export class AnnouncementsService {
     } else if (dto.sendNow && audience.length === 0) {
       await this.repo.updateAnnouncementStatus(ann.id, {
         status: 'completed',
-        sentAt: new Date(),
+        sentAt: this.clock.now(),
         totalRecipients: 0,
       });
     }
@@ -146,7 +149,7 @@ export class AnnouncementsService {
         await this.repo.updateRecipientDelivery(announcementId, r.userId, {
           notificationId: notifId,
           status: 'sent',
-          sentAt: new Date(),
+          sentAt: this.clock.now(),
         });
         sent += 1;
       } catch (err) {
@@ -160,7 +163,7 @@ export class AnnouncementsService {
 
     await this.repo.updateAnnouncementStatus(announcementId, {
       status: 'completed',
-      sentAt: new Date(),
+      sentAt: this.clock.now(),
       totalRecipients: audience.length,
       sentCount: sent,
       failedCount: failed,

@@ -59,7 +59,7 @@ export class ReportsExporterService {
   async exportToExcel(reportType: ReportType, data: unknown): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Legendary Group CRM';
-    workbook.created = new Date();
+    workbook.created = this.clock.now();
 
     const sheet = workbook.addWorksheet('Hisobot');
     const typedData = data as Record<string, unknown>;

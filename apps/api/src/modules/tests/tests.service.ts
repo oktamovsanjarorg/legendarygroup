@@ -10,13 +10,19 @@ import type {
   UpdateTestRequest,
 } from '@lg/contracts';
 import type { TestRow } from '@lg/db';
-import { calculatePercentage, validateSectionScores, validateTestScore } from '@lg/domain';
+import {
+  calculatePercentage,
+  validateSectionScores,
+  validateTestScore,
+  type Clock,
+} from '@lg/domain';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { RequestUser } from '../auth/index.js';
 import { OutboxService } from '../outbox/index.js';
 import { StudentScopeService } from '../students/index.js';
 import { ExcelTestService } from './excel-test.service.js';
 import { TestsRepository } from './tests.repository.js';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 @Injectable()
 export class TestsService {
@@ -25,6 +31,7 @@ export class TestsService {
     @Inject(ExcelTestService) private readonly excelService: ExcelTestService,
     @Inject(StudentScopeService) private readonly scopeService: StudentScopeService,
     @Inject(OutboxService) private readonly outboxService: OutboxService,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
   async createTest(
@@ -131,7 +138,7 @@ export class TestsService {
 
     const updated = await this.repo.updateTest(testId, {
       status: 'published',
-      publishedAt: new Date(),
+      publishedAt: this.clock.now(),
     });
     if (!updated) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
 

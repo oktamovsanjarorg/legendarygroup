@@ -15,6 +15,8 @@ import {
 } from '@lg/db';
 import { and, desc, eq, gte, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import type { Clock } from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 export interface EnrichedAttendanceRow extends AttendanceRow {
   studentName: string;
@@ -30,7 +32,10 @@ export interface ExpectedStudentRow {
 
 @Injectable()
 export class AttendanceRepository {
-  constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
+  constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+  ) {}
 
   async findLessonById(lessonId: string) {
     const [row] = await this.db
@@ -140,9 +145,9 @@ export class AttendanceRepository {
               lateMinutes: rec.lateMinutes ?? null,
               note: rec.note ?? null,
               markedBy: rec.markedBy,
-              markedAt: rec.markedAt ?? new Date(),
+              markedAt: rec.markedAt ?? this.clock.now(),
               clientMutationId: rec.clientMutationId ?? null,
-              updatedAt: new Date(),
+              updatedAt: this.clock.now(),
             },
           });
       }

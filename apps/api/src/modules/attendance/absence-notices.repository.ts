@@ -3,6 +3,8 @@ import type { AbsenceNoticeStatus } from '@lg/contracts';
 import { absenceNotices, type Database, students, users } from '@lg/db';
 import { and, desc, eq } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import type { Clock } from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 export interface CreateAbsenceNoticeInput {
   branchId: string;
@@ -14,7 +16,10 @@ export interface CreateAbsenceNoticeInput {
 
 @Injectable()
 export class AbsenceNoticesRepository {
-  constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
+  constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+  ) {}
 
   /** Yangi oldindan sababli xabarnoma saqlash */
   async create(input: CreateAbsenceNoticeInput) {
@@ -97,7 +102,7 @@ export class AbsenceNoticesRepository {
   async updateStatus(id: string, status: AbsenceNoticeStatus) {
     const [row] = await this.db
       .update(absenceNotices)
-      .set({ status, updatedAt: new Date() })
+      .set({ status, updatedAt: this.clock.now() })
       .where(eq(absenceNotices.id, id))
       .returning();
     return row ?? null;

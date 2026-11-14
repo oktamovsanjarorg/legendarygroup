@@ -15,6 +15,8 @@ import type { TestSectionScore } from '@lg/contracts';
 import { Inject, Injectable } from '@nestjs/common';
 import { and, desc, eq, gte, isNull, lte, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import type { Clock } from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 export interface GroupStudentEntry {
   id: string;
@@ -24,7 +26,10 @@ export interface GroupStudentEntry {
 
 @Injectable()
 export class TestsRepository {
-  constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
+  constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+  ) {}
 
   async createTest(data: NewTestRow): Promise<TestRow> {
     const [row] = await this.db.insert(tests).values(data).returning();
@@ -35,7 +40,7 @@ export class TestsRepository {
   async updateTest(id: string, patch: Partial<NewTestRow>): Promise<TestRow | undefined> {
     const [row] = await this.db
       .update(tests)
-      .set({ ...patch, updatedAt: new Date() })
+      .set({ ...patch, updatedAt: this.clock.now() })
       .where(eq(tests.id, id))
       .returning();
     return row;
@@ -110,7 +115,7 @@ export class TestsRepository {
               sectionScores: item.sectionScores as TestSectionScore[],
               version: sql`${testResults.version} + 1`,
               clientMutationId: item.clientMutationId,
-              updatedAt: new Date(),
+              updatedAt: this.clock.now(),
             },
           })
           .returning();

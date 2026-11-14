@@ -6,10 +6,11 @@ import {
   payments,
   payrollRuns,
 } from '@lg/db';
-import { tashkentMonthRange } from '@lg/domain';
+import { tashkentMonthRange, type Clock } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
 import { and, desc, eq, gte, lt, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 export interface ListExpensesFilter {
   from?: string;
@@ -21,7 +22,10 @@ export interface ListExpensesFilter {
 
 @Injectable()
 export class ExpensesRepository {
-  constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
+  constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+  ) {}
 
   async createExpense(data: NewExpenseRow): Promise<ExpenseRow> {
     const [row] = await this.db.insert(expenses).values(data).returning();
@@ -37,7 +41,7 @@ export class ExpensesRepository {
   async updateExpense(id: string, data: Partial<NewExpenseRow>): Promise<ExpenseRow | null> {
     const [row] = await this.db
       .update(expenses)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...data, updatedAt: this.clock.now() })
       .where(eq(expenses.id, id))
       .returning();
     return row ?? null;

@@ -11,6 +11,8 @@ import {
 import { and, desc, eq } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import type { Clock } from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 export interface CreateTicketRepoInput {
   branchId: string;
@@ -31,7 +33,10 @@ export interface CreateMessageRepoInput {
 export class TicketsRepository {
   private readonly assigneeUser = alias(users, 'assignee_user');
 
-  constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
+  constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+  ) {}
 
   /** Yangi ticket yaratish */
   async createTicket(input: CreateTicketRepoInput) {
@@ -66,8 +71,8 @@ export class TicketsRepository {
     await this.db
       .update(tickets)
       .set({
-        lastMessageAt: new Date(),
-        updatedAt: new Date(),
+        lastMessageAt: this.clock.now(),
+        updatedAt: this.clock.now(),
       })
       .where(eq(tickets.id, input.ticketId));
 
@@ -155,7 +160,7 @@ export class TicketsRepository {
       .update(tickets)
       .set({
         ...data,
-        updatedAt: new Date(),
+        updatedAt: this.clock.now(),
       })
       .where(eq(tickets.id, id))
       .returning();

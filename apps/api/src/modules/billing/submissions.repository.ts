@@ -192,7 +192,7 @@ export class SubmissionsRepository {
         return { isDuplicate: true, reason: 'Aynan shu chek fayli allaqachon yuborilgan.' };
     }
 
-    const tenMinAgo = new Date(Date.now() - thresholdMinutes * 60 * 1000);
+    const tenMinAgo = new Date(this.clock.now().getTime() - thresholdMinutes * 60 * 1000);
     const [byAmountAndTime] = await this.db
       .select({ id: paymentSubmissions.id })
       .from(paymentSubmissions)

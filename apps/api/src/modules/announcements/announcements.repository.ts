@@ -19,6 +19,8 @@ import {
 } from '@lg/db';
 import { and, desc, eq, gte, inArray, isNull, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import type { Clock } from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 export interface AudienceRecipient {
   userId: string;
@@ -43,7 +45,10 @@ export interface CreateAnnouncementInput {
 
 @Injectable()
 export class AnnouncementsRepository {
-  constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
+  constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+  ) {}
 
   /** O'qituvchining ruxsat etilgan guruhlarini tekshirish */
   async isTeacherInGroup(teacherUserId: string, groupId: string): Promise<boolean> {
@@ -262,7 +267,7 @@ export class AnnouncementsRepository {
       .update(announcements)
       .set({
         ...data,
-        updatedAt: new Date(),
+        updatedAt: this.clock.now(),
       })
       .where(eq(announcements.id, id))
       .returning();
@@ -284,7 +289,7 @@ export class AnnouncementsRepository {
       .update(announcementRecipients)
       .set({
         ...data,
-        updatedAt: new Date(),
+        updatedAt: this.clock.now(),
       })
       .where(
         and(

@@ -14,6 +14,8 @@ import {
 } from '@lg/db';
 import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import type { Clock } from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 export interface EnrichedGradeRow extends GradeRow {
   studentName: string;
@@ -30,7 +32,10 @@ export interface EnrichedCommentRow extends TeacherCommentRow {
 
 @Injectable()
 export class GradesRepository {
-  constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
+  constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+  ) {}
 
   async findLessonWithGroup(lessonId: string) {
     const [row] = await this.db
@@ -106,7 +111,7 @@ export class GradesRepository {
             set: {
               value: rec.value,
               createdBy: rec.createdBy,
-              updatedAt: new Date(),
+              updatedAt: this.clock.now(),
             },
           });
       }
