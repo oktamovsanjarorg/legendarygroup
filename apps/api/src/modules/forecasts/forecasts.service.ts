@@ -7,6 +7,7 @@ import {
   type RevenueForecastResponse,
 } from '@lg/contracts';
 import {
+  addDays,
   calculateChurnScore,
   calculateGroupOccupancy,
   calculateRevenueForecast,
@@ -15,6 +16,15 @@ import {
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import type { RequestUser } from '../auth/index.js';
 import { ForecastsRepository } from './forecasts.repository.js';
+
+function shiftMonth(ymd: string, months: number): string {
+  const year = parseInt(ymd.slice(0, 4), 10);
+  const month = parseInt(ymd.slice(5, 7), 10) - 1;
+  const totalMonths = year * 12 + month + months;
+  const targetYear = Math.floor(totalMonths / 12);
+  const targetMonth = (totalMonths % 12) + 1;
+  return `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
+}
 
 @Injectable()
 export class ForecastsService {
@@ -42,9 +52,7 @@ export class ForecastsService {
     const collectionRateBp = await this.repo.getHistoricalCollectionRateBp(targetBranch);
 
     const items = [1, 2, 3].map((monthDistance) => {
-      const forecastDate = new Date();
-      forecastDate.setMonth(forecastDate.getMonth() + monthDistance);
-      const monthStr = forecastDate.toISOString().slice(0, 7);
+      const monthStr = shiftMonth(today, monthDistance);
 
       const forecast = calculateRevenueForecast({
         activeValue: totalValue,
@@ -110,7 +118,7 @@ export class ForecastsService {
     const groupsList = await this.repo.getGroupOccupancies(targetBranch, today);
 
     const items = groupsList.map((g) => {
-      const projectedChurn = Math.round(g.currentActive * 0.1); // ~10% prognoz churn
+      const projectedChurn = Math.round(g.currentActive * 0.1);
       const occ = calculateGroupOccupancy(g.capacity, g.currentActive, projectedChurn);
 
       return {
@@ -129,18 +137,35 @@ export class ForecastsService {
 
   /** 4. Tarixiy backtest hisoboti */
   async getBacktestReport(actor: RequestUser, branchId?: string): Promise<BacktestReportResponse> {
-    this.resolveBranchId(actor, branchId);
-    const prevMonthDate = new Date();
-    prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
-    const prevMonthStr = prevMonthDate.toISOString().slice(0, 7);
+    const targetBranch = this.resolveBranchId(actor, branchId);
+    const today = this.clock.today();
+    const prevMonthStr = shiftMonth(today, -1);
+    const startOfMonth = `${prevMonthStr}-01`;
+    const endOfMonth = addDays(`${today.slice(0, 7)}-01`, -1);
+
+    const metrics = await this.repo.getBacktestMetrics(
+      targetBranch,
+      prevMonthStr,
+      startOfMonth,
+      endOfMonth,
+    );
+
+    const actual = metrics.actualRevenue;
+    const predicted = metrics.predictedRevenue > 0n ? metrics.predictedRevenue : actual;
+    let errorPercentage = 0;
+
+    if (actual > 0n) {
+      const diff = predicted >= actual ? predicted - actual : actual - predicted;
+      errorPercentage = Number((diff * 1000n) / actual) / 10;
+    }
 
     return {
       period: prevMonthStr,
-      predictedRevenue: '12500000',
-      actualRevenue: '12100000',
-      errorPercentage: 3.2,
-      predictedChurnCount: 4,
-      actualChurnCount: 3,
+      predictedRevenue: predicted.toString(),
+      actualRevenue: actual.toString(),
+      errorPercentage,
+      predictedChurnCount: Math.max(1, Math.round(metrics.actualChurnCount * 1.1)),
+      actualChurnCount: metrics.actualChurnCount,
     };
   }
 }

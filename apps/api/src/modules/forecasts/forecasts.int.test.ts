@@ -15,6 +15,7 @@ import {
   groups,
   invoices,
   ledgerEntries,
+  payments,
   seed,
   students,
 } from '@lg/db';
@@ -105,6 +106,26 @@ beforeAll(async () => {
     studentId: student.id,
     entryType: 'invoice',
     amount: 1000000n,
+  });
+
+  // O'tgan oy uchun hisob-faktura va to'lov (backtest hisoboti tekshiruvi uchun)
+  const d = new Date();
+  d.setMonth(d.getMonth() - 1);
+  const prevMonth = d.toISOString().slice(0, 7);
+  await db.insert(invoices).values({
+    branchId: DEFAULT_BRANCH_ID,
+    studentId: student.id,
+    period: prevMonth,
+    dueDate: `${prevMonth}-20`,
+    total: 1000000n,
+    status: 'paid',
+  });
+  await db.insert(payments).values({
+    branchId: DEFAULT_BRANCH_ID,
+    studentId: student.id,
+    amount: 1000000n,
+    method: 'cash',
+    paidAt: new Date(`${prevMonth}-15T10:00:00Z`),
   });
 });
 
