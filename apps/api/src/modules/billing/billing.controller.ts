@@ -131,7 +131,9 @@ export class BillingController {
     @Req() req: FastifyRequest,
     @ZodBody(CreatePaymentRequest) body: CreatePaymentInput,
   ): Promise<PaymentDetail> {
-    return this.payments.createPayment(auditContext(req), user, body);
+    const idempotencyKey =
+      (req.headers['idempotency-key'] as string | undefined) ?? body.idempotencyKey;
+    return this.payments.createPayment(auditContext(req), user, body, idempotencyKey);
   }
 
   @Get('payments')
@@ -229,7 +231,14 @@ export class BillingController {
     @Req() req: FastifyRequest,
     @ZodBody(ReversePaymentRequest) body: ReversePaymentInput,
   ): Promise<{ paymentId: string; reversalId: string }> {
-    return this.stornoCash.reversePayment(id, body, user, auditContext(req));
+    const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
+    return this.stornoCash.reversePayment({
+      paymentId: id,
+      input: body,
+      user,
+      ctx: auditContext(req),
+      idempotencyKey,
+    });
   }
 
   @Post('payments/refund')
@@ -241,7 +250,8 @@ export class BillingController {
     @Req() req: FastifyRequest,
     @ZodBody(RefundPaymentRequest) body: RefundPaymentInput,
   ): Promise<{ refundId: string; amount: string }> {
-    return this.stornoCash.refundPayment(body, user, auditContext(req));
+    const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
+    return this.stornoCash.refundPayment(body, user, auditContext(req), idempotencyKey);
   }
 
   @Post('cash/close')

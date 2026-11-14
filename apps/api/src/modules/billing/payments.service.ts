@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { uuidv7 } from 'uuidv7';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type {
   CreatePaymentInput,
@@ -23,6 +24,7 @@ interface PaymentTxParams {
   userId: string;
   amount: bigint;
   paidAt: Date;
+  idempotencyKey: string;
 }
 
 interface PaymentTxResult {
@@ -47,13 +49,21 @@ export class PaymentsService {
     ctx: AuditContext,
     user: RequestUser,
     input: CreatePaymentInput,
+    idempotencyKey?: string,
   ): Promise<PaymentDetail> {
     await this.studentScope.assertVisible(user, input.studentId);
     const amount = BigInt(input.amount);
     const paidAt = input.paidAt ? new Date(input.paidAt) : this.clock.now();
+    const effectiveKey = idempotencyKey ?? input.idempotencyKey ?? `pmt_${uuidv7()}`;
 
     const { payment, receiptNumber, allocs, advance } = await this.db.transaction((tx) =>
-      this.executePaymentTx(tx, { input, userId: user.id, amount, paidAt }),
+      this.executePaymentTx(tx, {
+        input,
+        userId: user.id,
+        amount,
+        paidAt,
+        idempotencyKey: effectiveKey,
+      }),
     );
 
     await this.audit.record(ctx, {
@@ -101,6 +111,7 @@ export class PaymentsService {
       paidAt: p.paidAt,
       receivedBy: p.userId,
       submissionId: p.input.submissionId,
+      idempotencyKey: p.idempotencyKey,
     });
 
     const allocs = allocation.parts.map((part) => ({

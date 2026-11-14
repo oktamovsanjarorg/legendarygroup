@@ -1,6 +1,6 @@
 import type { PaymentDetail, PublicReceipt, RoleCode, StudentLedgerSummary } from '@lg/contracts';
 import { closeDb, createDb, type Database, payments, receipts, seed } from '@lg/db';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
@@ -12,8 +12,16 @@ let studentId: string;
 let receiptNumber: string;
 
 type Method = 'GET' | 'POST';
-const call = (method: Method, url: string, role?: RoleCode, payload?: object) => {
-  const headers: Record<string, string> = {};
+const call = (
+  method: Method,
+  url: string,
+  role?: RoleCode,
+  opts?: { payload?: object; headers?: Record<string, string> } | object,
+) => {
+  const isOpts = opts && ('payload' in opts || 'headers' in opts);
+  const payload = isOpts ? (opts as { payload?: object }).payload : (opts as object);
+  const extraHeaders = isOpts ? (opts as { headers?: Record<string, string> }).headers : undefined;
+  const headers: Record<string, string> = { ...extraHeaders };
   if (role) {
     headers['authorization'] = `Bearer ${tokens.get(role)!}`;
   }
@@ -168,6 +176,60 @@ describe('Payments API (T-204, FR-PAY-2, 6, BR-11, 12, 19)', () => {
       expect(r).toBeDefined();
 
       await expect(db.execute(sql`DELETE FROM receipts WHERE id = ${r!.id}`)).rejects.toThrow();
+    });
+  });
+
+  describe('Idempotentlik (BR-11, Q-45): payments.idempotency_key toʻldirilishi', () => {
+    it('Idempotency-Key bilan toʻlov kiritilganda payments.idempotency_key bazaga yoziladi', async () => {
+      const uniqueKey = `idemp-test-${Date.now()}`;
+      const res = await call('POST', 'billing/payments', 'admin', {
+        payload: {
+          studentId,
+          amount: '150000',
+          method: 'card',
+        },
+        headers: { 'idempotency-key': uniqueKey },
+      });
+
+      expect(res.statusCode).toBe(201);
+      const paymentId = res.json<{ id: string }>().id;
+
+      const [row] = await db.select().from(payments).where(eq(payments.id, paymentId));
+      expect(row).toBeDefined();
+      expect(row?.idempotencyKey).toBe(uniqueKey);
+    });
+
+    it('Ayni bir Idempotency-Key bilan takroriy soʻrov yuborilganda dublikat toʻlov yaratilmaydi (Replay)', async () => {
+      const uniqueKey = `replay-test-${Date.now()}`;
+      const payload = {
+        studentId,
+        amount: '100000',
+        method: 'cash',
+      };
+
+      const res1 = await call('POST', 'billing/payments', 'admin', {
+        payload,
+        headers: { 'idempotency-key': uniqueKey },
+      });
+      expect(res1.statusCode).toBe(201);
+      const payment1 = res1.json<{ id: string }>();
+
+      // Ikkinchi marta ayni shu kalit bilan yuboriladi
+      const res2 = await call('POST', 'billing/payments', 'admin', {
+        payload,
+        headers: { 'idempotency-key': uniqueKey },
+      });
+      // Replay javob 201 va ayni shu to'lov tafsiloti qaytadi
+      expect(res2.statusCode).toBe(201);
+      expect(res2.headers['idempotent-replay']).toBe('true');
+      expect(res2.json<{ id: string }>().id).toBe(payment1.id);
+
+      // Bazada faqat bitta to'lov qatori mavjudligini tekshiramiz
+      const countRows = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.idempotencyKey, uniqueKey));
+      expect(countRows).toHaveLength(1);
     });
   });
 });

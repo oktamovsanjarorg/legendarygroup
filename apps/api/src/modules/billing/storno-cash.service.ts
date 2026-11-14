@@ -26,12 +26,21 @@ import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { StornoCashRepository } from './storno-cash.repository.js';
 import { serializeCashClosing } from './storno-cash.serializer.js';
 
+export interface ReversePaymentParams {
+  paymentId: string;
+  input: ReversePaymentInput;
+  user: RequestUser;
+  ctx: AuditContext;
+  idempotencyKey?: string;
+}
+
 interface ReversalTxParams {
   payment: PaymentRow;
   receipt: ReceiptRow;
   input: ReversePaymentInput;
   user: RequestUser;
   ctx: AuditContext;
+  idempotencyKey?: string;
 }
 
 @Injectable()
@@ -47,27 +56,31 @@ export class StornoCashService {
   ) {}
 
   async reversePayment(
-    paymentId: string,
-    input: ReversePaymentInput,
-    user: RequestUser,
-    ctx: AuditContext,
+    p: ReversePaymentParams,
   ): Promise<{ paymentId: string; reversalId: string }> {
-    const payment = await this.repo.findPaymentById(paymentId);
+    const payment = await this.repo.findPaymentById(p.paymentId);
     if (!payment) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     if (payment.amount <= 0n)
       throw new AppException(HttpStatus.BAD_REQUEST, 'REVERSAL_OF_REVERSAL');
-    const receipt = await this.repo.findReceiptByPaymentId(paymentId);
+    const receipt = await this.repo.findReceiptByPaymentId(p.paymentId);
     if (!receipt) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
 
     // 02 §5: kiritilgan kundan keyingi storno — faqat tasdiqlash huquqi bor foydalanuvchi.
     const sameDay = formatDateToYmd(payment.paidAt) === formatDateToYmd(this.clock.now());
-    if (!sameDay && !(await this.can(user, 'approval.decide'))) {
+    if (!sameDay && !(await this.can(p.user, 'approval.decide'))) {
       throw new AppException(HttpStatus.FORBIDDEN, 'REVERSAL_NEEDS_APPROVAL');
     }
 
     try {
       return await this.db.transaction((tx) =>
-        this.executeReversalTx(tx, { payment, receipt, input, user, ctx }),
+        this.executeReversalTx(tx, {
+          payment,
+          receipt,
+          input: p.input,
+          user: p.user,
+          ctx: p.ctx,
+          idempotencyKey: p.idempotencyKey,
+        }),
       );
     } catch (err) {
       if (isUniqueViolation(err)) throw new AppException(HttpStatus.CONFLICT, 'ALREADY_REVERSED');
@@ -92,6 +105,7 @@ export class StornoCashService {
         paidAt: this.clock.now(),
         receivedBy: p.user.id,
         reversalOf: p.payment.id,
+        idempotencyKey: p.idempotencyKey ?? `rev:${p.payment.id}`,
       },
       tx,
     );
@@ -136,6 +150,7 @@ export class StornoCashService {
     input: RefundPaymentInput,
     user: RequestUser,
     ctx: AuditContext,
+    idempotencyKey?: string,
   ): Promise<{ refundId: string; amount: string }> {
     await this.studentScope.assertVisible(user, input.studentId);
     const amountBig = BigInt(input.amount);
@@ -144,6 +159,7 @@ export class StornoCashService {
       if (amountBig > (await this.balance.availableAdvance(tx, input.studentId))) {
         throw new AppException(HttpStatus.CONFLICT, 'REFUND_EXCEEDS_ADVANCE');
       }
+      const effectiveKey = idempotencyKey ?? `ref:${input.studentId}:${this.clock.now().getTime()}`;
       const refund = await this.repo.insertPayment(
         {
           studentId: input.studentId,
@@ -151,6 +167,7 @@ export class StornoCashService {
           method: input.method,
           paidAt: this.clock.now(),
           receivedBy: user.id,
+          idempotencyKey: effectiveKey,
         },
         tx,
       );
