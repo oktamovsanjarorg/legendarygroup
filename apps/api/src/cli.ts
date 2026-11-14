@@ -2,6 +2,7 @@ import { parseArgs } from 'node:util';
 import { closeDb, createDb, loadRootEnv, requireDatabaseUrl, runMigrations, seed } from '@lg/db';
 import { SystemClock } from '@lg/domain';
 import { ensureAppLogin } from './db-login.js';
+import { DirectorTransferError, transferDirector } from './modules/rbac/director-transfer.js';
 import {
   createFirstDirector,
   FirstDirectorError,
@@ -16,6 +17,7 @@ import {
 const HELP = `Foydalanish:
   pnpm cli director:create --phone +998901234567 --name "Ism Familiya"
   pnpm cli director:reinvite --phone +998901234567 --name "Ism Familiya"  (faollashmagan Director)
+  pnpm cli director:transfer --phone +998901234567 --name "Ism Familiya"  (joriy Director → Admin)
   node dist/cli.js db:migrate     (konteynerda: migratsiya + rollar seed'i + APP_DB_LOGIN login'i va lg_app)`;
 
 /**
@@ -74,6 +76,40 @@ async function directorInvite(args: string[], action: DirectorAction, done: stri
   }
 }
 
+const TRANSFER_MESSAGES: Record<DirectorTransferError['code'], string> = {
+  INVALID_INPUT: MESSAGES.INVALID_INPUT,
+  NOT_SEEDED: MESSAGES.NOT_SEEDED,
+  NO_DIRECTOR: "Direktor yo'q — avval: director:create",
+  SAME_PERSON: 'Bu raqam — joriy Direktorniki.',
+};
+
+/** `director:transfer`: yangi Director (taklif bilan), joriy Director — Admin bo'lib qoladi. */
+async function directorTransfer(args: string[]): Promise<void> {
+  const { values } = parseArgs({
+    args,
+    options: { phone: { type: 'string' }, name: { type: 'string' } },
+  });
+  if (!values.phone || !values.name) throw new Error(HELP);
+  const appUrl = process.env['PUBLIC_APP_URL'];
+  const botUsername = process.env['TELEGRAM_BOT_USERNAME'];
+  if (!appUrl || !botUsername) throw new Error('PUBLIC_APP_URL va TELEGRAM_BOT_USERNAME majburiy');
+  const db = createDb(requireDatabaseUrl(), { max: 1, appName: 'lg-cli' });
+  try {
+    const r = await transferDirector(
+      db,
+      { appUrl, botUsername },
+      { phone: values.phone, fullName: values.name },
+      new SystemClock().now(),
+    );
+    console.info("Direktorlik o'tkazildi; avvalgi Direktor — Admin.");
+    if (r.invite)
+      console.info(`Sozlash havolasi (${r.invite.expiresAt} gacha, bir marta):\n${r.invite.url}`);
+    else console.info("Yangi Direktor allaqachon parol o'rnatgan — web panelga kiradi.");
+  } finally {
+    await closeDb(db);
+  }
+}
+
 async function main(): Promise<void> {
   loadRootEnv();
   const [command, ...rest] = process.argv.slice(2);
@@ -81,6 +117,7 @@ async function main(): Promise<void> {
     return directorInvite(rest, createFirstDirector, 'Direktor yaratildi');
   if (command === 'director:reinvite')
     return directorInvite(rest, reissueDirectorInvite, 'Direktor taklifi yangilandi');
+  if (command === 'director:transfer') return directorTransfer(rest);
   if (command === 'db:migrate') return dbMigrate();
   throw new Error(HELP);
 }
@@ -89,9 +126,11 @@ main().catch((err: unknown) => {
   console.error(
     err instanceof FirstDirectorError
       ? MESSAGES[err.code]
-      : err instanceof Error
-        ? err.message
-        : err,
+      : err instanceof DirectorTransferError
+        ? TRANSFER_MESSAGES[err.code]
+        : err instanceof Error
+          ? err.message
+          : err,
   );
   process.exitCode = 1;
 });
