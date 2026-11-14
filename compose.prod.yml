@@ -69,6 +69,8 @@ services:
       # Jadval egasi (DDL huquqi) — faqat shu servisda. Ilova `APP_DB_LOGIN` bilan ulanadi.
       DATABASE_URL: ${MIGRATION_DATABASE_URL:?}
       APP_DB_LOGIN: ${APP_DB_LOGIN:?}
+      # Login har deploy'da shu parolga keltiriladi (SSM — yagona manba; parol SCRAM bo'lib ketadi).
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?}
     healthcheck: { disable: true }
 
   api:
