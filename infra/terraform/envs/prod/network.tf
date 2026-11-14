@@ -52,12 +52,19 @@ resource "aws_vpc_endpoint" "s3" {
   tags              = { Name = "${local.name}-s3" }
 }
 
-# Tashqaridan faqat 80/443 (Caddy). SSH yopiq — kirish SSM Session Manager orqali (06 §2).
+# Tashqaridan 80/443 (Caddy) va 22 (SSH).
 resource "aws_security_group" "app" {
   name        = "${local.name}-app"
   description = "Caddy 80/443, no SSH"
   vpc_id      = aws_vpc.main.id
 
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   ingress {
     description = "HTTP (ACME + redirect)"
     from_port   = 80
