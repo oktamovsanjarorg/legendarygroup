@@ -14,11 +14,16 @@ import {
   StaffApprovalsPage,
   StaffQueuePage,
   StaffSearchPage,
-  TeacherProfilePage,
 } from './pages/tab-pages.js';
 import { LessonAttendancePage } from './pages/lesson.js';
 import { TeacherCommentPage, TeacherStudentPage } from './pages/student.js';
-import { TeacherGroupPage, TeacherGroupsPage, TeacherSchedulePage } from './pages/teacher.js';
+import {
+  TeacherGroupPage,
+  TeacherGroupsPage,
+  TeacherPayrollPage,
+  TeacherProfilePage,
+  TeacherSchedulePage,
+} from './pages/teacher.js';
 
 const root = createRootRoute({ component: AppLayout, notFoundComponent: ForbiddenPage });
 const home = createRoute({ getParentRoute: () => root, path: '/', component: HomePage });
@@ -70,6 +75,12 @@ const teacherProfile = createRoute({
   component: TeacherProfilePage,
 });
 
+const teacherPayroll = createRoute({
+  getParentRoute: () => root,
+  path: '/payroll/$id',
+  component: TeacherPayrollPage,
+});
+
 // Ota-ona (guardian)
 const guardianResults = createRoute({
   getParentRoute: () => root,
@@ -115,6 +126,7 @@ const routeTree = root.addChildren([
   teacherStudent,
   teacherComment,
   teacherProfile,
+  teacherPayroll,
   guardianResults,
   guardianPayments,
   guardianMore,

@@ -10,19 +10,6 @@ import { StaffDashboardView } from '../screens/staff/dashboard.js';
 import { ReviewView } from '../screens/staff/review.js';
 import { ApprovalsView } from '../screens/staff/approvals.js';
 import { SearchView } from '../screens/staff/search.js';
-import { MONTHS } from '../screens/teacher/mock-more.js';
-import { PayrollView } from '../screens/teacher/payroll.js';
-
-export function TeacherProfilePage() {
-  const navigate = useNavigate();
-  return (
-    <PayrollView
-      months={MONTHS}
-      onOpen={() => undefined}
-      onSettings={() => void navigate({ to: '/settings' })}
-    />
-  );
-}
 
 export function GuardianHomePage() {
   const [childId, setChildId] = useState(CHILDREN[0]?.id ?? 'c1');

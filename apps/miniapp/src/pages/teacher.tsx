@@ -9,7 +9,9 @@ import {
   useTeacherToday,
   useTeacherWeek,
 } from '../data/teacher.js';
+import { useOwnPayroll, useOwnPayrollDetail } from '../data/payroll.js';
 import { GroupView } from '../screens/teacher/group.js';
+import { PayrollDetailView, PayrollView } from '../screens/teacher/payroll.js';
 import { GroupsView } from '../screens/teacher/groups.js';
 import { ScheduleView } from '../screens/teacher/schedule.js';
 import { TodayView } from '../screens/teacher/today.js';
@@ -93,4 +95,27 @@ export function TeacherGroupPage() {
       }
     </QueryView>
   );
+}
+
+/** MT-11 profil va oylik (T-402, FR-SAL-4). */
+export function TeacherProfilePage() {
+  const navigate = useNavigate();
+  const query = useOwnPayroll();
+  return (
+    <QueryView query={query}>
+      {(months) => (
+        <PayrollView
+          months={months}
+          onOpen={(m) => void navigate({ to: '/payroll/$id', params: { id: m.id } })}
+          onSettings={() => void navigate({ to: '/settings' })}
+        />
+      )}
+    </QueryView>
+  );
+}
+
+export function TeacherPayrollPage() {
+  const { id } = useParams({ from: '/payroll/$id' });
+  const query = useOwnPayrollDetail(id);
+  return <QueryView query={query}>{(d) => <PayrollDetailView d={d} />}</QueryView>;
 }
