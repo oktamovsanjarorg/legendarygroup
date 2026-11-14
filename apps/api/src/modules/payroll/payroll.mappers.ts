@@ -5,7 +5,6 @@ import type {
   TeacherPayrollSummary,
 } from '@lg/contracts';
 import type { PayrollItemRow, PayrollRunRow, TeacherContractRow } from '@lg/db';
-import { calculateNetSalary } from '@lg/domain';
 
 export function mapContractRow(row: TeacherContractRow): TeacherContract {
   return {
@@ -55,9 +54,8 @@ export function buildPayrollRunDetail(
 
   const summaries: TeacherPayrollSummary[] = [];
   for (const [tId, val] of teacherMap.entries()) {
-    const net = calculateNetSalary(
-      val.items.map((i) => ({ kind: i.kind, amount: BigInt(i.amount) })),
-    );
+    // Manfiy bo'lishi mumkin (avans > oylik) — yashirilmaydi, tasdiqlash bloklanadi.
+    const net = val.items.reduce((sum, i) => sum + BigInt(i.amount), 0n);
     summaries.push({
       teacherId: tId,
       teacherName: val.name,
