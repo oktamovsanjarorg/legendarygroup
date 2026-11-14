@@ -17,6 +17,7 @@ import {
   TeacherProfilePage,
 } from './pages/tab-pages.js';
 import { LessonAttendancePage } from './pages/lesson.js';
+import { TeacherCommentPage, TeacherStudentPage } from './pages/student.js';
 import { TeacherGroupPage, TeacherGroupsPage, TeacherSchedulePage } from './pages/teacher.js';
 
 const root = createRootRoute({ component: AppLayout, notFoundComponent: ForbiddenPage });
@@ -52,6 +53,16 @@ const teacherGroup = createRoute({
   getParentRoute: () => root,
   path: '/group/$id',
   component: TeacherGroupPage,
+});
+const teacherStudent = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$groupId/student/$id',
+  component: TeacherStudentPage,
+});
+const teacherComment = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$groupId/student/$id/comment/$lessonId',
+  component: TeacherCommentPage,
 });
 const teacherProfile = createRoute({
   getParentRoute: () => root,
@@ -101,6 +112,8 @@ const routeTree = root.addChildren([
   teacherSchedule,
   teacherLesson,
   teacherGroup,
+  teacherStudent,
+  teacherComment,
   teacherProfile,
   guardianResults,
   guardianPayments,

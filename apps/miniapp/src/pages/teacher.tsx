@@ -68,10 +68,11 @@ export function TeacherSchedulePage() {
   );
 }
 
-/** MT-05 guruh sahifasi. O'quvchi kartasi va testlar — keyingi qadamda (T-114). */
+/** MT-05 guruh sahifasi (T-114). */
 export function TeacherGroupPage() {
   const { id } = useParams({ from: '/group/$id' });
   const me = useMe();
+  const navigate = useNavigate();
   const query = useTeacherGroup(id, me.id);
   return (
     <QueryView query={query} empty={{ when: (d) => d === null, title: t.groups.empty }}>
@@ -80,7 +81,12 @@ export function TeacherGroupPage() {
           <GroupView
             group={d.group}
             students={d.students}
-            onStudent={() => undefined}
+            onStudent={(st) =>
+              void navigate({
+                to: '/group/$groupId/student/$id',
+                params: { groupId: id, id: st.id },
+              })
+            }
             onTests={() => undefined}
           />
         )
