@@ -105,28 +105,32 @@
 - **AC:** state bucket + lock; VPC, SG, EC2 (staging, prod) + Elastic IP + IAM instance profile; RDS (prod) — encrypted, PITR, deletion protection; S3 (files, backups — Object Lock, versioning, lifecycle, CRR); ECR; SSM Parameter Store; GitHub OIDC rol; CloudTrail; Budgets alert; Route 53 yozuvlari. `tofu plan` toza. Narx hisobi `docs/runbooks/costs.md`da.
 - **Kod yozildi (2026-11-13), `tofu validate` toza:** `infra/terraform/bootstrap` (state bucket, S3 native lock — DynamoDB kerak emas), `envs/prod`: VPC (public/private, S3 endpoint), SG (faqat 80/443, SSH yo'q), EC2 `t4g.medium` AL2023 arm64 (IMDSv2, KMS EBS, auto-recover) + EIP + instance profile, RDS PG18 (KMS, PITR 14 kun, deletion protection, force_ssl), KMS, S3 files (CORS) va backups (Object Lock COMPLIANCE 35 kun, lifecycle), ECR ×4 (immutable, skan), GitHub OIDC deploy roli (`environment:production`), CloudTrail, ixtiyoriy Budgets. Narx — `docs/runbooks/costs.md` (~$70/oy). **Qaror (egasi, 2026-11-13):** AWS'da faqat production, staging lokal. **Bloklangan:** hisob tashkilot SCP'si (`p-t2i8pkeb`, Root) eu-central-1 ni yopgan — egasi ochadi; keyin `bootstrap apply` → `prod plan/apply`. CRR (boshqa region) — SCP boshqa regionlarni yopgani uchun hozircha yo'q. Route 53 — DNS'ni egasi o'zi yozadi.
 
-### ✅ T-013 · CI pipeline
+### 🟨 T-013 · CI pipeline
 
 - **Bog'liq:** T-001, T-011
 - **AC:** 06-infrastructure.md §4 dagi PR pipeline'ning barcha bosqichlari; turbo remote cache; PR'da coverage hisoboti; branch protection qoidalari hujjatlangan; o'rtacha CI vaqti ≤ 10 daq.
 - **Bajarildi (2026-11-13):** `.github/workflows/ci.yml` (lint, format:check, typecheck, unit testlar, integratsiya testlari Postgres 18 + Redis 7 servislari bilan, Docker buildx keshli 4 ta konteyner tekshiruvi); `docs/runbooks/branch-protection.md` (`main` uchun branch protection qoidalari to'liq hujjatlandi).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). CI GitHub'da hali ishga tushmagan (push qilinmagan).
 
-### ✅ T-014 · CD: staging va production
+### 🟨 T-014 · CD: staging va production
 
 - **Bog'liq:** T-012, T-013
 - **AC:** main → staging avto-deploy; release-please; teg → prod (qo'lda tasdiqlash), deploydan oldin RDS snapshot, migratsiya, health-check bilan restart, smoke test, avtomatik rollback; `infra/scripts/deploy.sh` idempotent. Rollback qo'lda ham bitta buyruq.
 - **Bajarildi (2026-11-14):** `infra/scripts/deploy.sh` (idempotent deploy, pre-deploy snapshot, compose pull, migrate, rolling update, 60s healthcheck va xatolikda avtomatik rollback); `infra/scripts/rollback.sh` (bitta buyruqli tezkor rollback); `.github/workflows/cd-staging.yml` (main push'da avtomatik build va staging deploy); `.github/workflows/cd-production.yml` (reliz va manual approval bilan prod deploy); `.github/workflows/release-please.yml`, `.github/release-please-config.json`, `.release-please-manifest.json`; `docs/runbooks/deploy-rollback.md` runbook'i yaratildi.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). `cd-production.yml` — shablon: `deploy.sh` chaqiruvi izohda, faqat `echo`. Staging — lokal (egasi qarori), `cd-staging.yml` serverga emas. Qolgan: haqiqiy prod deploy (SSM → ECR → `deploy.sh`).
 
-### ✅ T-015 · Backup va restore drill
+### 🟨 T-015 · Backup va restore drill
 
 - **Bog'liq:** T-012, T-005
 - **AC:** kunlik pg_dump (shifrlangan, SHA256 checksum) → S3; oylik arxiv; oylik avtomatik restore drill job (`scripts/backup-restore-drill.sh` va `.github/workflows/backup-restore-drill.yml`) + Telegram hisobot; `docs/runbooks/restore.md` (PITR va dump'dan tiklash qadamlari) — sinab ko'rilgan.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Real AWS/GitHub muhitida hali ishga tushirilmagan — prod deploy'da sinaladi.
 
-### ✅ T-016 · Monitoring va alertlar
+### 🟨 T-016 · Monitoring va alertlar
 
 - **Bog'liq:** T-011
 - **AC:** Sentry (api, worker, bot, web, miniapp — source map'lar bilan); OTel → Grafana Cloud; asosiy dashboard (RPS, p95, xatolar, navbatlar, DB); uptime tekshiruvlari; 06-infrastructure.md §6 dagi barcha alertlar texnik Telegram guruhiga.
 - **Bajarildi (2026-11-14):** `GET /api/health/metrics` (Prometheus OpenMetrics: uptime, heap/rss xotira, DB va Redis statusi, kutayotgan to'lov va ota-ona arizalari ko'rsatkichlari); `scripts/send-telegram-alert.sh` (texnik Telegram guruhiga HTML formatli alert yuborish); `scripts/monitor-health-alerts.sh` (ketma-ket 2 marta healthcheck xatosi, disk > 80%, DB/Redis uzilishi monitoringi); `docs/runbooks/monitoring-alerting.md` runbook'i yaratildi.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Real AWS/GitHub muhitida hali ishga tushirilmagan — prod deploy'da sinaladi.
 
 ### ✅ T-017a · UX: ekranlar xaritasi va oqimlar
 
@@ -154,10 +158,11 @@
 - **5b-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** W-13 (sichqonchasiz: Enter/Esc/1–4, FIFO preview — serverdan), W-14, W-15 (aging, BR-22 kritik), W-16 (farq — izoh majburiy), W-17 (storno — teskari yozuv, refund — faqat Direktor), W-18 (BR-18 limit), W-31, W-34 (PII'siz). `ui-web`: `MoneyField` (bigint). `packages/domain`: `allocateFifo` (BR-12) + property-based testlar — T-202/T-204 serverda ishlatadi (UI domenni import qilmaydi, 03 §2). Jami 185 story, 372 skrinshot.
 - **6-qism bajarildi (2026-11-12), egasi qabulini kutmoqda:** web F3–F5 — W-19 (testlar, import tarixi), W-20 (e'lonlar, Telegram ko'rinishi), W-21 (murojaatlar), W-22 (yetib bormagan xabarlar), W-23 (xarajatlar), W-24 (P&L), W-25 (oylik), W-26 (hisobotlar, aging), W-27 (prognozlar), W-30 (audit), W-35 (landing). Antigravity (A-1) yozdi, Claude review qildi: matnlar i18n'da, sanalar `formatDateShort`/`formatDateTime`/`formatMonth` (yangi), pul faqat `formatMoney`, mock raqamlari mosligi testlangan (`mocks.test.ts`). `ui-tg`/`ui-web` har komponent story'lari (A-2/A-3) va komponent testlari (A-4). **Barcha maketlar tayyor** — egasi qabuli qoldi.
 
-### ✅ T-018 · Staging uchun anonimlashtirish
+### 🟨 T-018 · Staging uchun anonimlashtirish
 
 - **Bog'liq:** T-015
 - **AC:** prod dump → ism, telefon, telegram_id, rasm, izohlar soxtalashtiriladi (deterministik HMAC-SHA256, bog'lanishlar saqlanadi) → staging'ga; `packages/db/src/anonymize.ts` va `scripts/anonymize.sh`; anonimlashtirilmagan ma'lumot staging'ga tushmasligi CI unit testida tekshirilgan (`packages/db/src/anonymize.test.ts`).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Real AWS/GitHub muhitida hali ishga tushirilmagan — prod deploy'da sinaladi.
 
 ### ✅ T-019 · Fayllar moduli (S3)
 
@@ -220,18 +225,20 @@
 - **Backend bajarildi (2026-11-12):** `leads`, `lead_events` (0018; bitta telefonda bitta ochiq lid). Domen: `LEAD_STATUS_FLOW` (`won` — faqat aylantirish, `lost` → `new` qayta ochish), `conversionPercent`. API: `GET/POST /api/leads` (kanban filtrlari, ism/telefon qidiruvi; takror — 409 `LEAD_EXISTS` + `leadId`), `GET/PATCH /:id`, `POST /:id/status` (rad — sabab majburiy), `POST /:id/trial` (rejalashtirilgan dars), `POST /:id/convert` (o'quvchi + ixtiyoriy guruhga yozish + `won` — bitta tranzaksiya), `GET /api/leads/stats` (manba voronkasi); `POST /api/public/leads` (landing: limitlar, bot tuzog'i, har doim 202). Q-87. Sinov darsidagi lid ustoz ro'yxatida — davomat bilan (T-111); landing ulanishi — T-503.
 - **UI bajarildi (2026-11-13):** W-08 `apps/web/src/routes/leads` — kanban (5 holat ustuni), ism/telefon qidiruvi, joriy oy manba statistikasi (jami, konversiya, manbalar); yangi lid (409 `LEAD_EXISTS` — "O'sha lidni ochish"); lid paneli: holat tugmalari (faqat ruxsat etilgan o'tishlar; rad etish — sabab majburiy; rad etilgan lidni qayta ochish), sinov darsiga yozish (guruh → yaqin 14 kundagi rejalashtirilgan dars), tahrirlash, o'quvchiga aylantirish (ism, tug'ilgan sana, ixtiyoriy ota-ona va guruhga yozish — sinov guruhi oldindan tanlangan; dublikatda "Baribir qo'shish") → o'quvchi kartochkasiga o'tadi. `LEAD_STATUS_FLOW` — `@lg/contracts`ga ko'chirildi (API va UI bitta jadvaldan). Mas'ul xodimni tayinlash UI'si — Admin/Director katalogi endpoint'i bilan (hozircha faqat ko'rsatiladi). Qo'shimcha: `router` ildizida `errorComponent` (kutilmagan xato — oq sahifa emas).
 
-### ✅ T-109 · Bildirishnomalar moduli
+### 🟨 T-109 · Bildirishnomalar moduli
 
 - **Bog'liq:** T-010, T-005 · **Talablar:** FR-RPT-4, 6
 - **AC:** shablonlar (i18n), `notify(userId, template, payload)` API → outbox → navbat; holatlar (queued/sent/failed/blocked); qayta urinish; foydalanuvchi sozlamalari (majburiy turlarni o'chirib bo'lmaydi); Admin uchun "yetib bormagan xabarlar" ro'yxati.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/notifications.ts` (`NOTIFICATION_TYPES`, `MANDATORY_NOTIFICATION_TYPES`, preferences, undelivered DTOlar); `packages/domain/src/notifications/` (`isNotificationMandatory`, `validatePreferenceUpdate`, `renderNotificationTemplate`); `packages/db` `0029_notifications.sql` migratsiyasi (`notifications`, `notification_preferences` jadvallari, indekslar); `apps/api/src/modules/notifications/` (`GET/PATCH /api/notifications/preferences`, `GET /api/notifications/undelivered`, `POST /api/notifications/undelivered/:id/retry`, `NotificationsService.notify` API); 5 ta integratsiya testi yashil.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-110 · Ota-ona onboarding (bot)
+### 🟨 T-110 · Ota-ona onboarding (bot)
 
 - **Bog'liq:** T-007, T-105, T-109 · **Talablar:** FR-AUTH-1
 - **AC:** `/start` → maxfiylik roziligi → "Raqamni ulashish" (faqat o'z kontakti qabul qilinadi — `contact.user_id == from.id`) → mos ota-ona topilsa bog'lanadi va farzand(lar) ko'rsatiladi; topilmasa — Admin'ga so'rov; bir nechta farzand; qayta `/start` xavfsiz.
 - **Aniqlik:** so'rovlar web'da "Bog'lanish so'rovlari" ro'yxatida (O'quvchilar bo'limi); Admin ota-onani tanlab bog'laydi yoki rad etadi → botga natija.
 - **Bajarildi (2026-11-14):** `packages/contracts/src/guardian-link-requests.ts` (so'rov DTOlari, internal bot status/contact DTOlari); `packages/db` `0032_guardian_link_requests.sql` migratsiyasi (`guardian_link_requests` jadvali, indekslar, check constraintlar); `apps/api/src/modules/rbac/guardian-link.service.ts` va `internal-guardian.controller.ts` (`/internal/guardian/status`, `/internal/guardian/contact`); `apps/api/src/modules/students/guardian-link-requests.*` (`GET /api/guardians/link-requests`, `POST /:id/approve`, `POST /:id/reject`); `apps/bot` onboarding oqimi (T-101 va T-110 sintezi, maxfiylik roziligi, farzandlar ro'yxati, `cli-sim.ts` terminal simulyatori); 13 ta bot testi va 6 ta yangi integratsiya testi yashil.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 
 ### 🟨 T-111 · Davomat (Mini App, Ustoz)
 
@@ -245,18 +252,20 @@
 - **AC:** guruh × sana jadval ko'rinishi, o'tgan davomatni sabab bilan o'zgartirish (audit), belgilanmagan darslar ro'yxati; worker: 30 daq → ustozga, 2 soat → Admin'ga eslatma.
 - **Backend bajarildi (2026-11-14):** Admin uchun o'tgan kun davomatini `changeReason` bilan o'zgartirish (`attendance.edit_past`), audit logi, dars va o'quvchi davomat tarixi API; `GET /api/attendance/unmarked` belgilanmagan darslar ro'yxati (W-12); `AttendanceCron` va `AttendanceService.sendAttendanceReminders` (FR-ATT-5: 30 daq ustozga, 2 soat adminga eslatma). Qolgan: Web UI.
 
-### ✅ T-113 · "Kelmadi/kech qoldi" xabari ota-onaga
+### 🟨 T-113 · "Kelmadi/kech qoldi" xabari ota-onaga
 
 - **Bog'liq:** T-111, T-109, T-110 · **Talablar:** FR-ATT-3, BR-31
 - **AC:** `AttendanceMarked` event → BR-31 tuzatish oynasi (3 daq, sozlanadi) tugagach ≤ 1 daq ichida xabar (jami ≤ 5 daq); kech qolish — faqat ≥ 15 daq (BR-10); ko'p marta saqlash — bitta xabar (dedup); xato tuzatilsa tuzatish xabari (BR-31 tasdiqlangan varianti); integratsiya testi event → xabar.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/events.ts` (`AttendanceMarked` hodisasi); `packages/contracts/src/notifications.ts` (`attendance_correction` turi); `packages/domain/src/notifications/notification.policy.ts` (tuzatish xabari shabloni); `packages/db` (`dedupe_key` ustuni va unique indeksi); `apps/api/src/modules/attendance/` (`AttendanceNoticeService`, `AttendanceNoticeProcessor`, delayed job, dedup, BR-31 3 daqiqalik tuzatish oynasi va oyna ichida bekor qilish, oynadan keyin tuzatilsa `attendance_correction` yuborish); `attendance-notices.int.test.ts` da 6 ta integratsiya testi yashil.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-114 · Ustoz Mini App (to'liq)
+### 🟨 T-114 · Ustoz Mini App (to'liq)
 
 - **Bog'liq:** T-111, T-017c
 - **AC:** 11-ux.md §2 bo'yicha 4 tab: Bugun (`/`), Guruhlarim (`/groups`), Jadval (`/schedule`), Profil (`/profile`); `tabs.ts` va `router.tsx` to'liq ulandi; o'rinbosar ustoz darsi belgili; barcha komponent va routing testlari yashil.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 
-### ✅ T-119 · Tasdiqlash so'rovlari (approval requests)
+### 🟨 T-119 · Tasdiqlash so'rovlari (approval requests)
 
 - **Bog'liq:** T-008, T-109 · **Talablar:** 02-roles-permissions.md §5
 - **AC:** `approval_requests` jadvali va umumiy mexanizm (type → bajariladigan amal handler'i); Admin so'rov yaratadi (sabab majburiy); Director'ga bot xabari inline "Tasdiqlash / Rad etish" + Mini App "So'rovlar" tabi; 48 soatda avtomatik bekor; qaror → amal bir tranzaksiyada bajariladi; so'rovchiga natija; audit. F2 dagi chegirma/storno/refund shu mexanizmdan foydalanadi.
@@ -266,30 +275,35 @@
   - `@lg/api`: `apps/api/src/modules/approvals/` moduli (`ApprovalsRepository`, `ApprovalsService`, `ApprovalsController`). API: `POST /api/approvals`, `GET /api/approvals`, `GET /api/approvals/:id`, `POST /api/approvals/:id/decide` (`approval.decide` faqat Director).
   - 48 soatlik avtomatik `expired` holati tekshiruvi, audit yozuvi (`approval.create`, `approval.decide`).
   - Integratsiya testlari: `approvals.int.test.ts` (9 ta test: RBAC, to'liq tasdiqlash va rad etish oqimlari, 48 soat expired, takroriy qaror taqiqi, audit jurnali).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-120 · Director/Admin Mini App xodim rejimi
+### 🟨 T-120 · Director/Admin Mini App xodim rejimi
 
 - **Bog'liq:** T-007, T-008, T-009, T-017c
 - **AC:** 11-ux.md §2: Bugun (`/`), Navbat (`/staff/queue`), So'rovlar (`/staff/approvals` - faqat Director), Qidiruv (`/staff/search`); ruxsatga qarab tablar filtrlangan; testlar 100% yashil.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 
-### ✅ T-115 · Tizim sozlamalari
+### 🟨 T-115 · Tizim sozlamalari
 
 - **Bog'liq:** T-008 · **Talablar:** FR-SYS-1
 - **AC:** Director uchun sozlamalar sahifasi: markaz ma'lumotlari, logo, karta rekvizitlari (bir nechta), to'lov muddati kuni (1–28, standart 10), jarima va kech qolish qoidalari, bildirishnoma vaqtlari, bayramlar, Admin chegirma limiti; har o'zgarish audit'da; sozlama tiplangan (Zod) va standart qiymatlar `10-open-questions.md` takliflariga mos.
 - **Backend bajarildi (2026-11-13):** `@lg/contracts` `settings.ts` (Zod sxemalar: `centerInfo`, `paymentCards`, `billingDueDay`, `penaltyConfig`, `notificationTimes`, `adminDiscountLimitPercent`, `DEFAULT_SYSTEM_SETTINGS`); `apps/api/src/modules/settings` (`GET /api/settings/public` ommaviy, `GET/PATCH /api/settings` faqat Director `settings.manage` ruxsati bilan, audit jurnali diff bilan yoziladi). Integratsiya testlari `settings.int.test.ts`.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-116 · Ota-ona Mini App bosh sahifasi
+### 🟨 T-116 · Ota-ona Mini App bosh sahifasi
 
 - **Bog'liq:** T-110, T-111
 - **AC:** farzandlar ro'yxati (bir nechta bo'lsa `ChildSwitcher` orqali almashtirish), har farzand: bugungi/oxirgi davomat, guruh, jadval; balans va "To'lash" MainButton; 4 tab: Asosiy (`/`), Natijalar (`/results`), To'lovlar (`/payments`), Ko'proq (`/more`); testlar 100% yashil.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 
-### ✅ T-117 · Birinchi ishga tushirish ustasi (Director)
+### 🟨 T-117 · Birinchi ishga tushirish ustasi (Director)
 
 - **Bog'liq:** T-115, T-102, T-103, T-101
 - **AC:** bo'sh tizimda Director birinchi kirganda qadamma-qadam usta: markaz ma'lumotlari → karta rekvizitlari → kurs → xona → ustoz taklifi → guruh va jadval → o'quvchilar va ota-onalar → ota-onalarga taklif havolasi/QR. Har qadamni o'tkazib yuborish va keyin qaytish mumkin; progress saqlanadi.
 - **Bajarildi (2026-11-14):** `apps/web/src/screens/f1/wizard.tsx` to'liq 8 qadamli W-33 ustasi (markaz, rekvizitlar, kurs, xona, ustoz, guruh, o'quvchi, taklif QR); `apps/web/src/routes/wizard/index.tsx` (progress `localStorage` da saqlanadi, o'tkazib yuborish va yakunlash); `apps/web/src/router.tsx` ga `/wizard` marshruti qo'shildi; 5 ta unit testi yashil (`pnpm --filter @lg/web test src/routes/wizard/wizard.test.tsx`).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 
-### ✅ T-118 · Ichki fikr-mulohaza tugmasi
+### 🟨 T-118 · Ichki fikr-mulohaza tugmasi
 
 - **Bog'liq:** T-009, T-109
 - **AC:** Mini App va web'da "Taklif / xato haqida xabar" — matn + ixtiyoriy skrinshot + avtomatik kontekst (ekran, rol, versiya, requestId) → DB'ga (`feedbacks`) va outbox (`feedback.created`); `POST /api/feedback`, `GET /api/feedback` (Direktor); UI: `FeedbackDialog` (`packages/ui-web`), 5/5 integratsiya testlari yashil.
@@ -298,13 +312,16 @@
 
 ## F2 — To'lovlar
 
-### ✅ T-201 · Billing domen paketi (sof mantiq)
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
+
+### 🟨 T-201 · Billing domen paketi (sof mantiq)
 
 - **Bog'liq:** T-001 · **Talablar:** BR-1…BR-20
 - **AC:** `packages/domain/billing`: proporsional narx, invoice qatorlari, chegirma qo'llash, jarima hisobi, FIFO taqsimlash, balans ledger'dan; barcha funksiyalar sof, `bigint`; unit + property-based testlar, har BR uchun test; coverage ≥ 95%.
 - **Bajarildi (2026-11-13):** `packages/domain/src/billing/*`: `prorate` (BR-38) va `roundDownToThousand` (BR-3); `allocateFifo` (BR-12); `applyDiscounts`, `bestDiscount`, `validateAdminDiscount` (BR-18); `calculateMidMonthEnrollmentPrice` (BR-3), `calculateLessonCredit` (BR-5), `calculateFreezeCredit` (BR-9), `calculatePenalty` (BR-8), `lateToUnexcusedAbsences` (BR-10); `computeLedgerNet`, `computeStudentBalance` (BR-20), `isDebtCritical` (BR-22); `planEnrollmentInvoiceLines`, `computeInvoiceTotal` (BR-1, BR-6). Barcha funksiyalar sof `bigint`, fast-check property testlari va unit testlar bilan qoplangan.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-202 · Ledger, invoice jadvallari va avto-generatsiya
+### 🟨 T-202 · Ledger, invoice jadvallari va avto-generatsiya
 
 - **Bog'liq:** T-201, T-106, T-005, T-115 · **Talablar:** FR-PAY-1, BR-2, 3, 5, 6, 20
 - **AC:** migratsiyalar (invoices, invoice_lines, ledger_entries, payments, allocations, receipts, receipt_cancellations, receipt_counters — 05-data-model.md; o'zgarmaslar `forbid_mutation()` trigger + `lg_app` grant bilan); oyning 1-sanasi 00:05 job — idempotent (qayta ishga tushsa dublikat yo'q), bekor qilingan darslar krediti, yangi enrollment uchun proporsional invoice darhol; job ishlamasa alert.
@@ -314,8 +331,9 @@
   - `@lg/api`: `apps/api/src/modules/billing/` moduli (`BillingRepository`, `BillingGeneratorService`, `BillingService`, `BillingController`, `BillingCron`). API: `GET /api/billing/invoices`, `GET /api/billing/invoices/:id`, `GET /api/billing/ledger/:studentId`, `GET /api/billing/ledger/:studentId/summary`, `POST /api/billing/invoices/generate`.
   - Worker: `billing.invoices-generate` cron job (`5 0 1 * *`) idempotent oylik invoice generatsiyasi.
   - Integratsiya testlari: `billing.int.test.ts` (11 ta test: RBAC, avto-generatsiya, idempotensiya, qidiruv, ledger va balans, DB `forbid_mutation()` trigger immutability).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-203 · Chegirma, muzlatish, jarima
+### 🟨 T-203 · Chegirma, muzlatish, jarima
 
 - **Bog'liq:** T-202, T-119 · **Talablar:** FR-PAY-6, BR-8, 9, 10, 18
 - **AC:** chegirma (Admin limiti; undan yuqori — T-119 so'rovi orqali), freeze → kredit, oy yakunida jarima qatorlari (sozlamaga ko'ra), Admin bekor qilishi (sabab, audit); sozlamalar UI.
@@ -324,8 +342,9 @@
   - `@lg/api`: `apps/api/src/modules/billing/` chegirma boshqaruvi (`PATCH /api/billing/enrollments/:id/discount`, `discount.grant` ruxsati bilan). Admin chegirma limiti (`adminDiscountLimitPercent`, BR-18) avtomatik tekshiriladi; limitdan oshganda `403` qaytarilib T-119 tasdiqlash so'rovi talab etiladi, Director uchun cheklovsiz.
   - Jarimani bekor qilish (`POST /api/billing/invoices/:invoiceId/lines/:lineId/waive`, `penalty.waive` ruxsati bilan). Jarima qatori o'chiriladi, invoice total qayta hisoblanadi, ledgerga kamayish yoziladi (`entryType: 'discount'`), audit jurnali saqlanadi.
   - Integratsiya testlari: `discounts.int.test.ts` (8 ta test: RBAC, limit tekshiruvi, Director istisnosi, noto'g'ri line xatosi, invoice va ledger kamayishi, audit jurnali).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-204 · To'lov kiritish (Admin, web)
+### 🟨 T-204 · To'lov kiritish (Admin, web)
 
 - **Bog'liq:** T-202 · **Talablar:** FR-PAY-2, 6, BR-11, 12
 - **AC:** tez forma (o'quvchi qidiruv → qarz ko'rinadi → summa → usul → Enter), FIFO taqsimlash yoki qo'lda, avans balansga, `Idempotency-Key` (ikki marta bosish = bitta to'lov), ≤ 30 s ssenariy E2E testida.
@@ -335,32 +354,37 @@
   - FIFO taqsimlash (`allocateFifo`, `@lg/domain`), avans hisobi va ledger qaydlari (manfiy summa, BR-20 qarz kamayishi), atomic `receipt_counters` orqali chek raqamlash (`LG-YYYY-XXXXXX`, BR-19).
   - RBAC: `payment.create`, `payment.read`, `payment.manage` va ommaviy `@Public` receipt tekshirish.
   - Integratsiya testlari: `payments.int.test.ts` (8 ta test: FIFO taqsimlash, avans, chek generatsiyasi, immutability trigger tekshiruvlari).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-205 · PDF chek va tekshirish sahifasi
+### 🟨 T-205 · PDF chek va tekshirish sahifasi
 
 - **Bog'liq:** T-204 · **Talablar:** FR-PAY-8, BR-19
 - **AC:** chek shabloni (logo, raqam, o'quvchi, guruh, oy, summa raqam+so'z bilan, usul, kassir, QR); worker'da PDF (Chromium), S3; ota-onaga botda PDF; QR → ommaviy `/verify/{token}` sahifa (faqat raqam, sana, summa, holat — PII yo'q); bekor qilingan chek "BEKOR QILINGAN".
 - **Bajarildi (2026-11-13):** `ReceiptPdfService` (pdf-lib, qrcode, A5 kvitansiya shabloni, oʻzbekcha summa soʻz bilan, QR kod, bekor qilingan holat shtampi); `GET /api/billing/receipts/:number/pdf`, `GET /api/billing/receipts/verify/:token` (ommaviy, PII siz); Web `/verify/$token` sahifasi; 6 ta integratsiya testi.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-206 · Ota-ona: o'tkazma cheki yuborish (bot + Mini App)
+### 🟨 T-206 · Ota-ona: o'tkazma cheki yuborish (bot + Mini App)
 
 - **Bog'liq:** T-110, T-202, T-019 · **Talablar:** FR-PAY-3, BR-13
 - **AC:** "To'lov qilish" → farzand tanlash → qarz summasi + karta rekvizitlari (nusxalash) → rasm/PDF yuklash + summa + izoh → "Tekshirilmoqda" xabari; fayl tekshiruvi (tur, hajm), S3; perceptual hash; holatni kuzatish.
 - **Bajarildi (2026-11-13):** `SubmissionsService` va `SubmissionsRepository` (`POST /api/billing/submissions`, `GET /api/billing/submissions/my`); BR-15 dublikat tekshiruvi; Telegram xabarnoma navbati; IDOR xavfsizlik tekshiruvi.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 
-### ✅ T-207 · Tasdiqlash navbati (Admin)
+### 🟨 T-207 · Tasdiqlash navbati (Admin)
 
 - **Bog'liq:** T-206, T-204, T-205, T-120 · **Talablar:** FR-PAY-4, 5, BR-13, 14, 15
 - **AC:** web + Mini App'da navbat (rasm katta ko'rinishda, zoom), tasdiqlash (summa tahriri) / rad etish (sabab shablonlari); dublikat ogohlantirishi; parallel tasdiqlashdan himoya (optimistic lock — ikki Admin bir vaqtda bosa olmaydi); natija ota-onaga; yangi chek kelganda Admin'ga bot xabari; 24 soat → Director eslatmasi.
 - **Bajarildi (2026-11-13):** `GET /api/billing/submissions`, `POST /api/billing/submissions/:id/lock` (5 daqiqalik lock, `LOCKED_BY_OTHER`), `POST /api/billing/submissions/:id/confirm` (summa tahriri, FIFO taqsimot, rasmiy to'lov, kvitansiya generatsiya, audit), `POST /api/billing/submissions/:id/reject` (sabab bilan rad etish); 10 ta integratsiya testi.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-208 · Qarzdorlik va eslatmalar
+### 🟨 T-208 · Qarzdorlik va eslatmalar
 
 - **Bog'liq:** T-202, T-109 · **Talablar:** FR-PAY-7, BR-20, 21, 22
 - **AC:** qarzdorlar ro'yxati (filtr, saralash, eksport), aging, kritik belgisi; eslatma jadvali (BR-21) worker'da; ota-ona Mini App'da balans va to'lovlar tarixi.
 - **Bajarildi (2026-11-13):** `DebtorsService` va `DebtorsRepository` (`GET /api/billing/debtors`, CSV export, manual remind); BR-21 avtomatik eslatmalar jadvali (`billing.debtor-reminders` har kuni 09:00 da); BR-22 kritik qarz belgisi; `0022_payment_reminders.sql` append-only jadval migratsiyasi; 9 ta integratsiya testi.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-209 · Storno, refund, kassa yopish
+### 🟨 T-209 · Storno, refund, kassa yopish
 
 - **Bog'liq:** T-204 · **Talablar:** FR-PAY-9, 10, BR-16, 17
 - **AC:** storno (teskari ledger, chek bekor; kiritilgan kundan keyin — T-119 so'rovi), refund (Director yoki T-119 so'rovi), kunlik kassa yopish (kutilgan vs sanalgan, farq izohi); hammasi audit'da.
@@ -377,7 +401,9 @@
 
 ## F3 — Natijalar va hisobotlar
 
-### ✅ T-301 · Baholar va izohlar
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+
+### 🟨 T-301 · Baholar va izohlar
 
 - **Bog'liq:** T-111 · **Talablar:** FR-GRD-1, 2, BR-33
 - **AC:** guruh baholash sozlamasi; davomat ekranida baho qo'yish (bir oqimda); izoh (ko'rinish turi bilan); ota-onaga baho xabari (sozlamaga ko'ra).
@@ -389,8 +415,9 @@
     - API: `GET /api/grades/lessons/:lessonId` (dars baholari va izohlari), `POST /api/grades/lessons/:lessonId` (baholar va izohlarni batch upsert qilish, BR-33 tekshiruvi), `GET /api/grades/history` (o'quvchi baholar va izohlar tarixi).
     - Scope & IDOR: Ustoz faqat o'z darsiga baho qo'yadi; ota-ona faqat o'z farzandini va faqat `guardian` ko'rinishidagi izohlarni ko'radi (`internal` izohlar yashiriladi).
   - Integratsiya testlari: `grades.int.test.ts` (6 ta test: RBAC, baholash, izohlar, BR-33 shkala cheklovi, ustoz scope himoyasi, ota-ona IDOR himoyasi).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-302 · Testlar va Excel import
+### 🟨 T-302 · Testlar va Excel import
 
 - **Bog'liq:** T-301, T-019 · **Talablar:** FR-GRD-3, 4, 6, BR-34, 35
 - **AC:** test yaratish (bo'limlar), shablon yuklab olish (botdan ham), `.xlsx` — ustoz faylni **botga yuboradi** yoki Mini App'da yuklaydi → Mini App ko'rib chiqish ekrani ochiladi → ustun moslashtirish (eslab qolinadi) → moslashtirish (ID → aniq ism → fuzzy taklif) → oldindan ko'rish va xatolar → atomar import → versiya; e'lon qilish → ota-onaga xabar. 500 qatorli fayl ≤ 10 s.
@@ -401,26 +428,30 @@
   - `@lg/api`: `apps/api/src/modules/tests/` moduli (`TestsRepository`, `ExcelTestService` exceljs asosida, `TestsService`, `TestsController`, `TestsModule`).
     - API: `POST /api/tests`, `GET /api/tests?groupId=...`, `GET /api/tests/:id`, `PATCH /api/tests/:id` (draft tekshiruvi), `POST /api/tests/:id/results` (BR-34 tekshiruvi va versiya oshishi), `POST /api/tests/:id/publish` (outbox orqali `TestResultsPublished` navbatga yoziladi), `GET /api/tests/:id/template` (Excel shablonini generatsiya qilish va yuklab olish), `POST /api/tests/:id/import-preview` (Excel faylni tahlil qilib mos kelgan, o'xshash va topilmagan qatorlarni ko'rsatish), `POST /api/tests/:id/import-confirm` (atomar import va import auditi), `GET /api/tests/student/:studentId` (ota-ona uchun o'z farzandi testlari va IDOR 404 himoyasi).
   - Integratsiya testlari: `tests.int.test.ts` (13 ta test: RBAC, test yaratish, guruh testlari ro'yxati, BR-34 ball cheklovi, BR-34 bo'lim bali cheklovi, versiyalanish, Excel shablon yuklab olish, BR-35 Excel preview, BR-35 Excel import confirm, test e'lon qilish va outbox event, e'lon qilingan testni o'zgartirish taqiqi, ota-ona scope va IDOR himoyasi).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-303 · O'quvchi progressi va reyting
+### 🟨 T-303 · O'quvchi progressi va reyting
 
 - **Bog'liq:** T-302 · **Talablar:** FR-GRD-5
 - **AC:** o'quvchi profilida grafiklar (davomat, baho, test), guruh reytingi (Ustoz/Admin), ota-ona Mini App'da farzand progressi.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/progress.ts` (`GroupLeaderboardResponse`, `StudentProgressResponse` DTOlari); `packages/domain/src/progress/progress.calculator.ts` (`calculateStudentCompositeScore` 45% baho, 35% test, 20% davomat, `calculateLeaderboardRankings`); `apps/api/src/modules/grades/` (`ProgressRepository`, `ProgressService`, `GET /api/grades/groups/:groupId/leaderboard`, `GET /api/grades/students/:studentId/progress`); 9 ta integratsiya testi yashil.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-304 · Haftalik va oylik ota-ona hisobotlari
+### 🟨 T-304 · Haftalik va oylik ota-ona hisobotlari
 
 - **Bog'liq:** T-303, T-208 · **Talablar:** FR-RPT-2, 3
 - **AC:** yakshanba 19:00 haftalik, oy oxiri oylik (PDF + Mini App havolasi); har farzand alohida; navbat orqali (yuzlab ota-ona — rate limit); oldindan ko'rish (Admin uchun namunaviy hisobot).
 - **Bajarildi (2026-11-13):** `@lg/contracts` da `ParentDigestReportSchema`, `ParentDigestQuerySchema`, `weekly_parent_report`, `monthly_parent_report`; `@lg/domain` da shablon generatorlari; `0029_notifications.sql` check constraintlari; `ParentDigestRepository`, `ParentDigestService` (pdf-lib bilan A4 hisobot, preview, avtomatik navbatga qo'yish); `reports.cron.ts` (yakshanba 19:00, oy oxiri 20:00); `reports.controller.ts` (`GET /api/reports/parent-digest/preview`, `GET /api/reports/parent-digest/:studentId/pdf`, `POST /api/reports/parent-digest/dispatch`); 10 ta integratsiya testi yashil.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-305 · Ommaviy e'lonlar
+### 🟨 T-305 · Ommaviy e'lonlar
 
 - **Bog'liq:** T-109 · **Talablar:** FR-RPT-5
 - **AC:** auditoriya tanlash (hamma / kurs / guruh / qarzdorlar), matn + rasm/fayl, oldindan ko'rish, yetkazilish statistikasi.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/announcements.ts` (`CreateAnnouncementSchema`, `AnnouncementPreviewResponseSchema`, `AnnouncementStatsSchema` DTOlari); `packages/db` da `0030_announcements.sql` migratsiyasi (`announcements`, `announcement_recipients` jadvallari); `apps/api/src/modules/announcements/` (`AnnouncementsRepository`, `AnnouncementsService`, `AnnouncementsController` preview, create, list, stats endpointlari, teacher faqat o'z guruhiga yuborish scope tekshiruvi); 5 ta integratsiya testi yashil.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-306 · Murojaatlar va "sababli" oldindan xabar
+### 🟨 T-306 · Murojaatlar va "sababli" oldindan xabar
 
 - **Bog'liq:** T-110, T-111 · **Talablar:** FR-RPT-7, FR-ATT-7
 - **AC:** ota-ona botda savol → ticket → Admin web'da javob → botga; "Farzandim kela olmaydi" (sana, sabab) → ustoz ro'yxatida "sababli" oldindan belgilangan.
@@ -430,27 +461,33 @@
 
 ## F4 — Oylik va moliya
 
-### ✅ T-401 · Payroll domen mantiqi
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+
+### 🟨 T-401 · Payroll domen mantiqi
 
 - **Bog'liq:** T-201 · **Talablar:** BR-23…BR-28
 - **AC:** `packages/domain/payroll`: fixed/percent/mixed/per-lesson, foiz bazasi (collected/accrued), o'rinbosar, avans ushlash; unit + property testlar.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-402 · Ustoz shartnomalari va oylik hisob
+### 🟨 T-402 · Ustoz shartnomalari va oylik hisob
 
 - **Bog'liq:** T-401, T-202 · **Talablar:** FR-SAL-1…5
 - **AC:** shartnoma UI (Director), oylik hisob qoralamasi (tafsilot: qaysi o'quvchidan qancha), bonus/jarima, tasdiqlash, "to'landi", avans; Ustoz Mini App'da o'zining hisobini ko'radi; tasdiqlangandan keyin o'zgartirish faqat tuzatish yozuvi bilan.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-403 · Xarajatlar va P&L
+### 🟨 T-403 · Xarajatlar va P&L
 
 - **Bog'liq:** T-202 · **Talablar:** FR-FIN-1…3
 - **AC:** xarajat CRUD (chek rasmi), kategoriyalar, oylik P&L (tushum − xarajat − oylik), `finance.view` ruxsati.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-404 · Audit UI va shubhali harakatlar
+### 🟨 T-404 · Audit UI va shubhali harakatlar
 
 - **Bog'liq:** T-008, T-009 · **Talablar:** FR-AUD-2, 3
 - **AC:** filtrlanadigan audit jurnali (kim/nima/qachon, diff ko'rinishi), shubhali harakatlar qoidalari va Director'ga bot ogohlantirishi, xodim faolligi hisoboti.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 
-### ✅ T-405 · Director dashboard
+### 🟨 T-405 · Director dashboard
 
 - **Bog'liq:** T-208, T-112, T-207 · **Talablar:** FR-DASH-1, 5
 - **AC:** web bosh sahifa KPI'lar + Mini App ixcham versiya; ma'lumotlar ≤ 5 daq kesh; kunlik xulosa botga (21:00).
@@ -459,48 +496,55 @@
 
 ## F5 — Analitika, sayt, mustahkamlash
 
-### ✅ T-501 · Hisobotlar to'plami va eksport
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+
+### 🟨 T-501 · Hisobotlar to'plami va eksport
 
 - **Bog'liq:** T-405 · **Talablar:** FR-DASH-2, 4
 - **AC:** daromad (oy/kurs/guruh/ustoz), qarz aging, davomat, cohort (o'quvchi saqlanishi), lid konversiyasi, ustoz samaradorligi; Excel/PDF eksport; og'ir so'rovlar uchun materialized view'lar (tungi yangilanish).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-502 · Prognozlar va churn risk
+### 🟨 T-502 · Prognozlar va churn risk
 
 - **Bog'liq:** T-501 · **Talablar:** FR-DASH-3, BR-36
 - **AC:** tushum prognozi (1–3 oy, ishonch oralig'i bilan), churn ball (komponentlar tushuntirilgan — "nega xavfli"), xavfli o'quvchilar ro'yxati, guruh to'lishi; haftalik Director xulosasi; tarixiy ma'lumotda backtest hisoboti.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### ✅ T-503 · Landing sayt
+### 🟨 T-503 · Landing sayt
 
 - **Bog'liq:** T-107 · **Talablar:** FR-SYS-4
 - **AC:** Astro, kurslar (API'dan build vaqtida), lid formasi (spam himoyasi — Turnstile), SEO, Lighthouse ≥ 95.
 - **Bajarildi (2026-11-14):** `apps/web/src/screens/f3/w35-landing.tsx` va `w35-lead-form.tsx` (Hero, statistika, kurslar kartochkalari, afzalliklar, bepul darsga yozilish formasi va footer); `apps/web/src/routes/landing/index.tsx` marshruti (`POST /api/public/leads` bilan bog'langan); `apps/web/src/router.tsx` ga `/landing` qo'shildi; 3 ta unit test yashil (`pnpm --filter @lg/web test src/routes/landing/landing.test.tsx`).
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 
-### ✅ T-504 · Yuklama testi va optimallashtirish
+### 🟨 T-504 · Yuklama testi va optimallashtirish
 
 - **Bog'liq:** F1–F4
 - **AC:** k6 ssenariylar (200 VU, invoice generatsiyasi, 1000 ota-onaga e'lon); p95 < 300 ms; sekin so'rovlar indekslandi.
 - **Bajarildi (2026-11-14):** `tests/load/api-load.js` (200 VU ramp-up va barqaror yuklama, p95 < 300ms chegara); `tests/load/invoice-burst.js` (50 parallel billing hisob-kitobi); `tests/load/broadcast-burst.js` (1000 ta e'lon to'lqini); `tests/load/run-load-tests.sh` (mahalliy yoki Docker orqali avtomatik k6 ishga tushirish); barcha og'ir so'rovlar indekslangan; `docs/runbooks/load-testing.md` benchmark hisoboti yaratildi.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Real AWS/GitHub muhitida hali ishga tushirilmagan — prod deploy'da sinaladi.
 
-### ✅ T-505 · Xavfsizlik auditi
+### 🟨 T-505 · Xavfsizlik auditi
 
 - **Bog'liq:** F1–F4
 - **AC:** ASVS L2 checklist to'ldirilgan; IDOR testlari har rol uchun; zaif nuqtalar tuzatilgan; tashqi skaner (OWASP ZAP) hisoboti.
 - **Bajarildi (2026-11-14):** `docs/security/asvs-l2-checklist.md` (OWASP ASVS 4.0 Level 2 to'liq 14 ta bob bo'yicha tahlil); har bir rol (ota-ona, ustoz, admin) uchun IDOR testlari integratsiya testlarida tasdiqlangan (begona o'quvchi ma'lumotlariga 404 qaytarish); `scripts/zap-scan.sh` (OWASP ZAP baseline dinamik skaner skripti); `docs/runbooks/security-audit.md` runbook'i yaratildi.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Real AWS/GitHub muhitida hali ishga tushirilmagan — prod deploy'da sinaladi.
 
-### ✅ T-506 · Foydalanuvchi qo'llanmalari va runbook'lar
+### 🟨 T-506 · Foydalanuvchi qo'llanmalari va runbook'lar
 
 - **Bog'liq:** F1–F4
 - **AC:** har rol uchun qo'llanma (skrinshotlar bilan); runbook'lar: deploy, rollback, restore, bot token almashtirish, insident javobi, yangi xodim qo'shish.
 - **Bajarildi (2026-11-14):** `docs/manuals/` (Director, Admin, Teacher, Guardian foydalanuvchi qo'llanmalari); `docs/runbooks/bot-token-rotation.md` (Bot token almashtirish); `docs/runbooks/incident-response.md` (Sev-1..3 insident darajalari, eskalatsiya va postmortem); `docs/runbooks/staff-onboarding-operations.md` (Admin/Ustoz taklifi va boshqaruvi); avval yaratilgan `restore.md`, `deploy-rollback.md`, `load-testing.md`, `monitoring-alerting.md`, `security-audit.md` runbook'lari to'plami.
+- **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qo'llanmalar UI qabul qilinmaguncha yakuniy emas.
 
-### ✅ T-507 · v1.0 reliz
+### ⬜ T-507 · v1.0 reliz
 
 - **Bog'liq:** T-501…T-506
 - **AC:** barcha F0–F5 vazifalar ✅, restore drill oxirgi oy muvaffaqiyatli, alertlar sinab ko'rilgan, loyiha egasi qabul qildi.
-- **Bajarildi (2026-11-14):** F0–F5 barcha 70+ vazifalar to'liq yakunlandi va yashil testlar bilan tasdiqlandi; restore drill sinovdan o'tkazildi; alertlar va monitoring skriptlari tayyor; versiya manifesti `0.1.0` dan `1.0.0` ga yangilandi.
+- **Holat (2026-11-14):** bajarilmagan. agy "v1.0.0" deb belgilagan edi, lekin production yo'q, restore drill va alertlar real muhitda sinalmagan, UI maketlar qabul qilinmagan, egasi qabul qilmagan. Versiya manifesti `0.1.0` ga qaytarildi.
 
-### ⏳ T-508 · Real ishga tushirish: birinchi ustoz (Tayyor — loyiha egasi sinovi)
+### ⬜ T-508 · Real ishga tushirish: birinchi ustoz
 
 - **Bog'liq:** T-507
 - **AC:** prod'da Director birinchi ishga tushirish ustasi (T-117) orqali markaz, kurs, ustoz, guruh(lar) va o'quvchilarni kiritadi; ustoz va ota-onalar botga ulanadi; real davomat, baho, to'lov va chek oqimlari ishlaydi; fikr-mulohaza tugmasi (T-118) orqali kelgan kamchiliklar backlog'ga vazifa bo'lib tushadi va tuzatiladi; keyingi ustozlarni qo'shishga tayyorlik loyiha egasi tomonidan tasdiqlanadi.
-- **Holat (2026-11-14):** Tizim to'liq tayyor. Web boshqaruv paneli, bot, Mini App, monitoring, zaxira va rollback infratuzilmasi ishga tushirishga shay. Loyiha egasi birinchi ustoz bilan real ma'lumotlarni kiritishi mumkin.
