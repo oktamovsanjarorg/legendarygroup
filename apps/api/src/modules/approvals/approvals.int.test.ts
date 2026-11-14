@@ -72,6 +72,7 @@ beforeAll(async () => {
     amount: '2000000',
     method: 'cash',
     paidAt: new Date(Date.now() - 86_400_000).toISOString(),
+    idempotencyKey: 'appr-init-pay-1',
   });
   const p = paid.json<{ id: string; receiptNumber: string }>();
   f.payment = p.id;

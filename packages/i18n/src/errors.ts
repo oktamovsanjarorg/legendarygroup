@@ -15,6 +15,7 @@ export const errorMessages = {
   INTERNAL_SERVER_ERROR: 'Kutilmagan xato yuz berdi. Birozdan keyin qayta urinib koʻring.',
   HTTP_ERROR: 'Soʻrovni bajarib boʻlmadi.',
   INVALID_IDEMPOTENCY_KEY: 'Soʻrov kaliti notoʻgʻri. Sahifani yangilab, qayta urinib koʻring.',
+  IDEMPOTENCY_KEY_REQUIRED: 'Idempotency-Key sarlavhasi majburiy.',
   IDEMPOTENCY_CONFLICT: 'Bu soʻrov boshqa maʼlumotlar bilan allaqachon yuborilgan.',
   IDEMPOTENCY_IN_PROGRESS:
     'Soʻrov hali bajarilmoqda. Bir necha soniyadan keyin natijani tekshiring.',

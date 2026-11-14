@@ -108,6 +108,7 @@ export const CreatePaymentRequest = z.object({
   paidAt: z.string().optional(),
   notes: z.string().max(500).optional(),
   submissionId: z.string().uuid().optional(),
+  idempotencyKey: z.string().optional(),
 });
 export type CreatePaymentInput = z.infer<typeof CreatePaymentRequest>;
 

@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  HttpStatus,
   Inject,
   Param,
   ParseUUIDPipe,
@@ -45,6 +46,7 @@ import {
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { auditContext } from '../../common/audit/request-context.js';
+import { AppException } from '../../common/errors/app.exception.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { ZodBody, ZodQuery } from '../../common/decorators/zod.decorators.js';
@@ -131,7 +133,14 @@ export class BillingController {
     @Req() req: FastifyRequest,
     @ZodBody(CreatePaymentRequest) body: CreatePaymentInput,
   ): Promise<PaymentDetail> {
-    return this.payments.createPayment(auditContext(req), user, body);
+    const rawHeader = req.headers['idempotency-key'];
+    const idempotencyKey =
+      (typeof rawHeader === 'string' && rawHeader.trim() ? rawHeader.trim() : undefined) ??
+      body.idempotencyKey;
+    if (!idempotencyKey) {
+      throw new AppException(HttpStatus.BAD_REQUEST, 'IDEMPOTENCY_KEY_REQUIRED');
+    }
+    return this.payments.createPayment(auditContext(req), user, { ...body, idempotencyKey });
   }
 
   @Get('payments')

@@ -49,6 +49,12 @@ export class PaymentsService {
     input: CreatePaymentInput,
   ): Promise<PaymentDetail> {
     await this.studentScope.assertVisible(user, input.studentId);
+    if (input.idempotencyKey) {
+      const existing = await this.repo.findPaymentByIdempotencyKey(input.idempotencyKey);
+      if (existing) {
+        return this.getPaymentById(user, existing.id);
+      }
+    }
     const amount = BigInt(input.amount);
     const paidAt = input.paidAt ? new Date(input.paidAt) : this.clock.now();
 
@@ -101,6 +107,7 @@ export class PaymentsService {
       paidAt: p.paidAt,
       receivedBy: p.userId,
       submissionId: p.input.submissionId,
+      idempotencyKey: p.input.idempotencyKey,
     });
 
     const allocs = allocation.parts.map((part) => ({

@@ -58,6 +58,7 @@ beforeAll(async () => {
     amount: '30000000',
     method: 'cash',
     paidAt: new Date().toISOString(),
+    idempotencyKey: 'storno-test-pay-1',
   });
   const payJson = payRes.json<{ id: string; receiptNumber: string }>();
   testPaymentId = payJson.id;
@@ -123,6 +124,7 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
         amount: '20000000',
         method: 'cash',
         paidAt: yesterday.toISOString(),
+        idempotencyKey: 'storno-test-pay-2',
       });
       const pastPayId = pastPayRes.json<{ id: string }>().id;
 
@@ -169,6 +171,7 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
         studentId: testStudentId,
         amount: '10000000',
         method: 'cash',
+        idempotencyKey: 'storno-test-pay-3',
       });
       expect(adv.statusCode).toBe(201);
       const res = await call('POST', 'billing/payments/refund', 'director', {

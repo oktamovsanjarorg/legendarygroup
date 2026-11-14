@@ -71,6 +71,7 @@ beforeAll(async () => {
     studentId,
     amount: '50000000',
     method: 'card',
+    idempotencyKey: 'receipt-pdf-pay-1',
   });
   expect(payRes.statusCode).toBe(201);
   const payJson = payRes.json<{ id: string; receiptNumber: string }>();
