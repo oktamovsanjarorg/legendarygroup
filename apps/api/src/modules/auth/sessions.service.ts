@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { RoleCode } from '@lg/contracts';
-import { type Database, roles, sessions, userRoles, users } from '@lg/db';
+import { type Database, roles, sessions, type Transaction, userRoles, users } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { and, desc, eq, gt, isNull } from 'drizzle-orm';
 import { uuidv7 } from 'uuidv7';
@@ -89,6 +89,15 @@ export class SessionsService {
         return { kind: 'reuse', userId: s.userId, familyId: s.familyId } as const;
       }
       if (s.expiresAt <= now || current.status !== 'active') return { kind: 'invalid' } as const;
+      // Faol rol foydalanuvchidan olingan bo'lsa (direktorlik o'tkazildi, rol olib tashlandi) —
+      // sessiya oilasi tugaydi: eski rol refresh orqali qayta tiklanmaydi.
+      if (!(await this.hasRole(tx, s.userId, s.activeRole))) {
+        await tx
+          .update(sessions)
+          .set({ revokedAt: now })
+          .where(and(eq(sessions.familyId, s.familyId), isNull(sessions.revokedAt)));
+        return { kind: 'invalid' } as const;
+      }
 
       await tx
         .update(sessions)
@@ -114,6 +123,15 @@ export class SessionsService {
         session: { sessionId: row.id, refreshToken: next, userId: s.userId, role: s.activeRole },
       } as const;
     });
+  }
+
+  private async hasRole(tx: Transaction, userId: string, role: RoleCode): Promise<boolean> {
+    const [row] = await tx
+      .select({ id: userRoles.userId })
+      .from(userRoles)
+      .innerJoin(roles, eq(roles.id, userRoles.roleId))
+      .where(and(eq(userRoles.userId, userId), eq(roles.code, role)));
+    return row !== undefined;
   }
 
   /** Joriy sessiya oilasini bekor qiladi (logout). */
@@ -203,6 +221,9 @@ export class SessionsService {
       .select({ pv: users.permissionsVersion })
       .from(sessions)
       .innerJoin(users, eq(users.id, sessions.userId))
+      // Rol hali foydalanuvchida bo'lishi shart (pv bilan birga — ikkinchi himoya).
+      .innerJoin(userRoles, eq(userRoles.userId, users.id))
+      .innerJoin(roles, and(eq(roles.id, userRoles.roleId), eq(roles.code, role)))
       .where(
         and(
           eq(sessions.id, sessionId),

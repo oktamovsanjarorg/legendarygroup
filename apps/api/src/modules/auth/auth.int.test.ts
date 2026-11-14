@@ -16,6 +16,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { TEST_ENV } from '../../test/env.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { hashPassword, randomToken, sha256 } from './crypto.js';
+import { SessionsService } from './sessions.service.js';
 
 type Response = Awaited<ReturnType<TestApp['app']['inject']>>;
 
@@ -290,5 +291,33 @@ describe('Audit (FR-AUD-1)', () => {
     );
     const dump = JSON.stringify(await db.select().from(auditLogs));
     expect(dump).not.toContain(PASSWORD);
+  });
+});
+
+describe('Rol olib tashlansa — eski sessiya o‘sha rolni qayta olmaydi (refresh, T-008)', () => {
+  it('Director roli olingan: refresh 401, eski access token ham ishlamaydi', async () => {
+    const [u] = await db
+      .insert(users)
+      .values({ fullName: 'Sobiq Direktor', phone: phone(), passwordHash: 'x' })
+      .returning();
+    for (const code of ['director', 'admin'] as const) {
+      const [r] = await db.select().from(roles).where(eq(roles.code, code));
+      await db.insert(userRoles).values({ userId: u!.id, roleId: r!.id });
+    }
+    const s = await t.app
+      .get(SessionsService)
+      .create(u!.id, 'director', { ip: null, device: 'test' });
+    // Direktorlik o'tkazildi (director:transfer kabi): rol olinadi, pv oshadi.
+    const [dir] = await db.select().from(roles).where(eq(roles.code, 'director'));
+    await db
+      .delete(userRoles)
+      .where(sql`${userRoles.userId} = ${u!.id} AND ${userRoles.roleId} = ${dir!.id}`);
+    await db
+      .update(users)
+      .set({ permissionsVersion: sql`${users.permissionsVersion} + 1` })
+      .where(eq(users.id, u!.id));
+
+    const res = await post('refresh', undefined, withCookie(s.refreshToken));
+    expect(res.statusCode).toBe(401);
   });
 });
