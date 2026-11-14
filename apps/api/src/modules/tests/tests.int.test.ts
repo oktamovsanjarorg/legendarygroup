@@ -116,6 +116,11 @@ describe('T-302: Testlar va Excel import (Tests & Excel Import)', () => {
     expect(res.statusCode).toBe(403);
   });
 
+  it('IDOR: guruhga biriktirilmagan ustoz begona oʻquvchi test tarixini koʻrolmaydi (404)', async () => {
+    const res = await call('GET', `tests/student/${student1Id}`, tokens.get('teacher')!);
+    expect(res.statusCode).toBe(404);
+  });
+
   it('Admin test yaratadi (boʻlimlar bilan)', async () => {
     const res = await call('POST', 'tests', tokens.get('admin')!, {
       groupId,

@@ -225,9 +225,8 @@ export class TestsService {
   }
 
   async getStudentTestHistory(actor: RequestUser, studentId: string): Promise<TestResultItem[]> {
-    if (actor.role === 'guardian') {
-      await this.scopeService.assertVisible(actor, studentId);
-    }
+    // Har rol uchun scope (T-505): ustoz — faqat o'z guruhidagi, ota-ona — o'z farzandi.
+    await this.scopeService.assertVisible(actor, studentId);
 
     const rows = await this.repo.findStudentTestHistory(studentId);
     return rows.map((r) => ({
