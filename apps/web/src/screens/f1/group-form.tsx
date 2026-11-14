@@ -1,6 +1,7 @@
 import { webMessages as t } from '@lg/i18n';
 import { Field, MoneyField, SelectField } from '@lg/ui-web';
 import { AlertTriangle } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { type SlotBlock, SlotsEditor } from './slots-editor.js';
 
 const f = t.groups.form;
@@ -31,9 +32,15 @@ const withNone = (xs: readonly Option[]): Option[] => [{ value: '', label: f.non
 
 /** To'qnashuv ogohlantirishlari (FR-ORG-6): qaysi xona/ustoz, qachon, qaysi guruh bilan. */
 export function ConflictList({ conflicts }: { conflicts: readonly string[] }) {
-  if (conflicts.length === 0) return null;
+  const ref = useRef<HTMLUListElement>(null);
+  const shown = conflicts.length > 0;
+  // Uzun formada ogohlantirish ko'rinmay qolmasin — paydo bo'lganda ko'rinadigan joyga suriladi.
+  useEffect(() => {
+    if (shown) ref.current?.scrollIntoView?.({ block: 'nearest' });
+  }, [shown]);
+  if (!shown) return null;
   return (
-    <ul role="alert" className="flex flex-col gap-1 rounded-md bg-warning-bg p-3 text-sm">
+    <ul ref={ref} role="alert" className="flex flex-col gap-1 rounded-md bg-warning-bg p-3 text-sm">
       {conflicts.map((c) => (
         <li key={c} className="flex gap-2 text-warning">
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
