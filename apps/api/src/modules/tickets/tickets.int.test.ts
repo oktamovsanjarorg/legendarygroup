@@ -180,13 +180,33 @@ describe('Murojaatlar va sababli xabarnoma (T-306 / FR-RPT-7, FR-ATT-7)', () => 
       expect(res.statusCode).toBe(403);
     });
 
-    it('Boshqa ota-ona (Guardian 2) begona ticketni koʻra olmaydi (403)', async () => {
+    it('Boshqa ota-ona (Guardian 2) begona ticketni koʻra olmaydi (404 — mavjudligi oshkor emas)', async () => {
       const res = await t.app.inject({
         method: 'GET',
         url: `/api/tickets/${createdTicketId}`,
         headers: { authorization: `Bearer ${guardian2Token}` },
       });
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('Ustoz murojaatlarga kira olmaydi (ticket.create ham, ticket.handle ham yoʻq) — 403', async () => {
+      const id = createdTicketId;
+      const calls: ['GET' | 'POST' | 'PATCH', string, object?][] = [
+        ['GET', '/api/tickets'],
+        ['GET', `/api/tickets/${id}`],
+        ['POST', '/api/tickets', { subject: 'Savol', message: 'Matn matni' }],
+        ['POST', `/api/tickets/${id}/messages`, { text: 'Javob' }],
+        ['PATCH', `/api/tickets/${id}`, { status: 'closed' }],
+      ];
+      for (const [method, url, payload] of calls) {
+        const res = await t.app.inject({
+          method,
+          url,
+          payload,
+          headers: { authorization: `Bearer ${teacherToken}` },
+        });
+        expect(res.statusCode, `${method} ${url}`).toBe(403);
+      }
     });
 
     it('Admin javob yozadi va ota-onaga bildirishnoma boradi', async () => {

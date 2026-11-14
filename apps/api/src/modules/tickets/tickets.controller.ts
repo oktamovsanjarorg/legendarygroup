@@ -26,7 +26,7 @@ export class TicketsController {
   constructor(@Inject(TicketsService) private readonly service: TicketsService) {}
 
   @Post()
-  @Authenticated()
+  @RequirePermission('ticket.create')
   @Audit({ action: 'ticket.create', entity: 'ticket' })
   @ApiOperation({ summary: 'FR-RPT-7: Yangi murojaat (ticket) yaratish' })
   async create(

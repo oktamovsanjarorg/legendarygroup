@@ -15,6 +15,7 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { NotificationsService } from '../notifications/index.js';
+import { PermissionsService } from '../rbac/index.js';
 import { TicketsRepository } from './tickets.repository.js';
 
 @Injectable()
@@ -23,7 +24,25 @@ export class TicketsService {
     @Inject(TicketsRepository) private readonly repo: TicketsRepository,
     @Inject(NotificationsService) private readonly notifications: NotificationsService,
     @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(PermissionsService) private readonly permissions: PermissionsService,
   ) {}
+
+  /**
+   * Scope: `ticket.handle` — hamma murojaatlar; `ticket.create` — faqat o'zi ochganlari;
+   * ikkalasi ham yo'q (masalan, ustoz) — 403. Rol emas, ruxsat (override hisobga olinadi).
+   */
+  private async scopeOf(actor: RequestUser): Promise<'all' | 'own'> {
+    const perms = await this.permissions.forUser(actor.id, actor.role, actor.pv);
+    if (perms.has('ticket.handle')) return 'all';
+    if (perms.has('ticket.create')) return 'own';
+    throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+  }
+
+  /** Begona murojaat — 404 (mavjudligi oshkor qilinmaydi). */
+  private async assertVisible(actor: RequestUser, authorId: string): Promise<void> {
+    if ((await this.scopeOf(actor)) === 'own' && authorId !== actor.id)
+      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+  }
 
   private async isParentOf(guardianUserId: string, studentId: string): Promise<boolean> {
     const [row] = await this.db
@@ -36,7 +55,7 @@ export class TicketsService {
 
   /** Yangi ticket ochish (FR-RPT-7) */
   async createTicket(actor: RequestUser, dto: CreateTicketRequest): Promise<TicketDetail> {
-    if (dto.studentId && actor.role === 'guardian') {
+    if (dto.studentId && (await this.scopeOf(actor)) === 'own') {
       const allowed = await this.isParentOf(actor.id, dto.studentId);
       if (!allowed) {
         throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
@@ -71,9 +90,7 @@ export class TicketsService {
       throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     }
 
-    if (actor.role === 'guardian' && existing.ticket.authorId !== actor.id) {
-      throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
-    }
+    await this.assertVisible(actor, existing.ticket.authorId);
 
     const message = await this.repo.createMessage({
       ticketId,
@@ -125,9 +142,6 @@ export class TicketsService {
     ticketId: string,
     dto: UpdateTicketRequest,
   ): Promise<TicketItem> {
-    if (actor.role === 'guardian') {
-      throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
-    }
     const updated = await this.repo.updateTicket(ticketId, dto);
     if (!updated) {
       throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
@@ -142,9 +156,7 @@ export class TicketsService {
       throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     }
 
-    if (actor.role === 'guardian' && row.ticket.authorId !== actor.id) {
-      throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
-    }
+    await this.assertVisible(actor, row.ticket.authorId);
 
     const messages = await this.repo.findMessages(ticketId);
     const t = row.ticket;
@@ -180,7 +192,7 @@ export class TicketsService {
 
   /** Ticketlar ro'yxati */
   async listTickets(actor: RequestUser, query: ListTicketsQuery): Promise<{ items: TicketItem[] }> {
-    const authorId = actor.role === 'guardian' ? actor.id : undefined;
+    const authorId = (await this.scopeOf(actor)) === 'own' ? actor.id : undefined;
 
     const rows = await this.repo.listTickets({
       branchId: DEFAULT_BRANCH_ID,
