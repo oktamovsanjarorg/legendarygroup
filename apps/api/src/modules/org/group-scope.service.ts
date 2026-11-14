@@ -52,4 +52,27 @@ export class GroupScopeService {
     const [row] = await this.db.select({ id: groups.id }).from(groups).where(where);
     if (!row) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
   }
+
+  /**
+   * Guruhni boshqarish (test, import, e'lon qilish — Q-62): Director/Admin yoki guruhning bugun
+   * amaldagi **asosiy** ustozi. Ko'rinmasa — 404, yordamchi ustoz — 403.
+   */
+  async assertCanManage(user: RequestUser, groupId: string): Promise<void> {
+    await this.assertVisible(user, groupId);
+    if (user.role !== 'teacher') return;
+    const today = this.clock.today();
+    const [main] = await this.db
+      .select({ id: groupTeachers.groupId })
+      .from(groupTeachers)
+      .where(
+        and(
+          eq(groupTeachers.groupId, groupId),
+          eq(groupTeachers.teacherId, user.id),
+          eq(groupTeachers.role, 'main'),
+          lte(groupTeachers.fromDate, today),
+          or(isNull(groupTeachers.toDate), gte(groupTeachers.toDate, today)),
+        ),
+      );
+    if (!main) throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+  }
 }

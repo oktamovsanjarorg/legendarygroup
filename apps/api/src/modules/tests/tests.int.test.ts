@@ -151,6 +151,44 @@ describe('T-302: Testlar va Excel import (Tests & Excel Import)', () => {
     expect(teacherRes.statusCode).toBe(200);
   });
 
+  it('IDOR: guruhga biriktirilmagan ustoz begona guruh testlariga tegolmaydi (404, Q-62)', async () => {
+    const stranger = tokens.get('teacher')!;
+    const tries = [
+      call('GET', `tests?groupId=${groupId}`, stranger),
+      call('GET', `tests/${testId}`, stranger),
+      call('GET', `tests/${testId}/template`, stranger),
+      call('PATCH', `tests/${testId}`, stranger, { title: 'Oʻzgardi' }),
+      call('POST', `tests/${testId}/results`, stranger, {
+        results: [{ studentId: student1Id, score: 1 }],
+      }),
+      call('POST', `tests/${testId}/publish`, stranger, {}),
+      call('POST', 'tests', stranger, {
+        groupId,
+        title: 'Begona',
+        date: '2026-11-20',
+        maxScore: 10,
+      }),
+    ];
+    for (const res of await Promise.all(tries)) expect(res.statusCode).toBe(404);
+  });
+
+  it('Q-62: yordamchi ustoz testni koʻradi, lekin oʻzgartira/eʼlon qila olmaydi (403)', async () => {
+    const assistantId = await createUserWithRole(db, 'teacher');
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(
+      new Date(),
+    );
+    const assign = await call('POST', `groups/${groupId}/teachers`, tokens.get('admin')!, {
+      teacherId: assistantId,
+      role: 'assistant',
+      from: today,
+    });
+    expect(assign.statusCode).toBe(200);
+    const assistant = await tokenFor(t, db, assistantId, 'teacher');
+    expect((await call('GET', `tests/${testId}`, assistant)).statusCode).toBe(200);
+    const publish = await call('POST', `tests/${testId}/publish`, assistant, {});
+    expect(publish.statusCode).toBe(403);
+  });
+
   it('BR-34: Notoʻgʻri ball rad etiladi (max_score dan oshganda)', async () => {
     const res = await call('POST', `tests/${testId}/results`, tokens.get('admin')!, {
       results: [{ studentId: student1Id, score: 105 }],
