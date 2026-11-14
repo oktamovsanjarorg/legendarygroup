@@ -35,7 +35,7 @@ function SessionRow({ s, revoking, onRevoke }: RowProps) {
 /** W-32: o'z sessiyalari (FR-AUTH-7) — 5 holat bilan. */
 export function SessionsPage() {
   const qc = useQueryClient();
-  const { signOut } = useAuth();
+  const { signOut, me } = useAuth();
   const sessions = useQuery({
     queryKey: ['sessions'],
     queryFn: () => api.request<SessionInfo[]>('/auth/sessions'),
@@ -74,7 +74,7 @@ export function SessionsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <TelegramLinkCard />
+      {me && !me.telegramLinked && <TelegramLinkCard />}
       <Card className="max-w-3xl">
         <div className="mb-4 flex items-center justify-between">
           <CardTitle>{t.sessions.title}</CardTitle>

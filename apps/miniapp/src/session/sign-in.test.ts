@@ -8,6 +8,7 @@ const user = (roles: RoleCode[], activeRole: RoleCode): AuthUser => ({
   id: 'u1',
   fullName: 'Ali Valiyev',
   phone: '+998901112233',
+  telegramLinked: true,
   roles,
   activeRole,
 });

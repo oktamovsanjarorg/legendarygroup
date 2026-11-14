@@ -42,7 +42,7 @@ export const webF1Messages = {
     revenueMonth: 'Oy tushumi',
     debtTotal: 'Umumiy qarz',
     activeStudents: 'Faol oʻquvchilar',
-    attendance: 'Davomat (7 kun)',
+    attendance: 'Davomat (bugun)',
     queue: 'Cheklar navbatda',
     unmarked: 'Belgilanmagan darslar',
     flow: 'Kelgan / ketgan (oy)',

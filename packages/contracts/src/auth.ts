@@ -43,6 +43,8 @@ export const AuthUser = z.object({
   phone: z.string(),
   roles: z.array(z.enum(ROLES)),
   activeRole: z.enum(ROLES),
+  /** Telegram bog'langanmi (web: "Telegramni ulash" kartasi faqat bog'lanmaganda). */
+  telegramLinked: z.boolean(),
 });
 
 /** Login javobi: yoki sessiya, yoki keyingi MFA qadami. */

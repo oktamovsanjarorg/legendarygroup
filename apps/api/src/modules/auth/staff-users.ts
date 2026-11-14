@@ -31,6 +31,7 @@ export const toAuthUser = (u: StaffUser, activeRole: RoleCode): AuthUser => ({
   phone: u.phone,
   roles: u.roles,
   activeRole,
+  telegramLinked: u.telegramId !== null,
 });
 
 /** Auth uchun foydalanuvchi o'qish (rollar bilan). */
