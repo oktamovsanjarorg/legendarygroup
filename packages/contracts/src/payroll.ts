@@ -116,3 +116,13 @@ export const PayrollRunDetailSchema = z.object({
   teachers: z.array(TeacherPayrollSummarySchema),
 });
 export type PayrollRunDetail = z.infer<typeof PayrollRunDetailSchema>;
+
+/** `GET /payroll/my` — ustozning o'z oyliklari (payroll.view_own, FR-SAL-4). */
+export const OwnPayrollMonthSchema = z.object({
+  runId: z.string().uuid(),
+  period: z.string(),
+  status: z.enum(PAYROLL_RUN_STATUSES),
+  /** Faqat o'z qatorlari yig'indisi (bigint string). */
+  totalNet: z.string(),
+});
+export type OwnPayrollMonth = z.infer<typeof OwnPayrollMonthSchema>;

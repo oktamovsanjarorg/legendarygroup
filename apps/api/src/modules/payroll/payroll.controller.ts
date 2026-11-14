@@ -1,4 +1,5 @@
 import {
+  type OwnPayrollMonth,
   AddPayrollAdjustmentRequest,
   CreateTeacherAdvanceRequest,
   CreateTeacherContractRequest,
@@ -63,6 +64,14 @@ export class PayrollController {
     @ZodBody(GeneratePayrollRunRequest) req: GeneratePayrollRunRequest,
   ): Promise<PayrollRunDetail> {
     return this.service.generatePayrollRun(actor, DEFAULT_BRANCH_ID, req.period);
+  }
+
+  @Get('my')
+  @RequirePermission('payroll.view_own')
+  @NoAudit('GET query')
+  @ApiOperation({ summary: "FR-SAL-4 Ustozning o'z oyliklari (oylar ro'yxati)" })
+  listOwn(@CurrentUser() actor: RequestUser): Promise<OwnPayrollMonth[]> {
+    return this.service.listOwnPayroll(actor);
   }
 
   @Get('runs/:id')

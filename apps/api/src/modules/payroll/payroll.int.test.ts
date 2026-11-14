@@ -312,9 +312,25 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
     // Faqat teacher 1 ma'lumotlari chiqishi kerak
     expect(run.teachers.length).toBe(1);
     expect(run.teachers[0]?.teacherId).toBe(teacher1UserId);
+    // Jami — faqat o'ziniki (boshqa ustozlar oyligi yig'indisi oshkor bo'lmaydi).
+    expect(run.totalAmount).toBe(run.teachers[0]?.totalNet);
 
     const res2 = await call('GET', `payroll/runs/${runId}`, teacher2Token);
     expect(res2.statusCode).toBe(200);
     expect(res2.json<PayrollRunDetail>().teachers[0]?.teacherId).toBe(teacher2UserId);
+  });
+
+  it('GET /payroll/my — faqat o‘z oyligi; boshqa rollar — 403', async () => {
+    const own = await call('GET', 'payroll/my', teacher1Token);
+    expect(own.statusCode).toBe(200);
+    const detail = (
+      await call('GET', `payroll/runs/${runId}`, teacher1Token)
+    ).json<PayrollRunDetail>();
+    expect(own.json()).toEqual([
+      { runId, period: detail.period, status: 'paid', totalNet: detail.teachers[0]?.totalNet },
+    ]);
+    for (const role of ['admin', 'guardian'] as const) {
+      expect((await call('GET', 'payroll/my', tokens.get(role)!)).statusCode).toBe(403);
+    }
   });
 });
