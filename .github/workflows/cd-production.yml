@@ -1,43 +1,131 @@
 name: CD — Production Deploy
 
+# T-014 (06 §4): reliz yoki qo'lda → `production` environment (qo'lda tasdiqlash) →
+# arm64 image'lar ECR'ga → RDS snapshot → SSM orqali serverda remote-deploy.sh → smoke test.
+# AWS kalitlari yo'q — GitHub OIDC (rol faqat `environment:production`ga ishonadi, T-012).
+#
+# Environment o'zgaruvchilari (Settings → Environments → production → Variables; `tofu output`):
+#   AWS_REGION, AWS_DEPLOY_ROLE_ARN, LG_REGISTRY, LG_INSTANCE_ID, LG_RDS_ID,
+#   LG_DB_OWNER_SECRET_ARN, APP_DOMAIN
+# Sirlar — SSM Parameter Store `/lg/prod/*` (docs/runbooks/deploy-rollback.md).
+
 on:
   release:
     types: [published]
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Deploy qilinadigan versiya tegi (masalan: v1.0.0)'
-        required: true
+      ref:
+        description: 'Deploy qilinadigan git ref (teg, branch yoki sha). Bo‘sh — tanlangan branch.'
+        required: false
         type: string
 
 concurrency:
   group: cd-production
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
-  deploy-prod:
-    name: Production Deploy & Verification
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 30
+  deploy:
+    name: Build (arm64) → ECR → Deploy
+    # Server — Graviton (t4g). Native arm64 runner: QEMU yo'q (T-011 dagi pnpm segfault).
+    runs-on: ubuntu-24.04-arm
+    environment:
+      name: production
+      url: https://${{ vars.APP_DOMAIN }}
+    timeout-minutes: 45
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      LG_REGISTRY: ${{ vars.LG_REGISTRY }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
-      - name: Determine release tag
-        id: vars
+      - name: Image tegi
+        id: meta
         run: |
-          if [ -n "${{ github.event.inputs.tag }}" ]; then
-            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          if [[ "${GITHUB_EVENT_NAME}" == "release" ]]; then
+            tag="${GITHUB_REF_NAME}"
           else
-            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            tag="git-$(git rev-parse --short=10 HEAD)"
           fi
+          [[ "$tag" =~ ^[A-Za-z0-9._-]{1,100}$ ]] || { echo "Yaroqsiz teg: $tag" >&2; exit 1; }
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "### Deploy: \`$tag\` ($(git rev-parse HEAD))" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Production deploy via deploy.sh
+      - name: AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: ECR login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ECR teglar o'zgarmas (IMMUTABLE): shu teg bor bo'lsa qayta yig'ilmaydi (qayta deploy/rollback).
+      - name: Image'lar bormi
+        id: exists
         env:
-          TAG: ${{ steps.vars.outputs.tag }}
+          TAG: ${{ steps.meta.outputs.tag }}
         run: |
-          echo "Production deploy boshlanmoqda: ${TAG}"
-          echo "RDS snapshot, migratsiya, rolling restart va smoke test o'tkaziladi."
-          # ./infra/scripts/deploy.sh production "$TAG"
+          all=true
+          for r in api worker bot web; do
+            aws ecr describe-images --repository-name "lg-$r" --image-ids imageTag="$TAG" >/dev/null 2>&1 || all=false
+          done
+          echo "all=$all" >> "$GITHUB_OUTPUT"
+          echo "Image'lar ECR'da: $all"
+
+      - name: Buildx
+        if: steps.exists.outputs.all != 'true'
+        uses: docker/setup-buildx-action@v3
+
+      # Bitta builder — deps/build bosqichlari 4 target uchun bir marta yig'iladi (kesh — GHA).
+      - name: Build & push (api, worker, bot, web)
+        if: steps.exists.outputs.all != 'true'
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          for t in api worker bot web; do
+            echo "::group::lg-$t"
+            docker buildx build --platform linux/arm64 --provenance=false --push \
+              -f infra/docker/Dockerfile --target "$t" \
+              --cache-from type=gha,scope=prod-arm64 --cache-to type=gha,scope=prod-arm64,mode=max \
+              -t "${LG_REGISTRY}/lg-$t:${TAG}" .
+            echo "::endgroup::"
+          done
+
+      - name: RDS snapshot (deploydan oldin)
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          RDS_ID: ${{ vars.LG_RDS_ID }}
+        run: |
+          id="${RDS_ID}-predeploy-$(echo "$TAG" | tr -c 'A-Za-z0-9\n' '-')-$(date +%s)"
+          aws rds create-db-snapshot --db-instance-identifier "$RDS_ID" --db-snapshot-identifier "$id" >/dev/null
+          aws rds wait db-snapshot-available --db-snapshot-identifier "$id"
+          echo "Snapshot: $id" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Serverda deploy (SSM)
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          INSTANCE: ${{ vars.LG_INSTANCE_ID }}
+          SECRET_ARN: ${{ vars.LG_DB_OWNER_SECRET_ARN }}
+        run: bash infra/scripts/ssm-deploy.sh "$INSTANCE" "$TAG" "$AWS_REGION" "$SECRET_ARN"
+
+      - name: Smoke test (tashqaridan, HTTPS)
+        env:
+          DOMAIN: ${{ vars.APP_DOMAIN }}
+        run: |
+          for path in /api/health/ready / /app/; do
+            ok=false
+            for _ in $(seq 1 20); do
+              if curl -fsS -o /dev/null --max-time 10 "https://${DOMAIN}${path}"; then ok=true; break; fi
+              sleep 6
+            done
+            echo "https://${DOMAIN}${path}: $ok"
+            [[ "$ok" == true ]] || exit 1
+          done
