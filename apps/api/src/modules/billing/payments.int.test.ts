@@ -136,8 +136,8 @@ describe('Payments API (T-204, FR-PAY-2, 6, BR-11, 12, 19)', () => {
   });
 
   describe('Chek raqami (BR-19) va ommaviy tekshirish sahifasi', () => {
-    it("GET /api/billing/receipts/:number chek ma'lumotlarini qaytaradi (Public 200)", async () => {
-      const res = await call('GET', `billing/receipts/${receiptNumber}`);
+    it("GET /api/billing/receipts/:number chek ma'lumotlarini qaytaradi (xodim, 200)", async () => {
+      const res = await call('GET', `billing/receipts/${receiptNumber}`, 'admin');
       expect(res.statusCode).toBe(200);
       const receipt = res.json<PublicReceipt>();
       expect(receipt.number).toBe(receiptNumber);
@@ -148,7 +148,7 @@ describe('Payments API (T-204, FR-PAY-2, 6, BR-11, 12, 19)', () => {
     });
 
     it("mavjud bo'lmagan chek 404 NOT_FOUND qaytaradi", async () => {
-      const res = await call('GET', 'billing/receipts/LG-2099-999999');
+      const res = await call('GET', 'billing/receipts/LG-2099-999999', 'admin');
       expect(res.statusCode).toBe(404);
     });
   });

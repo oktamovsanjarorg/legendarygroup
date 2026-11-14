@@ -187,6 +187,17 @@ export class PaymentsService {
     };
   }
 
+  /**
+   * Chek raqami ketma-ket (FR-PAY-8) — raqam bo'yicha ma'lumot/PDF faqat scope bilan:
+   * ota-ona — o'z farzandi cheki; begona — 404. Ommaviy tekshirish — faqat QR token (PII'siz).
+   */
+  async assertReceiptVisible(user: RequestUser, number: string): Promise<void> {
+    const receipt = await this.repo.findReceiptByNumber(number);
+    const payment = receipt ? await this.repo.findPaymentById(receipt.paymentId) : null;
+    if (!payment) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+    await this.studentScope.assertVisible(user, payment.studentId);
+  }
+
   async getPublicReceipt(number: string): Promise<PublicReceipt> {
     const receipt = await this.repo.findReceiptByNumber(number);
     if (!receipt) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
