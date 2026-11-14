@@ -116,6 +116,14 @@ export const errorMessages = {
   EXPENSE_NOT_FOUND: 'Xarajat topilmadi.',
   REQUEST_NOT_FOUND: 'Bogʻlanish soʻrovi topilmadi.',
   STUDENT_NOT_FOUND: 'Oʻquvchi topilmadi.',
+  PAYROLL_NOT_APPROVED: 'Oylik avval tasdiqlanishi kerak, keyin toʻlangan deb belgilanadi.',
+  PAYROLL_NEGATIVE_NET:
+    'Baʼzi ustozlarda ushlanma oylikdan koʻp. Avansni qisman qiling yoki tuzatish kiriting.',
+  REVERSAL_OF_REVERSAL: 'Storno yozuvini storno qilib boʻlmaydi.',
+  REVERSAL_NEEDS_APPROVAL: 'Oldingi kun toʻlovini bekor qilish uchun Director tasdigʻi kerak.',
+  ALREADY_REVERSED: 'Bu toʻlov allaqachon bekor qilingan.',
+  REFUND_EXCEEDS_ADVANCE: 'Qaytariladigan summa oʻquvchining avansidan koʻp.',
+  PENALTY_ALREADY_PAID: 'Toʻlangan jarimani bekor qilib boʻlmaydi — avval toʻlovni storno qiling.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

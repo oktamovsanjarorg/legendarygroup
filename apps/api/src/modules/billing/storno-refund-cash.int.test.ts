@@ -153,7 +153,24 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
       }
     });
 
+    it('FR-PAY-6: avansdan koʻp refund rad etiladi (409)', async () => {
+      const res = await call('POST', 'billing/payments/refund', 'director', {
+        studentId: testStudentId,
+        amount: '10000000',
+        method: 'cash',
+        reason: 'Avans yoʻq',
+      });
+      expect(res.statusCode).toBe(409);
+      expect(res.json<{ code: string }>().code).toBe('REFUND_EXCEEDS_ADVANCE');
+    });
+
     it('Director refund qila oladi: ledgerga refund yoziladi (201/200)', async () => {
+      const adv = await call('POST', 'billing/payments', 'admin', {
+        studentId: testStudentId,
+        amount: '10000000',
+        method: 'cash',
+      });
+      expect(adv.statusCode).toBe(201);
       const res = await call('POST', 'billing/payments/refund', 'director', {
         studentId: testStudentId,
         amount: '10000000',

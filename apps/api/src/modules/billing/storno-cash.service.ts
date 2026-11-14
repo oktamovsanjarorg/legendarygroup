@@ -6,20 +6,25 @@ import type {
   RefundPaymentInput,
   ReversePaymentInput,
 } from '@lg/contracts';
-import { type Database, type PaymentRow, type ReceiptRow, type Transaction } from '@lg/db';
+import type { Permission } from '@lg/contracts';
+import {
+  type Database,
+  isUniqueViolation,
+  type PaymentRow,
+  type ReceiptRow,
+  type Transaction,
+} from '@lg/db';
 import { type Clock, formatDateToYmd } from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
+import { PermissionsService } from '../rbac/index.js';
+import { StudentScopeService } from '../students/index.js';
+import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { StornoCashRepository } from './storno-cash.repository.js';
 import { serializeCashClosing } from './storno-cash.serializer.js';
-
-/** Toshkent kuni bo'yicha (UTC emas — 00:00–05:00 orasidagi to'lov boshqa kunga tushmasin). */
-function isSameCalendarDay(d1: Date, d2: Date): boolean {
-  return formatDateToYmd(d1) === formatDateToYmd(d2);
-}
 
 interface ReversalTxParams {
   payment: PaymentRow;
@@ -36,6 +41,9 @@ export class StornoCashService {
     @Inject(StornoCashRepository) private readonly repo: StornoCashRepository,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
+    @Inject(PermissionsService) private readonly permissions: PermissionsService,
+    @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
   ) {}
 
   async reversePayment(
@@ -45,97 +53,99 @@ export class StornoCashService {
     ctx: AuditContext,
   ): Promise<{ paymentId: string; reversalId: string }> {
     const payment = await this.repo.findPaymentById(paymentId);
-    if (!payment) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Toʻlov topilmadi');
-    if (payment.amount <= 0n) {
-      throw new AppException(
-        HttpStatus.BAD_REQUEST,
-        'BAD_REQUEST',
-        'Storno toʻlovini storno qilib boʻlmaydi',
-      );
-    }
-
+    if (!payment) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+    if (payment.amount <= 0n)
+      throw new AppException(HttpStatus.BAD_REQUEST, 'REVERSAL_OF_REVERSAL');
     const receipt = await this.repo.findReceiptByPaymentId(paymentId);
-    if (!receipt) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Kvitansiya topilmadi');
+    if (!receipt) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
 
-    const isCancelled = await this.repo.isReceiptCancelled(receipt.id);
-    if (isCancelled) {
-      throw new AppException(HttpStatus.CONFLICT, 'CONFLICT', 'Toʻlov allaqachon bekor qilingan');
+    // 02 §5: kiritilgan kundan keyingi storno — faqat tasdiqlash huquqi bor foydalanuvchi.
+    const sameDay = formatDateToYmd(payment.paidAt) === formatDateToYmd(this.clock.now());
+    if (!sameDay && !(await this.can(user, 'approval.decide'))) {
+      throw new AppException(HttpStatus.FORBIDDEN, 'REVERSAL_NEEDS_APPROVAL');
     }
 
-    if (user.role !== 'director' && !isSameCalendarDay(payment.paidAt, this.clock.now())) {
-      throw new AppException(
-        HttpStatus.FORBIDDEN,
-        'FORBIDDEN',
-        'Kiritilgan kundan keyingi storno faqat Director tasdigʻi orqali amalga oshiriladi',
+    try {
+      return await this.db.transaction((tx) =>
+        this.executeReversalTx(tx, { payment, receipt, input, user, ctx }),
       );
+    } catch (err) {
+      if (isUniqueViolation(err)) throw new AppException(HttpStatus.CONFLICT, 'ALREADY_REVERSED');
+      throw err;
     }
-
-    return this.executeReversalTx({ payment, receipt, input, user, ctx });
   }
 
   private async executeReversalTx(
+    tx: Transaction,
     p: ReversalTxParams,
   ): Promise<{ paymentId: string; reversalId: string }> {
-    return this.db.transaction(async (tx: Transaction) => {
-      const reversal = await this.repo.insertPayment(
-        {
-          branchId: p.payment.branchId,
-          studentId: p.payment.studentId,
-          amount: -p.payment.amount,
-          method: p.payment.method,
-          paidAt: this.clock.now(),
-          receivedBy: p.user.id,
-        },
-        tx,
-      );
-
-      await this.repo.insertReceiptCancellation(
-        {
-          receiptId: p.receipt.id,
-          reversalPaymentId: reversal.id,
-          reason: p.input.reason,
-          createdBy: p.user.id,
-        },
-        tx,
-      );
-
-      await this.repo.insertLedgerEntry(
-        {
-          branchId: p.payment.branchId,
-          studentId: p.payment.studentId,
-          entryType: 'reversal',
-          amount: p.payment.amount,
-          refTable: 'payments',
-          refId: reversal.id,
-        },
-        tx,
-      );
-
-      await this.audit.record(
-        p.ctx,
-        {
-          action: 'billing.payment.reverse',
-          entity: 'payment',
-          entityId: p.payment.id,
-          after: { reversalPaymentId: reversal.id, reason: p.input.reason },
-        },
-        tx,
-      );
-
-      return { paymentId: p.payment.id, reversalId: reversal.id };
-    });
+    await this.balance.lockStudent(tx, p.payment.studentId);
+    if (await this.repo.findReversalOf(p.payment.id, tx)) {
+      throw new AppException(HttpStatus.CONFLICT, 'ALREADY_REVERSED');
+    }
+    const reversal = await this.repo.insertPayment(
+      {
+        branchId: p.payment.branchId,
+        studentId: p.payment.studentId,
+        amount: -p.payment.amount,
+        method: p.payment.method,
+        paidAt: this.clock.now(),
+        receivedBy: p.user.id,
+        reversalOf: p.payment.id,
+      },
+      tx,
+    );
+    await this.repo.insertReceiptCancellation(
+      {
+        receiptId: p.receipt.id,
+        reversalPaymentId: reversal.id,
+        reason: p.input.reason,
+        createdBy: p.user.id,
+      },
+      tx,
+    );
+    await this.repo.insertLedgerEntry(
+      {
+        branchId: p.payment.branchId,
+        studentId: p.payment.studentId,
+        entryType: 'reversal',
+        amount: p.payment.amount,
+        refTable: 'payments',
+        refId: reversal.id,
+      },
+      tx,
+    );
+    // Bo'shagan qatorlarga boshqa to'lovlarning avansi qo'llanadi, keyin holatlar.
+    await this.balance.applyAdvance(tx, p.payment.studentId);
+    await this.balance.refreshInvoiceStatuses(tx, p.payment.studentId);
+    await this.audit.record(
+      p.ctx,
+      {
+        action: 'billing.payment.reverse',
+        entity: 'payment',
+        entityId: p.payment.id,
+        after: { reversalPaymentId: reversal.id, reason: p.input.reason },
+      },
+      tx,
+    );
+    return { paymentId: p.payment.id, reversalId: reversal.id };
   }
 
+  /** FR-PAY-6: refund — faqat mavjud avans doirasida (qarz turgan pulni qaytarib bo'lmaydi). */
   async refundPayment(
     input: RefundPaymentInput,
     user: RequestUser,
     ctx: AuditContext,
   ): Promise<{ refundId: string; amount: string }> {
+    await this.studentScope.assertVisible(user, input.studentId);
     const amountBig = BigInt(input.amount);
     return this.db.transaction(async (tx: Transaction) => {
+      await this.balance.lockStudent(tx, input.studentId);
+      if (amountBig > (await this.balance.availableAdvance(tx, input.studentId))) {
+        throw new AppException(HttpStatus.CONFLICT, 'REFUND_EXCEEDS_ADVANCE');
+      }
       const refund = await this.repo.insertPayment(
         {
-          branchId: '01900000-0000-7000-8000-000000000001',
           studentId: input.studentId,
           amount: -amountBig,
           method: input.method,
@@ -144,10 +154,8 @@ export class StornoCashService {
         },
         tx,
       );
-
       await this.repo.insertLedgerEntry(
         {
-          branchId: '01900000-0000-7000-8000-000000000001',
           studentId: input.studentId,
           entryType: 'refund',
           amount: amountBig,
@@ -156,7 +164,6 @@ export class StornoCashService {
         },
         tx,
       );
-
       await this.audit.record(
         ctx,
         {
@@ -167,9 +174,12 @@ export class StornoCashService {
         },
         tx,
       );
-
       return { refundId: refund.id, amount: input.amount };
     });
+  }
+
+  private async can(user: RequestUser, permission: Permission): Promise<boolean> {
+    return (await this.permissions.forUser(user.id, user.role, user.pv)).has(permission);
   }
 
   async closeCash(

@@ -63,7 +63,7 @@ const TEMPLATE_RENDERERS: Record<NotificationType, TemplateRenderer> = {
   }),
   billing_reminder: (p) => ({
     title: 'Toʻlov eslatmasi',
-    body: `Hurmatli ota-ona! ${p.studentName ?? 'Oʻquvchi'} uchun toʻlov muddati yaqinlashmoqda: ${p.dueDate ?? ''}.`,
+    body: `Hurmatli ota-ona! ${p.studentName ?? 'Oʻquvchi'} boʻyicha toʻlanmagan summa: ${p.amount ?? ''} soʻm${p.dueDate ? `, muddat: ${p.dueDate}` : ''}.`,
   }),
   grade_recorded: (p) => ({
     title: 'Yangi baho',

@@ -1,4 +1,5 @@
-import { HttpStatus, Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
+import { formatDateShort, formatMoney } from '@lg/i18n';
 import type {
   DebtorBucket,
   DebtorItem,
@@ -11,7 +12,7 @@ import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { StudentScopeService } from '../students/index.js';
-import { TelegramOutbox } from '../telegram/index.js';
+import { NotificationsService } from '../notifications/index.js';
 import {
   type DebtorGroupInfo,
   type DebtorInvoiceInfo,
@@ -58,7 +59,7 @@ export class DebtorsService {
     @Inject(DebtorsRepository) private readonly repo: DebtorsRepository,
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
-    @Optional() @Inject(TelegramOutbox) private readonly telegramOutbox?: TelegramOutbox,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   /** Barcha qarzdorlarni yig'adi va filtrlarni qo'llaydi. */
@@ -230,17 +231,14 @@ export class DebtorsService {
       channel: 'telegram',
     });
 
-    if (this.telegramOutbox && guardian?.userId) {
-      await this.telegramOutbox.enqueue(
-        {
-          method: 'sendMessage',
-          chatId: guardian.userId,
-          payload: {
-            text: `Hurmatli ${guardian.fullName}, to'lov bo'yicha qarzingiz mavjud: ${st.debt} so'm.`,
-          },
-        },
-        { dedupeKey: `remind:manual:${studentId}:${reminder.id}` },
-      );
+    if (guardian?.userId) {
+      await this.notifications.notify({
+        userId: guardian.userId,
+        type: 'billing_reminder',
+        payload: { studentName: st.fullName, amount: formatMoney(st.debt) },
+        dedupeKey: `remind:manual:${studentId}:${reminder.id}`,
+        branchId,
+      });
     }
 
     const map = await this.repo.countRemindersForStudents([studentId]);
@@ -271,20 +269,23 @@ export class DebtorsService {
         guardianId: guardian?.guardianId ?? null,
         invoiceId: inv.invoiceId,
         type,
-        debtAmount: BigInt(inv.total),
+        debtAmount: inv.outstanding,
         overdueDays: Math.max(0, diffInDays(today, inv.dueDate)),
         channel: 'telegram',
       });
 
-      if (this.telegramOutbox && guardian?.userId) {
-        await this.telegramOutbox.enqueue(
-          {
-            method: 'sendMessage',
-            chatId: guardian.userId,
-            payload: { text: `To'lov eslatmasi (${type}): ${inv.total} so'm.` },
+      if (guardian?.userId) {
+        await this.notifications.notify({
+          userId: guardian.userId,
+          type: 'billing_reminder',
+          payload: {
+            studentName: inv.studentName,
+            amount: formatMoney(inv.outstanding),
+            dueDate: formatDateShort(new Date(`${inv.dueDate}T00:00:00+05:00`)),
           },
-          { dedupeKey: `remind:sched:${inv.invoiceId}:${type}` },
-        );
+          dedupeKey: `remind:sched:${inv.invoiceId}:${type}`,
+          branchId: inv.branchId,
+        });
       }
       sentCount++;
     }

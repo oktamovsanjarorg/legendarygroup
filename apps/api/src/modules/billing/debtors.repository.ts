@@ -4,6 +4,7 @@ import {
   enrollments,
   groups,
   guardians,
+  invoiceOutstandingSql,
   invoices,
   ledgerEntries,
   type NewPaymentReminderRow,
@@ -199,18 +200,22 @@ export class DebtorsRepository {
 
   /** BR-21: Barcha ochiq invoicelarni oladi (avtomatik eslatmalar uchun). */
   async findAllOpenInvoicesWithDetails() {
-    return this.db
+    const rows = await this.db
       .select({
         invoiceId: invoices.id,
         studentId: invoices.studentId,
+        studentName: students.fullName,
         branchId: invoices.branchId,
         period: invoices.period,
         dueDate: invoices.dueDate,
-        total: invoices.total,
-        status: invoices.status,
+        outstanding: invoiceOutstandingSql(invoices.id, invoices.total),
       })
       .from(invoices)
-      .where(inArray(invoices.status, ['open', 'partially_paid']))
+      .innerJoin(students, eq(students.id, invoices.studentId))
+      .where(and(inArray(invoices.status, ['open', 'partially_paid']), isNull(students.archivedAt)))
       .orderBy(desc(invoices.dueDate));
+    return rows
+      .map((r) => ({ ...r, outstanding: BigInt(r.outstanding) }))
+      .filter((r) => r.outstanding > 0n);
   }
 }

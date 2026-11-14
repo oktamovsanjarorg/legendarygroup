@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Database, NewInvoiceLineRow, NewLedgerEntryRow } from '@lg/db';
 import { applyDiscounts, calculateMidMonthEnrollmentPrice } from '@lg/domain';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import type { ActiveEnrollmentInfo } from './billing.types.js';
 
@@ -26,6 +27,7 @@ export class BillingGeneratorService {
   constructor(
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(BillingRepository) private readonly repo: BillingRepository,
+    @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
   ) {}
 
   async generateMonthlyInvoices(period: string, customDueDate?: string): Promise<GenerateResult> {
@@ -125,6 +127,7 @@ export class BillingGeneratorService {
 
     await this.db.transaction(async (tx) => {
       for (const [studentId, lines] of studentLinesMap) {
+        await this.balance.lockStudent(tx, studentId);
         const existing = await this.repo.findInvoiceByStudentAndPeriod(tx, studentId, period);
         if (existing) continue;
 
@@ -157,6 +160,9 @@ export class BillingGeneratorService {
         }));
 
         await this.repo.insertLedgerEntries(tx, ledgerToInsert);
+        // BR-12: oldindan to'langan avans yangi invoice'ga darhol qo'llanadi.
+        await this.balance.applyAdvance(tx, studentId);
+        await this.balance.refreshInvoiceStatuses(tx, studentId);
 
         invoicesCreated++;
         linesCreated += inserted.length;

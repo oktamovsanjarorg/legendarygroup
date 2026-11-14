@@ -5,6 +5,7 @@ import {
   enrollments,
   grades,
   guardians,
+  invoiceOutstandingSql,
   invoices,
   lessons,
   studentGuardians,
@@ -113,7 +114,7 @@ export class ParentDigestRepository {
   ): Promise<{ status: 'paid' | 'pending' | 'overdue'; debtAmount: bigint }> {
     const openInvoices = await this.db
       .select({
-        total: invoices.total,
+        total: invoiceOutstandingSql(invoices.id, invoices.total),
         dueDate: invoices.dueDate,
         status: invoices.status,
       })

@@ -1,12 +1,14 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type { SetEnrollmentDiscountInput, WaivePenaltyInput } from '@lg/contracts';
-import { type Database, type EnrollmentRow, type Transaction } from '@lg/db';
+import { type Database, type EnrollmentRow, lineAllocatedSql, type Transaction } from '@lg/db';
+import { sql } from 'drizzle-orm';
 import { computeInvoiceTotal } from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { SettingsService } from '../settings/index.js';
+import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { DiscountsRepository } from './discounts.repository.js';
 
 export interface WaivePenaltyParams {
@@ -23,6 +25,7 @@ export class DiscountsService {
     @Inject(DiscountsRepository) private readonly repo: DiscountsRepository,
     @Inject(SettingsService) private readonly settings: SettingsService,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
   ) {}
 
   async setEnrollmentDiscount(
@@ -94,6 +97,13 @@ export class DiscountsService {
     ctx: AuditContext,
   ): Promise<{ invoiceId: string; newTotal: string }> {
     return this.db.transaction(async (tx: Transaction) => {
+      await this.balance.lockStudent(tx, invoice.studentId);
+      const [paid] = await tx
+        .select({ allocated: lineAllocatedSql(sql`${line.id}::uuid`) })
+        .from(sql`(SELECT 1) AS one`);
+      if (BigInt(paid?.allocated ?? '0') > 0n) {
+        throw new AppException(HttpStatus.CONFLICT, 'PENALTY_ALREADY_PAID');
+      }
       await this.repo.deleteInvoiceLine(line.id, tx);
       const remaining = await this.repo.findInvoiceLines(invoice.id, tx);
       const newTotal = computeInvoiceTotal(remaining);
@@ -124,6 +134,7 @@ export class DiscountsService {
         tx,
       );
 
+      await this.balance.refreshInvoiceStatuses(tx, invoice.studentId);
       return { invoiceId: invoice.id, newTotal: newTotal.toString() };
     });
   }

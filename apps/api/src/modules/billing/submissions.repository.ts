@@ -14,6 +14,7 @@ import {
 import { allocateFifo, type Clock } from '@lg/domain';
 import { and, desc, eq, gte, inArray, isNull } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { receiptYear } from './receipt-year.js';
@@ -31,6 +32,7 @@ export class SubmissionsRepository {
   constructor(
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(BillingRepository) private readonly billingRepo: BillingRepository,
+    @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
@@ -232,8 +234,10 @@ export class SubmissionsRepository {
             eq(paymentSubmissions.id, p.submissionId),
             eq(paymentSubmissions.status, 'pending_review'),
           ),
-        );
+        )
+        .for('update');
       if (!sub) throw new Error('ALREADY_REVIEWED');
+      await this.balance.lockStudent(tx, sub.studentId);
 
       const { paymentId, receiptNumber } = await this.recordPaymentAndReceipt(tx, {
         studentId: sub.studentId,
@@ -271,7 +275,7 @@ export class SubmissionsRepository {
     },
   ): Promise<{ paymentId: string; receiptNumber: string }> {
     const now = this.clock.now();
-    const openLines = await this.billingRepo.findOpenInvoiceLinesForStudent(tx, p.studentId);
+    const openLines = await this.balance.openLines(tx, p.studentId);
     const allocation = allocateFifo(
       p.amount,
       openLines.map((l) => ({ id: l.id, dueDate: l.dueDate, outstanding: l.outstanding })),
@@ -299,6 +303,7 @@ export class SubmissionsRepository {
       amount: part.amount,
     }));
     await this.billingRepo.insertPaymentAllocations(tx, allocs);
+    await this.balance.refreshInvoiceStatuses(tx, p.studentId);
 
     await this.billingRepo.insertLedgerEntries(tx, [
       {

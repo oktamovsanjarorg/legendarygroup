@@ -6,10 +6,12 @@ import { SchedulerModule } from '../../common/scheduler/scheduler.module.js';
 import { FilesModule } from '../files/index.js';
 import { SettingsModule } from '../settings/index.js';
 import { StudentsModule } from '../students/index.js';
+import { NotificationsModule } from '../notifications/index.js';
 import { TelegramModule } from '../telegram/index.js';
 import { BillingGeneratorService } from './billing-generator.service.js';
 import { BillingController } from './billing.controller.js';
 import { BillingCron } from './billing.cron.js';
+import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import { BillingService } from './billing.service.js';
 import { DebtorsController } from './debtors.controller.js';
@@ -34,11 +36,13 @@ import { SubmissionsService } from './submissions.service.js';
     StudentsModule,
     SettingsModule,
     TelegramModule,
+    NotificationsModule,
     FilesModule,
   ],
   controllers: [BillingController, DebtorsController, SubmissionsController],
   providers: [
     BillingRepository,
+    BillingBalanceRepository,
     BillingGeneratorService,
     BillingService,
     BillingCron,
@@ -56,6 +60,7 @@ import { SubmissionsService } from './submissions.service.js';
   exports: [
     BillingService,
     BillingRepository,
+    BillingBalanceRepository,
     BillingGeneratorService,
     PaymentsService,
     DiscountsService,

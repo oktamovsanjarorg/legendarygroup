@@ -71,6 +71,11 @@ export class StornoCashRepository {
     return row;
   }
 
+  async findReversalOf(paymentId: string, tx: Transaction): Promise<PaymentRow | undefined> {
+    const [row] = await tx.select().from(payments).where(eq(payments.reversalOf, paymentId));
+    return row;
+  }
+
   async insertLedgerEntry(entry: NewLedgerEntryRow, tx?: Transaction): Promise<void> {
     const client = tx ?? this.db;
     await client.insert(ledgerEntries).values(entry);

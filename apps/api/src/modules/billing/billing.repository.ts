@@ -30,7 +30,7 @@ import {
 } from '@lg/db';
 import { and, desc, eq, gte, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
-import type { ActiveEnrollmentInfo, OpenLineInfo } from './billing.types.js';
+import type { ActiveEnrollmentInfo } from './billing.types.js';
 
 @Injectable()
 export class BillingRepository {
@@ -156,41 +156,6 @@ export class BillingRepository {
   async insertLedgerEntries(tx: Transaction, entries: NewLedgerEntryRow[]): Promise<void> {
     if (entries.length === 0) return;
     await tx.insert(ledgerEntries).values(entries);
-  }
-
-  async findOpenInvoiceLinesForStudent(
-    tx: Transaction,
-    studentId: string,
-  ): Promise<OpenLineInfo[]> {
-    const rows = await tx
-      .select({
-        id: invoiceLines.id,
-        invoiceId: invoiceLines.invoiceId,
-        dueDate: invoices.dueDate,
-        amount: invoiceLines.amount,
-        allocated: sql<string>`coalesce(sum(${paymentAllocations.amount}), 0)`,
-      })
-      .from(invoiceLines)
-      .innerJoin(invoices, eq(invoices.id, invoiceLines.invoiceId))
-      .leftJoin(paymentAllocations, eq(paymentAllocations.invoiceLineId, invoiceLines.id))
-      .where(and(eq(invoices.studentId, studentId), ne(invoices.status, 'void')))
-      .groupBy(invoiceLines.id, invoiceLines.invoiceId, invoices.dueDate, invoiceLines.amount)
-      .orderBy(invoices.dueDate, invoiceLines.id);
-
-    return rows
-      .map((r) => {
-        const allocated = BigInt(r.allocated);
-        const outstanding = r.amount > allocated ? r.amount - allocated : 0n;
-        return {
-          id: r.id,
-          invoiceId: r.invoiceId,
-          dueDate: r.dueDate,
-          amount: r.amount,
-          allocated,
-          outstanding,
-        };
-      })
-      .filter((l) => l.outstanding > 0n);
   }
 
   async insertPayment(tx: Transaction, row: NewPaymentRow): Promise<PaymentRow> {

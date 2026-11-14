@@ -14,6 +14,7 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { StudentScopeService } from '../students/index.js';
+import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import { receiptYear } from './receipt-year.js';
 
@@ -36,6 +37,7 @@ export class PaymentsService {
   constructor(
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(BillingRepository) private readonly repo: BillingRepository,
+    @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
@@ -85,7 +87,8 @@ export class PaymentsService {
   }
 
   private async executePaymentTx(tx: Transaction, p: PaymentTxParams): Promise<PaymentTxResult> {
-    const openLines = await this.repo.findOpenInvoiceLinesForStudent(tx, p.input.studentId);
+    await this.balance.lockStudent(tx, p.input.studentId);
+    const openLines = await this.balance.openLines(tx, p.input.studentId);
     const allocation = allocateFifo(
       p.amount,
       openLines.map((l) => ({ id: l.id, dueDate: l.dueDate, outstanding: l.outstanding })),
@@ -106,6 +109,7 @@ export class PaymentsService {
       amount: part.amount,
     }));
     await this.repo.insertPaymentAllocations(tx, allocs);
+    await this.balance.refreshInvoiceStatuses(tx, p.input.studentId);
 
     await this.repo.insertLedgerEntries(tx, [
       {
