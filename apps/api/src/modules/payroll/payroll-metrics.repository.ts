@@ -104,4 +104,30 @@ export class PayrollMetricsRepository {
     `);
     return BigInt(rows[0]?.total ?? '0');
   }
+
+  /**
+   * BR-24: hisoblangan summa (accrued base) — shu davr uchun ustoz guruhlari bo'yicha chiqarilgan
+   * invoice qatorlari jami (void bo'lmagan).
+   */
+  async accruedBase(teacherId: string, period: string, scope: GroupScope): Promise<bigint> {
+    const { first, next } = periodDays(period);
+    const teacherOwns = sql`EXISTS (
+      SELECT 1 FROM group_teachers gt
+      WHERE gt.group_id = e.group_id AND gt.teacher_id = ${teacherId} AND gt.role = 'main'
+        AND gt.from_date < ${next}::date
+        AND (gt.to_date IS NULL OR gt.to_date >= ${first}::date)
+    ) ${scopeSql(sql`e.group_id`, scope)}`;
+
+    const rows = await this.db.execute<{ total: string }>(sql`
+      SELECT COALESCE(sum(il.amount), 0)::text AS total
+      FROM invoice_lines il
+      JOIN invoices inv ON inv.id = il.invoice_id
+      JOIN enrollments e ON e.id = il.enrollment_id
+      WHERE inv.period = ${period}
+        AND inv.status <> 'void'
+        AND ${teacherOwns}
+    `);
+    const total = BigInt(rows[0]?.total ?? '0');
+    return total > 0n ? total : 0n;
+  }
 }

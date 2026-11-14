@@ -3,12 +3,15 @@ import {
   closeDb,
   createDb,
   type Database,
+  enrollments,
+  groupTeachers,
   invoiceLines,
   invoices,
   lessons,
   paymentAllocations,
   payments,
   seed,
+  students,
 } from '@lg/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
@@ -332,5 +335,89 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
     for (const role of ['admin', 'guardian'] as const) {
       expect((await call('GET', 'payroll/my', tokens.get(role)!)).statusCode).toBe(403);
     }
+  });
+
+  it('BR-24: shartnomada base = "accrued" boʻlsa, foiz hisoblangan invoice summasidan olinadi', async () => {
+    // Teacher 3 yaratamiz
+    const t3UserId = await createUserWithRole(db, 'teacher');
+
+    // Teacher 3 uchun guruh va guruh ustozi
+    const courseRes = await call('POST', 'courses', tokens.get('director')!, {
+      name: 'Fizika',
+      defaultMonthlyPrice: '500000',
+      lessonDurationMin: 90,
+    });
+    const cId = courseRes.json<{ id: string }>().id;
+
+    const groupRes = await call('POST', 'groups', tokens.get('director')!, {
+      courseId: cId,
+      name: 'PHYS-2026',
+      maxStudents: 10,
+      startDate: '2026-12-01',
+      monthlyPrice: '500000',
+    });
+    const gId = groupRes.json<{ id: string }>().id;
+
+    await db.insert(groupTeachers).values({
+      groupId: gId,
+      teacherId: t3UserId,
+      role: 'main',
+      fromDate: '2026-12-01',
+    });
+
+    // O'quvchi qo'shamiz va invoice yaratamiz (to'lov qilinmaydi!)
+    const [stu] = await db
+      .insert(students)
+      .values({ fullName: 'Akmal Saidov', searchName: 'akmal saidov' })
+      .returning();
+
+    const [enr] = await db
+      .insert(enrollments)
+      .values({ studentId: stu!.id, groupId: gId, startDate: '2026-12-01' })
+      .returning();
+
+    const [inv] = await db
+      .insert(invoices)
+      .values({
+        studentId: stu!.id,
+        period: '2026-12',
+        dueDate: '2026-12-10',
+        total: 50000000n,
+        status: 'open',
+      })
+      .returning();
+
+    await db.insert(invoiceLines).values({
+      invoiceId: inv!.id,
+      enrollmentId: enr!.id,
+      kind: 'tuition',
+      amount: 50000000n,
+      description: 'Fizika kursi',
+    });
+
+    // Shartnoma: type = percent, 20% (2000 bp), base = 'accrued'
+    await call('POST', 'payroll/contracts', tokens.get('director')!, {
+      teacherId: t3UserId,
+      type: 'percent',
+      fixedAmount: '0',
+      percentBp: 2000,
+      perLessonRate: '0',
+      base: 'accrued',
+      validFrom: '2026-12-01',
+    });
+
+    // Payroll generatsiya qilamiz davr = '2026-12'
+    const genRes = await call('POST', 'payroll/runs/generate', tokens.get('director')!, {
+      period: '2026-12',
+    });
+    expect(genRes.statusCode).toBe(201);
+    const detail = genRes.json<PayrollRunDetail>();
+    const t3Item = detail.teachers.find((t) => t.teacherId === t3UserId);
+    expect(t3Item).toBeDefined();
+
+    const percentRow = t3Item?.items.find((i) => i.kind === 'percent');
+    expect(percentRow).toBeDefined();
+    // 500_000 so'm (50_000_000 tiyin) ning 20% = 100_000 so'm (10_000_000 tiyin)
+    expect(percentRow?.amount).toBe('10000000');
   });
 });
