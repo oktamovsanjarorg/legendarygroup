@@ -195,7 +195,7 @@ describe('Discounts & Penalties API (T-203, BR-8, BR-18)', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('Admin jarima qatorini bekor qiladi: invoice kamayadi va ledger yoziladi (201/200)', async () => {
+    it('BR-8: Admin jarima qatorini bekor qiladi: qator oʻchirilmaydi, teskari qator va ledger yoziladi (201)', async () => {
       const res = await call(
         'POST',
         `billing/invoices/${testInvoiceId}/lines/${testPenaltyLineId}/waive`,
@@ -208,6 +208,23 @@ describe('Discounts & Penalties API (T-203, BR-8, BR-18)', () => {
       // Bazada invoice total tekshiriladi
       const [inv] = await db.select().from(invoices).where(eq(invoices.id, testInvoiceId));
       expect(inv!.total).toBe(50000000n);
+
+      // BR-8: Asl jarima qatori invoice_lines dan oʻchirilmasligi tekshiriladi
+      const [originalLine] = await db
+        .select()
+        .from(invoiceLines)
+        .where(eq(invoiceLines.id, testPenaltyLineId));
+      expect(originalLine).toBeDefined();
+      expect(originalLine?.amount).toBe(10000000n);
+
+      // BR-8: Teskari (manfiy) qator invoice_lines ga qoʻshilganligi tekshiriladi
+      const allLines = await db
+        .select()
+        .from(invoiceLines)
+        .where(eq(invoiceLines.invoiceId, testInvoiceId));
+      const reverseLine = allLines.find((l) => l.amount === -10000000n);
+      expect(reverseLine).toBeDefined();
+      expect(reverseLine?.kind).toBe('penalty');
 
       // Ledgerga kamayish tushganligi tekshiriladi
       const entries = await db

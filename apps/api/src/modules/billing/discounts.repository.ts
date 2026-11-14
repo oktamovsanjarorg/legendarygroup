@@ -52,6 +52,14 @@ export class DiscountsRepository {
     return client.select().from(invoiceLines).where(eq(invoiceLines.invoiceId, invoiceId));
   }
 
+  async insertInvoiceLine(
+    line: typeof invoiceLines.$inferInsert,
+    tx?: Transaction,
+  ): Promise<InvoiceLineRow[]> {
+    const client = tx ?? this.db;
+    return client.insert(invoiceLines).values(line).returning();
+  }
+
   async deleteInvoiceLine(id: string, tx?: Transaction): Promise<boolean> {
     const client = tx ?? this.db;
     const res = await client.delete(invoiceLines).where(eq(invoiceLines.id, id)).returning();

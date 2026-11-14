@@ -92,7 +92,7 @@ export class DiscountsService {
 
   private async executeWaiveTx(
     invoice: { id: string; branchId: string; studentId: string },
-    line: { id: string; amount: bigint },
+    line: { id: string; enrollmentId: string | null; amount: bigint; description: string },
     input: WaivePenaltyInput,
     ctx: AuditContext,
   ): Promise<{ invoiceId: string; newTotal: string }> {
@@ -104,9 +104,21 @@ export class DiscountsService {
       if (BigInt(paid?.allocated ?? '0') > 0n) {
         throw new AppException(HttpStatus.CONFLICT, 'PENALTY_ALREADY_PAID');
       }
-      await this.repo.deleteInvoiceLine(line.id, tx);
-      const remaining = await this.repo.findInvoiceLines(invoice.id, tx);
-      const newTotal = computeInvoiceTotal(remaining);
+
+      // BR-8: invoice_lines dan qator o'chirilmaydi — teskari (manfiy) qator qo'shiladi
+      const [reverseLine] = await this.repo.insertInvoiceLine(
+        {
+          invoiceId: invoice.id,
+          enrollmentId: line.enrollmentId,
+          kind: 'penalty',
+          amount: -line.amount,
+          description: `Bekor qilingan jarima: ${line.description}`,
+        },
+        tx,
+      );
+
+      const allLines = await this.repo.findInvoiceLines(invoice.id, tx);
+      const newTotal = computeInvoiceTotal(allLines);
       await this.repo.updateInvoiceTotal(invoice.id, newTotal, tx);
 
       // Jarima bekor qilingani uchun qarz kamayadi (manfiy ledger yozuvi)
@@ -117,7 +129,7 @@ export class DiscountsService {
           entryType: 'discount',
           amount: -line.amount,
           refTable: 'invoice_lines',
-          refId: line.id,
+          refId: reverseLine?.id ?? line.id,
         },
         tx,
       );
@@ -129,7 +141,7 @@ export class DiscountsService {
           entity: 'invoice_line',
           entityId: line.id,
           before: { amount: line.amount.toString() },
-          after: { reason: input.reason },
+          after: { reason: input.reason, reverseLineId: reverseLine?.id },
         },
         tx,
       );
