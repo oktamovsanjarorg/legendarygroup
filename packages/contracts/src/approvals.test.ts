@@ -6,7 +6,7 @@ describe('Approval Contracts', () => {
     const parsed = CreateApprovalRequest.safeParse({
       type: 'discount',
       payload: {
-        studentId: '11111111-1111-4111-8111-111111111111',
+        enrollmentId: '11111111-1111-4111-8111-111111111111',
         percent: 25,
         reason: 'Olimpiada sovrindori',
       },
@@ -19,7 +19,7 @@ describe('Approval Contracts', () => {
     const parsed = CreateApprovalRequest.safeParse({
       type: 'discount',
       payload: {
-        studentId: '11111111-1111-4111-8111-111111111111',
+        enrollmentId: '11111111-1111-4111-8111-111111111111',
         percent: 150,
         reason: 'ok',
       },
@@ -38,6 +38,25 @@ describe('Approval Contracts', () => {
       reason: 'Kecha kiritilgan toʻlovni storno qilish',
     });
     expect(parsed.success).toBe(true);
+  });
+
+  it('davomat tuzatish: holatlar davomat moduli bilan bir xil; kech — daqiqa majburiy', () => {
+    const base = {
+      type: 'attendance_edit',
+      reason: 'Jurnaldagi xato',
+      payload: {
+        lessonId: '11111111-1111-4111-8111-111111111111',
+        studentId: '22222222-2222-4222-8222-222222222222',
+        reason: 'Jurnaldagi xato',
+      },
+    };
+    const ok = (payload: object) =>
+      CreateApprovalRequest.safeParse({ ...base, payload: { ...base.payload, ...payload } })
+        .success;
+    expect(ok({ status: 'absent' })).toBe(true);
+    expect(ok({ status: 'late', lateMinutes: 10 })).toBe(true);
+    expect(ok({ status: 'late' })).toBe(false);
+    expect(ok({ status: 'unexcused' })).toBe(false);
   });
 
   it('validates decision input', () => {

@@ -55,10 +55,10 @@ export const staffMessages = {
     empty: 'Kutilayotgan soʻrov yoʻq',
     fields: { percent: 'Chegirma', amount: 'Summa', status: 'Yangi holat' },
     attendance: {
-      attended: 'Keldi',
+      present: 'Keldi',
       late: 'Kech qoldi',
       excused: 'Sababli',
-      unexcused: 'Kelmadi',
+      absent: 'Kelmadi',
     },
   },
   search: {

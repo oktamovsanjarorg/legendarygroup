@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { ATTENDANCE_STATUSES } from './attendance.js';
+import { PAYMENT_METHODS } from './billing.js';
 
 export const APPROVAL_REQUEST_TYPES = [
   'discount',
@@ -11,33 +13,48 @@ export type ApprovalRequestType = (typeof APPROVAL_REQUEST_TYPES)[number];
 export const APPROVAL_REQUEST_STATUSES = ['pending', 'approved', 'rejected', 'expired'] as const;
 export type ApprovalRequestStatus = (typeof APPROVAL_REQUEST_STATUSES)[number];
 
+/*
+ * Payload'lar — tasdiqlangach bajariladigan amalning kirishi bilan bir xil (02 §5:
+ * "qaror → amal bajariladi"). Amal Director nomidan, o'sha servis orqali (limitlar, ledger,
+ * audit — bir joyda).
+ */
+/** BR-18: Admin limitidan yuqori doimiy chegirma — `PATCH /billing/enrollments/:id/discount`. */
 export const DiscountPayloadSchema = z.object({
-  studentId: z.string().uuid(),
-  courseId: z.string().uuid().optional(),
-  percent: z.number().int().min(1).max(100),
+  enrollmentId: z.string().uuid(),
+  percent: z.number().int().min(0).max(100),
   reason: z.string().trim().min(3).max(500),
 });
 export type DiscountPayload = z.infer<typeof DiscountPayloadSchema>;
 
+/** BR-16: kiritilgan kundan keyingi storno. */
 export const ReversalPayloadSchema = z.object({
   paymentId: z.string().uuid(),
   reason: z.string().trim().min(3).max(500),
 });
 export type ReversalPayload = z.infer<typeof ReversalPayloadSchema>;
 
+/** BR-17: avansdan pulni qaytarish (`POST /billing/payments/refund`). */
 export const RefundPayloadSchema = z.object({
-  paymentId: z.string().uuid(),
-  amount: z.string().regex(/^\d+$/, 'AMOUNT_MUST_BE_DIGITS'),
+  studentId: z.string().uuid(),
+  amount: z.string().regex(/^[1-9]\d*$/, 'AMOUNT_MUST_BE_DIGITS'),
+  method: z.enum(PAYMENT_METHODS),
   reason: z.string().trim().min(3).max(500),
 });
 export type RefundPayload = z.infer<typeof RefundPayloadSchema>;
 
-export const AttendanceEditPayloadSchema = z.object({
-  lessonId: z.string().uuid(),
-  studentId: z.string().uuid(),
-  status: z.enum(['attended', 'late', 'excused', 'unexcused']),
-  reason: z.string().trim().min(3).max(500),
-});
+/** BR-30: yopilgan oy davomatini o'zgartirish — bitta o'quvchi, bitta dars. */
+export const AttendanceEditPayloadSchema = z
+  .object({
+    lessonId: z.string().uuid(),
+    studentId: z.string().uuid(),
+    status: z.enum(ATTENDANCE_STATUSES),
+    lateMinutes: z.number().int().min(1).max(300).optional(),
+    reason: z.string().trim().min(3).max(500),
+  })
+  .refine((p) => p.status !== 'late' || p.lateMinutes !== undefined, {
+    message: 'LATE_MINUTES_REQUIRED',
+    path: ['lateMinutes'],
+  });
 export type AttendanceEditPayload = z.infer<typeof AttendanceEditPayloadSchema>;
 
 export const CreateApprovalRequest = z.discriminatedUnion('type', [

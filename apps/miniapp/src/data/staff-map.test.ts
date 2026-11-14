@@ -56,7 +56,7 @@ describe('xodim Mini App (T-120, BR-14/15)', () => {
     const r = approvalRequest({
       id: 'r',
       type: 'refund',
-      payload: { amount: '150000', status: 'unexcused' },
+      payload: { amount: '150000', status: 'absent' },
       reason: 'X',
       requestedByName: 'Admin',
       expiresAt: '2026-11-14T10:00:00Z',
