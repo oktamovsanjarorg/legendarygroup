@@ -30,9 +30,8 @@ export class BillingService {
   ) {}
 
   async getInvoices(user: RequestUser, query: InvoiceListQueryInput): Promise<Invoice[]> {
-    if (query.studentId) {
-      await this.studentScope.assertVisible(user, query.studentId);
-    }
+    if (query.studentId) await this.studentScope.assertVisible(user, query.studentId);
+    else this.studentScope.assertUnrestricted(user);
 
     const rows = await this.repo.findInvoices(query);
     return rows.map((r) => serializeInvoice(r) as Invoice);

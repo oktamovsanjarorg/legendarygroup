@@ -83,6 +83,11 @@ describe('Billing API (T-202, FR-BIL-1, 2, BR-1, 2, 6, 20)', () => {
       expect(res.statusCode).toBe(401);
     });
 
+    it('IDOR: ota-ona studentId’siz barcha invoice/toʻlovlarni ololmaydi (403)', async () => {
+      expect((await call('GET', 'billing/invoices', 'guardian')).statusCode).toBe(403);
+      expect((await call('GET', 'billing/payments', 'guardian')).statusCode).toBe(403);
+    });
+
     it('teacher billing.view ruxsatiga ega emas (403 FORBIDDEN)', async () => {
       const res = await call('GET', 'billing/invoices', 'teacher');
       expect(res.statusCode).toBe(403);

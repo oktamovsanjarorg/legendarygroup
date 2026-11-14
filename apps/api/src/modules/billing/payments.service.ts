@@ -131,9 +131,8 @@ export class PaymentsService {
   }
 
   async getPayments(user: RequestUser, query: PaymentListQueryInput): Promise<PaymentDetail[]> {
-    if (query.studentId) {
-      await this.studentScope.assertVisible(user, query.studentId);
-    }
+    if (query.studentId) await this.studentScope.assertVisible(user, query.studentId);
+    else this.studentScope.assertUnrestricted(user);
 
     const rows = await this.repo.findPayments(query);
     const result: PaymentDetail[] = [];

@@ -150,6 +150,14 @@ describe('Qarzdorlik va Eslatmalar (T-208, FR-PAY-7, BR-20, 21, 22)', () => {
     expect(teacher.statusCode).toBe(403);
   });
 
+  it('IDOR: ota-ona (billing.view — faqat oʻz farzandi) markaz qarzdorlarini koʻra olmaydi', async () => {
+    expect((await call('GET', 'billing/debtors', 'guardian')).statusCode).toBe(403);
+    expect((await call('GET', 'billing/debtors/export', 'guardian')).statusCode).toBe(403);
+    expect(
+      (await call('POST', `billing/debtors/${student1Id}/remind`, 'guardian')).statusCode,
+    ).toBe(403);
+  });
+
   it('admin va direktor qarzdorlar roʻyxatini koʻradi', async () => {
     const res = await call('GET', 'billing/debtors', 'admin');
     expect(res.statusCode).toBe(200);

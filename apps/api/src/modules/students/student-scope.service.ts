@@ -62,6 +62,16 @@ export class StudentScopeService {
       );
   }
 
+  /**
+   * Ko'p o'quvchini qamraydigan ro'yxat/amal (barcha invoice, qarzdorlar, eslatma) — faqat
+   * cheklovsiz scope (Director/Admin). Ota-ona `billing.view`ga ega, lekin faqat o'z farzandi
+   * uchun — umumiy ro'yxat 403 (T-505 IDOR).
+   */
+  assertUnrestricted(user: RequestUser): void {
+    if (this.scopeFor(user).kind !== 'all')
+      throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+  }
+
   /** Scope'dan tashqari — 404 (mavjudligi oshkor qilinmaydi). */
   async assertVisible(user: RequestUser, studentId: string): Promise<void> {
     const scope = this.scopeFor(user);
