@@ -170,6 +170,32 @@ describe('T-501: Hisobotlar toʻplami va eksport (FR-DASH-2, 4)', () => {
     expect(allowedRes.statusCode).toBe(200);
   });
 
+  it.each(['guardian', 'teacher'] as const)(
+    'IDOR: %s markaz hisobotlari va eksportini koʻrolmaydi (403)',
+    async (role) => {
+      const urls = [
+        'reports/attendance',
+        'reports/cohort',
+        'reports/leads',
+        'reports/teacher-performance',
+        'reports/attendance/export/excel',
+        'reports/attendance/export/pdf',
+      ];
+      for (const url of urls)
+        expect((await call('GET', url, tokens.get(role)!)).statusCode).toBe(403);
+    },
+  );
+
+  it('IDOR: begona oʻquvchining ota-ona hisoboti — 404 (scope)', async () => {
+    const preview = `reports/parent-digest/preview?studentId=${studentId}`;
+    for (const role of ['guardian', 'teacher'] as const) {
+      expect((await call('GET', preview, tokens.get(role)!)).statusCode).toBe(404);
+      const pdf = `reports/parent-digest/${studentId}/pdf`;
+      expect((await call('GET', pdf, tokens.get(role)!)).statusCode).toBe(404);
+    }
+    expect((await call('GET', preview, directorToken)).statusCode).toBe(200);
+  });
+
   it('FR-DASH-2: Daromad hisoboti (oylik guruhlash) toʻgʻri hisoblanadi', async () => {
     const res = await call('GET', 'reports/revenue?groupBy=month', directorToken);
     expect(res.statusCode).toBe(200);

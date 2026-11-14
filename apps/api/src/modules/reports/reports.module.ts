@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ClockModule } from '../../common/clock/clock.module.js';
 import { GradesModule } from '../grades/index.js';
 import { NotificationsModule } from '../notifications/index.js';
+import { StudentsModule } from '../students/index.js';
 import { ParentDigestRepository } from './parent-digest.repository.js';
 import { ParentDigestService } from './parent-digest.service.js';
 import { ReportsController } from './reports.controller.js';
@@ -12,7 +13,7 @@ import { ReportsRepository } from './reports.repository.js';
 import { ReportsService } from './reports.service.js';
 
 @Module({
-  imports: [ClockModule, GradesModule, NotificationsModule],
+  imports: [ClockModule, GradesModule, NotificationsModule, StudentsModule],
   controllers: [ReportsController],
   providers: [
     ReportsPerformanceRepository,

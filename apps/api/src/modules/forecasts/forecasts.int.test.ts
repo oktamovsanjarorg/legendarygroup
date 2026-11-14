@@ -125,6 +125,14 @@ describe('T-502: Prognozlar va churn risk (FR-DASH-3, BR-36)', () => {
     expect(revAllowed.statusCode).toBe(200);
   });
 
+  it.each(['guardian', 'teacher'] as const)(
+    'IDOR: %s (stats.operational — scope bilan) markaz churn/toʻlish prognozini koʻrolmaydi',
+    async (role) => {
+      for (const url of ['forecasts/churn', 'forecasts/occupancy'])
+        expect((await call('GET', url, tokens.get(role)!)).statusCode).toBe(403);
+    },
+  );
+
   it('FR-DASH-3: 1–3 oylik tushum prognozi va ishonch oraliqlari qaytadi', async () => {
     const res = await call('GET', 'forecasts/revenue', directorToken);
     expect(res.statusCode).toBe(200);

@@ -9,7 +9,11 @@ import {
 import { Reflector } from '@nestjs/core';
 import type { Permission } from '@lg/contracts';
 import type { FastifyRequest } from 'fastify';
-import { AUTHENTICATED_KEY, PERMISSIONS_KEY } from '../../common/decorators/access.decorators.js';
+import {
+  AUTHENTICATED_KEY,
+  CENTER_WIDE_KEY,
+  PERMISSIONS_KEY,
+} from '../../common/decorators/access.decorators.js';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
@@ -49,6 +53,9 @@ export class PermissionsGuard implements CanActivate {
     }
     const granted = await this.permissions.forUser(user.id, user.role, user.pv);
     if (!required.every((p) => granted.has(p)))
+      throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+    const centerWide = this.reflector.getAllAndOverride<boolean>(CENTER_WIDE_KEY, targets);
+    if (centerWide && user.role !== 'director' && user.role !== 'admin')
       throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
     return true;
   }
