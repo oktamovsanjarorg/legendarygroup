@@ -13,6 +13,36 @@ Ushbu runbook Legendary Group tizimining **Staging** va **Production** muhitlari
 
 ---
 
+## 1a. Production oqimi (GitHub Actions → SSM, 2026-11-14)
+
+```
+reliz (release-please, `v*`) yoki Actions → "CD — Production Deploy" → Run (faqat `main`/`v*`)
+  → production environment: egasi tasdiqlaydi
+  → OIDC rol `lg-prod-deploy` → arm64 image'lar (native runner) → ECR (teg bor bo'lsa — o'tkaziladi)
+  → RDS snapshot `lg-prod-predeploy-<teg>-<vaqt>` (tayyor bo'lguncha kutiladi)
+  → infra/scripts/ssm-deploy.sh: compose.prod.yml + infra/scripts → SSM Run Command
+      serverda /opt/lg/releases/<teg>/infra/scripts/remote-deploy.sh:
+        render-env.sh (SSM /lg/prod/* + RDS egasi secret → /etc/lg/production.env, 0600)
+        → ECR login → 80/443 dagi begona konteyner to'xtatiladi → deploy.sh (migrate, up, healthy)
+        → /opt/lg/current symlink, oxirgi 5 reliz qoladi
+  → HTTPS smoke: /api/health/ready, /, /app/
+```
+
+**Sirlar** — faqat SSM `/lg/prod/*` (SecureString, `alias/lg-prod`), git va GitHub'da yo'q.
+Birinchi marta yoki bot almashtirilsa: `AWS_PROFILE=root ./infra/scripts/bootstrap-prod-secrets.sh`
+(mavjud sirlar almashtirilmaydi; bot — `TELEGRAM_ROTATE=1`). Oddiy sozlamalar (domen, bucket,
+DB host) — `String` parametrlar. DB egasi paroli — RDS o'zi boshqaradi (Secrets Manager).
+`lg_api` login'i va paroli har deploy'da `db:migrate` tomonidan SSM qiymatiga keltiriladi.
+
+**GitHub** — `production` environment o'zgaruvchilari: `AWS_REGION`, `AWS_DEPLOY_ROLE_ARN`,
+`LG_REGISTRY`, `LG_INSTANCE_ID`, `LG_RDS_ID`, `LG_DB_OWNER_SECRET_ARN`, `APP_DOMAIN`
+(`tofu output` dan). Tasdiqlovchi — egasi.
+
+**Rollback (prod):** Actions → "CD — Production Deploy" → `ref` = oldingi teg — image ECR'da bor,
+qayta yig'ilmaydi, faqat deploy. Server ichida: `rollback.sh production <teg>` (SSM session).
+
+**Bot webhook** — bot har ishga tushishda `setWebhook` (secret_token) qiladi, qo'lda sozlash yo'q.
+
 ## 2. Deploy oqimi (`deploy.sh`)
 
 Deploy skripti quyidagi qat'iy ketma-ketlikda ishlaydi:
