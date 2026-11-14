@@ -1,5 +1,11 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { EnrollmentDto, GroupStudentCounts, RosterResult } from '@lg/contracts';
+import type {
+  EnrollmentDto,
+  GroupStudentCounts,
+  LessonDto,
+  RosterResult,
+  StudentLessonsQuery,
+} from '@lg/contracts';
 import { type Database, enrollmentFreezes, enrollments, students } from '@lg/db';
 import { type Clock, enrollmentState } from '@lg/domain';
 import { and, asc, count, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
@@ -41,6 +47,40 @@ export class EnrollmentsQueryService {
         freezes.filter((f) => f.enrollmentId === r.id),
         today,
       ),
+    );
+  }
+
+  /**
+   * O'quvchi darslari (T-116, ota-ona jadvali): faqat yozilgan kunlaridagi darslar — guruhga
+   * kelguncha va chiqqandan keyingilari ko'rinmaydi. Scope — o'quvchi bo'yicha (404).
+   */
+  async lessonsOf(
+    user: RequestUser,
+    studentId: string,
+    q: StudentLessonsQuery,
+  ): Promise<LessonDto[]> {
+    await this.studentScope.assertVisible(user, studentId);
+    const rows = await this.db
+      .select({
+        groupId: enrollments.groupId,
+        from: enrollments.startDate,
+        to: enrollments.endDate,
+      })
+      .from(enrollments)
+      .where(
+        and(
+          eq(enrollments.studentId, studentId),
+          lte(enrollments.startDate, q.to),
+          or(isNull(enrollments.endDate), gte(enrollments.endDate, q.from)),
+        ),
+      );
+    const list = await this.lessons.byGroups(
+      [...new Set(rows.map((r) => r.groupId))],
+      q.from,
+      q.to,
+    );
+    return list.filter((l) =>
+      rows.some((r) => r.groupId === l.group.id && r.from <= l.date && (!r.to || l.date <= r.to)),
     );
   }
 
