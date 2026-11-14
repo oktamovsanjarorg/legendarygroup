@@ -1,9 +1,11 @@
 import type { RoleCode } from '@lg/contracts';
+import { type Clock, systemClock } from './data/clock.js';
 import { TelegramProvider, type WebApp } from '@lg/ui-tg';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { createApi } from './api.js';
+import { DepsProvider } from './data/deps.js';
 import { type DeepLink, deepLinkPath, parseStartParam, roleForLink } from './deep-link.js';
 import { SessionGate } from './pages/gate.js';
 import { createAppRouter } from './router.js';
@@ -28,11 +30,13 @@ function Routes() {
   return <RouterProvider router={router} />;
 }
 
-export function App({ webApp }: { webApp: WebApp }) {
+/** `clock` — testda muzlatiladi (CLAUDE.md: biznes mantiqda `new Date()` yo'q). */
+export function App({ webApp, clock }: { webApp: WebApp; clock?: Clock }) {
   const deps = useMemo(() => {
     const roleRef: { current: RoleCode | undefined } = { current: undefined };
     return {
       roleRef,
+      clock: clock ?? systemClock,
       api: createApi(webApp.initData, () => roleRef.current),
       store: cloudRoleStore(webApp),
       link: parseStartParam(webApp.initDataUnsafe.start_param),
@@ -40,7 +44,7 @@ export function App({ webApp }: { webApp: WebApp }) {
         defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
       }),
     };
-  }, [webApp]);
+  }, [webApp, clock]);
   return (
     <TelegramProvider webApp={webApp}>
       <QueryClientProvider client={deps.queryClient}>
@@ -51,9 +55,11 @@ export function App({ webApp }: { webApp: WebApp }) {
           link={deps.link}
           roleRef={deps.roleRef}
         >
-          <SessionGate>
-            <Routes />
-          </SessionGate>
+          <DepsProvider api={deps.api} clock={deps.clock}>
+            <SessionGate>
+              <Routes />
+            </SessionGate>
+          </DepsProvider>
         </SessionProvider>
       </QueryClientProvider>
     </TelegramProvider>
