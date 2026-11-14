@@ -25,6 +25,8 @@ export const DirectorDashboardKpiSchema = z.object({
   attendance: z.number().int().min(0).max(100),
   queue: z.number().int().min(0),
   unmarked: z.number().int().min(0),
+  /** Bugun belgilangan davomatda "kelmadi" (sababsiz). */
+  absentToday: z.number().int().min(0),
   joined: z.number().int().min(0),
   left: z.number().int().min(0),
   approvals: z.number().int().min(0),

@@ -87,6 +87,16 @@ export class ApprovalsRepository {
     return row;
   }
 
+  /** Qaror uchun qulf (FOR UPDATE): parallel ikkinchi qaror kutadi va holat o'zgarganini ko'radi. */
+  async lockPending(id: string, tx: Transaction): Promise<boolean> {
+    const [row] = await tx
+      .select({ id: approvalRequests.id })
+      .from(approvalRequests)
+      .where(and(eq(approvalRequests.id, id), eq(approvalRequests.status, 'pending')))
+      .for('update');
+    return row !== undefined;
+  }
+
   async updateDecision(
     id: string,
     decision: {

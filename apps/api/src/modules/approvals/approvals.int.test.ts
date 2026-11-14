@@ -1,33 +1,91 @@
 import { type RoleCode } from '@lg/contracts';
-import { approvalRequests, auditLogs, closeDb, createDb, type Database, seed } from '@lg/db';
+import {
+  approvalRequests,
+  attendance,
+  auditLogs,
+  closeDb,
+  createDb,
+  type Database,
+  lessons,
+  seed,
+} from '@lg/db';
+import { addDays, formatDateToYmd } from '@lg/domain';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { tokensForAllRoles } from '../../test/role-tokens.js';
+import { createUserWithRole, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 
+/** T-119, 02 §5: so'rov → Director qarori → amal bajariladi (yoki rad). */
 let t: TestApp;
 let db: Database;
 let tokens: Map<RoleCode, string>;
+const f = { student: '', enrollment: '', payment: '', receipt: '', lesson: '' };
+const today = formatDateToYmd(new Date());
 
 type Method = 'GET' | 'POST';
-const call = (method: Method, url: string, role?: RoleCode, payload?: object) => {
-  const headers: Record<string, string> = {};
-  if (role) {
-    headers['authorization'] = `Bearer ${tokens.get(role)!}`;
-  }
-  return t.app.inject({
+const call = (method: Method, url: string, role?: RoleCode, payload?: object) =>
+  t.app.inject({
     method,
     url: `/api/${url}`,
     payload,
-    headers,
+    headers: role ? { authorization: `Bearer ${tokens.get(role)!}` } : {},
   });
-};
+const idOf = async (url: string, body: object) =>
+  (await call('POST', url, 'admin', body)).json<{ id: string }>().id;
+
+const request = async (type: string, payload: object) =>
+  (await call('POST', 'approvals', 'admin', { type, payload, reason: 'Sabab bilan soʻrov' })).json<{
+    id: string;
+    status: string;
+  }>();
+const approve = (id: string) =>
+  call('POST', `approvals/${id}/decide`, 'director', { decision: 'approve', note: 'Tasdiq' });
+const statusOf = async (id: string) =>
+  (await call('GET', `approvals/${id}`, 'admin')).json<{ status: string }>().status;
 
 beforeAll(async () => {
   t = await createRealTestApp();
   await seed(t.db.url, { withTestDirector: false });
   db = createDb(t.db.url, { max: 2 });
   tokens = await tokensForAllRoles(t, db);
+  const start = addDays(today, -40);
+  const course = await idOf('courses', {
+    name: 'Matem',
+    defaultMonthlyPrice: '500000',
+    lessonDurationMin: 60,
+  });
+  const group = await idOf('groups', {
+    courseId: course,
+    name: 'M-1',
+    maxStudents: 10,
+    startDate: start,
+  });
+  f.student = await idOf('students', { fullName: 'Ali Valiyev' });
+  f.enrollment = await idOf('enrollments', {
+    studentId: f.student,
+    groupId: group,
+    startDate: start,
+  });
+  // Kecha kiritilgan to'lov (Admin storno qila olmaydi — BR-16) va avans (refund uchun).
+  const paid = await call('POST', 'billing/payments', 'admin', {
+    studentId: f.student,
+    amount: '2000000',
+    method: 'cash',
+    paidAt: new Date(Date.now() - 86_400_000).toISOString(),
+  });
+  const p = paid.json<{ id: string; receiptNumber: string }>();
+  f.payment = p.id;
+  f.receipt = p.receiptNumber;
+  // O'tgan oy darsi (davomati bor) — Admin/Ustoz o'zgartira olmaydi.
+  const [lesson] = await db
+    .insert(lessons)
+    .values({ groupId: group, date: addDays(today, -35), startTime: '15:00', endTime: '16:00' })
+    .returning();
+  f.lesson = lesson!.id;
+  const teacher = await createUserWithRole(db, 'teacher');
+  await db
+    .insert(attendance)
+    .values({ lessonId: f.lesson, studentId: f.student, status: 'present', markedBy: teacher });
 });
 
 afterAll(async () => {
@@ -35,157 +93,123 @@ afterAll(async () => {
   await t.close();
 });
 
-describe('Approvals API (T-119, 02-roles-permissions.md §5)', () => {
-  describe('RBAC tekshiruvlari', () => {
-    it('ustoz va ota-ona soʻrov yarata olmaydi (403)', async () => {
-      for (const role of ['teacher', 'guardian'] as const) {
-        const res = await call('POST', 'approvals', role, {
-          type: 'discount',
-          payload: {
-            studentId: '11111111-1111-4111-8111-111111111111',
-            percent: 20,
-            reason: 'Olimpiada',
-          },
-          reason: 'Chegirma soʻrovi',
-        });
-        expect(res.statusCode).toBe(403);
-      }
-    });
-
-    it('qaror qabul qilish faqat Director uchun (Admin/Ustoz/Ota-ona 403)', async () => {
-      const dummyId = '00000000-0000-4000-8000-000000000000';
-      for (const role of ['admin', 'teacher', 'guardian'] as const) {
-        const res = await call('POST', `approvals/${dummyId}/decide`, role, {
-          decision: 'approve',
-        });
-        expect(res.statusCode).toBe(403);
-      }
-    });
-  });
-
-  describe('Soʻrov yaratish va tasdiqlash oqimi', () => {
-    let requestId: string;
-
-    it('Admin soʻrov yaratadi (201)', async () => {
-      const res = await call('POST', 'approvals', 'admin', {
+describe('Approvals API (T-119, 02 §5)', () => {
+  it('RBAC: ustoz/ota-ona soʻrov yarata olmaydi; qaror — faqat Director', async () => {
+    for (const role of ['teacher', 'guardian'] as const) {
+      const res = await call('POST', 'approvals', role, {
         type: 'reversal',
-        payload: {
-          paymentId: '22222222-2222-4222-8222-222222222222',
-          reason: 'Kassa adashishi',
-        },
-        reason: 'Kecha kiritilgan toʻlovni storno qilish',
+        payload: { paymentId: f.payment, reason: 'Xato' },
+        reason: 'Storno soʻrovi',
       });
-
-      expect(res.statusCode).toBe(201);
-      const json = res.json<{
-        id: string;
-        status: string;
-        type: string;
-        reason: string;
-        expiresAt: string;
-      }>();
-      expect(json.status).toBe('pending');
-      expect(json.type).toBe('reversal');
-      expect(json.reason).toBe('Kecha kiritilgan toʻlovni storno qilish');
-      requestId = json.id;
-    });
-
-    it('Soʻrovni ID orqali koʻrish mumkin (200)', async () => {
-      const res = await call('GET', `approvals/${requestId}`, 'admin');
-      expect(res.statusCode).toBe(200);
-      const json = res.json<{ id: string; status: string }>();
-      expect(json.id).toBe(requestId);
-      expect(json.status).toBe('pending');
-    });
-
-    it('Director soʻrovni tasdiqlaydi (201/200)', async () => {
-      const res = await call('POST', `approvals/${requestId}/decide`, 'director', {
-        decision: 'approve',
-        note: 'Storno tasdiqlandi',
-      });
-
-      expect(res.statusCode).toBe(201);
-      const json = res.json<{
-        status: string;
-        decisionNote: string;
-        decidedBy: string;
-      }>();
-      expect(json.status).toBe('approved');
-      expect(json.decisionNote).toBe('Storno tasdiqlandi');
-      expect(json.decidedBy).toBeTruthy();
-    });
-
-    it('Allaqachon tasdiqlangan soʻrovga qayta qaror qilib boʻlmaydi (409)', async () => {
-      const res = await call('POST', `approvals/${requestId}/decide`, 'director', {
-        decision: 'reject',
-      });
-      expect(res.statusCode).toBe(409);
-    });
+      expect(res.statusCode).toBe(403);
+    }
+    const r = await request('reversal', { paymentId: f.payment, reason: 'Kassa xatosi' });
+    for (const role of ['admin', 'teacher', 'guardian'] as const)
+      expect(
+        (await call('POST', `approvals/${r.id}/decide`, role, { decision: 'approve' })).statusCode,
+      ).toBe(403);
+    expect(await statusOf(r.id)).toBe('pending');
   });
 
-  describe('Rad etish va eskirish ssenariylari', () => {
-    it('Director soʻrovni rad eta oladi (rejected)', async () => {
-      const createRes = await call('POST', 'approvals', 'admin', {
-        type: 'discount',
-        payload: {
-          studentId: '11111111-1111-4111-8111-111111111111',
-          percent: 50,
-          reason: 'Maxsus chegirma',
-        },
-        reason: '50% chegirma',
-      });
-      const req = createRes.json<{ id: string }>();
-
-      const decideRes = await call('POST', `approvals/${req.id}/decide`, 'director', {
-        decision: 'reject',
-        note: 'Chegirma rad etildi',
-      });
-      expect(decideRes.statusCode).toBe(201);
-      expect(decideRes.json<{ status: string }>().status).toBe('rejected');
+  it('chegirma (BR-18): tasdiqlansa enrollment’ga qoʻyiladi', async () => {
+    const r = await request('discount', {
+      enrollmentId: f.enrollment,
+      percent: 50,
+      reason: 'Olimpiada',
     });
-
-    it('48 soatdan oʻtgan soʻrov avtomatik expired boʻladi va qaror qabul qilib boʻlmaydi (409)', async () => {
-      const createRes = await call('POST', 'approvals', 'admin', {
-        type: 'refund',
-        payload: {
-          paymentId: '33333333-3333-4333-8333-333333333333',
-          amount: '50000000',
-          reason: 'Kurs toʻxtatildi',
-        },
-        reason: 'Pulni qaytarish',
-      });
-      const req = createRes.json<{ id: string }>();
-
-      // Bazada expiresAt vaqtini o'tmishga suramiz
-      const past = new Date(Date.now() - 1000);
-      await db
-        .update(approvalRequests)
-        .set({ expiresAt: past })
-        .where(eq(approvalRequests.id, req.id));
-
-      // Ro'yxat olinganda expired bo'lishini tekshiramiz
-      const listRes = await call('GET', 'approvals', 'director');
-      expect(listRes.statusCode).toBe(200);
-
-      // Qaror qabul qilish urinishi -> 409
-      const decideRes = await call('POST', `approvals/${req.id}/decide`, 'director', {
-        decision: 'approve',
-      });
-      expect(decideRes.statusCode).toBe(409);
-    });
+    expect(r.status).toBe('pending');
+    const res = await approve(r.id);
+    expect(res.statusCode).toBe(201);
+    expect(res.json<{ status: string }>().status).toBe('approved');
+    const enr = (await call('GET', `students/${f.student}/enrollments`, 'admin')).json<
+      { id: string; discountPercent: number | null }[]
+    >();
+    expect(enr.find((e) => e.id === f.enrollment)?.discountPercent).toBe(50);
   });
 
-  describe('Audit jurnali tekshiruvi', () => {
-    it('yaratish va qaror qabul qilish audit_logs ga yozilgan', async () => {
-      const logs = await db
-        .select()
-        .from(auditLogs)
-        .where(eq(auditLogs.entity, 'approval_request'));
-
-      expect(logs.length).toBeGreaterThanOrEqual(2);
-      const actions = logs.map((l) => l.action);
-      expect(actions).toContain('approval.create');
-      expect(actions).toContain('approval.decide');
+  it('davomat (BR-30): oʻtgan oy belgisi oʻzgaradi', async () => {
+    const r = await request('attendance_edit', {
+      lessonId: f.lesson,
+      studentId: f.student,
+      status: 'absent',
+      reason: 'Jurnalda xato',
     });
+    expect((await approve(r.id)).statusCode).toBe(201);
+    const [row] = await db.select().from(attendance).where(eq(attendance.lessonId, f.lesson));
+    expect(row?.status).toBe('absent');
+  });
+
+  it('refund (BR-17): avansdan qaytariladi', async () => {
+    const before = (await call('GET', `billing/ledger/${f.student}/summary`, 'admin')).json<{
+      totalAdvance: string;
+    }>();
+    const r = await request('refund', {
+      studentId: f.student,
+      amount: '100000',
+      method: 'cash',
+      reason: 'Qaytarish',
+    });
+    expect((await approve(r.id)).statusCode).toBe(201);
+    const after = (await call('GET', `billing/ledger/${f.student}/summary`, 'admin')).json<{
+      totalAdvance: string;
+    }>();
+    expect(BigInt(before.totalAdvance) - BigInt(after.totalAdvance)).toBe(100_000n);
+  });
+
+  it('storno (BR-16): kechagi toʻlov bekor qilinadi; qayta qaror — 409', async () => {
+    const r = await request('reversal', { paymentId: f.payment, reason: 'Kassa xatosi' });
+    expect((await approve(r.id)).statusCode).toBe(201);
+    const receipt = (await call('GET', `billing/receipts/${f.receipt}`, 'admin')).json<{
+      isCancelled: boolean;
+    }>();
+    expect(receipt.isCancelled).toBe(true);
+    expect(
+      (await call('POST', `approvals/${r.id}/decide`, 'director', { decision: 'reject' }))
+        .statusCode,
+    ).toBe(409);
+  });
+
+  it('amal bajarilmasa (toʻlov yoʻq) — xato, soʻrov "kutilmoqda" qoladi', async () => {
+    const r = await request('reversal', {
+      paymentId: '22222222-2222-4222-8222-222222222222',
+      reason: 'Xato',
+    });
+    expect((await approve(r.id)).statusCode).toBe(404);
+    expect(await statusOf(r.id)).toBe('pending');
+  });
+
+  it('rad etish — amal bajarilmaydi; 48 soatdan keyin — 409', async () => {
+    const r = await request('discount', {
+      enrollmentId: f.enrollment,
+      percent: 90,
+      reason: 'Katta',
+    });
+    const res = await call('POST', `approvals/${r.id}/decide`, 'director', {
+      decision: 'reject',
+      note: 'Yoʻq',
+    });
+    expect(res.json<{ status: string }>().status).toBe('rejected');
+    const enr = (await call('GET', `students/${f.student}/enrollments`, 'admin')).json<
+      { discountPercent: number | null }[]
+    >();
+    expect(enr[0]?.discountPercent).toBe(50);
+
+    const old = await request('discount', {
+      enrollmentId: f.enrollment,
+      percent: 30,
+      reason: 'Eski',
+    });
+    await db
+      .update(approvalRequests)
+      .set({ expiresAt: new Date(Date.now() - 1000) })
+      .where(eq(approvalRequests.id, old.id));
+    expect((await approve(old.id)).statusCode).toBe(409);
+  });
+
+  it('yaratish va qaror audit_logs’da', async () => {
+    const logs = await db.select().from(auditLogs).where(eq(auditLogs.entity, 'approval_request'));
+    const actions = logs.map((l) => l.action);
+    expect(actions).toContain('approval.create');
+    expect(actions).toContain('approval.decide');
   });
 });

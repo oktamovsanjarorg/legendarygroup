@@ -12,6 +12,7 @@ import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
+import { ApprovalExecutor } from './approval-executor.service.js';
 import { ApprovalsRepository, type ApprovalWithUsers } from './approvals.repository.js';
 import { serializeApproval } from './approvals.serializer.js';
 
@@ -24,6 +25,7 @@ export class ApprovalsService {
     @Inject(ApprovalsRepository) private readonly repo: ApprovalsRepository,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(ApprovalExecutor) private readonly executor: ApprovalExecutor,
   ) {}
 
   async createRequest(
@@ -120,6 +122,11 @@ export class ApprovalsService {
     const newStatus = input.decision === 'approve' ? 'approved' : 'rejected';
 
     await this.db.transaction(async (tx: Transaction) => {
+      if (!(await this.repo.lockPending(req.id, tx)))
+        throw new AppException(HttpStatus.CONFLICT, 'CONFLICT', 'Soʻrov holati oʻzgargan');
+      // 02 §5: tasdiq → amal (Director nomidan, odatdagi servis orqali). Amal yiqilsa —
+      // tranzaksiya qaytadi, so'rov "kutilmoqda" bo'lib qoladi, xato foydalanuvchiga ko'rinadi.
+      if (input.decision === 'approve') await this.executor.execute(req, user, ctx);
       const updated = await this.repo.updateDecision(
         req.id,
         {

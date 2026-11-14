@@ -2,6 +2,8 @@
 export const guardianMessages = {
   gtabs: { home: 'Asosiy', results: 'Natijalar', payments: 'Toʻlovlar', more: 'Koʻproq' },
   childHome: {
+    empty: 'Farzandingiz hali bogʻlanmagan',
+    emptyHint: 'Markaz administratori farzandingizni raqamingizga bogʻlagach, shu yerda koʻrinadi.',
     todayCame: 'Bugun darsda',
     todayAbsent: 'Bugun darsga kelmadi',
     todayLate: 'Bugun {n} daqiqa kech qoldi',

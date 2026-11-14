@@ -14,7 +14,7 @@ import {
 } from '@lg/db';
 import { tashkentDayRange, tashkentMonthRange } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, gte, isNotNull, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, isNotNull, isNull, lt, ne, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface TodayLessonRow {
@@ -98,31 +98,41 @@ export class DashboardRepository {
     return Number(row?.count ?? 0);
   }
 
+  /**
+   * Bugungi davomat: foiz (keldi + kech / belgilangan), kelmaganlar soni va belgilanmagan
+   * darslar — tugagan (Toshkent vaqti), bekor qilinmagan, davomati yo'q (FR-ATT-5).
+   */
   async getTodayAttendanceStats(
     todayYmd: string,
-  ): Promise<{ attended: number; total: number; unmarked: number }> {
-    const todayLessons = await this.db
-      .select({ id: lessons.id, status: lessons.status })
-      .from(lessons)
-      .where(eq(lessons.date, todayYmd));
-
-    if (todayLessons.length === 0) return { attended: 0, total: 0, unmarked: 0 };
-
-    const unmarked = todayLessons.filter((l) => l.status !== 'done').length;
-
+    now: Date,
+  ): Promise<{ attended: number; total: number; unmarked: number; absent: number }> {
     const [attRow] = await this.db
       .select({
         total: sql<number>`count(*)`,
         attended: sql<number>`count(*) filter (where ${attendance.status} IN ('present', 'late'))`,
+        absent: sql<number>`count(*) filter (where ${attendance.status} = 'absent')`,
       })
       .from(attendance)
       .innerJoin(lessons, eq(attendance.lessonId, lessons.id))
       .where(eq(lessons.date, todayYmd));
 
+    const [unmarkedRow] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(lessons)
+      .where(
+        and(
+          eq(lessons.date, todayYmd),
+          ne(lessons.status, 'cancelled'),
+          sql`(${lessons.date} + ${lessons.endTime}) AT TIME ZONE 'Asia/Tashkent' <= ${now.toISOString()}::timestamptz`,
+          sql`NOT EXISTS (SELECT 1 FROM ${attendance} WHERE ${attendance.lessonId} = ${lessons.id})`,
+        ),
+      );
+
     return {
       attended: Number(attRow?.attended ?? 0),
       total: Number(attRow?.total ?? 0),
-      unmarked,
+      unmarked: Number(unmarkedRow?.count ?? 0),
+      absent: Number(attRow?.absent ?? 0),
     };
   }
 

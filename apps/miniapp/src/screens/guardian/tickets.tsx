@@ -42,7 +42,8 @@ export function TicketsView({ tickets, sending, onSend }: Props) {
   useMainButton({
     text: t.tickets.send,
     onClick: () => onSend(text.trim()),
-    disabled: text.trim().length < 3,
+    // API: yangi murojaat matni kamida 5 belgi (CreateTicketSchema).
+    disabled: text.trim().length < 5,
     loading: sending,
   });
   return (

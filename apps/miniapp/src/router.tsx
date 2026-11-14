@@ -8,13 +8,19 @@ import { AppLayout, ForbiddenPage } from './layout.js';
 import { HomePage } from './pages/home.js';
 import { SettingsPage } from './pages/settings.js';
 import {
-  GuardianMorePage,
-  GuardianPaymentsPage,
-  GuardianResultsPage,
+  StaffApprovalPage,
   StaffApprovalsPage,
   StaffQueuePage,
   StaffSearchPage,
-} from './pages/tab-pages.js';
+  StaffStudentPage,
+} from './pages/staff.js';
+import { GuardianMorePage, GuardianPaymentsPage, GuardianResultsPage } from './pages/guardian.js';
+import {
+  GuardianAbsencePage,
+  GuardianPayPage,
+  GuardianSubmissionPage,
+  GuardianTicketsPage,
+} from './pages/guardian-actions.js';
 import { LessonAttendancePage } from './pages/lesson.js';
 import { TeacherCommentPage, TeacherStudentPage } from './pages/student.js';
 import {
@@ -115,6 +121,38 @@ const staffSearch = createRoute({
   component: StaffSearchPage,
 });
 
+const guardianPay = createRoute({
+  getParentRoute: () => root,
+  path: '/pay',
+  component: GuardianPayPage,
+});
+const guardianSubmission = createRoute({
+  getParentRoute: () => root,
+  path: '/submission/$id',
+  component: GuardianSubmissionPage,
+});
+const guardianAbsence = createRoute({
+  getParentRoute: () => root,
+  path: '/absence',
+  component: GuardianAbsencePage,
+});
+const guardianTickets = createRoute({
+  getParentRoute: () => root,
+  path: '/tickets',
+  component: GuardianTicketsPage,
+});
+
+const staffApproval = createRoute({
+  getParentRoute: () => root,
+  path: '/staff/approvals/$id',
+  component: StaffApprovalPage,
+});
+const staffStudent = createRoute({
+  getParentRoute: () => root,
+  path: '/staff/student/$id',
+  component: StaffStudentPage,
+});
+
 const routeTree = root.addChildren([
   home,
   settings,
@@ -130,9 +168,15 @@ const routeTree = root.addChildren([
   guardianResults,
   guardianPayments,
   guardianMore,
+  guardianPay,
+  guardianSubmission,
+  guardianAbsence,
+  guardianTickets,
   staffQueue,
   staffApprovals,
   staffSearch,
+  staffApproval,
+  staffStudent,
 ]);
 
 /**

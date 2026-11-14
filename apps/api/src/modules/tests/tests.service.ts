@@ -18,6 +18,7 @@ import {
 } from '@lg/domain';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { RequestUser } from '../auth/index.js';
+import { GroupScopeService } from '../org/index.js';
 import { OutboxService } from '../outbox/index.js';
 import { StudentScopeService } from '../students/index.js';
 import { ExcelTestService } from './excel-test.service.js';
@@ -30,6 +31,7 @@ export class TestsService {
     @Inject(TestsRepository) private readonly repo: TestsRepository,
     @Inject(ExcelTestService) private readonly excelService: ExcelTestService,
     @Inject(StudentScopeService) private readonly scopeService: StudentScopeService,
+    @Inject(GroupScopeService) private readonly groupScope: GroupScopeService,
     @Inject(OutboxService) private readonly outboxService: OutboxService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
@@ -39,6 +41,7 @@ export class TestsService {
     branchId: string,
     req: CreateTestRequest,
   ): Promise<TestItem> {
+    await this.groupScope.assertCanManage(actor, req.groupId);
     const row = await this.repo.createTest({
       branchId,
       groupId: req.groupId,
@@ -53,8 +56,7 @@ export class TestsService {
   }
 
   async updateTest(actor: RequestUser, id: string, req: UpdateTestRequest): Promise<TestItem> {
-    const existing = await this.repo.findTestById(id);
-    if (!existing) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
+    const existing = await this.loadTest(actor, id, 'manage');
     if (existing.status === 'published') {
       throw new BadRequestException({ code: 'TEST_ALREADY_PUBLISHED' });
     }
@@ -70,8 +72,7 @@ export class TestsService {
   }
 
   async getTest(actor: RequestUser, id: string): Promise<TestDetailResponse> {
-    const test = await this.repo.findTestById(id);
-    if (!test) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
+    const test = await this.loadTest(actor, id, 'view');
 
     const results = await this.repo.findTestResultsWithStudents(id);
     const mappedResults: TestResultItem[] = results.map((r) => ({
@@ -95,6 +96,7 @@ export class TestsService {
   }
 
   async listGroupTests(actor: RequestUser, groupId: string): Promise<TestItem[]> {
+    await this.groupScope.assertVisible(actor, groupId);
     const rows = await this.repo.findTestsByGroupId(groupId);
     return rows.map((r) => this.mapTestRow(r));
   }
@@ -104,8 +106,7 @@ export class TestsService {
     testId: string,
     req: RecordTestResultsRequest,
   ): Promise<void> {
-    const test = await this.repo.findTestById(testId);
-    if (!test) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
+    const test = await this.loadTest(actor, testId, 'manage');
     if (test.status === 'published') {
       throw new BadRequestException({ code: 'TEST_ALREADY_PUBLISHED' });
     }
@@ -132,8 +133,7 @@ export class TestsService {
   }
 
   async publishTest(actor: RequestUser, testId: string): Promise<TestItem> {
-    const test = await this.repo.findTestById(testId);
-    if (!test) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
+    const test = await this.loadTest(actor, testId, 'manage');
     if (test.status === 'published') return this.mapTestRow(test);
 
     const updated = await this.repo.updateTest(testId, {
@@ -153,8 +153,7 @@ export class TestsService {
   }
 
   async getTemplate(actor: RequestUser, testId: string): Promise<Buffer> {
-    const test = await this.repo.findTestById(testId);
-    if (!test) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
+    const test = await this.loadTest(actor, testId, 'view');
 
     const students = await this.repo.findGroupActiveStudents(test.groupId, test.date);
     return this.excelService.generateTemplate({
@@ -170,8 +169,7 @@ export class TestsService {
     testId: string,
     buffer: Buffer,
   ): Promise<ImportPreviewResponse> {
-    const test = await this.repo.findTestById(testId);
-    if (!test) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
+    const test = await this.loadTest(actor, testId, 'manage');
     if (test.status === 'published') {
       throw new BadRequestException({ code: 'TEST_ALREADY_PUBLISHED' });
     }
@@ -189,8 +187,7 @@ export class TestsService {
     testId: string,
     req: ExcelImportConfirmRequest,
   ): Promise<void> {
-    const test = await this.repo.findTestById(testId);
-    if (!test) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
+    const test = await this.loadTest(actor, testId, 'manage');
     if (test.status === 'published') {
       throw new BadRequestException({ code: 'TEST_ALREADY_PUBLISHED' });
     }
@@ -225,9 +222,8 @@ export class TestsService {
   }
 
   async getStudentTestHistory(actor: RequestUser, studentId: string): Promise<TestResultItem[]> {
-    if (actor.role === 'guardian') {
-      await this.scopeService.assertVisible(actor, studentId);
-    }
+    // Har rol uchun scope (T-505): ustoz — faqat o'z guruhidagi, ota-ona — o'z farzandi.
+    await this.scopeService.assertVisible(actor, studentId);
 
     const rows = await this.repo.findStudentTestHistory(studentId);
     return rows.map((r) => ({
@@ -241,6 +237,18 @@ export class TestsService {
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
     }));
+  }
+
+  /**
+   * Test + guruh scope'i (T-505, Q-62): ko'rish — guruh ustozlari (yordamchi ham);
+   * o'zgartirish, ball, import, e'lon — faqat asosiy ustoz yoki Admin/Director.
+   */
+  private async loadTest(actor: RequestUser, id: string, mode: 'view' | 'manage') {
+    const test = await this.repo.findTestById(id);
+    if (!test) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
+    if (mode === 'manage') await this.groupScope.assertCanManage(actor, test.groupId);
+    else await this.groupScope.assertVisible(actor, test.groupId);
+    return test;
   }
 
   private mapTestRow(row: TestRow): TestItem {

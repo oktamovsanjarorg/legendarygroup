@@ -264,6 +264,7 @@
 - **Bog'liq:** T-111, T-017c
 - **AC:** 11-ux.md §2 bo'yicha 4 tab: Bugun (`/`), Guruhlarim (`/groups`), Jadval (`/schedule`), Profil (`/profile`); `tabs.ts` va `router.tsx` to'liq ulandi; o'rinbosar ustoz darsi belgili; barcha komponent va routing testlari yashil.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
+- **Mini App API'ga ulandi (2026-11-14):** bugun, guruhlar, jadval, davomat (`/lesson/$id`, offline navbat FR-ATT-6), guruh, o'quvchi kartasi + izoh, oylik (`GET /payroll/my`). Mock yo'q. Qolgan: testlar ro'yxati/Excel import va e'lon ekranlari ulanmagan.
 
 ### 🟨 T-119 · Tasdiqlash so'rovlari (approval requests)
 
@@ -276,12 +277,14 @@
   - 48 soatlik avtomatik `expired` holati tekshiruvi, audit yozuvi (`approval.create`, `approval.decide`).
   - Integratsiya testlari: `approvals.int.test.ts` (9 ta test: RBAC, to'liq tasdiqlash va rad etish oqimlari, 48 soat expired, takroriy qaror taqiqi, audit jurnali).
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+- **Tuzatildi (2026-11-14):** tasdiqlangan so'rov amalni bajarmasdi — `ApprovalExecutor` (chegirma, storno, refund, davomat), payload'lar amallarga moslandi. Qolgan: so'rovchiga bot xabari, web/Mini App'da so'rov yaratish formasi.
 
 ### 🟨 T-120 · Director/Admin Mini App xodim rejimi
 
 - **Bog'liq:** T-007, T-008, T-009, T-017c
 - **AC:** 11-ux.md §2: Bugun (`/`), Navbat (`/staff/queue`), So'rovlar (`/staff/approvals` - faqat Director), Qidiruv (`/staff/search`); ruxsatga qarab tablar filtrlangan; testlar 100% yashil.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
+- **Mini App API'ga ulandi (2026-11-14):** dashboard (absentToday qo'shildi, unmarked tuzatildi), chek navbati (lock, BR-15 dublikat), tasdiqlashlar + qaror, qidiruv, o'quvchi kartasi.
 
 ### 🟨 T-115 · Tizim sozlamalari
 
@@ -295,6 +298,7 @@
 - **Bog'liq:** T-110, T-111
 - **AC:** farzandlar ro'yxati (bir nechta bo'lsa `ChildSwitcher` orqali almashtirish), har farzand: bugungi/oxirgi davomat, guruh, jadval; balans va "To'lash" MainButton; 4 tab: Asosiy (`/`), Natijalar (`/results`), To'lovlar (`/payments`), Ko'proq (`/more`); testlar 100% yashil.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
+- **Mini App API'ga ulandi (2026-11-14):** bosh sahifa, natijalar, to'lovlar (`GET /students/:id/lessons` qo'shildi), 'kela olmaydi', murojaatlar. Qolgan: farzand jadvali, chek PDF'ini Mini App'dan ochish.
 
 ### 🟨 T-117 · Birinchi ishga tushirish ustasi (Director)
 
@@ -369,6 +373,7 @@
 - **AC:** "To'lov qilish" → farzand tanlash → qarz summasi + karta rekvizitlari (nusxalash) → rasm/PDF yuklash + summa + izoh → "Tekshirilmoqda" xabari; fayl tekshiruvi (tur, hajm), S3; perceptual hash; holatni kuzatish.
 - **Bajarildi (2026-11-13):** `SubmissionsService` va `SubmissionsRepository` (`POST /api/billing/submissions`, `GET /api/billing/submissions/my`); BR-15 dublikat tekshiruvi; Telegram xabarnoma navbati; IDOR xavfsizlik tekshiruvi.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
+- **Mini App (2026-11-14):** `/pay` — fayl to'g'ridan-to'g'ri S3'ga, yuborish, `/submission/$id` holati.
 
 ### 🟨 T-207 · Tasdiqlash navbati (Admin)
 
@@ -530,6 +535,7 @@
 - **AC:** ASVS L2 checklist to'ldirilgan; IDOR testlari har rol uchun; zaif nuqtalar tuzatilgan; tashqi skaner (OWASP ZAP) hisoboti.
 - **Bajarildi (2026-11-14):** `docs/security/asvs-l2-checklist.md` (OWASP ASVS 4.0 Level 2 to'liq 14 ta bob bo'yicha tahlil); har bir rol (ota-ona, ustoz, admin) uchun IDOR testlari integratsiya testlarida tasdiqlangan (begona o'quvchi ma'lumotlariga 404 qaytarish); `scripts/zap-scan.sh` (OWASP ZAP baseline dinamik skaner skripti); `docs/runbooks/security-audit.md` runbook'i yaratildi.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Real AWS/GitHub muhitida hali ishga tushirilmagan — prod deploy'da sinaladi.
+- **IDOR tuzatishlari (2026-11-14):** billing ro'yxatlari/qarzdorlar, markaz hisobotlari va prognozlar (`@CenterWide`), parent-digest, test tarixi, testlar moduli (guruh scope, Q-62), chek raqami bo'yicha PDF, oylik jami. Har biri — qizil test bilan.
 
 ### 🟨 T-506 · Foydalanuvchi qo'llanmalari va runbook'lar
 

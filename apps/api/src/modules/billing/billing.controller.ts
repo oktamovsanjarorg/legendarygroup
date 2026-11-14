@@ -155,20 +155,26 @@ export class BillingController {
   }
 
   @Get('receipts/:number')
-  @Public()
-  @ApiOperation({ summary: 'Chekni ommaviy tekshirish sahifasi (mehmon va ota-onalar uchun)' })
-  async verifyReceipt(@Param('number') number: string): Promise<PublicReceipt> {
+  @RequirePermission('billing.view')
+  @ApiOperation({ summary: "Chek raqam bo'yicha (xodim; ota-ona — o'z farzandi)" })
+  async verifyReceipt(
+    @Param('number') number: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<PublicReceipt> {
+    await this.payments.assertReceiptVisible(user, number);
     return this.payments.getPublicReceipt(number);
   }
 
   @Get('receipts/:number/pdf')
-  @Public()
+  @RequirePermission('billing.view')
   @NoAudit('GET receipt PDF')
   @ApiOperation({ summary: 'Rasmiy toʻlov chekini PDF koʻrinishida yuklab olish (FR-PAY-8)' })
   async downloadReceiptPdf(
     @Param('number') number: string,
+    @CurrentUser() user: RequestUser,
     @Res() res: FastifyReply,
   ): Promise<void> {
+    await this.payments.assertReceiptVisible(user, number);
     const buffer = await this.receiptPdf.generateReceiptPdf(number);
     res.header('Content-Type', 'application/pdf');
     res.header('Content-Disposition', `inline; filename="receipt-${number}.pdf"`);

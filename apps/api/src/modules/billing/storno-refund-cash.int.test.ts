@@ -103,7 +103,7 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
       expect(revEntry!.amount).toBe(30000000n);
 
       // Ommaviy tekshirish sahifasida chek "bekor qilingan" bo'lib ko'rinadi
-      const receiptRes = await call('GET', `billing/receipts/${testReceiptNumber}`);
+      const receiptRes = await call('GET', `billing/receipts/${testReceiptNumber}`, 'admin');
       expect(receiptRes.statusCode).toBe(200);
       expect(receiptRes.json<{ isCancelled: boolean }>().isCancelled).toBe(true);
     });

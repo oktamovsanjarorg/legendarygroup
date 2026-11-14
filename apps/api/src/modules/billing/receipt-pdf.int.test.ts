@@ -110,8 +110,20 @@ describe('PDF Chek va Ommaviy Tekshirish (T-205, FR-PAY-8, BR-19)', () => {
     expect(res.statusCode).toBe(404);
   });
 
-  it('ommaviy chek raqam boʻyicha tekshirilganda PublicReceipt qaytadi', async () => {
-    const res = await call('GET', `billing/receipts/${receiptNumber}`);
+  it('IDOR: chek raqami ketma-ket — raqam boʻyicha PDF/maʼlumot faqat scope bilan (FR-PAY-8)', async () => {
+    for (const url of [
+      `billing/receipts/${receiptNumber}`,
+      `billing/receipts/${receiptNumber}/pdf`,
+    ]) {
+      expect((await call('GET', url)).statusCode).toBe(401);
+      // Farzandi boʻlmagan ota-ona — begona chek: 404 (mavjudligi oshkor qilinmaydi).
+      expect((await call('GET', url, 'guardian')).statusCode).toBe(404);
+      expect((await call('GET', url, 'teacher')).statusCode).toBe(403);
+    }
+  });
+
+  it('chek raqam boʻyicha (xodim) PublicReceipt qaytadi', async () => {
+    const res = await call('GET', `billing/receipts/${receiptNumber}`, 'admin');
     expect(res.statusCode).toBe(200);
 
     const data = res.json<PublicReceipt>();
@@ -121,7 +133,7 @@ describe('PDF Chek va Ommaviy Tekshirish (T-205, FR-PAY-8, BR-19)', () => {
   });
 
   it('PDF chek muvaffaqiyatli generatsiya qilinadi va application/pdf qaytaradi', async () => {
-    const res = await call('GET', `billing/receipts/${receiptNumber}/pdf`);
+    const res = await call('GET', `billing/receipts/${receiptNumber}/pdf`, 'admin');
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toBe('application/pdf');
     expect(res.headers['content-disposition']).toContain(`receipt-${receiptNumber}.pdf`);
@@ -133,7 +145,7 @@ describe('PDF Chek va Ommaviy Tekshirish (T-205, FR-PAY-8, BR-19)', () => {
   });
 
   it('mavjud boʻlmagan chek uchun PDF soʻralganda 404 qaytadi', async () => {
-    const res = await call('GET', 'billing/receipts/LG-9999-999999/pdf');
+    const res = await call('GET', 'billing/receipts/LG-9999-999999/pdf', 'admin');
     expect(res.statusCode).toBe(404);
   });
 
@@ -150,12 +162,12 @@ describe('PDF Chek va Ommaviy Tekshirish (T-205, FR-PAY-8, BR-19)', () => {
     expect(verifyRes.json<ReceiptVerifyResponse>().kind).toBe('reversed');
 
     // Public receipt isCancelled = true
-    const pubRes = await call('GET', `billing/receipts/${receiptNumber}`);
+    const pubRes = await call('GET', `billing/receipts/${receiptNumber}`, 'admin');
     expect(pubRes.statusCode).toBe(200);
     expect(pubRes.json<PublicReceipt>().isCancelled).toBe(true);
 
     // PDF yuklab olganda bekor qilingan chek PDF generatsiya bo'ladi
-    const pdfRes = await call('GET', `billing/receipts/${receiptNumber}/pdf`);
+    const pdfRes = await call('GET', `billing/receipts/${receiptNumber}/pdf`, 'admin');
     expect(pdfRes.statusCode).toBe(200);
     expect(pdfRes.headers['content-type']).toBe('application/pdf');
     const buffer = Buffer.from(pdfRes.rawPayload);
