@@ -1,4 +1,5 @@
 import type { AttendanceStatus, RoleCode } from '@lg/contracts';
+import { formatDateToYmd } from '../clock.js';
 
 export interface CanEditAttendanceParams {
   lessonDate: string; // YYYY-MM-DD
@@ -21,8 +22,7 @@ export interface CanEditAttendanceResult {
 export function canEditAttendance(params: CanEditAttendanceParams): CanEditAttendanceResult {
   const { lessonDate, hasEditPastPermission, now } = params;
 
-  // Toshkent vaqti yoki lokal sanani YYYY-MM-DD olish
-  const today = now.toISOString().slice(0, 10);
+  const today = formatDateToYmd(now); // Toshkent kuni (UTC emas)
 
   // Agar dars bugun yoki kelajakda bo'lsa (bugun 23:59 gacha)
   if (lessonDate >= today) {

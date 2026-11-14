@@ -109,6 +109,7 @@ export class ParentDigestRepository {
   /** O'quvchining joriy to'lov holati va qarzi */
   async getStudentBillingStatus(
     studentId: string,
+    today: string,
   ): Promise<{ status: 'paid' | 'pending' | 'overdue'; debtAmount: bigint }> {
     const openInvoices = await this.db
       .select({
@@ -128,7 +129,6 @@ export class ParentDigestRepository {
       return { status: 'paid', debtAmount: 0n };
     }
 
-    const today = new Date().toISOString().slice(0, 10);
     let debt = 0n;
     let hasOverdue = false;
     for (const inv of openInvoices) {

@@ -1,10 +1,16 @@
 import type { LessonAttendance, RoleCode } from '@lg/contracts';
 import { attendance, closeDb, createDb, type Database, guardians, lessons, seed } from '@lg/db';
 import { eq } from 'drizzle-orm';
+import { addDays, formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { AttendanceService } from './attendance.service.js';
+
+/** Sanalar real soatdan (Toshkent): qattiq sana ertasi kuni testni yiqitadi. */
+const TODAY = formatDateToYmd(new Date());
+const YESTERDAY = addDays(TODAY, -1);
+const START = addDays(TODAY, -14);
 
 let t: TestApp;
 let db: Database;
@@ -62,7 +68,7 @@ beforeAll(async () => {
     roomId,
     name: 'IELTS-A1',
     maxStudents: 15,
-    startDate: '2026-11-01',
+    startDate: START,
     monthlyPrice: '700000',
     teachers: [{ teacherId: teacherUserId, role: 'main' }],
   });
@@ -89,12 +95,12 @@ beforeAll(async () => {
   await call('POST', 'enrollments', adminToken, {
     studentId: student1Id,
     groupId,
-    startDate: '2026-11-01',
+    startDate: START,
   });
   await call('POST', 'enrollments', adminToken, {
     studentId: student2Id,
     groupId,
-    startDate: '2026-11-01',
+    startDate: START,
   });
 
   // Ota-ona foydalanuvchisi
@@ -105,9 +111,9 @@ beforeAll(async () => {
     .where(eq(guardians.id, s1.guardians[0]!.guardianId));
   parentToken = await tokenFor(t, db, parentUserId, 'guardian');
 
-  // Bugungi dars (2026-11-13) va kechagi dars (2026-11-12)
-  const today = '2026-11-13';
-  const yesterday = '2026-11-12';
+  // Bugungi va kechagi dars
+  const today = TODAY;
+  const yesterday = YESTERDAY;
 
   const [lToday] = await db
     .insert(lessons)

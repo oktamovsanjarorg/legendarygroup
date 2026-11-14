@@ -1,7 +1,13 @@
 import type { DirectorDashboardKpi } from '@lg/contracts';
-import { calculateAttendancePercent, calculatePercentageChange } from '@lg/domain';
+import {
+  addDays,
+  calculateAttendancePercent,
+  calculatePercentageChange,
+  type Clock,
+} from '@lg/domain';
 import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import type { Redis } from 'ioredis';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { REDIS_TOKEN } from '../../common/redis/redis.tokens.js';
 import type { RequestUser } from '../auth/index.js';
 import { DashboardRepository } from './dashboard.repository.js';
@@ -14,6 +20,7 @@ export class DashboardService {
   constructor(
     @Inject(DashboardRepository) private readonly repo: DashboardRepository,
     @Inject(REDIS_TOKEN) private readonly redis: Redis,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
   async getDirectorDashboardKpi(
@@ -49,16 +56,15 @@ export class DashboardService {
   }
 
   private async computeDashboardKpi(branchId: string): Promise<DirectorDashboardKpi> {
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = now.getUTCMonth() + 1;
+    // Toshkent kuni (UTC emas: 00:00–05:00 oralig'ida UTC sanasi kechagi kun bo'ladi).
+    const todayYmd = this.clock.today();
+    const year = Number(todayYmd.slice(0, 4));
+    const month = Number(todayYmd.slice(5, 7));
 
     const prevYear = month === 1 ? year - 1 : year;
     const prevMonth = month === 1 ? 12 : month - 1;
 
-    const todayYmd = now.toISOString().slice(0, 10);
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const yesterdayYmd = yesterday.toISOString().slice(0, 10);
+    const yesterdayYmd = addDays(todayYmd, -1);
 
     const [
       revenueMonth,
@@ -79,7 +85,7 @@ export class DashboardService {
       this.repo.getDayRevenue(branchId, todayYmd),
       this.repo.getDayRevenue(branchId, yesterdayYmd),
       this.repo.getTotalDebt(branchId),
-      this.repo.getActiveStudentsCount(branchId),
+      this.repo.getActiveStudentsCount(branchId, todayYmd),
       this.repo.getTodayAttendanceStats(todayYmd),
       this.repo.getStudentFlow(branchId, year, month),
       this.repo.getPendingCounts(branchId),
@@ -104,7 +110,7 @@ export class DashboardService {
       approvals: counts.approvals,
       daily: dailyRevenues.map((d) => ({ day: d.day, amount: d.amount.toString() })),
       todayLessons,
-      cachedAt: new Date().toISOString(),
+      cachedAt: this.clock.now().toISOString(),
     };
   }
 }

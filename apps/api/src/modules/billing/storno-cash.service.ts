@@ -7,7 +7,7 @@ import type {
   ReversePaymentInput,
 } from '@lg/contracts';
 import { type Database, type PaymentRow, type ReceiptRow, type Transaction } from '@lg/db';
-import type { Clock } from '@lg/domain';
+import { type Clock, formatDateToYmd } from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
@@ -16,12 +16,9 @@ import type { RequestUser } from '../auth/index.js';
 import { StornoCashRepository } from './storno-cash.repository.js';
 import { serializeCashClosing } from './storno-cash.serializer.js';
 
+/** Toshkent kuni bo'yicha (UTC emas — 00:00–05:00 orasidagi to'lov boshqa kunga tushmasin). */
 function isSameCalendarDay(d1: Date, d2: Date): boolean {
-  return (
-    d1.getUTCFullYear() === d2.getUTCFullYear() &&
-    d1.getUTCMonth() === d2.getUTCMonth() &&
-    d1.getUTCDate() === d2.getUTCDate()
-  );
+  return formatDateToYmd(d1) === formatDateToYmd(d2);
 }
 
 interface ReversalTxParams {

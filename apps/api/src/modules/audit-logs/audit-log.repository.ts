@@ -7,8 +7,9 @@ import {
   userRoles,
   users,
 } from '@lg/db';
+import { tashkentDayRange, tashkentMonthRange } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, gte, inArray, isNotNull, lt, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, lt, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface AuditLogFilter {
@@ -55,8 +56,8 @@ export class AuditLogRepository {
     if (filter.actorId) conditions.push(eq(auditLogs.actorId, filter.actorId));
     if (filter.action) conditions.push(eq(auditLogs.action, filter.action));
     if (filter.entity) conditions.push(eq(auditLogs.entity, filter.entity));
-    if (filter.from) conditions.push(gte(auditLogs.at, new Date(`${filter.from}T00:00:00.000Z`)));
-    if (filter.to) conditions.push(lte(auditLogs.at, new Date(`${filter.to}T23:59:59.999Z`)));
+    if (filter.from) conditions.push(gte(auditLogs.at, tashkentDayRange(filter.from).start));
+    if (filter.to) conditions.push(lt(auditLogs.at, tashkentDayRange(filter.to).end));
 
     const rows = await this.db
       .select({
@@ -201,14 +202,6 @@ export class AuditLogRepository {
   }
 
   private getPeriodRange(period: string): { start: Date; end: Date } {
-    const [yearStr, monthStr] = period.split('-');
-    const year = Number(yearStr);
-    const month = Number(monthStr);
-    const nextYear = month === 12 ? year + 1 : year;
-    const nextMonth = month === 12 ? 1 : month + 1;
-    return {
-      start: new Date(`${period}-01T00:00:00.000Z`),
-      end: new Date(`${nextYear}-${String(nextMonth).padStart(2, '0')}-01T00:00:00.000Z`),
-    };
+    return tashkentMonthRange(period);
   }
 }

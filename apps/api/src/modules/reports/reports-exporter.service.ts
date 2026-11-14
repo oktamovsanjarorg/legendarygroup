@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { ReportType } from '@lg/contracts';
+import { type Clock } from '@lg/domain';
 import ExcelJS from 'exceljs';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
 function cleanUzText(text: string): string {
   return text
@@ -51,6 +53,8 @@ function fillAttendanceSheet(sheet: ExcelJS.Worksheet, typedData: Record<string,
 
 @Injectable()
 export class ReportsExporterService {
+  constructor(@Inject(CLOCK_TOKEN) private readonly clock: Clock) {}
+
   /** Ma'lumotlarni Excel fayl (.xlsx) formatida qaytaradi */
   async exportToExcel(reportType: ReportType, data: unknown): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
@@ -61,7 +65,7 @@ export class ReportsExporterService {
     const typedData = data as Record<string, unknown>;
 
     sheet.addRow([`Hisobot: ${reportType.toUpperCase()}`]);
-    sheet.addRow([`Sana: ${new Date().toISOString().slice(0, 10)}`]);
+    sheet.addRow([`Sana: ${this.clock.today()}`]);
     sheet.addRow([]);
 
     if (reportType === 'revenue') {
@@ -103,7 +107,7 @@ export class ReportsExporterService {
       font: fontBold,
       color: rgb(0.1, 0.1, 0.2),
     });
-    page.drawText(cleanUzText(`Yaratilgan sana: ${new Date().toISOString().slice(0, 10)}`), {
+    page.drawText(cleanUzText(`Yaratilgan sana: ${this.clock.today()}`), {
       x: 50,
       y: 780,
       size: 10,

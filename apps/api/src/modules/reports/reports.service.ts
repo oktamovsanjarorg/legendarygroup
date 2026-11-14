@@ -5,6 +5,8 @@ import {
   type ReportType,
   type RevenueReportResponse,
 } from '@lg/contracts';
+import type { Clock } from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { ReportsExporterService } from './reports-exporter.service.js';
@@ -29,6 +31,7 @@ export class ReportsService {
   constructor(
     @Inject(ReportsRepository) private readonly repo: ReportsRepository,
     @Inject(ReportsExporterService) private readonly exporter: ReportsExporterService,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
   private resolveBranchId(_actor: RequestUser, branchId?: string): string {
@@ -71,7 +74,7 @@ export class ReportsService {
   /** 2. Qarzdorlik yoshi (aging) hisoboti */
   async getDebtAgingReport(actor: RequestUser, branchId?: string): Promise<DebtAgingResponse> {
     const targetBranch = this.resolveBranchId(actor, branchId);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = this.clock.today();
     const debtors = await this.repo.getDebtAgingReport(targetBranch, today);
 
     let totalDebt = 0n;
@@ -202,7 +205,7 @@ export class ReportsService {
       throw new AppException(HttpStatus.BAD_REQUEST, 'BAD_REQUEST');
     }
 
-    const dateStr = new Date().toISOString().slice(0, 10);
+    const dateStr = this.clock.today();
     if (format === 'excel') {
       const buffer = await this.exporter.exportToExcel(reportType, data);
       return {

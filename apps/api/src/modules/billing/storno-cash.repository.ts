@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { tashkentDayRange } from '@lg/domain';
 import type { CashClosingListQueryInput } from '@lg/contracts';
 import {
   cashClosings,
@@ -16,7 +17,7 @@ import {
   type Transaction,
   users,
 } from '@lg/db';
-import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lt, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface CashClosingWithUser extends CashClosingRow {
@@ -76,8 +77,7 @@ export class StornoCashRepository {
   }
 
   async sumCashPaymentsForDate(dateStr: string, branchId: string): Promise<bigint> {
-    const start = new Date(`${dateStr}T00:00:00.000Z`);
-    const end = new Date(`${dateStr}T23:59:59.999Z`);
+    const { start, end } = tashkentDayRange(dateStr);
 
     const rows = await this.db
       .select({ amount: payments.amount })
@@ -87,7 +87,7 @@ export class StornoCashRepository {
           eq(payments.branchId, branchId),
           eq(payments.method, 'cash'),
           gte(payments.paidAt, start),
-          lte(payments.paidAt, end),
+          lt(payments.paidAt, end),
         ),
       );
 

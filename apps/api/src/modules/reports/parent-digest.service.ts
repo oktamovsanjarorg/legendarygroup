@@ -1,6 +1,6 @@
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import type { ParentDigestReport } from '@lg/contracts';
-import { type Clock } from '@lg/domain';
+import { addDays, type Clock } from '@lg/domain';
 import { students } from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { PDFDocument, type PDFFont, type PDFPage, rgb, StandardFonts } from 'pdf-lib';
@@ -42,7 +42,7 @@ export class ParentDigestService {
       this.repo.getStudentAttendance(studentId, from, to),
       this.repo.getStudentAverageGrade(studentId, from, to),
       this.repo.getStudentComments(studentId, from, to),
-      this.repo.getStudentBillingStatus(studentId),
+      this.repo.getStudentBillingStatus(studentId, to),
       this.repo.getStudentTestResults(studentId, from, to),
       this.repo.findStudentGroupId(studentId),
     ]);
@@ -247,13 +247,8 @@ export class ParentDigestService {
   }
 
   private resolveDateRange(period: 'weekly' | 'monthly'): { from: string; to: string } {
-    const now = this.clock.now();
-    const to = now.toISOString().slice(0, 10);
-
-    if (period === 'weekly') {
-      const past = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
-      return { from: past.toISOString().slice(0, 10), to };
-    }
+    const to = this.clock.today();
+    if (period === 'weekly') return { from: addDays(to, -7), to };
 
     // monthly: oyning 1-kunidan
     const from = `${to.slice(0, 7)}-01`;

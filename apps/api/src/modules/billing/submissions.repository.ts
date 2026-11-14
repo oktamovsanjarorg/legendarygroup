@@ -11,10 +11,12 @@ import {
   students,
   type Transaction,
 } from '@lg/db';
-import { allocateFifo } from '@lg/domain';
+import { allocateFifo, type Clock } from '@lg/domain';
 import { and, desc, eq, gte, inArray, isNull } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { BillingRepository } from './billing.repository.js';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
+import { receiptYear } from './receipt-year.js';
 
 export interface EnrichedSubmissionRow extends PaymentSubmissionRow {
   studentName: string;
@@ -29,6 +31,7 @@ export class SubmissionsRepository {
   constructor(
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(BillingRepository) private readonly billingRepo: BillingRepository,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
   async createSubmission(data: NewPaymentSubmissionRow): Promise<PaymentSubmissionRow> {
@@ -139,7 +142,7 @@ export class SubmissionsRepository {
   ): Promise<PaymentSubmissionRow | null> {
     const [row] = await this.db
       .update(paymentSubmissions)
-      .set({ reviewLockedBy: userId, reviewLockedUntil: lockedUntil, updatedAt: new Date() })
+      .set({ reviewLockedBy: userId, reviewLockedUntil: lockedUntil, updatedAt: this.clock.now() })
       .where(and(eq(paymentSubmissions.id, id), eq(paymentSubmissions.status, 'pending_review')))
       .returning();
     return row ?? null;
@@ -156,10 +159,10 @@ export class SubmissionsRepository {
         status: 'rejected',
         rejectReason: reason,
         reviewedBy: userId,
-        reviewedAt: new Date(),
+        reviewedAt: this.clock.now(),
         reviewLockedBy: null,
         reviewLockedUntil: null,
-        updatedAt: new Date(),
+        updatedAt: this.clock.now(),
       })
       .where(and(eq(paymentSubmissions.id, id), eq(paymentSubmissions.status, 'pending_review')))
       .returning();
@@ -245,11 +248,11 @@ export class SubmissionsRepository {
         .set({
           status: 'confirmed',
           reviewedBy: p.userId,
-          reviewedAt: new Date(),
+          reviewedAt: this.clock.now(),
           paymentId,
           reviewLockedBy: null,
           reviewLockedUntil: null,
-          updatedAt: new Date(),
+          updatedAt: this.clock.now(),
         })
         .where(eq(paymentSubmissions.id, p.submissionId));
 
@@ -267,6 +270,7 @@ export class SubmissionsRepository {
       verifyToken: string;
     },
   ): Promise<{ paymentId: string; receiptNumber: string }> {
+    const now = this.clock.now();
     const openLines = await this.billingRepo.findOpenInvoiceLinesForStudent(tx, p.studentId);
     const allocation = allocateFifo(
       p.amount,
@@ -277,12 +281,12 @@ export class SubmissionsRepository {
       studentId: p.studentId,
       amount: p.amount,
       method: 'bank',
-      paidAt: new Date(),
+      paidAt: now,
       receivedBy: p.userId,
       submissionId: p.submissionId,
     });
 
-    const receiptNumber = await this.billingRepo.getNextReceiptNumber(tx, new Date().getFullYear());
+    const receiptNumber = await this.billingRepo.getNextReceiptNumber(tx, receiptYear(now));
     await this.billingRepo.insertReceipt(tx, {
       number: receiptNumber,
       paymentId: payment.id,
@@ -303,7 +307,7 @@ export class SubmissionsRepository {
         amount: -p.amount,
         refTable: 'payments',
         refId: payment.id,
-        occurredAt: new Date(),
+        occurredAt: this.clock.now(),
       },
     ]);
 

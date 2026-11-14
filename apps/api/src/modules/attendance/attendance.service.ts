@@ -8,7 +8,7 @@ import type {
   UnmarkedLessonItem,
   UnmarkedLessonsQuery,
 } from '@lg/contracts';
-import { canEditAttendance, type Clock } from '@lg/domain';
+import { canEditAttendance, type Clock, tashkentInstant } from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
@@ -16,6 +16,7 @@ import type { RequestUser } from '../auth/index.js';
 import { NotificationsService } from '../notifications/index.js';
 import { GroupScopeService } from '../org/index.js';
 import { OutboxService } from '../outbox/index.js';
+import { PermissionsService } from '../rbac/index.js';
 import { StudentScopeService } from '../students/index.js';
 import { AbsenceNoticesRepository } from './absence-notices.repository.js';
 import { AttendanceRepository, type EnrichedAttendanceRow } from './attendance.repository.js';
@@ -33,7 +34,15 @@ export class AttendanceService {
     @Inject(OutboxService) private readonly outbox: OutboxService,
     @Inject(AbsenceNoticesRepository) private readonly absenceRepo: AbsenceNoticesRepository,
     @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(PermissionsService) private readonly permissions: PermissionsService,
   ) {}
+
+  /** BR-30: o'tgan kunni tahrirlash — `attendance.edit_past` ruxsati (rol emas: override hisobga olinadi). */
+  private async canEditPast(user: RequestUser): Promise<boolean> {
+    return (await this.permissions.forUser(user.id, user.role, user.pv)).has(
+      'attendance.edit_past',
+    );
+  }
 
   /** Dars davomati ma'lumotlari va kutilayotgan o'quvchilar ro'yxati (FR-ATT-1). */
   async getLessonAttendance(user: RequestUser, lessonId: string): Promise<LessonAttendance> {
@@ -43,7 +52,7 @@ export class AttendanceService {
     await this.assertCanViewLesson(user, lesson);
 
     const now = this.clock.now();
-    const hasEditPast = user.role === 'admin' || user.role === 'director';
+    const hasEditPast = await this.canEditPast(user);
     const policy = canEditAttendance({
       lessonDate: lesson.date,
       userRole: user.role,
@@ -131,7 +140,7 @@ export class AttendanceService {
     input: MarkAttendanceInput,
     now: Date,
   ) {
-    const hasEditPast = user.role === 'admin' || user.role === 'director';
+    const hasEditPast = await this.canEditPast(user);
     const policy = canEditAttendance({
       lessonDate: lesson.date,
       userRole: user.role,
@@ -239,7 +248,7 @@ export class AttendanceService {
     const items: UnmarkedLessonItem[] = [];
 
     for (const r of rows) {
-      const lessonStartTime = new Date(`${r.date}T${r.startTime}`);
+      const lessonStartTime = tashkentInstant(r.date, r.startTime);
       const minutesPassed = Math.floor((now.getTime() - lessonStartTime.getTime()) / 60000);
 
       if (minutesPassed > 0) {
@@ -263,7 +272,7 @@ export class AttendanceService {
 
   async sendAttendanceReminders(): Promise<{ teacherReminders: number; adminReminders: number }> {
     const now = this.clock.now();
-    const today = now.toISOString().slice(0, 10);
+    const today = this.clock.today();
     const unmarked = await this.repo.findUnmarkedLessons({ date: today });
 
     let teacherReminders = 0;
@@ -271,7 +280,7 @@ export class AttendanceService {
     const admins = await this.repo.findAdminUsers();
 
     for (const lesson of unmarked) {
-      const lessonStartTime = new Date(`${lesson.date}T${lesson.startTime}`);
+      const lessonStartTime = tashkentInstant(lesson.date, lesson.startTime);
       const minutesPassed = Math.floor((now.getTime() - lessonStartTime.getTime()) / 60000);
 
       if (lesson.teacherId && minutesPassed >= 30 && minutesPassed < 120) {

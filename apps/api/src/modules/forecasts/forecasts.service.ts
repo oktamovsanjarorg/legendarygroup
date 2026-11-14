@@ -6,13 +6,22 @@ import {
   type GroupOccupancyResponse,
   type RevenueForecastResponse,
 } from '@lg/contracts';
-import { calculateChurnScore, calculateGroupOccupancy, calculateRevenueForecast } from '@lg/domain';
+import {
+  calculateChurnScore,
+  calculateGroupOccupancy,
+  calculateRevenueForecast,
+  type Clock,
+} from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import type { RequestUser } from '../auth/index.js';
 import { ForecastsRepository } from './forecasts.repository.js';
 
 @Injectable()
 export class ForecastsService {
-  constructor(@Inject(ForecastsRepository) private readonly repo: ForecastsRepository) {}
+  constructor(
+    @Inject(ForecastsRepository) private readonly repo: ForecastsRepository,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+  ) {}
 
   private resolveBranchId(actor: RequestUser, branchId?: string): string {
     return branchId ?? DEFAULT_BRANCH_ID;
@@ -24,7 +33,7 @@ export class ForecastsService {
     branchId?: string,
   ): Promise<RevenueForecastResponse> {
     const targetBranch = this.resolveBranchId(actor, branchId);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = this.clock.today();
 
     const { count, totalValue } = await this.repo.getActiveEnrollmentsMonthlyTotal(
       targetBranch,
@@ -59,7 +68,7 @@ export class ForecastsService {
   /** 2. Ketish xavfi (churn risk) hisoboti (BR-36) */
   async getChurnRiskReport(actor: RequestUser, branchId?: string): Promise<ChurnRiskResponse> {
     const targetBranch = this.resolveBranchId(actor, branchId);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = this.clock.today();
 
     const rawInputs = await this.repo.getStudentsChurnInputs(targetBranch, today);
     const calculatedItems = rawInputs.map((input) => {
@@ -97,7 +106,7 @@ export class ForecastsService {
     branchId?: string,
   ): Promise<GroupOccupancyResponse> {
     const targetBranch = this.resolveBranchId(actor, branchId);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = this.clock.today();
     const groupsList = await this.repo.getGroupOccupancies(targetBranch, today);
 
     const items = groupsList.map((g) => {

@@ -10,11 +10,16 @@ import {
   seed,
 } from '@lg/db';
 import { eq, and, like } from 'drizzle-orm';
+import { addDays, formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { AttendanceNoticeProcessor } from './attendance-notice.processor.js';
 import { AttendanceNoticeService } from './attendance-notice.service.js';
+
+/** Sanalar real soatdan (Toshkent): qattiq sana ertasi kuni testni yiqitadi. */
+const TODAY = formatDateToYmd(new Date());
+const START = addDays(TODAY, -14);
 
 let t: TestApp;
 let db: Database;
@@ -67,7 +72,7 @@ beforeAll(async () => {
     roomId,
     name: 'SAT-M1',
     maxStudents: 20,
-    startDate: '2026-11-01',
+    startDate: START,
     monthlyPrice: '800000',
     teachers: [{ teacherId: teacherUserId, role: 'main' }],
   });
@@ -93,7 +98,7 @@ beforeAll(async () => {
   await call('POST', 'enrollments', adminToken, {
     studentId,
     groupId,
-    startDate: '2026-11-01',
+    startDate: START,
   });
 
   // Bugungi dars yaratamiz
@@ -101,7 +106,7 @@ beforeAll(async () => {
     .insert(lessons)
     .values({
       groupId,
-      date: '2026-11-13',
+      date: TODAY,
       startTime: '10:00',
       endTime: '11:30',
       roomId,
@@ -207,7 +212,7 @@ describe('T-113: "Kelmadi/kech qoldi" xabari ota-onaga (FR-ATT-3, BR-31, BR-10)'
       .insert(lessons)
       .values({
         groupId,
-        date: '2026-11-13',
+        date: TODAY,
         startTime: '12:00',
         endTime: '13:30',
         status: 'scheduled',
@@ -242,7 +247,7 @@ describe('T-113: "Kelmadi/kech qoldi" xabari ota-onaga (FR-ATT-3, BR-31, BR-10)'
       .insert(lessons)
       .values({
         groupId,
-        date: '2026-11-13',
+        date: TODAY,
         startTime: '14:00',
         endTime: '15:30',
         status: 'scheduled',

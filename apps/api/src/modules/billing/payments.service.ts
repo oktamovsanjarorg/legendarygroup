@@ -15,6 +15,7 @@ import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { StudentScopeService } from '../students/index.js';
 import { BillingRepository } from './billing.repository.js';
+import { receiptYear } from './receipt-year.js';
 
 interface PaymentTxParams {
   input: CreatePaymentInput;
@@ -117,7 +118,7 @@ export class PaymentsService {
       },
     ]);
 
-    const year = p.paidAt.getUTCFullYear();
+    const year = receiptYear(p.paidAt);
     const num = await this.repo.getNextReceiptNumber(tx, year);
     const verifyToken = randomBytes(16).toString('hex');
     await this.repo.insertReceipt(tx, { number: num, paymentId: paymentRow.id, verifyToken });

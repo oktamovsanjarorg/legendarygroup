@@ -12,6 +12,7 @@ import {
   students,
   users,
 } from '@lg/db';
+import { tashkentDayRange, tashkentMonthRange } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, eq, gte, isNotNull, isNull, lt, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
@@ -61,8 +62,7 @@ export class DashboardRepository {
   }
 
   async getDayRevenue(branchId: string, ymd: string): Promise<bigint> {
-    const start = new Date(`${ymd}T00:00:00.000Z`);
-    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    const { start, end } = tashkentDayRange(ymd);
     const [row] = await this.db
       .select({ total: sql<bigint>`coalesce(sum(${payments.amount}), 0)` })
       .from(payments)
@@ -84,8 +84,7 @@ export class DashboardRepository {
     return rows.reduce((sum, r) => sum + BigInt(r.debt), 0n);
   }
 
-  async getActiveStudentsCount(branchId: string): Promise<number> {
-    const todayYmd = new Date().toISOString().slice(0, 10);
+  async getActiveStudentsCount(branchId: string, todayYmd: string): Promise<number> {
     const [row] = await this.db
       .select({ count: sql<number>`count(distinct ${enrollments.studentId})` })
       .from(enrollments)
@@ -210,11 +209,6 @@ export class DashboardRepository {
   }
 
   private getMonthRange(year: number, month: number): { start: Date; end: Date } {
-    const nextYear = month === 12 ? year + 1 : year;
-    const nextMonth = month === 12 ? 1 : month + 1;
-    return {
-      start: new Date(`${year}-${String(month).padStart(2, '0')}-01T00:00:00.000Z`),
-      end: new Date(`${nextYear}-${String(nextMonth).padStart(2, '0')}-01T00:00:00.000Z`),
-    };
+    return tashkentMonthRange(`${year}-${String(month).padStart(2, '0')}`);
   }
 }

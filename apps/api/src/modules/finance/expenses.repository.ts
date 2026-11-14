@@ -6,6 +6,7 @@ import {
   payments,
   payrollRuns,
 } from '@lg/db';
+import { tashkentMonthRange } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
 import { and, desc, eq, gte, lt, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
@@ -90,14 +91,7 @@ export class ExpensesRepository {
     branchId: string,
     period: string,
   ): Promise<{ method: string; amount: bigint }[]> {
-    const start = new Date(`${period}-01T00:00:00.000Z`);
-    // Keyingi oy boshigacha
-    const [yearStr, monthStr] = period.split('-');
-    const year = Number(yearStr);
-    const month = Number(monthStr);
-    const nextYear = month === 12 ? year + 1 : year;
-    const nextMonth = month === 12 ? 1 : month + 1;
-    const end = new Date(`${nextYear}-${String(nextMonth).padStart(2, '0')}-01T00:00:00.000Z`);
+    const { start, end } = tashkentMonthRange(period);
 
     const rows = await this.db
       .select({
