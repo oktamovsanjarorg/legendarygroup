@@ -7,7 +7,13 @@ import {
 import { AppLayout, ForbiddenPage } from './layout.js';
 import { HomePage } from './pages/home.js';
 import { SettingsPage } from './pages/settings.js';
-import { StaffApprovalsPage, StaffQueuePage, StaffSearchPage } from './pages/tab-pages.js';
+import {
+  StaffApprovalPage,
+  StaffApprovalsPage,
+  StaffQueuePage,
+  StaffSearchPage,
+  StaffStudentPage,
+} from './pages/staff.js';
 import { GuardianMorePage, GuardianPaymentsPage, GuardianResultsPage } from './pages/guardian.js';
 import {
   GuardianAbsencePage,
@@ -136,6 +142,17 @@ const guardianTickets = createRoute({
   component: GuardianTicketsPage,
 });
 
+const staffApproval = createRoute({
+  getParentRoute: () => root,
+  path: '/staff/approvals/$id',
+  component: StaffApprovalPage,
+});
+const staffStudent = createRoute({
+  getParentRoute: () => root,
+  path: '/staff/student/$id',
+  component: StaffStudentPage,
+});
+
 const routeTree = root.addChildren([
   home,
   settings,
@@ -158,6 +175,8 @@ const routeTree = root.addChildren([
   staffQueue,
   staffApprovals,
   staffSearch,
+  staffApproval,
+  staffStudent,
 ]);
 
 /**

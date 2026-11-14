@@ -1,7 +1,7 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { useMe } from '../session/session.js';
 import { GuardianHomePage } from './guardian.js';
-import { StaffDashboardPage } from './tab-pages.js';
+import { StaffDashboardPage } from './staff.js';
 import { TeacherTodayPage } from './teacher.js';
 
 /** Bosh sahifa: rolga mos boshlang'ich ekran va salomlashish (T-114, T-116, T-120). */

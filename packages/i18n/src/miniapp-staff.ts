@@ -53,6 +53,13 @@ export const staffMessages = {
     reject: 'Rad etish',
     rejectComment: 'Izoh (soʻrovchiga koʻrinadi)',
     empty: 'Kutilayotgan soʻrov yoʻq',
+    fields: { percent: 'Chegirma', amount: 'Summa', status: 'Yangi holat' },
+    attendance: {
+      attended: 'Keldi',
+      late: 'Kech qoldi',
+      excused: 'Sababli',
+      unexcused: 'Kelmadi',
+    },
   },
   search: {
     title: 'Qidiruv',
@@ -67,5 +74,6 @@ export const staffMessages = {
     parents: 'Ota-onalar',
     call: 'Qoʻngʻiroq',
     noTelegram: 'Botga ulanmagan',
+    relations: { father: 'Otasi', mother: 'Onasi', guardian: 'Vasiysi', other: 'Boshqa' },
   },
 } as const;
