@@ -9,6 +9,7 @@ import {
 import { Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router';
 import { useMe } from './session/session.js';
 import { tabsFor } from './tabs.js';
+import { useAttendanceQueueFlush } from './data/attendance.js';
 import { useOnline } from './use-online.js';
 
 /**
@@ -18,6 +19,7 @@ import { useOnline } from './use-online.js';
 export function AppLayout() {
   const me = useMe();
   const online = useOnline();
+  useAttendanceQueueFlush();
   const router = useRouter();
   const navigate = useNavigate();
   const h = useHaptic();
