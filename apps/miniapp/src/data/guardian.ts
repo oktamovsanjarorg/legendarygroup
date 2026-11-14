@@ -5,6 +5,7 @@ import type {
   PaymentDetail,
   StudentLedgerSummary,
   StudentListRow,
+  StudentProgressResponse,
 } from '@lg/contracts';
 import type { ApiClient } from '@lg/ui-core';
 import { useQuery } from '@tanstack/react-query';
@@ -16,6 +17,8 @@ import {
   paidAmount,
   paymentRows,
 } from './guardian-map.js';
+import { childResults, type GuardianGradesHistory } from './results-map.js';
+import { monthStart } from './student-map.js';
 import { addDays } from './time.js';
 
 /** Ota-ona ekranlari (T-116). Scope serverda: faqat o'z farzandlari (02 §3, 404). */
@@ -95,6 +98,31 @@ export function useChildPayments(studentId: string | undefined) {
         invoices: invoiceRows(invoices, (i) => paidAmount(i, detail.get(i.id), payments), today),
         payments: paymentRows(payments),
       };
+    },
+  });
+}
+
+/** MG-02 natijalar: shu oy davomati, baholar, izohlar (faqat ota-onaga), testlar, progress. */
+export function useChildResults(studentId: string | undefined) {
+  const api = useApi();
+  const today = useClock().today();
+  return useQuery({
+    queryKey: ['guardian', 'results', studentId, today],
+    enabled: studentId !== undefined,
+    queryFn: async () => {
+      const id = studentId ?? '';
+      const from = monthStart(addDays(today, -62));
+      const [attendance, history, progress] = await Promise.all([
+        api.request<AttendanceRow[]>(
+          `/attendance/history?studentId=${id}&from=${monthStart(today)}&to=${today}`,
+        ),
+        api.request<GuardianGradesHistory>(
+          `/grades/history?studentId=${id}&from=${from}&to=${today}`,
+        ),
+        // Guruhga yozilmagan bo'lsa server 404 beradi — natijalar baribir ko'rsatiladi.
+        api.request<StudentProgressResponse>(`/grades/students/${id}/progress`).catch(() => null),
+      ]);
+      return childResults({ today, attendance, history, progress });
     },
   });
 }

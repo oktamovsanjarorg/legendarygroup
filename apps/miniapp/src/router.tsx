@@ -7,13 +7,8 @@ import {
 import { AppLayout, ForbiddenPage } from './layout.js';
 import { HomePage } from './pages/home.js';
 import { SettingsPage } from './pages/settings.js';
-import {
-  GuardianResultsPage,
-  StaffApprovalsPage,
-  StaffQueuePage,
-  StaffSearchPage,
-} from './pages/tab-pages.js';
-import { GuardianMorePage, GuardianPaymentsPage } from './pages/guardian.js';
+import { StaffApprovalsPage, StaffQueuePage, StaffSearchPage } from './pages/tab-pages.js';
+import { GuardianMorePage, GuardianPaymentsPage, GuardianResultsPage } from './pages/guardian.js';
 import { LessonAttendancePage } from './pages/lesson.js';
 import { TeacherCommentPage, TeacherStudentPage } from './pages/student.js';
 import {

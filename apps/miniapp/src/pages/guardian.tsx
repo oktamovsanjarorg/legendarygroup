@@ -1,11 +1,17 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { useNavigate } from '@tanstack/react-router';
-import { useChildPayments, useChildren, useChildSummaries } from '../data/guardian.js';
+import {
+  useChildPayments,
+  useChildResults,
+  useChildren,
+  useChildSummaries,
+} from '../data/guardian.js';
 import { QueryView } from '../data/query-view.js';
 import { useSelectedChild } from '../data/selected-child.js';
 import { GuardianHomeView } from '../screens/guardian/home.js';
 import { MoreView } from '../screens/guardian/more.js';
 import { PaymentsView } from '../screens/guardian/payments.js';
+import { ResultsView } from '../screens/guardian/results.js';
 
 /** Ota-ona tablari (T-116) — haqiqiy API, faqat o'z farzandlari (server scope). */
 export function GuardianHomePage() {
@@ -54,6 +60,32 @@ export function GuardianPaymentsPage() {
               payments={d.payments}
               onPay={() => undefined}
               onReceipt={() => undefined}
+            />
+          )}
+        </QueryView>
+      )}
+    </QueryView>
+  );
+}
+
+export function GuardianResultsPage() {
+  const children = useChildren();
+  const [childId, setChildId] = useSelectedChild(children.data?.map((c) => c.id) ?? []);
+  const results = useChildResults(childId);
+  return (
+    <QueryView
+      query={children}
+      empty={{ when: (c) => c.length === 0, title: t.childHome.empty, hint: t.childHome.emptyHint }}
+    >
+      {(list) => (
+        <QueryView query={results}>
+          {(data) => (
+            <ResultsView
+              childTabs={list.map((c) => ({ id: c.id, name: c.fullName }))}
+              selected={childId ?? ''}
+              onSelect={setChildId}
+              data={data}
+              onTest={() => undefined}
             />
           )}
         </QueryView>
