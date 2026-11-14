@@ -1,31 +1,26 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   type Database,
-  enrollments,
-  groups,
-  guardians,
   type NewPaymentSubmissionRow,
   paymentSubmissions,
   type PaymentSubmissionRow,
-  receipts,
-  students,
   type Transaction,
 } from '@lg/db';
 import { allocateFifo, type Clock } from '@lg/domain';
-import { and, desc, eq, gte, inArray, isNull } from 'drizzle-orm';
+import { and, eq, gte, inArray } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { receiptYear } from './receipt-year.js';
+import {
+  type EnrichedSubmissionRow,
+  findEnrichedSubmissionById,
+  findGuardianSubmissions,
+  findSubmissionsQueue,
+} from './submissions.queries.js';
 
-export interface EnrichedSubmissionRow extends PaymentSubmissionRow {
-  studentName: string;
-  studentCode: number;
-  groupName: string;
-  guardianName: string;
-  receiptNumber?: string;
-}
+export type { EnrichedSubmissionRow };
 
 @Injectable()
 export class SubmissionsRepository {
@@ -51,90 +46,15 @@ export class SubmissionsRepository {
   }
 
   async findEnrichedById(id: string): Promise<EnrichedSubmissionRow | null> {
-    const [row] = await this.db
-      .select({
-        submission: paymentSubmissions,
-        studentName: students.fullName,
-        studentCode: students.code,
-        guardianName: guardians.fullName,
-      })
-      .from(paymentSubmissions)
-      .innerJoin(students, eq(students.id, paymentSubmissions.studentId))
-      .innerJoin(guardians, eq(guardians.id, paymentSubmissions.guardianId))
-      .where(eq(paymentSubmissions.id, id));
-    if (!row) return null;
-
-    const [enroll] = await this.db
-      .select({ groupName: groups.name })
-      .from(enrollments)
-      .innerJoin(groups, eq(groups.id, enrollments.groupId))
-      .where(and(eq(enrollments.studentId, row.submission.studentId), isNull(enrollments.endDate)))
-      .limit(1);
-
-    let receiptNumber: string | undefined;
-    if (row.submission.paymentId) {
-      const [rc] = await this.db
-        .select({ number: receipts.number })
-        .from(receipts)
-        .where(eq(receipts.paymentId, row.submission.paymentId));
-      receiptNumber = rc?.number;
-    }
-
-    return {
-      ...row.submission,
-      studentName: row.studentName,
-      studentCode: Number(row.studentCode),
-      groupName: enroll?.groupName ?? '—',
-      guardianName: row.guardianName,
-      receiptNumber,
-    };
+    return findEnrichedSubmissionById(this.db, id);
   }
 
   async findSubmissionsByGuardian(guardianId: string): Promise<EnrichedSubmissionRow[]> {
-    const rows = await this.db
-      .select({
-        submission: paymentSubmissions,
-        studentName: students.fullName,
-        studentCode: students.code,
-        guardianName: guardians.fullName,
-      })
-      .from(paymentSubmissions)
-      .innerJoin(students, eq(students.id, paymentSubmissions.studentId))
-      .innerJoin(guardians, eq(guardians.id, paymentSubmissions.guardianId))
-      .where(eq(paymentSubmissions.guardianId, guardianId))
-      .orderBy(desc(paymentSubmissions.createdAt));
-
-    return rows.map((r) => ({
-      ...r.submission,
-      studentName: r.studentName,
-      studentCode: Number(r.studentCode),
-      groupName: '—',
-      guardianName: r.guardianName,
-    }));
+    return findGuardianSubmissions(this.db, guardianId);
   }
 
   async findQueue(status?: PaymentSubmissionRow['status']): Promise<EnrichedSubmissionRow[]> {
-    const cond = status ? eq(paymentSubmissions.status, status) : undefined;
-    const rows = await this.db
-      .select({
-        submission: paymentSubmissions,
-        studentName: students.fullName,
-        studentCode: students.code,
-        guardianName: guardians.fullName,
-      })
-      .from(paymentSubmissions)
-      .innerJoin(students, eq(students.id, paymentSubmissions.studentId))
-      .innerJoin(guardians, eq(guardians.id, paymentSubmissions.guardianId))
-      .where(cond)
-      .orderBy(desc(paymentSubmissions.createdAt));
-
-    return rows.map((r) => ({
-      ...r.submission,
-      studentName: r.studentName,
-      studentCode: Number(r.studentCode),
-      groupName: '—',
-      guardianName: r.guardianName,
-    }));
+    return findSubmissionsQueue(this.db, status);
   }
 
   async lockSubmission(
