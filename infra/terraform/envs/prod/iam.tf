@@ -96,7 +96,11 @@ data "aws_iam_policy_document" "deploy_assume" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:environment:production"]
+      # GitHub 2025-yildan yangi repolarda o'zgarmas sub beradi (owner@id/repo@id) — ikkalasi ham.
+      values = [
+        "repo:${var.github_repo}:environment:production",
+        "repo:${var.github_repo_immutable}:environment:production",
+      ]
     }
   }
 }

@@ -8,6 +8,12 @@ variable "app_domain" {
   type        = string
 }
 
+variable "github_repo_immutable" {
+  description = "OIDC o'zgarmas sub prefiksi (gh api repos/<repo>/actions/oidc/customization/sub)"
+  type        = string
+  default     = "oktamovsanjarorg@323713931/legendarygroup@1452983205"
+}
+
 variable "github_repo" {
   description = "Deploy roli faqat shu repodan (OIDC): owner/repo"
   type        = string
