@@ -11,7 +11,7 @@ import {
   studentGuardians,
   students,
 } from '@lg/db';
-import { and, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface RawStudentChurnData {
@@ -236,7 +236,7 @@ export class ForecastsRepository {
   async getActualChurnCount(
     branchId: string,
     monthStart: string,
-    monthEnd: string,
+    endExclusive: string,
   ): Promise<number> {
     const rows = await this.db
       .select({ count: sql<number>`count(distinct ${enrollments.studentId})::int` })
@@ -247,7 +247,7 @@ export class ForecastsRepository {
           eq(groups.branchId, branchId),
           sql`${enrollments.endDate} IS NOT NULL`,
           gte(enrollments.endDate, monthStart),
-          lte(enrollments.endDate, monthEnd),
+          lt(enrollments.endDate, endExclusive),
         ),
       );
     return Number(rows[0]?.count ?? 0);

@@ -15,6 +15,7 @@ import {
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import type { RequestUser } from '../auth/index.js';
 import { ForecastsRepository } from './forecasts.repository.js';
+import { prevMonthRange } from './prev-month.js';
 
 @Injectable()
 export class ForecastsService {
@@ -146,14 +147,9 @@ export class ForecastsService {
   /** 4. Tarixiy backtest hisoboti (BR-36 churn modeli asosida) */
   async getBacktestReport(actor: RequestUser, branchId?: string): Promise<BacktestReportResponse> {
     const targetBranch = this.resolveBranchId(actor, branchId);
-    const today = this.clock.today();
-    const prevMonthDate = new Date();
-    prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
-    const prevMonthStr = prevMonthDate.toISOString().slice(0, 7);
-    const monthStart = `${prevMonthStr}-01`;
-    const monthEnd = `${prevMonthStr}-31`;
-
-    const churnInputs = await this.repo.getStudentsChurnInputs(targetBranch, today);
+    const prev = prevMonthRange(this.clock.today());
+    // Backtest: prognoz o'tgan oy BOSHIDAGI holat bo'yicha, natija — o'sha oyda ketganlar.
+    const churnInputs = await this.repo.getStudentsChurnInputs(targetBranch, prev.start);
     const predictedChurnCount = churnInputs.filter((input) => {
       const res = calculateChurnScore({
         attendanceDropPercent: input.attendanceDropPercent,
@@ -166,12 +162,12 @@ export class ForecastsService {
 
     const actualChurnCount = await this.repo.getActualChurnCount(
       targetBranch,
-      monthStart,
-      monthEnd,
+      prev.start,
+      prev.endExclusive,
     );
 
     return {
-      period: prevMonthStr,
+      period: prev.period,
       predictedRevenue: '12500000',
       actualRevenue: '12100000',
       errorPercentage: 3.2,

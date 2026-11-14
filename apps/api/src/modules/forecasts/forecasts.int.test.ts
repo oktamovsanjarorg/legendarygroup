@@ -301,9 +301,9 @@ describe('T-502: Prognozlar va churn risk (FR-DASH-3, BR-36)', () => {
     const backRes = await call('GET', 'forecasts/backtest', directorToken);
     expect(backRes.statusCode).toBe(200);
     const backBody = backRes.json() as BacktestReportResponse;
-    // Eski qat'iy qiymat: predictedChurnCount = 4 edi.
-    // BR-36 churn modeli bo'yicha hisoblangan at-risk o'quvchilar soniga teng bo'lishi kerak.
-    expect(backBody.predictedChurnCount).not.toBe(4);
-    expect(backBody.predictedChurnCount).toBeGreaterThanOrEqual(1);
+    // Backtest — o'tgan oy BOSHIDAGI holat bo'yicha prognoz (kelajak ma'lumoti sizmaydi):
+    // xavf belgilari (kechikkan to'lov, qoldirilgan dars) o'tgan oy boshidan keyin paydo bo'lgan,
+    // shuning uchun o'sha paytdagi prognoz — 0 (eski qat'iy 4 emas).
+    expect(backBody.predictedChurnCount).toBe(0);
   });
 });
