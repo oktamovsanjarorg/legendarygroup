@@ -14,11 +14,10 @@ import {
   StaffApprovalsPage,
   StaffQueuePage,
   StaffSearchPage,
-  TeacherGroupsPage,
   TeacherProfilePage,
-  TeacherSchedulePage,
 } from './pages/tab-pages.js';
 import { LessonAttendancePage } from './pages/lesson.js';
+import { TeacherGroupPage, TeacherGroupsPage, TeacherSchedulePage } from './pages/teacher.js';
 
 const root = createRootRoute({ component: AppLayout, notFoundComponent: ForbiddenPage });
 const home = createRoute({ getParentRoute: () => root, path: '/', component: HomePage });
@@ -48,6 +47,11 @@ const teacherLesson = createRoute({
   getParentRoute: () => root,
   path: '/lesson/$id',
   component: LessonAttendancePage,
+});
+const teacherGroup = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$id',
+  component: TeacherGroupPage,
 });
 const teacherProfile = createRoute({
   getParentRoute: () => root,
@@ -96,6 +100,7 @@ const routeTree = root.addChildren([
   teacherGroups,
   teacherSchedule,
   teacherLesson,
+  teacherGroup,
   teacherProfile,
   guardianResults,
   guardianPayments,
