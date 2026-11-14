@@ -1,12 +1,15 @@
 import { PhoneSchema } from '@lg/contracts';
 import { auditLogs, type Database, roles, staffInvites, userRoles, users } from '@lg/db';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull, ne } from 'drizzle-orm';
 import { randomToken, sha256 } from '../auth/index.js';
 
 export const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
 
 export class FirstDirectorError extends Error {
-  constructor(readonly code: 'DIRECTOR_EXISTS' | 'PHONE_TAKEN' | 'INVALID_INPUT' | 'NOT_SEEDED') {
+  constructor(
+    readonly code:
+      'DIRECTOR_EXISTS' | 'PHONE_TAKEN' | 'INVALID_INPUT' | 'NOT_SEEDED' | 'NO_PENDING_DIRECTOR',
+  ) {
     super(code);
   }
 }
@@ -63,5 +66,61 @@ export async function createFirstDirector(
       at: now,
     });
     return { userId: user.id, token, expiresAt };
+  });
+}
+
+/**
+ * Hali faollashmagan (paroli yo'q) Director uchun taklifni qayta berish (T-008): telefon/ism
+ * tuzatiladi, eski ishlatilmagan takliflar bekor qilinadi (`used_at`), yangi 24 soatlik taklif.
+ * Faollashgan Director'ga tegmaydi — u o'zi web panelda (Xodimlar) boshqaradi. Audit bilan.
+ */
+export async function reissueDirectorInvite(
+  db: Database,
+  input: { phone: string; fullName: string },
+  now: Date,
+): Promise<{ userId: string; token: string; expiresAt: Date }> {
+  const phone = PhoneSchema.safeParse(input.phone);
+  const fullName = input.fullName.trim();
+  if (!phone.success || fullName.length < 2) throw new FirstDirectorError('INVALID_INPUT');
+  return db.transaction(async (tx) => {
+    const [pending] = await tx
+      .select({ id: users.id, fullName: users.fullName })
+      .from(userRoles)
+      .innerJoin(users, eq(users.id, userRoles.userId))
+      .innerJoin(roles, eq(roles.id, userRoles.roleId))
+      .where(
+        and(eq(roles.code, 'director'), eq(users.status, 'active'), isNull(users.passwordHash)),
+      )
+      .limit(1)
+      .for('update');
+    if (!pending) throw new FirstDirectorError('NO_PENDING_DIRECTOR');
+    const [taken] = await tx
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.phone, phone.data), ne(users.id, pending.id)));
+    if (taken) throw new FirstDirectorError('PHONE_TAKEN');
+
+    await tx
+      .update(users)
+      .set({ phone: phone.data, fullName, updatedAt: now })
+      .where(eq(users.id, pending.id));
+    await tx
+      .update(staffInvites)
+      .set({ usedAt: now })
+      .where(and(eq(staffInvites.userId, pending.id), isNull(staffInvites.usedAt)));
+    const token = randomToken();
+    const expiresAt = new Date(now.getTime() + INVITE_TTL_MS);
+    await tx
+      .insert(staffInvites)
+      .values({ userId: pending.id, tokenHash: sha256(token), expiresAt });
+    await tx.insert(auditLogs).values({
+      action: 'user.first_director_reinvited',
+      entity: 'user',
+      entityId: pending.id,
+      before: { fullName: pending.fullName },
+      after: { fullName, phoneChanged: true },
+      at: now,
+    });
+    return { userId: pending.id, token, expiresAt };
   });
 }
