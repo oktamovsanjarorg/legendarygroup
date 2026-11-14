@@ -27,6 +27,16 @@ export interface NotifyParams {
   branchId?: string;
 }
 
+/** Telegram Markdown formatida maxsus belgilarni tozalaydi */
+export function escapeTelegramMarkdown(str: string): string {
+  return str
+    .replaceAll('\\', '\\\\')
+    .replaceAll('_', '\\_')
+    .replaceAll('*', '\\*')
+    .replaceAll('`', '\\`')
+    .replaceAll('[', '\\[');
+}
+
 @Injectable()
 export class NotificationsService {
   constructor(
@@ -48,7 +58,9 @@ export class NotificationsService {
     const recipient = user.telegramId ? user.telegramId.toString() : user.phone;
     const branchId = params.branchId ?? DEFAULT_BRANCH_ID;
     const rendered = renderNotificationTemplate(params.type, params.payload);
-    const text = rendered.title ? `*${rendered.title}*\n\n${rendered.body}` : rendered.body;
+    const safeTitle = rendered.title ? escapeTelegramMarkdown(rendered.title) : '';
+    const safeBody = escapeTelegramMarkdown(rendered.body);
+    const text = safeTitle ? `*${safeTitle}*\n\n${safeBody}` : safeBody;
 
     const notif = await this.repo.createNotification({
       branchId,
@@ -150,7 +162,9 @@ export class NotificationsService {
       notif.type as NotificationType,
       notif.payload as Record<string, unknown>,
     );
-    const text = rendered.title ? `*${rendered.title}*\n\n${rendered.body}` : rendered.body;
+    const safeTitle = rendered.title ? escapeTelegramMarkdown(rendered.title) : '';
+    const safeBody = escapeTelegramMarkdown(rendered.body);
+    const text = safeTitle ? `*${safeTitle}*\n\n${safeBody}` : safeBody;
 
     await this.telegramOutbox.enqueue({
       method: 'sendMessage',

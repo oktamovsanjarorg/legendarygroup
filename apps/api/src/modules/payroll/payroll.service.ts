@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { uuidv7 } from 'uuidv7';
 import type { RequestUser } from '../auth/index.js';
+import { PermissionsService } from '../rbac/index.js';
 import { buildPayrollRunDetail, mapContractRow } from './payroll.mappers.js';
 import { PayrollRepository } from './payroll.repository.js';
 import { PayrollGenerator } from './payroll-generator.js';
@@ -24,6 +25,7 @@ export class PayrollService {
   constructor(
     @Inject(PayrollRepository) private readonly repo: PayrollRepository,
     @Inject(PayrollGenerator) private readonly generator: PayrollGenerator,
+    @Inject(PermissionsService) private readonly permissions: PermissionsService,
   ) {}
 
   async createContract(
@@ -140,17 +142,16 @@ export class PayrollService {
   }
 
   async getPayrollRun(actor: RequestUser, runId: string): Promise<PayrollRunDetail> {
-    if (actor.role !== 'director' && actor.role !== 'teacher') {
+    const userPerms = await this.permissions.forUser(actor.id, actor.role, actor.pv);
+    const canManage = userPerms.has('payroll.manage');
+    if (!canManage && actor.role !== 'teacher') {
       throw new ForbiddenException();
     }
     const run = await this.repo.findPayrollRunById(runId);
     if (!run) throw new NotFoundException({ code: 'PAYROLL_RUN_NOT_FOUND' });
 
     const rawItems = await this.repo.findPayrollItems(runId);
-    let items = rawItems;
-    if (actor.role === 'teacher') {
-      items = rawItems.filter((i) => i.teacherId === actor.id);
-    }
+    const items = canManage ? rawItems : rawItems.filter((i) => i.teacherId === actor.id);
 
     return buildPayrollRunDetail(run, items);
   }

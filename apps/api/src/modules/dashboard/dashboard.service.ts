@@ -5,7 +5,7 @@ import {
   calculatePercentageChange,
   type Clock,
 } from '@lg/domain';
-import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Redis } from 'ioredis';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { REDIS_TOKEN } from '../../common/redis/redis.tokens.js';
@@ -28,9 +28,6 @@ export class DashboardService {
     branchId: string,
     forcedRefresh = false,
   ): Promise<DirectorDashboardKpi> {
-    if (_actor.role !== 'director' && _actor.role !== 'admin') {
-      throw new ForbiddenException({ code: 'FORBIDDEN' });
-    }
     const cacheKey = `dashboard:director:${branchId}`;
 
     if (!forcedRefresh) {

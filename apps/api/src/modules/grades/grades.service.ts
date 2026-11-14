@@ -145,26 +145,16 @@ export class GradesService {
     user: RequestUser,
     lesson: { groupId: string; teacherId: string | null },
   ): Promise<void> {
-    if (user.role === 'admin' || user.role === 'director') return;
-    if (user.role === 'teacher') {
-      if (lesson.teacherId === user.id) return;
-      await this.groupScope.assertVisible(user, lesson.groupId);
-      return;
-    }
-    throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+    if (lesson.teacherId === user.id) return;
+    await this.groupScope.assertVisible(user, lesson.groupId);
   }
 
   private async assertCanManageLesson(
     user: RequestUser,
     lesson: { groupId: string; teacherId: string | null },
   ): Promise<void> {
-    if (user.role === 'admin' || user.role === 'director') return;
-    if (user.role === 'teacher') {
-      if (lesson.teacherId === user.id) return;
-      await this.groupScope.assertVisible(user, lesson.groupId);
-      return;
-    }
-    throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+    if (lesson.teacherId === user.id) return;
+    await this.groupScope.assertVisible(user, lesson.groupId);
   }
 
   private serializeGrade(g: EnrichedGradeRow): GradeRecord {

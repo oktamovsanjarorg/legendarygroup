@@ -1,7 +1,5 @@
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import type {
-  AttendanceRecord,
-  AttendanceStatus,
   LessonAttendance,
   MarkAttendanceInput,
   StudentAttendanceHistoryQueryInput,
@@ -19,7 +17,8 @@ import { OutboxService } from '../outbox/index.js';
 import { PermissionsService } from '../rbac/index.js';
 import { StudentScopeService } from '../students/index.js';
 import { AbsenceNoticesRepository } from './absence-notices.repository.js';
-import { AttendanceRepository, type EnrichedAttendanceRow } from './attendance.repository.js';
+import { AttendanceRepository } from './attendance.repository.js';
+import { serializeAttendanceRecord } from './attendance.serializer.js';
 
 @Injectable()
 export class AttendanceService {
@@ -81,7 +80,7 @@ export class AttendanceService {
       teacherId: lesson.teacherId ?? '',
       teacherName: lesson.teacherName ?? '—',
       canEdit: policy.allowed,
-      records: records.map((r) => this.serializeRecord(r)),
+      records: records.map((r) => serializeAttendanceRecord(r)),
       expectedStudents: enrichedExpected,
     };
   }
@@ -194,51 +193,24 @@ export class AttendanceService {
     user: RequestUser,
     lesson: { groupId: string; teacherId: string | null },
   ): Promise<void> {
-    if (user.role === 'admin' || user.role === 'director') return;
-    if (user.role === 'teacher') {
-      if (lesson.teacherId === user.id) return;
-      await this.groupScope.assertVisible(user, lesson.groupId);
-      return;
-    }
-    throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+    if (lesson.teacherId === user.id) return;
+    await this.groupScope.assertVisible(user, lesson.groupId);
   }
 
   private async assertCanMarkLesson(
     user: RequestUser,
     lesson: { groupId: string; teacherId: string | null },
   ): Promise<void> {
-    if (user.role === 'admin' || user.role === 'director') return;
-    if (user.role === 'teacher') {
-      if (lesson.teacherId === user.id) return;
-      await this.groupScope.assertVisible(user, lesson.groupId);
-      return;
-    }
-    throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
-  }
-
-  private serializeRecord(r: EnrichedAttendanceRow): AttendanceRecord {
-    return {
-      id: r.id,
-      lessonId: r.lessonId,
-      studentId: r.studentId,
-      studentName: r.studentName,
-      studentCode: `LG-${r.studentCode}`,
-      status: r.status as AttendanceStatus,
-      lateMinutes: r.lateMinutes,
-      note: r.note,
-      markedBy: r.markedBy,
-      markedByName: r.markedByName,
-      markedAt: r.markedAt.toISOString(),
-      createdAt: r.createdAt.toISOString(),
-      updatedAt: r.updatedAt.toISOString(),
-    };
+    if (lesson.teacherId === user.id) return;
+    await this.groupScope.assertVisible(user, lesson.groupId);
   }
 
   async getUnmarkedLessons(
     user: RequestUser,
     query: UnmarkedLessonsQuery,
   ): Promise<{ items: UnmarkedLessonItem[] }> {
-    const branchId = user.role === 'admin' || user.role === 'director' ? query.branchId : undefined;
+    const isAll = this.groupScope.scopeFor(user).kind === 'all';
+    const branchId = isAll ? query.branchId : undefined;
     const rows = await this.repo.findUnmarkedLessons({
       date: query.date,
       branchId,

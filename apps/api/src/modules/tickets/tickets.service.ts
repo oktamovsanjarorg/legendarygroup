@@ -101,7 +101,12 @@ export class TicketsService {
 
     // Agar xodim javob bergan bo'lsa (author !== ticket author), ota-onaga bildirishnoma yuboriladi
     if (actor.id !== existing.ticket.authorId) {
-      await this.notifyParentOnReply(existing.ticket.authorId, existing.ticket.subject, dto.text);
+      await this.notifyParentOnReply(
+        existing.ticket.authorId,
+        existing.ticket.subject,
+        dto.text,
+        message.id,
+      );
     }
 
     return {
@@ -120,12 +125,13 @@ export class TicketsService {
     parentUserId: string,
     subject: string,
     replyText: string,
+    messageId: string,
   ): Promise<void> {
     try {
       await this.notifications.notify({
         userId: parentUserId,
         type: 'announcement',
-        dedupeKey: `ticket-reply-${Date.now()}`,
+        dedupeKey: `ticket-reply:${messageId}`,
         payload: {
           title: `Murojaatingizga javob: ${subject}`,
           message: replyText,

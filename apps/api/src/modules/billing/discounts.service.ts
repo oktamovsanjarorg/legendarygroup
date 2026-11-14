@@ -7,6 +7,7 @@ import { type AuditContext, AuditService } from '../../common/audit/audit.servic
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
+import { PermissionsService } from '../rbac/index.js';
 import { SettingsService } from '../settings/index.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { DiscountsRepository } from './discounts.repository.js';
@@ -26,6 +27,7 @@ export class DiscountsService {
     @Inject(SettingsService) private readonly settings: SettingsService,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
+    @Inject(PermissionsService) private readonly permissions: PermissionsService,
   ) {}
 
   async setEnrollmentDiscount(
@@ -41,7 +43,10 @@ export class DiscountsService {
 
     const sysSettings = await this.settings.getSettings();
     const limit = sysSettings.adminDiscountLimitPercent;
-    if (user.role !== 'director' && input.percent > limit) {
+    const canApprove = (await this.permissions.forUser(user.id, user.role, user.pv)).has(
+      'approval.decide',
+    );
+    if (!canApprove && input.percent > limit) {
       throw new AppException(
         HttpStatus.FORBIDDEN,
         'FORBIDDEN',
