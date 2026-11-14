@@ -14,10 +14,14 @@ import { type Clock, canReviewSubmission } from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import { botMessages } from '@lg/i18n';
 import type { RequestUser } from '../auth/index.js';
 import { FilesService } from '../files/index.js';
 import { StudentScopeService } from '../students/index.js';
+import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { TelegramOutbox } from '../telegram/index.js';
+import type { Database } from '@lg/db';
+import { notifyGuardian } from './submission-notify.js';
 import { type EnrichedSubmissionRow, SubmissionsRepository } from './submissions.repository.js';
 
 const BRANCH_ID = '01900000-0000-7000-8000-000000000001';
@@ -33,6 +37,7 @@ export class SubmissionsService {
     @Inject(FilesService) private readonly filesService: FilesService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(DB_TOKEN) private readonly db: Database,
     @Optional() @Inject(TelegramOutbox) private readonly telegramOutbox?: TelegramOutbox,
   ) {}
 
@@ -172,16 +177,11 @@ export class SubmissionsService {
       },
     });
 
-    if (this.telegramOutbox) {
-      await this.telegramOutbox.enqueue(
-        {
-          method: 'sendMessage',
-          chatId: row.guardianId,
-          payload: { text: `To'lovingiz tasdiqlandi. Chek raqami: ${result.receiptNumber}` },
-        },
-        { dedupeKey: `sub:confirmed:${id}` },
-      );
-    }
+    await notifyGuardian(this.db, this.telegramOutbox, {
+      guardianId: row.guardianId,
+      text: botMessages.submission.confirmed.replace('{number}', result.receiptNumber),
+      dedupeKey: `sub:confirmed:${id}`,
+    });
 
     return { success: true, paymentId: result.paymentId, receiptNumber: result.receiptNumber };
   }
@@ -222,16 +222,11 @@ export class SubmissionsService {
       after: { status: 'rejected', reason: input.reason },
     });
 
-    if (this.telegramOutbox) {
-      await this.telegramOutbox.enqueue(
-        {
-          method: 'sendMessage',
-          chatId: row.guardianId,
-          payload: { text: `To'lov chekingiz rad etildi. Sabab: ${input.reason}` },
-        },
-        { dedupeKey: `sub:rejected:${id}` },
-      );
-    }
+    await notifyGuardian(this.db, this.telegramOutbox, {
+      guardianId: row.guardianId,
+      text: botMessages.submission.rejected.replace('{reason}', input.reason),
+      dedupeKey: `sub:rejected:${id}`,
+    });
 
     return { success: true };
   }
