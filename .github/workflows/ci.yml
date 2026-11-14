@@ -103,6 +103,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Fayl testlari (T-019) — S3 o'rniga MinIO, dev bilan bir xil versiya (compose.dev.yml).
+      # Service container `server /data` buyrug'ini qabul qilmaydi — shuning uchun docker run.
+      - name: MinIO (S3) va bucket
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio:RELEASE.2025-09-07T16-13-09Z server /data
+          for _ in $(seq 1 30); do curl -fs http://localhost:9000/minio/health/ready && break; sleep 2; done
+          docker exec minio mc alias set local http://localhost:9000 minioadmin minioadmin
+          docker exec minio mc mb --ignore-existing local/lg-local-files
+
       - name: Run Integration Tests
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/legendary_test
