@@ -14,10 +14,16 @@ import {
   StaffApprovalsPage,
   StaffQueuePage,
   StaffSearchPage,
+} from './pages/tab-pages.js';
+import { LessonAttendancePage } from './pages/lesson.js';
+import { TeacherCommentPage, TeacherStudentPage } from './pages/student.js';
+import {
+  TeacherGroupPage,
   TeacherGroupsPage,
+  TeacherPayrollPage,
   TeacherProfilePage,
   TeacherSchedulePage,
-} from './pages/tab-pages.js';
+} from './pages/teacher.js';
 
 const root = createRootRoute({ component: AppLayout, notFoundComponent: ForbiddenPage });
 const home = createRoute({ getParentRoute: () => root, path: '/', component: HomePage });
@@ -43,10 +49,36 @@ const teacherSchedule = createRoute({
   path: '/schedule',
   component: TeacherSchedulePage,
 });
+const teacherLesson = createRoute({
+  getParentRoute: () => root,
+  path: '/lesson/$id',
+  component: LessonAttendancePage,
+});
+const teacherGroup = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$id',
+  component: TeacherGroupPage,
+});
+const teacherStudent = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$groupId/student/$id',
+  component: TeacherStudentPage,
+});
+const teacherComment = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$groupId/student/$id/comment/$lessonId',
+  component: TeacherCommentPage,
+});
 const teacherProfile = createRoute({
   getParentRoute: () => root,
   path: '/profile',
   component: TeacherProfilePage,
+});
+
+const teacherPayroll = createRoute({
+  getParentRoute: () => root,
+  path: '/payroll/$id',
+  component: TeacherPayrollPage,
 });
 
 // Ota-ona (guardian)
@@ -89,7 +121,12 @@ const routeTree = root.addChildren([
   forbidden,
   teacherGroups,
   teacherSchedule,
+  teacherLesson,
+  teacherGroup,
+  teacherStudent,
+  teacherComment,
   teacherProfile,
+  teacherPayroll,
   guardianResults,
   guardianPayments,
   guardianMore,

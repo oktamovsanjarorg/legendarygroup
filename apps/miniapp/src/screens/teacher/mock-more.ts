@@ -144,6 +144,7 @@ export const PAYROLL_DETAIL: PayrollDetail = {
   substituteLessons: { count: 3, amount: 450_000n },
   bonus: 150_000n,
   penalty: 300_000n,
+  advance: 0n,
   // 30% × 13 050 000 (yig'ilgan to'lovlar) = 3 915 000 = 20 × 195 750 — summa jamiga mos.
   byStudent: NAMES.map((n) => ({ name: n, amount: 195_750n })),
 };

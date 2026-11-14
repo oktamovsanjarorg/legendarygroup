@@ -168,6 +168,7 @@ export class DebtorsService {
 
   /** W-15 Qarzdorlar ro'yxati (aging, saralash, filtr). */
   async getDebtors(user: RequestUser, query: DebtorListQueryInput): Promise<DebtorListResponse> {
+    this.studentScope.assertUnrestricted(user);
     const branchId = '01900000-0000-7000-8000-000000000001';
     const all = await this.buildDebtorItems(branchId, query);
 
@@ -183,6 +184,7 @@ export class DebtorsService {
 
   /** W-15 Qarzdorlar ro'yxatini CSV ko'rinishida eksport qilish. */
   async exportDebtorsCsv(user: RequestUser, query: DebtorListQueryInput): Promise<string> {
+    this.studentScope.assertUnrestricted(user);
     const branchId = '01900000-0000-7000-8000-000000000001';
     const all = await this.buildDebtorItems(branchId, query);
 
@@ -212,6 +214,7 @@ export class DebtorsService {
 
   /** Admin orqali o'quvchiga qo'lda eslatma yuborish. */
   async sendManualReminder(user: RequestUser, studentId: string): Promise<SendReminderResponse> {
+    this.studentScope.assertUnrestricted(user);
     await this.studentScope.assertVisible(user, studentId);
 
     const branchId = '01900000-0000-7000-8000-000000000001';

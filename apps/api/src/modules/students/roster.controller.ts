@@ -3,8 +3,10 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   type EnrollmentDto,
   type GroupStudentCounts,
+  type LessonDto,
   RosterQuery,
   type RosterResult,
+  StudentLessonsQuery,
 } from '@lg/contracts';
 import type { z } from 'zod';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
@@ -27,6 +29,17 @@ export class RosterController {
     @CurrentUser() user: RequestUser,
   ): Promise<EnrollmentDto[]> {
     return this.query.forStudent(user, id);
+  }
+
+  @Get('students/:id/lessons')
+  @RequirePermission('student.view')
+  @ApiOperation({ summary: "O'quvchi darslari (yozilgan kunlari) — ota-ona jadvali, scope bilan" })
+  lessonsOf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @ZodQuery(StudentLessonsQuery) q: z.output<typeof StudentLessonsQuery>,
+    @CurrentUser() user: RequestUser,
+  ): Promise<LessonDto[]> {
+    return this.query.lessonsOf(user, id, q);
   }
 
   @Get('groups/student-counts')

@@ -85,6 +85,18 @@ export class LessonsQueryService {
     );
   }
 
+  /**
+   * Boshqa modullar uchun (o'quvchi darslari, T-116): guruhlar bo'yicha oraliqdagi darslar.
+   * Scope YO'Q — chaqiruvchi o'zi tekshiradi (masalan, `StudentScopeService.assertVisible`).
+   */
+  async byGroups(groupIds: readonly string[], from: string, to: string): Promise<LessonDto[]> {
+    if (groupIds.length === 0) return [];
+    return this.select(
+      this.db,
+      and(inArray(lessons.groupId, [...groupIds]), gte(lessons.date, from), lte(lessons.date, to)),
+    );
+  }
+
   async detail(user: RequestUser, id: string): Promise<LessonDto> {
     const [l] = await this.select(this.db, and(eq(lessons.id, id), this.scopeWhere(user)));
     if (!l) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');

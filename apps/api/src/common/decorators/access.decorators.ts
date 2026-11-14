@@ -16,3 +16,11 @@ export const RequirePermission = (...permissions: [Permission, ...Permission[]])
  * Biznes ma'lumotiga tegadigan endpoint'da ishlatilmaydi — `@RequirePermission`.
  */
 export const Authenticated = () => SetMetadata(AUTHENTICATED_KEY, true);
+
+export const CENTER_WIDE_KEY = 'lg:center-wide';
+/**
+ * Markaz bo'yicha (barcha o'quvchi/guruh) ma'lumot — faqat cheklovsiz scope'li rollar
+ * (Director, Admin). Ruxsat (masalan `stats.operational`) Ustoz va Ota-onada ham bor, lekin
+ * ular uchun "scope bilan" (02 §4 🔸) — markaz hisobotlari 403 (T-505 IDOR).
+ */
+export const CenterWide = () => SetMetadata(CENTER_WIDE_KEY, true);

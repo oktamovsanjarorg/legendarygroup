@@ -61,6 +61,8 @@ export interface PayrollDetail {
   substituteLessons: { count: number; amount: bigint };
   bonus: bigint;
   penalty: bigint;
+  /** Oldin berilgan avans — oylikdan ushlab qolinadi (BR-28). */
+  advance: bigint;
   /** Q-33: ism + summa (to'lov usulisiz). */
   byStudent: readonly { name: string; amount: bigint }[];
 }
@@ -89,16 +91,19 @@ export function PayrollDetailView({ d }: { d: PayrollDetail }) {
         )}
         {d.bonus > 0n && <ListItem title={t.payroll.bonus} after={money(d.bonus)} />}
         {d.penalty > 0n && <ListItem title={t.payroll.penalty} after={money(-d.penalty)} />}
+        {d.advance > 0n && <ListItem title={t.payroll.advance} after={money(-d.advance)} />}
         <ListItem
           title={<span className="font-semibold">{t.payroll.total}</span>}
           after={<MoneyText amount={d.month.total} className="text-base font-bold" />}
         />
       </Section>
-      <Section title={t.payroll.byStudent}>
-        {d.byStudent.map((s) => (
-          <ListItem key={s.name} title={s.name} after={money(s.amount)} />
-        ))}
-      </Section>
+      {d.byStudent.length > 0 && (
+        <Section title={t.payroll.byStudent}>
+          {d.byStudent.map((s) => (
+            <ListItem key={s.name} title={s.name} after={money(s.amount)} />
+          ))}
+        </Section>
+      )}
     </main>
   );
 }

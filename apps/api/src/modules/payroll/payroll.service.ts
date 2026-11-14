@@ -1,4 +1,5 @@
 import type {
+  OwnPayrollMonth,
   AddPayrollAdjustmentRequest,
   CreateTeacherAdvanceRequest,
   CreateTeacherContractRequest,
@@ -152,6 +153,16 @@ export class PayrollService {
       items = rawItems.filter((i) => i.teacherId === actor.id);
     }
 
-    return buildPayrollRunDetail(run, items);
+    const detail = buildPayrollRunDetail(run, items);
+    // Ustozga jami — faqat o'ziniki (boshqalar oyligi yig'indisi oshkor bo'lmaydi).
+    if (actor.role === 'teacher')
+      return { ...detail, totalAmount: detail.teachers[0]?.totalNet ?? '0' };
+    return detail;
+  }
+
+  /** Ustozning o'z oyliklari ro'yxati (payroll.view_own). */
+  async listOwnPayroll(actor: RequestUser): Promise<OwnPayrollMonth[]> {
+    const rows = await this.repo.findTeacherRuns(actor.id);
+    return rows.map((r) => ({ ...r, totalNet: r.totalNet ?? '0' }));
   }
 }

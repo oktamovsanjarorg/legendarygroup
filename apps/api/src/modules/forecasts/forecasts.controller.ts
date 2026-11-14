@@ -7,7 +7,7 @@ import {
   type RevenueForecastResponse,
 } from '@lg/contracts';
 import { NoAudit } from '../../common/audit/audit.decorator.js';
-import { RequirePermission } from '../../common/decorators/access.decorators.js';
+import { CenterWide, RequirePermission } from '../../common/decorators/access.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { ForecastsService } from './forecasts.service.js';
 
@@ -29,6 +29,7 @@ export class ForecastsController {
   }
 
   @Get('churn')
+  @CenterWide()
   @RequirePermission('stats.operational')
   @NoAudit('Ketish xavfi (churn)')
   @ApiOperation({
@@ -42,6 +43,7 @@ export class ForecastsController {
   }
 
   @Get('occupancy')
+  @CenterWide()
   @RequirePermission('stats.operational')
   @NoAudit('Guruh toʻlishi prognozi')
   @ApiOperation({ summary: 'FR-DASH-3: Guruh toʻlishi va prognoz churn tahlili' })

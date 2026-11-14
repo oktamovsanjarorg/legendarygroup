@@ -17,7 +17,7 @@ import {
 } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq, gte, inArray, isNull, lt, notInArray, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lt, notInArray, or, sql } from 'drizzle-orm';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { periodDays } from './payroll-metrics.repository.js';
@@ -100,6 +100,22 @@ export class PayrollRepository {
       .from(payrollRuns)
       .where(and(eq(payrollRuns.branchId, branchId), eq(payrollRuns.period, period)));
     return row;
+  }
+
+  /** Ustoz qatori bor hisoblar va uning yig'indisi (yangisi birinchi). */
+  async findTeacherRuns(teacherId: string) {
+    return this.db
+      .select({
+        runId: payrollRuns.id,
+        period: payrollRuns.period,
+        status: payrollRuns.status,
+        totalNet: sql<string>`sum(${payrollItems.amount})::text`,
+      })
+      .from(payrollItems)
+      .innerJoin(payrollRuns, eq(payrollRuns.id, payrollItems.runId))
+      .where(eq(payrollItems.teacherId, teacherId))
+      .groupBy(payrollRuns.id)
+      .orderBy(desc(payrollRuns.period));
   }
 
   async findPayrollItems(runId: string, db: Database | Transaction = this.db) {

@@ -137,6 +137,7 @@ export const teacherMessages = {
     lessons: 'Oʻrinbosar darslar ({n} ta)',
     bonus: 'Bonus',
     penalty: 'Jarima',
+    advance: 'Avans (ushlab qolindi)',
     total: 'Jami',
     byStudent: 'Oʻquvchilar boʻyicha',
     settings: 'Sozlamalar',

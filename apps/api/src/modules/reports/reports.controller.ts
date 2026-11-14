@@ -31,8 +31,9 @@ import {
 } from '@lg/contracts';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { Audit, NoAudit } from '../../common/audit/audit.decorator.js';
-import { RequirePermission } from '../../common/decorators/access.decorators.js';
+import { CenterWide, RequirePermission } from '../../common/decorators/access.decorators.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import { StudentScopeService } from '../students/index.js';
 import { ParentDigestService } from './parent-digest.service.js';
 import { ReportsService } from './reports.service.js';
 
@@ -42,6 +43,7 @@ export class ReportsController {
   constructor(
     @Inject(ReportsService) private readonly service: ReportsService,
     @Inject(ParentDigestService) private readonly parentDigest: ParentDigestService,
+    @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
   ) {}
 
   @Get('revenue')
@@ -72,6 +74,7 @@ export class ReportsController {
   }
 
   @Get('attendance')
+  @CenterWide()
   @RequirePermission('stats.operational')
   @NoAudit('Davomat hisoboti')
   @ApiOperation({ summary: "FR-DASH-2: Davomat hisoboti (guruh/ustoz bo'yicha)" })
@@ -88,6 +91,7 @@ export class ReportsController {
   }
 
   @Get('cohort')
+  @CenterWide()
   @RequirePermission('stats.operational')
   @NoAudit('Kohorta hisoboti')
   @ApiOperation({ summary: 'FR-DASH-2: Kohorta tahlili (oʻquvchi saqlanishi)' })
@@ -99,6 +103,7 @@ export class ReportsController {
   }
 
   @Get('leads')
+  @CenterWide()
   @RequirePermission('stats.operational')
   @NoAudit('Lid konversiyasi hisoboti')
   @ApiOperation({ summary: 'FR-DASH-2: Lid konversiyasi hisoboti' })
@@ -110,6 +115,7 @@ export class ReportsController {
   }
 
   @Get('teacher-performance')
+  @CenterWide()
   @RequirePermission('stats.operational')
   @NoAudit('Ustoz samaradorligi hisoboti')
   @ApiOperation({ summary: 'FR-DASH-2: Ustoz samaradorligi hisoboti' })
@@ -121,6 +127,7 @@ export class ReportsController {
   }
 
   @Get(':reportType/export/excel')
+  @CenterWide()
   @RequirePermission('stats.operational')
   @NoAudit('Hisobotni Excel eksport qilish')
   @ApiOperation({ summary: 'FR-DASH-4: Hisobotni Excel (.xlsx) formatida yuklab olish' })
@@ -145,6 +152,7 @@ export class ReportsController {
   }
 
   @Get(':reportType/export/pdf')
+  @CenterWide()
   @RequirePermission('stats.operational')
   @NoAudit('Hisobotni PDF eksport qilish')
   @ApiOperation({ summary: 'FR-DASH-4: Hisobotni PDF (.pdf) formatida yuklab olish' })
@@ -172,7 +180,12 @@ export class ReportsController {
   @RequirePermission('results.view')
   @NoAudit('Ota-ona xulosasi preview')
   @ApiOperation({ summary: 'FR-RPT-2, 3: Ota-ona hisoboti oldindan koʻrish (preview)' })
-  async getParentDigestPreview(@Query() query: ParentDigestQuery): Promise<ParentDigestReport> {
+  async getParentDigestPreview(
+    @Query() query: ParentDigestQuery,
+    @CurrentUser() user: RequestUser,
+  ): Promise<ParentDigestReport> {
+    // Scope: ota-ona — o'z farzandi, ustoz — o'z guruhidagi; begona — 404 (T-505 IDOR).
+    await this.studentScope.assertVisible(user, query.studentId);
     return this.parentDigest.getDigestReport(query.studentId, query.period ?? 'weekly');
   }
 
@@ -183,8 +196,10 @@ export class ReportsController {
   async getParentDigestPdf(
     @Param('studentId', ParseUUIDPipe) studentId: string,
     @Res() res: FastifyReply,
+    @CurrentUser() user: RequestUser,
     @Query('period') period: 'weekly' | 'monthly' = 'monthly',
   ): Promise<void> {
+    await this.studentScope.assertVisible(user, studentId);
     const report = await this.parentDigest.getDigestReport(studentId, period);
     const pdfBuffer = await this.parentDigest.generateDigestPdf(report);
     res.header('Content-Type', 'application/pdf');

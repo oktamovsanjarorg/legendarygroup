@@ -96,6 +96,13 @@ export const Lesson = z.object({
   topic: z.string().nullable(),
 });
 
+/** `GET /students/:id/lessons` — farzand darslari (ota-ona, T-116): faqat yozilgan kunlari. */
+export const StudentLessonsQuery = z
+  .object({ from: IsoDate, to: IsoDate })
+  .refine((v) => v.to >= v.from && daysBetween(v.from, v.to) < LESSON_RANGE_MAX_DAYS, {
+    message: 'RANGE_INVALID',
+  });
+
 export const HolidayListQuery = z.object({ year: z.coerce.number().int().min(2020).max(2100) });
 export const CreateHolidayRequest = z.object({
   date: IsoDate,
@@ -104,5 +111,6 @@ export const CreateHolidayRequest = z.object({
 export const Holiday = z.object({ date: z.string(), name: z.string() });
 
 export type LessonCalendarQuery = z.infer<typeof LessonCalendarQuery>;
+export type StudentLessonsQuery = z.infer<typeof StudentLessonsQuery>;
 export type LessonDto = z.infer<typeof Lesson>;
 export type HolidayDto = z.infer<typeof Holiday>;
