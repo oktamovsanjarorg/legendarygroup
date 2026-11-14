@@ -17,13 +17,13 @@ const call = (method: Method, url: string, role?: RoleCode, payload?: Record<str
   if (role) {
     headers['authorization'] = `Bearer ${tokens.get(role)!}`;
   }
-  if (payload && typeof payload['idempotencyKey'] === 'string') {
-    headers['idempotency-key'] = payload['idempotencyKey'];
-  }
+  // Kalit — faqat sarlavhada (body'dagi maydon API'da yo'q).
+  const { idempotencyKey, ...body } = payload ?? {};
+  if (typeof idempotencyKey === 'string') headers['idempotency-key'] = idempotencyKey;
   return t.app.inject({
     method,
     url: `/api/${url}`,
-    payload,
+    payload: payload ? body : undefined,
     headers,
   });
 };
@@ -121,6 +121,20 @@ describe('Payments API (T-204, FR-PAY-2, 6, BR-11, 12, 19)', () => {
         .from(payments)
         .where(eq(payments.idempotencyKey, idemKey));
       expect(allWithKey.length).toBe(1);
+    });
+
+    it('BR-11: shu kalit boshqa foydalanuvchi/boshqa oʻquvchi bilan — eski toʻlov qaytmaydi (409)', async () => {
+      const other = (
+        await call('POST', 'students', 'admin', { fullName: 'Boshqa Oʻquvchi' })
+      ).json<{ id: string }>().id;
+      const res = await call('POST', 'billing/payments', 'director', {
+        studentId: other,
+        amount: '999000',
+        method: 'cash',
+        idempotencyKey: 'idem_test_key_001',
+      });
+      expect(res.statusCode).toBe(409);
+      expect(res.json<{ code: string }>().code).toBe('IDEMPOTENCY_CONFLICT');
     });
 
     it("tokensiz so'rov 401 UNAUTHORIZED qaytaradi", async () => {

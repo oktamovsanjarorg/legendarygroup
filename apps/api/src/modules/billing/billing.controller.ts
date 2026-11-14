@@ -134,9 +134,9 @@ export class BillingController {
     @ZodBody(CreatePaymentRequest) body: CreatePaymentInput,
   ): Promise<PaymentDetail> {
     const rawHeader = req.headers['idempotency-key'];
+    // Faqat sarlavhadan: IdempotencyInterceptor ham shu kalitni band qiladi (parallel — 409).
     const idempotencyKey =
-      (typeof rawHeader === 'string' && rawHeader.trim() ? rawHeader.trim() : undefined) ??
-      body.idempotencyKey;
+      typeof rawHeader === 'string' && rawHeader.trim() ? rawHeader.trim() : undefined;
     if (!idempotencyKey) {
       throw new AppException(HttpStatus.BAD_REQUEST, 'IDEMPOTENCY_KEY_REQUIRED');
     }

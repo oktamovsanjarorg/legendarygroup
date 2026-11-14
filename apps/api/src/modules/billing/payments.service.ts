@@ -18,8 +18,11 @@ import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import { receiptYear } from './receipt-year.js';
 
+/** API body + `Idempotency-Key` sarlavhasi (BR-11, faqat sarlavhadan — interceptor ham ko'radi). */
+export type CreatePaymentCommand = CreatePaymentInput & { idempotencyKey?: string };
+
 interface PaymentTxParams {
-  input: CreatePaymentInput;
+  input: CreatePaymentCommand;
   userId: string;
   amount: bigint;
   paidAt: Date;
@@ -46,12 +49,20 @@ export class PaymentsService {
   async createPayment(
     ctx: AuditContext,
     user: RequestUser,
-    input: CreatePaymentInput,
+    input: CreatePaymentCommand,
   ): Promise<PaymentDetail> {
     await this.studentScope.assertVisible(user, input.studentId);
     if (input.idempotencyKey) {
       const existing = await this.repo.findPaymentByIdempotencyKey(input.idempotencyKey);
+      // Takror — faqat aynan shu so'rov (shu xodim, o'quvchi, summa, usul). Boshqasi bilan bir xil
+      // kalit — 409: eski to'lovni jim qaytarish "to'landi" degan yolg'on natija berardi.
       if (existing) {
+        const same =
+          existing.receivedBy === user.id &&
+          existing.studentId === input.studentId &&
+          existing.amount === BigInt(input.amount) &&
+          existing.method === input.method;
+        if (!same) throw new AppException(HttpStatus.CONFLICT, 'IDEMPOTENCY_CONFLICT');
         return this.getPaymentById(user, existing.id);
       }
     }
