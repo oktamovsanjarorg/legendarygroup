@@ -10,12 +10,14 @@ resource "aws_db_parameter_group" "main" {
   family = "postgres${var.db_engine_version}"
 
   parameter {
-    name  = "rds.force_ssl"
-    value = "1"
+    name         = "rds.force_ssl"
+    apply_method = "pending-reboot" # statik parametr (RDS shunday saqlaydi)
+    value        = "1"
   }
   parameter {
-    name  = "timezone"
-    value = "UTC"
+    name         = "timezone"
+    apply_method = "pending-reboot" # statik parametr (RDS shunday saqlaydi)
+    value        = "UTC"
   }
   parameter {
     name  = "log_min_duration_statement"
