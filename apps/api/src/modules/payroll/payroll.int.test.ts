@@ -417,7 +417,79 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
 
     const percentRow = t3Item?.items.find((i) => i.kind === 'percent');
     expect(percentRow).toBeDefined();
-    // 500_000 so'm (50_000_000 tiyin) ning 20% = 100_000 so'm (10_000_000 tiyin)
+    // 50 000 000 so'm hisob × 20% = 10 000 000 so'm
     expect(percentRow?.amount).toBe('10000000');
+  });
+
+  it('BR-24 accrued: oy oʻrtasida ustoz almashsa — hisob bitta ustozga (ikki marta hisoblanmaydi)', async () => {
+    const director = tokens.get('director')!;
+    const [a, b] = [
+      await createUserWithRole(db, 'teacher'),
+      await createUserWithRole(db, 'teacher'),
+    ];
+    const cId = (
+      await call('POST', 'courses', director, {
+        name: 'Kimyo',
+        defaultMonthlyPrice: '500000',
+        lessonDurationMin: 90,
+      })
+    ).json<{ id: string }>().id;
+    const gId = (
+      await call('POST', 'groups', director, {
+        courseId: cId,
+        name: 'CHEM-2027',
+        maxStudents: 10,
+        startDate: '2027-01-01',
+        monthlyPrice: '500000',
+      })
+    ).json<{ id: string }>().id;
+    await db.insert(groupTeachers).values([
+      { groupId: gId, teacherId: a, role: 'main', fromDate: '2027-01-01', toDate: '2027-01-15' },
+      { groupId: gId, teacherId: b, role: 'main', fromDate: '2027-01-16' },
+    ]);
+    const [stu] = await db
+      .insert(students)
+      .values({ fullName: 'Lola Karimova', searchName: 'lola karimova' })
+      .returning();
+    const [enr] = await db
+      .insert(enrollments)
+      .values({ studentId: stu!.id, groupId: gId, startDate: '2027-01-01' })
+      .returning();
+    const [inv] = await db
+      .insert(invoices)
+      .values({
+        studentId: stu!.id,
+        period: '2027-01',
+        dueDate: '2027-01-10',
+        total: 1000000n,
+        status: 'open',
+      })
+      .returning();
+    await db.insert(invoiceLines).values({
+      invoiceId: inv!.id,
+      enrollmentId: enr!.id,
+      kind: 'tuition',
+      amount: 1000000n,
+      description: 'Kimyo',
+    });
+    for (const teacherId of [a, b])
+      await call('POST', 'payroll/contracts', director, {
+        teacherId,
+        type: 'percent',
+        fixedAmount: '0',
+        percentBp: 1000,
+        perLessonRate: '0',
+        base: 'accrued',
+        validFrom: '2027-01-01',
+      });
+
+    const detail = (
+      await call('POST', 'payroll/runs/generate', director, { period: '2027-01' })
+    ).json<PayrollRunDetail>();
+    const pct = (id: string) =>
+      detail.teachers.find((x) => x.teacherId === id)?.items.find((i) => i.kind === 'percent')
+        ?.amount ?? '0';
+    // Davr boshidagi asosiy ustoz — A; jami ulush hisobning 10% idan oshmaydi.
+    expect([pct(a), pct(b)]).toEqual(['100000', '0']);
   });
 });
