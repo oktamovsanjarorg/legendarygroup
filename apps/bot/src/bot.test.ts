@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { createBot } from './bot.js';
 import type { InternalApi } from './internal-api.js';
 import type { DedupeStore } from './dedupe.js';
-import { createWebhookServer, WEBHOOK_PATH } from './server.js';
+import { createWebhookServer, registerWebhook, WEBHOOK_PATH } from './server.js';
 
 const TOKEN = '123456789:TEST_bot_token_for_tests_only_x';
 const botInfo = {
@@ -264,5 +264,21 @@ describe('Webhook (secret_token)', () => {
     expect((await send('webhook_secret_123456')).statusCode).toBe(200);
     expect((await server.inject({ url: '/health/live' })).statusCode).toBe(200);
     await server.close();
+  });
+});
+
+describe('Webhook roʻyxatdan oʻtkazish (setWebhook)', () => {
+  it('HTTPS — setWebhook secret_token bilan; http — chaqirilmaydi', async () => {
+    const { bot, calls } = setup();
+    const url = 'https://lg.example.uz/bot/webhook';
+    expect(await registerWebhook(bot, url, 'webhook_secret_123456')).toBe(true);
+    expect(calls).toEqual([
+      {
+        method: 'setWebhook',
+        payload: { url, secret_token: 'webhook_secret_123456', drop_pending_updates: false },
+      },
+    ]);
+    expect(await registerWebhook(bot, 'http://localhost/bot/webhook', 'x')).toBe(false);
+    expect(calls).toHaveLength(1);
   });
 });

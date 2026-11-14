@@ -2,7 +2,7 @@ import { createInternalApi } from './internal-api.js';
 import { Redis } from 'ioredis';
 import { configureMenuButton, createBot } from './bot.js';
 import { loadRootEnv, parseBotEnv } from './env.js';
-import { createWebhookServer } from './server.js';
+import { createWebhookServer, registerWebhook } from './server.js';
 
 const log = {
   info: (msg: string) => console.info(JSON.stringify({ level: 'info', msg })),
@@ -30,9 +30,14 @@ async function main(): Promise<void> {
   process.once('SIGINT', () => void stop());
 
   if (env.BOT_MODE === 'webhook') {
-    const server = createWebhookServer(bot, env.TELEGRAM_BOT_WEBHOOK_SECRET ?? '');
+    const secret = env.TELEGRAM_BOT_WEBHOOK_SECRET ?? '';
+    const server = createWebhookServer(bot, secret);
     await server.listen({ port: env.BOT_PORT, host: '0.0.0.0' });
-    log.info(`Bot webhook rejimida: port ${env.BOT_PORT}`);
+    const registered = await registerWebhook(bot, env.TELEGRAM_WEBHOOK_URL ?? '', secret);
+    log.info(
+      `Bot webhook rejimida: port ${env.BOT_PORT}` +
+        (registered ? '' : " (webhook Telegram'da ro'yxatdan o'tmadi: URL HTTPS emas)"),
+    );
   } else {
     await bot.api.deleteWebhook();
     log.info(`Bot long polling rejimida: @${bot.botInfo.username}`);

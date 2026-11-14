@@ -13,6 +13,8 @@ export const botEnvSchema = z
       .string()
       .regex(/^[A-Za-z0-9_-]{16,256}$/)
       .optional(),
+    /** Telegram yuboradigan ochiq manzil: `https://<domen>/bot/webhook` (webhook rejimida majburiy). */
+    TELEGRAM_WEBHOOK_URL: z.url().optional(),
     BOT_PORT: z.coerce.number().int().min(0).max(65535).default(3002),
     TELEGRAM_MINIAPP_URL: z.url(),
     REDIS_URL: z.url({ protocol: /^rediss?$/ }),
@@ -27,6 +29,10 @@ export const botEnvSchema = z
   .refine((e) => e.BOT_MODE !== 'webhook' || e.TELEGRAM_BOT_WEBHOOK_SECRET, {
     message: 'webhook rejimida TELEGRAM_BOT_WEBHOOK_SECRET majburiy',
     path: ['TELEGRAM_BOT_WEBHOOK_SECRET'],
+  })
+  .refine((e) => e.BOT_MODE !== 'webhook' || e.TELEGRAM_WEBHOOK_URL, {
+    message: 'webhook rejimida TELEGRAM_WEBHOOK_URL majburiy',
+    path: ['TELEGRAM_WEBHOOK_URL'],
   });
 
 export type BotEnv = z.infer<typeof botEnvSchema>;
