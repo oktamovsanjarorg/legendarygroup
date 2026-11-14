@@ -9,6 +9,7 @@ export * from './errors.js';
 export * from './format.js';
 export * from './miniapp.js';
 export * from './normalize.js';
+export * from './notifications.js';
 export * from './web.js';
 export * from './words.js';
 

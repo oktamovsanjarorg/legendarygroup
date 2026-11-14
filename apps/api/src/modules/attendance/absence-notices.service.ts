@@ -50,7 +50,7 @@ export class AbsenceNoticesService {
     }
 
     const row = await this.repo.create({
-      branchId: DEFAULT_BRANCH_ID,
+      branchId: (dto as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID,
       studentId: dto.studentId,
       guardianUserId: actor.id,
       date: dto.date,
@@ -80,7 +80,7 @@ export class AbsenceNoticesService {
     query: ListAbsenceNoticesQuery,
   ): Promise<{ items: AbsenceNoticeItem[] }> {
     const rows = await this.repo.list({
-      branchId: DEFAULT_BRANCH_ID,
+      branchId: (query as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID,
       studentId: query.studentId,
       date: query.date,
       status: query.status,

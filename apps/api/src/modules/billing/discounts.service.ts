@@ -38,7 +38,7 @@ export class DiscountsService {
   ): Promise<EnrollmentRow> {
     const enrollment = await this.repo.findEnrollmentById(enrollmentId);
     if (!enrollment) {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Enrollment topilmadi');
+      throw new AppException(HttpStatus.NOT_FOUND, 'ENROLLMENT_NOT_FOUND');
     }
 
     const sysSettings = await this.settings.getSettings();
@@ -47,11 +47,7 @@ export class DiscountsService {
       'approval.decide',
     );
     if (!canApprove && input.percent > limit) {
-      throw new AppException(
-        HttpStatus.FORBIDDEN,
-        'FORBIDDEN',
-        `Chegirma Admin limitidan (${limit}%) yuqori. Director tasdigʻi soʻrovi talab qilinadi`,
-      );
+      throw new AppException(HttpStatus.FORBIDDEN, 'DISCOUNT_LIMIT_EXCEEDED');
     }
 
     return this.db.transaction(async (tx: Transaction) => {

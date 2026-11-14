@@ -47,7 +47,8 @@ export class TestsController {
     @CurrentUser() actor: RequestUser,
     @ZodBody(CreateTestRequest) req: CreateTestRequest,
   ): Promise<TestItem> {
-    return this.service.createTest(actor, DEFAULT_BRANCH_ID, req);
+    const branchId = (req as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID;
+    return this.service.createTest(actor, branchId, req);
   }
 
   @Get()

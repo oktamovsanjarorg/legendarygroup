@@ -76,7 +76,7 @@ export class ApprovalsService {
   async getRequestById(id: string): Promise<ApprovalRequest> {
     const row = await this.repo.findRequestById(id);
     if (!row) {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Soʻrov topilmadi');
+      throw new AppException(HttpStatus.NOT_FOUND, 'APPROVAL_NOT_FOUND');
     }
     return serializeApproval(row);
   }
@@ -89,7 +89,7 @@ export class ApprovalsService {
   ): Promise<ApprovalRequest> {
     const existing = await this.repo.findRequestById(id);
     if (!existing) {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Soʻrov topilmadi');
+      throw new AppException(HttpStatus.NOT_FOUND, 'APPROVAL_NOT_FOUND');
     }
 
     this.validatePendingState(existing);
@@ -98,17 +98,17 @@ export class ApprovalsService {
 
     const updated = await this.repo.findRequestById(id);
     if (!updated) {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Soʻrov topilmadi');
+      throw new AppException(HttpStatus.NOT_FOUND, 'APPROVAL_NOT_FOUND');
     }
     return serializeApproval(updated);
   }
 
   private validatePendingState(req: ApprovalWithUsers): void {
     if (req.status !== 'pending') {
-      throw new AppException(HttpStatus.CONFLICT, 'CONFLICT', 'Soʻrov allaqachon koʻrib chiqilgan');
+      throw new AppException(HttpStatus.CONFLICT, 'APPROVAL_ALREADY_DECIDED');
     }
     if (this.clock.now() > req.expiresAt) {
-      throw new AppException(HttpStatus.CONFLICT, 'CONFLICT', 'Soʻrov muddati tugagan');
+      throw new AppException(HttpStatus.CONFLICT, 'APPROVAL_EXPIRED');
     }
   }
 
@@ -134,7 +134,7 @@ export class ApprovalsService {
       );
 
       if (!updated) {
-        throw new AppException(HttpStatus.CONFLICT, 'CONFLICT', 'Soʻrov holati oʻzgargan');
+        throw new AppException(HttpStatus.CONFLICT, 'APPROVAL_CONFLICT');
       }
 
       if (newStatus === 'approved') {

@@ -29,7 +29,8 @@ export class PayrollController {
     @CurrentUser() actor: RequestUser,
     @ZodBody(CreateTeacherContractRequest) req: CreateTeacherContractRequest,
   ): Promise<TeacherContract> {
-    return this.service.createContract(actor, DEFAULT_BRANCH_ID, req);
+    const branchId = (req as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID;
+    return this.service.createContract(actor, branchId, req);
   }
 
   @Get('contracts')
@@ -51,7 +52,8 @@ export class PayrollController {
     @CurrentUser() actor: RequestUser,
     @ZodBody(CreateTeacherAdvanceRequest) req: CreateTeacherAdvanceRequest,
   ): Promise<{ id: string }> {
-    return this.service.createAdvance(actor, DEFAULT_BRANCH_ID, req);
+    const branchId = (req as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID;
+    return this.service.createAdvance(actor, branchId, req);
   }
 
   @Post('runs/generate')
@@ -62,7 +64,8 @@ export class PayrollController {
     @CurrentUser() actor: RequestUser,
     @ZodBody(GeneratePayrollRunRequest) req: GeneratePayrollRunRequest,
   ): Promise<PayrollRunDetail> {
-    return this.service.generatePayrollRun(actor, DEFAULT_BRANCH_ID, req.period);
+    const branchId = (req as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID;
+    return this.service.generatePayrollRun(actor, branchId, req.period);
   }
 
   @Get('runs/:id')

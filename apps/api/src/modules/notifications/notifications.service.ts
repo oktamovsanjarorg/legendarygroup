@@ -7,12 +7,8 @@ import {
   type UndeliveredNotificationItem,
 } from '@lg/contracts';
 import { type Database, users } from '@lg/db';
-import {
-  isNotificationMandatory,
-  NOTIFICATION_TITLES_UZ,
-  renderNotificationTemplate,
-  validatePreferenceUpdate,
-} from '@lg/domain';
+import { isNotificationMandatory, validatePreferenceUpdate } from '@lg/domain';
+import { NOTIFICATION_TITLES_UZ, notificationTemplates } from '@lg/i18n';
 import { eq } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
@@ -57,7 +53,7 @@ export class NotificationsService {
 
     const recipient = user.telegramId ? user.telegramId.toString() : user.phone;
     const branchId = params.branchId ?? DEFAULT_BRANCH_ID;
-    const rendered = renderNotificationTemplate(params.type, params.payload);
+    const rendered = this.render(params.type, params.payload);
     const safeTitle = rendered.title ? escapeTelegramMarkdown(rendered.title) : '';
     const safeBody = escapeTelegramMarkdown(rendered.body);
     const text = safeTitle ? `*${safeTitle}*\n\n${safeBody}` : safeBody;
@@ -158,10 +154,7 @@ export class NotificationsService {
       throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     }
 
-    const rendered = renderNotificationTemplate(
-      notif.type as NotificationType,
-      notif.payload as Record<string, unknown>,
-    );
+    const rendered = this.render(notif.type, notif.payload);
     const safeTitle = rendered.title ? escapeTelegramMarkdown(rendered.title) : '';
     const safeBody = escapeTelegramMarkdown(rendered.body);
     const text = safeTitle ? `*${safeTitle}*\n\n${safeBody}` : safeBody;
@@ -176,5 +169,14 @@ export class NotificationsService {
       attempts: notif.attempts + 1,
       failedReason: null,
     });
+  }
+
+  private render(type: string, payload: unknown): { title: string; body: string } {
+    const map = notificationTemplates as Record<
+      string,
+      (p: Record<string, unknown>) => { title: string; body: string }
+    >;
+    const renderer = map[type] ?? notificationTemplates.announcement;
+    return renderer((payload as Record<string, unknown>) ?? {});
   }
 }

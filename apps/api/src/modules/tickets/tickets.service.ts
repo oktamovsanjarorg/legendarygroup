@@ -63,7 +63,7 @@ export class TicketsService {
     }
 
     const ticket = await this.repo.createTicket({
-      branchId: DEFAULT_BRANCH_ID,
+      branchId: (dto as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID,
       authorId: actor.id,
       studentId: dto.studentId,
       subject: dto.subject,
@@ -201,7 +201,7 @@ export class TicketsService {
     const authorId = (await this.scopeOf(actor)) === 'own' ? actor.id : undefined;
 
     const rows = await this.repo.listTickets({
-      branchId: DEFAULT_BRANCH_ID,
+      branchId: (query as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID,
       authorId,
       status: query.status,
       priority: query.priority,

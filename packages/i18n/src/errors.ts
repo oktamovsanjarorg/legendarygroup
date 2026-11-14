@@ -124,6 +124,13 @@ export const errorMessages = {
   ALREADY_REVERSED: 'Bu toʻlov allaqachon bekor qilingan.',
   REFUND_EXCEEDS_ADVANCE: 'Qaytariladigan summa oʻquvchining avansidan koʻp.',
   PENALTY_ALREADY_PAID: 'Toʻlangan jarimani bekor qilib boʻlmaydi — avval toʻlovni storno qiling.',
+  APPROVAL_NOT_FOUND: 'Tasdiqlash soʻrovi topilmadi.',
+  APPROVAL_ALREADY_DECIDED: 'Soʻrov allaqachon koʻrib chiqilgan.',
+  APPROVAL_EXPIRED: 'Soʻrov muddati tugagan.',
+  APPROVAL_CONFLICT: 'Soʻrov holati oʻzgargan. Sahifani yangilang.',
+  ENROLLMENT_NOT_FOUND: 'Guruhga yozilish yozuvi topilmadi.',
+  DISCOUNT_LIMIT_EXCEEDED:
+    'Chegirma belgilangan limitdan yuqori. Director tasdiqlash soʻrovi talab qilinadi.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

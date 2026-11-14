@@ -39,7 +39,8 @@ export class ExpensesController {
     @CurrentUser() actor: RequestUser,
     @ZodBody(CreateExpenseRequest) req: CreateExpenseRequest,
   ): Promise<ExpenseItem> {
-    return this.service.createExpense(actor, DEFAULT_BRANCH_ID, req);
+    const branchId = (req as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID;
+    return this.service.createExpense(actor, branchId, req);
   }
 
   @Get('expenses')
@@ -50,7 +51,8 @@ export class ExpensesController {
     @CurrentUser() actor: RequestUser,
     @Query() query: ListExpensesQuery,
   ): Promise<ExpenseItem[]> {
-    return this.service.listExpenses(actor, DEFAULT_BRANCH_ID, query);
+    const branchId = (query as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID;
+    return this.service.listExpenses(actor, branchId, query);
   }
 
   @Get('expenses/:id')
@@ -96,6 +98,7 @@ export class ExpensesController {
     @CurrentUser() actor: RequestUser,
     @Query() query: PnLQuery,
   ): Promise<MonthlyPnLSummary> {
-    return this.service.getMonthlyPnL(actor, DEFAULT_BRANCH_ID, query.period);
+    const branchId = (query as { branchId?: string }).branchId ?? DEFAULT_BRANCH_ID;
+    return this.service.getMonthlyPnL(actor, branchId, query.period);
   }
 }
