@@ -1,2 +1,4 @@
-// Telegram Bot entrypoint placeholder (T-010 da to'ldiriladi)
-export const BOT_VERSION = '0.1.0';
+export * from './bot.js';
+export * from './dedupe.js';
+export * from './env.js';
+export * from './server.js';

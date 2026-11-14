@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+@import '@lg/ui-core/theme.css';
+@source '../../../packages/ui-tg/src';
+
+/* Mini App — tizim shrifti (native his, 11-ux §3). */
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  @apply bg-surface text-base text-text antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}

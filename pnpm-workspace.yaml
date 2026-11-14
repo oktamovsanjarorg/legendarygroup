@@ -1,3 +1,13 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Supply chain (07 §3): yangi versiya 7 kun kutadi (daqiqada).
+minimumReleaseAge: 10080
+
+# Faqat ishonchli paketlarga build skript ruxsati (pnpm standart holatda bloklaydi).
+allowBuilds:
+  '@scarf/scarf': false
+  esbuild: true
+  # BullMQ'ning ixtiyoriy native tezlatgichi — prebuilt binar yoki JS fallback, build kerak emas
+  msgpackr-extract: false

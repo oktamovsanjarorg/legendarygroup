@@ -5,13 +5,24 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint src --ext .ts",
     "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
-    "@lg/config": "workspace:*"
+    "@lg/config": "workspace:*",
+    "fast-check": "4.10.2"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
   }
 }

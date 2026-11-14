@@ -4,3 +4,6 @@ build
 .turbo
 coverage
 pnpm-lock.yaml
+
+# drizzle-kit generatsiya qiladi
+packages/db/drizzle/meta

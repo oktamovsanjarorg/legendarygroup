@@ -20,7 +20,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 - **FR-ORG-2** Xonalar: nomi, sig'imi.
 - **FR-ORG-3** Guruhlar: kurs, ustoz(lar), xona, hafta kunlari + vaqt, boshlanish/tugash sanasi, narx (kursdan meros, o'zgartirish mumkin), maks. o'quvchi soni, holat (yig'ilmoqda / faol / to'xtatilgan / yakunlangan).
 - **FR-ORG-4** Jadval to'qnashuvini tekshirish: bir xona yoki bir ustoz bir vaqtda ikki guruhda bo'la olmaydi.
-- **FR-ORG-5** Dars (lesson) yozuvlari jadval asosida avtomatik generatsiya qilinadi (oldindan 4 hafta), bekor qilish / ko'chirish / qo'shimcha dars qo'shish mumkin. Bayram kunlari kalendari.
+- **FR-ORG-5** Dars (lesson) yozuvlari jadval asosida avtomatik generatsiya qilinadi (gorizont: kamida 4 hafta **va** keyingi kalendar oyining oxirigacha — oy boshidagi invoice butun oy darslarini bilishi shart, BR-3/BR-5), bekor qilish / ko'chirish / qo'shimcha dars qo'shish mumkin. Bayram kunlari kalendari.
 - **FR-ORG-6** Ustoz almashtirish (vaqtincha — bitta dars uchun; doimiy — sanadan boshlab).
 
 ## STU — O'quvchilar
@@ -36,7 +36,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 
 - **FR-ATT-1** Ustoz Mini App'da bugungi darslarini ko'radi → guruh → ro'yxat; har o'quvchi uchun: ✅ keldi / ❌ kelmadi / ⏰ kech qoldi (daqiqa) / 📝 sababli.
 - **FR-ATT-2** Standart holat "keldi" — ustoz faqat istisnolarni bosadi (tezlik uchun).
-- **FR-ATT-3** Davomat saqlangach, "kelmadi" va "kech qoldi" bo'yicha ota-onaga **darhol** bot xabari (3 daqiqalik tuzatish oynasidan keyin — BR-31).
+- **FR-ATT-3** Davomat saqlangach, "kelmadi" va "kech qoldi" (≥ 15 daq, sozlanadi — BR-10) bo'yicha ota-onaga bot xabari — 3 daqiqalik tuzatish oynasidan keyin, jami ≤ 5 daqiqa (BR-31).
 - **FR-ATT-4** Davomatni tahrirlash: ustoz — dars kuni oxirigacha; keyin faqat Admin (sabab bilan, audit'ga yoziladi).
 - **FR-ATT-5** Dars boshlanganidan 30 daqiqa o'tib davomat belgilanmasa — ustozga eslatma, 2 soatdan keyin — Admin'ga.
 - **FR-ATT-6** Offline chidamlilik: internet uzilsa, Mini App davomatni lokal saqlaydi va tarmoq qaytganda yuboradi (idempotent kalit bilan).
@@ -53,7 +53,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 
 ## PAY — To'lovlar
 
-- **FR-PAY-1** Har oy boshida (guruh hisob kuni) har faol o'quvchiga **hisob (invoice)** avtomatik yaratiladi — qoidalar [04-business-rules.md](04-business-rules.md).
+- **FR-PAY-1** Har kalendar oyining 1-sanasida har faol o'quvchiga **hisob (invoice)** avtomatik yaratiladi (alohida "guruh hisob kuni" yo'q — BR-2) — qoidalar [04-business-rules.md](04-business-rules.md).
 - **FR-PAY-2** Admin to'lov kiritadi: o'quvchi, summa, usul (naqd / terminal karta / o'tkazma), qaysi oy(lar) uchun, izoh. Saqlangach PDF chek generatsiya qilinadi va ota-onaga botda yuboriladi.
 - **FR-PAY-3** **O'tkazma orqali to'lov (ota-ona tomondan):** bot/Mini App'da "To'lov qilish" → markaz karta rekvizitlari ko'rsatiladi (nusxalash tugmasi bilan) → ota-ona Click/Uzum/Payme ilovasidan o'tkazadi → chek skrinshoti/PDF + summa + izoh yuboradi → holat "Tekshirilmoqda" → Admin navbatida paydo bo'ladi.
 - **FR-PAY-4** Admin tasdiqlash navbati: rasm, summa, o'quvchi, izoh; tugmalar **Tasdiqlash** (summani tahrirlash mumkin) / **Rad etish** (sabab majburiy). Natija ota-onaga xabar qilinadi; tasdiqlansa — rasmiy PDF chek.
@@ -85,7 +85,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 - **FR-RPT-3** Oylik (oy oxiri): yuqoridagilar + test natijalari, guruhdagi o'rni (ixtiyoriy), dinamika grafigi (rasm yoki Mini App havolasi), PDF versiya.
 - **FR-RPT-4** Ota-ona bildirishnoma sozlamalari (qaysi xabarlar kelsin); "kelmadi" va to'lov xabarlarini o'chirib bo'lmaydi.
 - **FR-RPT-5** Ommaviy e'lon: Admin/Director tanlangan guruh(lar) ota-onalariga xabar yuboradi (rasm/fayl bilan), yetkazilish statistikasi.
-- **FR-RPT-6** Telegram cheklovlariga rioya: navbat orqali yuborish (≤ 25 xabar/s), bot bloklangan bo'lsa — belgilanadi va Admin'ga ko'rsatiladi.
+- **FR-RPT-6** Telegram cheklovlariga rioya: navbat orqali yuborish (umumiy ≤ 25 xabar/s, bitta chatga ≤ 1 xabar/s), bot bloklangan bo'lsa — belgilanadi va Admin'ga ko'rsatiladi.
 - **FR-RPT-7** Ota-onadan murojaat (bot orqali savol) → Admin'ga ticket; javob botga qaytadi.
 
 ## DASH — Statistika, prognoz, monitoring
@@ -109,7 +109,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 
 ## SYS — Tizim
 
-- **FR-SYS-1** Sozlamalar: markaz nomi, logotip, karta rekvizitlari, chek shabloni, hisob kuni, jarima qoidalari, bildirishnoma vaqtlari, bayramlar.
+- **FR-SYS-1** Sozlamalar: markaz nomi, logotip, karta rekvizitlari, chek shabloni, to'lov muddati kuni (standart 10), jarima qoidalari, bildirishnoma vaqtlari, bayramlar.
 - **FR-SYS-2** Fayllar (chek rasmlari, PDF, Excel) S3'da, havolalar vaqtinchalik (presigned URL).
-- **FR-SYS-3** Barcha vaqtlar `Asia/Tashkent`; pul — butun so'm (`bigint`, tiyinsiz), formatlash `1 250 000 so'm`.
+- **FR-SYS-3** Barcha vaqtlar `Asia/Tashkent`; pul — butun so'm (`bigint`, tiyinsiz), formatlash `1 250 000 soʻm` (ming ajratuvchi — U+00A0, so'z — `soʻm` U+02BB bilan).
 - **FR-SYS-4** Ommaviy veb-sayt (landing): markaz haqida, kurslar, "yozilish" formasi → lid. (Faza 4)

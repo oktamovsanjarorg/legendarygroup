@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  lint-and-unit:
+    name: Lint, Typecheck & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.17.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit Tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      # Sxema (TS) va migratsiyalar mosligi: snapshot eskirsa yoki migratsiya unutilsa — qizil.
+      - name: DB schema drift
+        run: |
+          pnpm --filter @lg/db exec drizzle-kit generate --name ci_drift_probe
+          if [ -n "$(git status --porcelain packages/db/drizzle)" ]; then
+            git status --porcelain packages/db/drizzle
+            echo "::error::TS sxemada migratsiyasiz o'zgarish bor — pnpm --filter @lg/db db:generate"
+            exit 1
+          fi
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: legendary_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.17.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Fayl testlari (T-019) — S3 o'rniga MinIO. Docker Hub/quay'dagi minio/minio image'lari
+      # 2025-yil oxirida olib tashlangan — Chainguard build, digest bilan qotirilgan.
+      # Service container `server /data` buyrug'ini qabul qilmaydi — shuning uchun docker run.
+      - name: MinIO (S3) va bucket
+        env:
+          AWS_ACCESS_KEY_ID: minioadmin
+          AWS_SECRET_ACCESS_KEY: minioadmin
+          AWS_REGION: eu-central-1
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+            cgr.dev/chainguard/minio@sha256:0f9fda72fbc6bd3560ea903aec2ceefa20f6ba82628d67656f37fb370c39ae9c \
+            server /data
+          for _ in $(seq 1 30); do curl -fs http://localhost:9000/minio/health/ready && break; sleep 2; done
+          aws --endpoint-url http://localhost:9000 s3 mb s3://lg-local-files
+
+      - name: Run Integration Tests
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/legendary_test
+          REDIS_URL: redis://localhost:6379
+        # Qolgan env — testlarning o'zida (apps/api/src/test/env.ts); turbo faqat shu ikkisini o'tkazadi.
+        run: pnpm test:int
+
+  docker-build:
+    name: Docker Build Check (arm64)
+    # Prod server — Graviton: image'lar prod bilan bir xil platformada, native runner'da (QEMU yo'q).
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # `docker buildx build --cache-to type=gha` uchun ACTIONS_RUNTIME_TOKEN/cache URL kerak.
+      - name: GHA kesh muhiti
+        uses: crazy-max/ghaction-github-runtime@v3
+
+      # Bitta Dockerfile, 4 target (infra/docker/Dockerfile). Kesh — prod deploy bilan umumiy.
+      - name: Build api, worker, bot, web
+        run: |
+          for t in api worker bot web; do
+            echo "::group::$t"
+            docker buildx build --platform linux/arm64 -f infra/docker/Dockerfile --target "$t" \
+              --cache-from type=gha,scope=prod-arm64 --cache-to type=gha,scope=prod-arm64,mode=max \
+              -t "lg-$t:ci" .
+            echo "::endgroup::"
+          done

@@ -52,3 +52,7 @@ export const PERMISSIONS = [
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
+
+/** DB'dagi `text` qiymatni tekshirib toraytirish (`as` o'rniga). */
+export const isPermission = (v: string): v is Permission =>
+  (PERMISSIONS as readonly string[]).includes(v);

@@ -1,2 +1,22 @@
-// Telegram UI package (native controls)
-export const UI_TG_VERSION = '0.1.0';
+// UI Telegram: Mini App komponentlari va native boshqaruvlar (11-ux §3–4)
+export * from './action-sheet.js';
+export * from './attendance-row.js';
+export * from './calendar.js';
+export * from './child-switcher.js';
+export * from './controls.js';
+export * from './copy-field.js';
+export * from './file-picker.js';
+export * from './image-viewer.js';
+export * from './inputs.js';
+export * from './kpi-tile.js';
+export * from './money-input.js';
+export * from './money-text.js';
+export * from './progress-chart.js';
+export * from './provider.js';
+export * from './search-field.js';
+export * from './section.js';
+export * from './states.js';
+export * from './status-chip.js';
+export * from './tab-bar.js';
+export * from './telegram.js';
+export * from './theme.js';

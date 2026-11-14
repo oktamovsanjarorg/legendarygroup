@@ -1,0 +1,127 @@
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import type { EnrollmentDto, GroupStudentCounts, RosterResult } from '@lg/contracts';
+import { type Database, enrollmentFreezes, enrollments, students } from '@lg/db';
+import { type Clock, enrollmentState } from '@lg/domain';
+import { and, asc, count, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
+import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { AppException } from '../../common/errors/app.exception.js';
+import type { RequestUser } from '../auth/index.js';
+import { GroupScopeService, GroupsQueryService, LessonsQueryService } from '../org/index.js';
+import { freezeSpan, toEnrollment } from './enrollments.serializer.js';
+import { StudentScopeService } from './student-scope.service.js';
+
+/** Enrollment'larni o'qish (T-106): o'quvchi tarixi, guruh ro'yxati sanada (BR-32). */
+@Injectable()
+export class EnrollmentsQueryService {
+  constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
+    @Inject(GroupScopeService) private readonly groupScope: GroupScopeService,
+    @Inject(GroupsQueryService) private readonly groups: GroupsQueryService,
+    @Inject(LessonsQueryService) private readonly lessons: LessonsQueryService,
+  ) {}
+
+  /** O'quvchining barcha guruhlari (tarix bilan; FR-STU-3). Scope — o'quvchi bo'yicha. */
+  async forStudent(user: RequestUser, studentId: string): Promise<EnrollmentDto[]> {
+    await this.studentScope.assertVisible(user, studentId);
+    const rows = await this.db
+      .select()
+      .from(enrollments)
+      .where(eq(enrollments.studentId, studentId))
+      .orderBy(desc(enrollments.startDate));
+    const freezes = await this.freezesOf(rows.map((r) => r.id));
+    const names = await this.groups.namesOf(rows.map((r) => r.groupId));
+    const today = this.clock.today();
+    return rows.map((r) =>
+      toEnrollment(
+        r,
+        names.get(r.groupId) ?? '—',
+        freezes.filter((f) => f.enrollmentId === r.id),
+        today,
+      ),
+    );
+  }
+
+  /** Guruh ro'yxati sanada: faqat o'sha kuni yozilganlar (BR-32). Ustozga — o'z guruhi. */
+  async roster(user: RequestUser, groupId: string, date?: string): Promise<RosterResult> {
+    await this.groupScope.assertVisible(user, groupId);
+    return this.rosterOn(groupId, date ?? this.clock.today());
+  }
+
+  /** Dars ro'yxati — dars sanasida (o'rinbosar ham ko'radi, 02 §3: dars kuni tugaguncha). */
+  async forLesson(user: RequestUser, lessonId: string): Promise<RosterResult> {
+    const lesson = await this.lessons.assertVisible(user, lessonId);
+    return this.rosterOn(lesson.groupId, lesson.date);
+  }
+
+  /**
+   * Joriy guruhlarda bugun yozilganlar soni (W-10 "To'lganlik"; muzlatilgan ham o'rin egallaydi —
+   * Q-85). Scope — guruh ro'yxati bilan bir xil: Ustoz faqat o'z guruhlarini ko'radi.
+   */
+  async studentCounts(user: RequestUser): Promise<GroupStudentCounts> {
+    const day = this.clock.today();
+    const visible = await this.groups.list(user, { status: 'current' });
+    const counts: Record<string, number> = Object.fromEntries(visible.map((g) => [g.id, 0]));
+    if (visible.length === 0) return { date: day, counts };
+    const rows = await this.db
+      .select({ groupId: enrollments.groupId, n: count() })
+      .from(enrollments)
+      .where(
+        and(
+          inArray(
+            enrollments.groupId,
+            visible.map((g) => g.id),
+          ),
+          lte(enrollments.startDate, day),
+          or(isNull(enrollments.endDate), gte(enrollments.endDate, day)),
+        ),
+      )
+      .groupBy(enrollments.groupId);
+    for (const r of rows) counts[r.groupId] = r.n;
+    return { date: day, counts };
+  }
+
+  private async rosterOn(groupId: string, day: string): Promise<RosterResult> {
+    const group = await this.groups.info(this.db, groupId);
+    if (!group) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+    const rows = await this.db
+      .select({ e: enrollments, code: students.code, fullName: students.fullName })
+      .from(enrollments)
+      .innerJoin(students, eq(students.id, enrollments.studentId))
+      .where(
+        and(
+          eq(enrollments.groupId, groupId),
+          lte(enrollments.startDate, day),
+          or(isNull(enrollments.endDate), gte(enrollments.endDate, day)),
+        ),
+      )
+      .orderBy(asc(students.fullName));
+    const freezes = await this.freezesOf(rows.map((r) => r.e.id));
+    return {
+      date: day,
+      capacity: group.maxStudents,
+      items: rows.map((r) => ({
+        enrollmentId: r.e.id,
+        studentId: r.e.studentId,
+        code: r.code,
+        fullName: r.fullName,
+        state: enrollmentState(
+          { from: r.e.startDate, to: r.e.endDate },
+          freezes.filter((f) => f.enrollmentId === r.e.id).map(freezeSpan),
+          day,
+        ),
+      })),
+    };
+  }
+
+  private async freezesOf(ids: string[]) {
+    if (ids.length === 0) return [];
+    return this.db
+      .select()
+      .from(enrollmentFreezes)
+      .where(inArray(enrollmentFreezes.enrollmentId, ids))
+      .orderBy(asc(enrollmentFreezes.fromDate));
+  }
+}

@@ -4,16 +4,17 @@ Bu loyihada kodni asosan AI agentlar yozadi. Quyidagi qoidalar **majburiy**.
 
 ## Avval o'qing
 
-1. `docs/README.md` — hujjatlar xaritasi.
+1. `docs/README.md` — hujjatlar xaritasi. **`docs/12-ai-playbook.md` — ish tartibi, kod tuzilishi, prompt shablonlari (majburiy).**
 2. Vazifa: `docs/09-tasks.md` dan ID (masalan `T-204`). Vazifasiz kod yozilmaydi.
 3. Tegishli talablar (`FR-*` — `docs/01-requirements.md`) va qoidalar (`BR-*` — `docs/04-business-rules.md`).
 4. `docs/10-open-questions.md` — vazifani bloklovchi savol ochiq bo'lsa, **standart taklifni** qo'llang va PR'da aniq yozing ("Q-13 standart varianti bilan").
+5. Claude Code'da: `/task T-XXX` (bajarish), `/review-ai [yo'l]` (boshqa AI kodini tekshirish).
 
 ## Oltin qoidalar
 
-- **Hujjat > kod.** Qoida noaniq yoki hujjatga zid bo'lsa — kod yozmang, savol bering yoki hujjatni yangilash PR'ini taklif qiling.
+- **Hujjat > kod.** Qoida noaniq yoki hujjatga zid bo'lsa — egasiga savol bermang: playbook §2 qaror zinapoyasi bo'yicha qaror qiling, hujjatni shu PR'da yangilang va qarorni PR tavsifida/ADR'da/`10-open-questions.md`da qayd eting. To'xtash — faqat §2 dagi 3 holatda.
 - **Pul:** faqat `bigint` so'm, faqat `packages/domain` funksiyalari orqali. `number`/float bilan pul hisoblash taqiqlangan.
-- **Ledger o'zgarmaydi:** `ledger_entries`, `audit_logs`, `payments`, `receipts` — UPDATE/DELETE yo'q; tuzatish = yangi teskari yozuv.
+- **Ledger o'zgarmaydi:** `ledger_entries`, `audit_logs`, `payments`, `receipts`, `receipt_cancellations` — UPDATE/DELETE yo'q (holat ustuni ham yo'q); tuzatish = yangi teskari yozuv. DB'da `forbid_mutation()` trigger + `lg_app` grant.
 - **RBAC:** har endpoint'da `@RequirePermission`; obyekt scope service'da tekshiriladi. Har endpoint uchun "forbidden" testi.
 - **Audit:** har yozish amali audit'ga tushadi.
 - **Idempotentlik:** to'lov, davomat, webhook, cron job — qayta ishga tushirish xavfsiz bo'lishi shart.
@@ -33,6 +34,8 @@ Bu loyihada kodni asosan AI agentlar yozadi. Quyidagi qoidalar **majburiy**.
 ## Texnik
 
 - TypeScript strict, `any` yo'q. Zod sxemalar `packages/contracts`da — API va UI bir xil sxemadan foydalanadi.
+- **Hajm (ESLint majburlaydi):** fayl ≤ 300 qator, funksiya ≤ 60, complexity ≤ 12. Katta fayl — ma'no bo'yicha bo'linadi (playbook §4); `eslint-disable` bilan chetlab o'tish taqiqlangan.
+- Yashirin standart qiymat yo'q (`process.env.X || 'localhost'` taqiqlangan) — env Zod bilan tekshiriladi, yo'q bo'lsa ishga tushmaydi.
 - Bog'liqlik qo'shishdan oldin: mavjud paket yetmaydimi? Yangi paket — aniq versiya, PR'da sababi.
 - Buyruqlar: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:int`, `pnpm e2e` — PR'dan oldin hammasi yashil.
 

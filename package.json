@@ -2,15 +2,16 @@
   "name": "legendarygroup",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@9.15.9",
+  "packageManager": "pnpm@12.17.0",
   "engines": {
-    "node": ">=22.0.0",
-    "pnpm": ">=9.0.0"
+    "node": ">=26.0.0",
+    "pnpm": ">=12.0.0"
   },
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
     "test": "turbo test",
+    "test:int": "turbo test:int",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
@@ -18,17 +19,20 @@
     "docker:dev": "docker compose -f compose.dev.yml up -d",
     "docker:dev:down": "docker compose -f compose.dev.yml down",
     "docker:dev:logs": "docker compose -f compose.dev.yml logs -f",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deps:pin": "node scripts/pin-mature-deps.mjs",
+    "deps:check": "node scripts/pin-mature-deps.mjs --check",
+    "cli": "pnpm --filter @lg/api cli"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
     "@commitlint/config-conventional": "21.2.4",
     "@eslint/js": "10.0.1",
-    "@types/node": "22.14.0",
-    "@typescript-eslint/eslint-plugin": "8.72.2",
-    "@typescript-eslint/parser": "8.72.2",
+    "@types/node": "26.6.6",
+    "@typescript-eslint/eslint-plugin": "8.72.1",
+    "@typescript-eslint/parser": "8.72.1",
     "eslint": "10.14.0",
-    "eslint-plugin-boundaries": "7.4.2",
+    "eslint-plugin-boundaries": "7.4.1",
     "husky": "9.1.7",
     "lint-staged": "17.6.0",
     "prettier": "3.9.10",

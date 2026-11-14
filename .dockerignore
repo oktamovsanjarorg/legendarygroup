@@ -1,0 +1,31 @@
+# Build konteksti (T-011): faqat manba kod va lockfile. Naqshlar `**/` bilan — ichki papkalar ham.
+**/node_modules
+**/dist
+**/build
+**/.turbo
+**/coverage
+**/storybook-static
+**/*.tsbuildinfo
+**/*.log
+.pnpm-store
+
+.git
+.github
+.husky
+.idea
+.vscode
+.claude
+
+# Sirlar hech qachon image'ga kirmaydi
+**/.env
+**/.env.*
+!.env.example
+
+# Build'ga kerak emas
+docs
+**/*.md
+infra/terraform
+compose.*.yml
+apps/storybook
+**/test-results
+**/playwright-report

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "rangeStrategy": "pin",
+  "minimumReleaseAge": "7 days",
+  "schedule": ["before 6am on monday"],
+  "timezone": "Asia/Tashkent",
+  "prConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "description": "Minor/patch yangilashlar bitta haftalik PR'da",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "haftalik minor/patch"
+    },
+    {
+      "description": "Major yangilash — alohida PR, qo'lda review",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "MinIO community image'lari to'xtatilgan — avtomatik yangilanmaydi",
+      "matchPackageNames": ["minio/minio"],
+      "enabled": false
+    }
+  ]
+}

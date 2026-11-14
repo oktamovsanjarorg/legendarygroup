@@ -57,9 +57,9 @@ statistika, audit, backup, monitoring.
 | Mavjudlik (uptime) | ≥ 99.5% oylik                                                                |
 | Javob vaqti        | API p95 < 300 ms; Mini App birinchi ochilish < 2 s (4G)                      |
 | Ma'lumot yo'qotish | RPO ≤ 5 daqiqa (PITR), RTO ≤ 1 soat                                          |
-| Backup             | Har kuni S3 ga, 35 kun + oylik 1 yil saqlash; har oy tiklash sinovi          |
+| Backup             | Har kuni S3 ga, 35 kun + oylik 1 yil saqlash; har oy tiklash sinovi (06 §5)  |
 | Xavfsizlik         | RBAC, audit jurnali, shifrlash (transit + at rest), 2FA Director/Admin uchun |
-| Qo'llab-quvvatlash | Kod 80%+ test bilan qoplangan (domen qatlami 90%+)                           |
+| Qo'llab-quvvatlash | Kod 80%+ test bilan qoplangan (`packages/domain` 95%+) — 07 §1               |
 | UX                 | "Native" his: Telegram temasi, haptic, tez, offline'ga chidamli davomat      |
 
 ## 6. Muvaffaqiyat mezonlari

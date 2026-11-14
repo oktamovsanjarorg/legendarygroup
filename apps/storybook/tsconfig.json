@@ -1,0 +1,5 @@
+{
+  "extends": "@lg/config/tsconfig.react.json",
+  "compilerOptions": { "noEmit": true },
+  "include": [".storybook/**/*"]
+}

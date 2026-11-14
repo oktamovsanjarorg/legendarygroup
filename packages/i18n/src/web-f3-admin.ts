@@ -1,0 +1,140 @@
+/** Web panel — audit va landing (W-30, W-35). */
+export const webF3AdminMessages = {
+  audit: {
+    title: 'Audit jurnali',
+    subtitle: 'Tizimdagi barcha oʻzgarishlar, xavfsizlik va xodimlar faolligi',
+    tabs: {
+      log: 'Amallar jurnali',
+      suspicious: 'Shubhali harakatlar',
+      staffActivity: 'Xodimlar faolligi',
+    },
+    kpi: {
+      totalActions: 'Bugungi amallar',
+      suspiciousCount: 'Shubhali signallar',
+      activeStaff: 'Faol xodimlar',
+    },
+    filters: {
+      search: 'Qidirish (ism, IP, obyekt)…',
+      allModules: 'Barcha modullar',
+      allActions: 'Barcha amallar',
+      finance: 'Moliya va toʻlovlar',
+      students: 'Oʻquvchilar va guruhlar',
+      attendance: 'Davomat va baholar',
+      system: 'Tizim va sozlamalar',
+    },
+    actions: {
+      create: 'Yaratildi',
+      update: 'Oʻzgartirildi',
+      delete: 'Bekor qilindi',
+      login: 'Kirish',
+    },
+    cols: {
+      timestamp: 'Vaqt',
+      user: 'Foydalanuvchi',
+      module: 'Modul',
+      action: 'Amal',
+      target: 'Obyekt',
+      ip: 'IP / Qurilma',
+      diff: 'Oʻzgarishlar',
+    },
+    diff: {
+      title: 'Oʻzgarishlar tafsiloti (Diff)',
+      field: 'Maydon',
+      before: 'Oldingi qiymat',
+      after: 'Yangi qiymat',
+      noChanges: 'Maydonlar tafsiloti mavjud emas',
+    },
+    suspicious: {
+      title: 'FR-AUD-2: Avtomatik aniqlangan shubhali harakatlar',
+      riskHigh: 'Yuqori xavf',
+      riskMedium: 'Oʻrtacha xavf',
+      nightAccess: 'Tungi vaqtda tizimga kirish',
+      multipleRefunds: 'Bir kunda bir nechta toʻlovni bekor qilish',
+      lateAttendanceEdit: 'Davomatni 3 kundan keyin tahrirlash',
+      largeDiscount: 'Limitdan yuqori chegirma berish',
+    },
+    activity: {
+      name: 'Xodim',
+      role: 'Lavozim',
+      paymentsCount: 'Kiritilgan toʻlovlar',
+      approvalsCount: 'Tasdiqlangan amallar',
+      avgResponseTime: 'Oʻrtacha javob vaqti',
+    },
+    empty: 'Audit yozuvlari topilmadi',
+    emptyHint: 'Tanlangan filtrlar boʻyicha hech qanday amal yozuvi qayd etilmagan.',
+  },
+  landing: {
+    brand: 'Legendary Group',
+    tagline: 'Zamonaviy bilimlar va kuchli natijalar makoni',
+    menu: {
+      courses: 'Kurslar',
+      advantages: 'Afzalliklar',
+      results: 'Natijalar',
+      contact: 'Bogʻlanish',
+      login: 'Tizimga kirish',
+    },
+    hero: {
+      badge: '2026-yilgi qabul ochiq',
+      title: 'Kelajak kasblarini professional ustozlardan oʻrganing',
+      description:
+        'Matematika, fizika, ingliz tili va dasturlash boʻyicha chuqurlashtirilgan kurslar. Shaxsiy yondashuv va ota-onalar uchun toʻliq shaffof nazorat.',
+      cta: 'Bepul darsga yozilish',
+      viewCourses: 'Kurslarni koʻrish',
+    },
+    stats: {
+      studentsCount: '1 200+',
+      studentsLabel: 'Muvaffaqiyatli bitiruvchilar',
+      resultsRate: '96%',
+      resultsLabel: 'Universitetga kirish koʻrsatkichi',
+      teachersCount: '24+',
+      teachersLabel: 'Tajribali ustozlar',
+      yearsCount: '7 yil',
+      yearsLabel: 'Taʼlimdagi tajriba',
+    },
+    coursesSection: {
+      title: 'Bizning taʼlim yoʻnalishlarimiz',
+      subtitle: 'Har bir bosqich uchun maxsus ishlab chiqilgan intensiv dasturlar',
+      duration: 'Davomiyligi: {months} oy',
+      popular: 'Ommabop',
+      pricePerMonth: 'Oyiga',
+      enroll: 'Kursga yozilish',
+    },
+    advantagesSection: {
+      title: 'Nega aynan Legendary Group?',
+      subtitle: 'Farzandingiz kelajagi uchun eng toʻgʻri muhit va zamonaviy metodika',
+      item1Title: 'Doimiy nazorat va shaffoflik',
+      item1Desc:
+        'Ota-onalar har bir dars davomati va oʻzlashtirishini Telegram bot orqali real vaqtda kuzatib boradi.',
+      item2Title: 'Kichik guruhlar va individual eʼtibor',
+      item2Desc:
+        'Guruhda maksimal 12 nafar oʻquvchi. Ustoz har bir oʻquvchi bilan shaxsan ishlaydi.',
+      item3Title: 'Zamonaviy metodika va amaliyot',
+      item3Desc:
+        'Nazariya va amaliyot uygʻunligi, oraliq testlar va doimiy mustahkamlash darslari.',
+    },
+    form: {
+      title: 'Bepul sinov darsiga yoziling',
+      subtitle:
+        'Maʼlumotlaringizni qoldiring, administratorimiz 15 daqiqa ichida siz bilan bogʻlanadi.',
+      nameLabel: 'Ismingiz',
+      namePlaceholder: 'F.I.Sh',
+      phoneLabel: 'Telefon raqamingiz',
+      phonePlaceholder: '+998 90 123 45 67',
+      courseLabel: 'Qiziqtirgan yoʻnalish',
+      commentLabel: 'Qoʻshimcha savol yoki izoh',
+      commentPlaceholder: 'Ixtiyoriy izoh…',
+      submit: 'Joy band qilish',
+      successTitle: 'Arizangiz qabul qilindi!',
+      successDesc:
+        'Tez orada xodimimiz siz bilan bogʻlanadi va birinchi bepul dars vaqtini belgilaydi.',
+    },
+    footer: {
+      about:
+        'Oʻquvchilarga chuqur bilim berish va maqsadlariga erishishlariga koʻmaklashish — bizning oliy maqsadimiz.',
+      address: 'Toshkent shahri, Yunusobod tumani, Amir Temur koʻchasi 42-uy',
+      phone: '+998 71 200 00 00',
+      workHours: 'Dushanba – Shanba: 08:00 – 20:00',
+      rights: 'Barcha huquqlar himoyalangan.',
+    },
+  },
+};
