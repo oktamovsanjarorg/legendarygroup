@@ -44,6 +44,19 @@ jobs:
       - name: Unit Tests
         run: pnpm test
 
+      - name: Build
+        run: pnpm build
+
+      # Sxema (TS) va migratsiyalar mosligi: snapshot eskirsa yoki migratsiya unutilsa — qizil.
+      - name: DB schema drift
+        run: |
+          pnpm --filter @lg/db exec drizzle-kit generate --name ci_drift_probe
+          if [ -n "$(git status --porcelain packages/db/drizzle)" ]; then
+            git status --porcelain packages/db/drizzle
+            echo "::error::TS sxemada migratsiyasiz o'zgarish bor — pnpm --filter @lg/db db:generate"
+            exit 1
+          fi
+
   integration:
     name: Integration Tests
     runs-on: ubuntu-latest

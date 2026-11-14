@@ -35,9 +35,13 @@ export const teacherContracts = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     groupId: uuid('group_id').references(() => groups.id, { onDelete: 'set null' }),
     type: text('type', { enum: TEACHER_CONTRACT_TYPES }).notNull(),
-    fixedAmount: bigint('fixed_amount', { mode: 'bigint' }).notNull().default(0n),
+    fixedAmount: bigint('fixed_amount', { mode: 'bigint' })
+      .notNull()
+      .default(sql`0`),
     percentBp: integer('percent_bp').notNull().default(0),
-    perLessonRate: bigint('per_lesson_rate', { mode: 'bigint' }).notNull().default(0n),
+    perLessonRate: bigint('per_lesson_rate', { mode: 'bigint' })
+      .notNull()
+      .default(sql`0`),
     base: text('base', { enum: PAYROLL_BASES }).notNull().default('collected'),
     validFrom: date('valid_from').notNull(),
     validTo: date('valid_to'),
@@ -62,7 +66,9 @@ export const payrollRuns = pgTable(
       .references(() => branches.id, { onDelete: 'restrict' }),
     period: text('period').notNull(),
     status: text('status', { enum: PAYROLL_RUN_STATUSES }).notNull().default('draft'),
-    totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull().default(0n),
+    totalAmount: bigint('total_amount', { mode: 'bigint' })
+      .notNull()
+      .default(sql`0`),
     approvedBy: uuid('approved_by').references(() => users.id, { onDelete: 'set null' }),
     approvedAt: timestamp('approved_at', { withTimezone: true }),
     paidBy: uuid('paid_by').references(() => users.id, { onDelete: 'set null' }),
