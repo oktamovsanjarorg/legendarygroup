@@ -9,9 +9,17 @@ import {
 import { QueryView } from '../data/query-view.js';
 import { useSelectedChild } from '../data/selected-child.js';
 import { GuardianHomeView } from '../screens/guardian/home.js';
-import { MoreView } from '../screens/guardian/more.js';
+import { type MoreTarget, MoreView } from '../screens/guardian/more.js';
 import { PaymentsView } from '../screens/guardian/payments.js';
 import { ResultsView } from '../screens/guardian/results.js';
+
+/** "Ko'proq" menyusi → ekran (jadval va bildirishnomalar — sozlamalarda). */
+const MORE_ROUTES: Partial<Record<MoreTarget, '/absence' | '/tickets' | '/settings'>> = {
+  absence: '/absence',
+  tickets: '/tickets',
+  notifications: '/settings',
+  settings: '/settings',
+};
 
 /** Ota-ona tablari (T-116) — haqiqiy API, faqat o'z farzandlari (server scope). */
 export function GuardianHomePage() {
@@ -31,7 +39,7 @@ export function GuardianHomePage() {
               items={items}
               selected={childId ?? ''}
               onSelect={setChildId}
-              onPay={() => void navigate({ to: '/payments' })}
+              onPay={() => void navigate({ to: '/pay' })}
             />
           )}
         </QueryView>
@@ -41,6 +49,7 @@ export function GuardianHomePage() {
 }
 
 export function GuardianPaymentsPage() {
+  const navigate = useNavigate();
   const children = useChildren();
   const [childId] = useSelectedChild(children.data?.map((c) => c.id) ?? []);
   const payments = useChildPayments(childId);
@@ -58,7 +67,7 @@ export function GuardianPaymentsPage() {
               debt={d.debt}
               invoices={d.invoices}
               payments={d.payments}
-              onPay={() => undefined}
+              onPay={() => void navigate({ to: '/pay' })}
               onReceipt={() => undefined}
             />
           )}
@@ -99,7 +108,8 @@ export function GuardianMorePage() {
   return (
     <MoreView
       onOpen={(target) => {
-        if (target === 'settings') void navigate({ to: '/settings' });
+        const to = MORE_ROUTES[target];
+        if (to) void navigate({ to });
       }}
     />
   );
