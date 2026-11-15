@@ -7,6 +7,7 @@ import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { ZodBody } from '../../common/decorators/zod.decorators.js';
+import { EnvService } from '../../config/env.service.js';
 import { auditContext } from '../auth/index.js';
 import { type SystemSettingsResponse, toSystemSettingsResponse } from './settings.serializer.js';
 import { SettingsService } from './settings.service.js';
@@ -14,14 +15,18 @@ import { SettingsService } from './settings.service.js';
 @ApiTags('Settings')
 @Controller('settings')
 export class SettingsController {
-  constructor(@Inject(SettingsService) private readonly settings: SettingsService) {}
+  constructor(
+    @Inject(SettingsService) private readonly settings: SettingsService,
+    @Inject(EnvService) private readonly env: EnvService,
+  ) {}
 
   // Ommaviy markaz va karta rekvizitlari ma'lumotlari (mehmon va ota-onalar uchun)
   @Get('public')
   @Public()
   @ApiOperation({ summary: "Ommaviy sozlamalar (markaz ma'lumotlari, karta rekvizitlari)" })
   async getPublic(): Promise<PublicSettings> {
-    return this.settings.getPublicSettings();
+    const s = await this.settings.getPublicSettings();
+    return { ...s, botUrl: `https://t.me/${this.env.get('TELEGRAM_BOT_USERNAME')}` };
   }
 
   @Get()
