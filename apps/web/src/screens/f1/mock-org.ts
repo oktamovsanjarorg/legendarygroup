@@ -238,6 +238,7 @@ export const SETTINGS: CenterSettings = {
   address: 'Toshkent, Chilonzor tumani',
   card: '8600 1234 5678 9012',
   cardHolder: 'LEGENDARY GROUP MCHJ',
+  bankName: 'Kapitalbank',
   dueDay: 10,
   adminDiscountLimit: 10,
   lateThreshold: 15,

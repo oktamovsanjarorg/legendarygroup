@@ -48,43 +48,58 @@ function useMark(c: CellTarget) {
   });
 }
 
-/** W-12 katak: holat tanlash; o'tgan kun — sabab; yopilgan oy (BR-30) — Director'ga so'rov. */
-export function MarkDrawer({
-  c,
-  today,
-  onDone,
-  onClose,
+function StatusPicker({
+  value,
+  onChange,
 }: {
+  value: AttendanceStatus;
+  onChange: (s: AttendanceStatus) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2" role="radiogroup">
+      {STATUSES.map((s) => (
+        <Button
+          key={s}
+          role="radio"
+          aria-checked={s === value}
+          variant={s === value ? 'primary' : 'secondary'}
+          onClick={() => onChange(s)}
+        >
+          {g.marks[s]}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+interface DrawerProps {
   c: CellTarget;
   today: string;
   onDone: (message?: string) => void;
   onClose: () => void;
-}) {
+}
+
+/** W-12 katak: holat tanlash; o'tgan kun — sabab; yopilgan oy (BR-30) — Director'ga so'rov. */
+export function MarkDrawer({ c, today, onDone, onClose }: DrawerProps) {
   const mark = useMark(c);
   const [status, setStatus] = useState<AttendanceStatus>('present');
   const [reason, setReason] = useState('');
   const past = c.lessonDate < today;
   const locked = mark.error instanceof ApiError && mark.error.code === 'ATTENDANCE_LOCKED_PAST';
-  const save = (request: boolean) =>
+  // Yopilgan oy xatosidan keyin xuddi shu tugma so'rov yuboradi (BR-30 → T-119).
+  const save = () =>
     mark.mutate(
-      { status, reason: reason.trim(), request },
-      { onSuccess: () => onDone(request ? g.requestSent : undefined) },
+      { status, reason: reason.trim(), request: locked },
+      { onSuccess: () => onDone(locked ? g.requestSent : undefined) },
     );
-  const blocked = past && reason.trim().length < 3;
   const footer = (
     <>
       <Button variant="secondary" onClick={onClose}>
         {t.common.cancel}
       </Button>
-      {locked ? (
-        <Button disabled={blocked} loading={mark.isPending} onClick={() => save(true)}>
-          {g.sendRequest}
-        </Button>
-      ) : (
-        <Button disabled={blocked} loading={mark.isPending} onClick={() => save(false)}>
-          {g.save}
-        </Button>
-      )}
+      <Button disabled={past && reason.trim().length < 3} loading={mark.isPending} onClick={save}>
+        {locked ? g.sendRequest : g.save}
+      </Button>
     </>
   );
   return (
@@ -96,19 +111,7 @@ export function MarkDrawer({
       footer={footer}
     >
       <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-2" role="radiogroup">
-          {STATUSES.map((s) => (
-            <Button
-              key={s}
-              role="radio"
-              aria-checked={s === status}
-              variant={s === status ? 'primary' : 'secondary'}
-              onClick={() => setStatus(s)}
-            >
-              {g.marks[s]}
-            </Button>
-          ))}
-        </div>
+        <StatusPicker value={status} onChange={setStatus} />
         {past && (
           <Field
             label={g.reason}

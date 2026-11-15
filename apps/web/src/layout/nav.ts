@@ -11,6 +11,7 @@ import {
   Home,
   Inbox,
   MonitorSmartphone,
+  Settings,
   Target,
   UserCog,
   Users,
@@ -108,6 +109,13 @@ export const NAV: readonly NavItem[] = [
     permission: 'approval.decide',
   },
   { screen: 'W-28', to: '/staff', label: t.menu.staff, icon: UserCog, permission: 'staff.manage' },
+  {
+    screen: 'W-29',
+    to: '/settings',
+    label: t.menu.settings,
+    icon: Settings,
+    permission: 'settings.manage',
+  },
   { screen: 'W-32', to: '/sessions', label: t.nav.sessions, icon: MonitorSmartphone },
 ];
 
