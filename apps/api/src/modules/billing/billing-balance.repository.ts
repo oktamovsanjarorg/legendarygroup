@@ -34,6 +34,7 @@ export class BillingBalanceRepository {
       .select({
         id: invoiceLines.id,
         invoiceId: invoiceLines.invoiceId,
+        period: invoices.period,
         dueDate: invoices.dueDate,
         amount: invoiceLines.amount,
         allocated: lineAllocatedSql(invoiceLines.id),

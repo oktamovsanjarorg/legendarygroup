@@ -19,6 +19,8 @@ import { DebtorsRepository } from './debtors.repository.js';
 import { DebtorsService } from './debtors.service.js';
 import { DiscountsRepository } from './discounts.repository.js';
 import { DiscountsService } from './discounts.service.js';
+import { PaymentPreviewController } from './payment-preview.controller.js';
+import { PaymentPreviewService } from './payment-preview.service.js';
 import { PaymentsService } from './payments.service.js';
 import { ReceiptPdfService } from './receipt-pdf.service.js';
 import { StornoCashRepository } from './storno-cash.repository.js';
@@ -39,7 +41,12 @@ import { SubmissionsService } from './submissions.service.js';
     NotificationsModule,
     FilesModule,
   ],
-  controllers: [BillingController, DebtorsController, SubmissionsController],
+  controllers: [
+    PaymentPreviewController,
+    BillingController,
+    DebtorsController,
+    SubmissionsController,
+  ],
   providers: [
     BillingRepository,
     BillingBalanceRepository,
@@ -47,6 +54,7 @@ import { SubmissionsService } from './submissions.service.js';
     BillingService,
     BillingCron,
     PaymentsService,
+    PaymentPreviewService,
     DiscountsRepository,
     DiscountsService,
     StornoCashRepository,
