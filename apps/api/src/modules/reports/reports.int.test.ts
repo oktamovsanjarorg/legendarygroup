@@ -186,6 +186,14 @@ describe('T-501: Hisobotlar toʻplami va eksport (FR-DASH-2, 4)', () => {
     },
   );
 
+  it('FR-FIN-3: finance.view’siz (Admin) moliyaviy hisobot eksporti — 403; operatsion — 200', async () => {
+    const admin = tokens.get('admin')!;
+    for (const type of ['revenue', 'debt-aging'])
+      for (const fmt of ['excel', 'pdf'])
+        expect((await call('GET', `reports/${type}/export/${fmt}`, admin)).statusCode).toBe(403);
+    expect((await call('GET', 'reports/attendance/export/excel', admin)).statusCode).toBe(200);
+  });
+
   it('IDOR: begona oʻquvchining ota-ona hisoboti — 404 (scope)', async () => {
     const preview = `reports/parent-digest/preview?studentId=${studentId}`;
     for (const role of ['guardian', 'teacher'] as const) {
