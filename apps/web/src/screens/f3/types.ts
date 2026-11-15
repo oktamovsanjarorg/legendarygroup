@@ -191,7 +191,7 @@ export interface ChurnStudentItem {
 
 // W-30: Audit
 export type AuditModule = 'finance' | 'students' | 'attendance' | 'system';
-export type AuditAction = 'create' | 'update' | 'delete' | 'login';
+export type AuditAction = 'create' | 'update' | 'delete' | 'login' | 'other';
 
 export interface AuditDiffItem {
   field: string;

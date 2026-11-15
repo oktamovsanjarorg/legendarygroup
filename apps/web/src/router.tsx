@@ -21,6 +21,7 @@ import { PayEntryPage } from './routes/billing/pay-entry.js';
 import { PaymentDetailPage } from './routes/billing/payment-detail.js';
 import { QueuePage } from './routes/billing/queue.js';
 import { AttendancePage } from './routes/attendance/index.js';
+import { AuditPage } from './routes/audit/index.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { ExpensesPage } from './routes/finance/expenses.js';
@@ -159,6 +160,7 @@ const payroll = createRoute({
   path: '/payroll',
   component: PayrollPage,
 });
+const audit = createRoute({ getParentRoute: () => app, path: '/audit', component: AuditPage });
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
 const routeTree = root.addChildren([
@@ -178,6 +180,7 @@ const routeTree = root.addChildren([
     sessions,
     wizard,
     payNew,
+    audit,
     payroll,
     pnl,
     expensesRoute,
