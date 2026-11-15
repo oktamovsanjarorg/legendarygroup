@@ -151,6 +151,7 @@ export const webF3CommMessages = {
       weekly_parent_report: 'Haftalik xulosa',
       monthly_parent_report: 'Oylik hisobot',
       announcement: 'Markaz eʼloni',
+      approval_decided: 'Soʻrov natijasi',
     },
     cols: {
       recipient: 'Qabul qiluvchi',

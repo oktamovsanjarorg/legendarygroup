@@ -12,6 +12,8 @@ export const NOTIFICATION_TYPES = [
   'weekly_parent_report',
   'monthly_parent_report',
   'announcement',
+  // T-119: tasdiqlash so'rovi natijasi so'rovchi xodimga.
+  'approval_decided',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -20,6 +22,7 @@ export const MANDATORY_NOTIFICATION_TYPES = [
   'attendance_correction',
   'billing_invoice_created',
   'billing_payment_confirmed',
+  'approval_decided',
 ] as const;
 export type MandatoryNotificationType = (typeof MANDATORY_NOTIFICATION_TYPES)[number];
 

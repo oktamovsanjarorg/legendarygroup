@@ -18,6 +18,8 @@ export const EVENT_TYPES = [
   'TestResultsPublished',
   // T-113: Davomat belgilandi — BR-31 3 daqiqalik tuzatish oynasidan keyin ota-onaga xabar.
   'AttendanceMarked',
+  // T-119: Director tasdiqlash so'rovi bo'yicha qaror qildi — so'rovchiga xabar.
+  'ApprovalDecided',
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
@@ -29,6 +31,13 @@ export interface EventPayloads {
   TelegramChatBlocked: { chatId: string; description: string };
   TelegramSendFailed: { notificationId: string; error: string };
   TestResultsPublished: { testId: string; groupId: string; title: string };
+  ApprovalDecided: {
+    requestId: string;
+    requestedBy: string;
+    type: string;
+    decision: 'approved' | 'rejected';
+    note: string | null;
+  };
   AttendanceMarked: {
     lessonId: string;
     studentId: string;
