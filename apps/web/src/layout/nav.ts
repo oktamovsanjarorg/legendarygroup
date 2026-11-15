@@ -16,6 +16,7 @@ import {
   Link2,
   MonitorSmartphone,
   Settings,
+  ShieldCheck,
   Target,
   UserCog,
   Users,
@@ -135,6 +136,13 @@ export const NAV: readonly NavItem[] = [
     permission: 'payroll.manage',
   },
   { screen: 'W-24', to: '/pnl', label: t.pnl.title, icon: TrendingUp, permission: 'finance.view' },
+  {
+    screen: 'W-30',
+    to: '/audit',
+    label: t.menu.audit,
+    icon: ShieldCheck,
+    permission: 'audit.view',
+  },
   {
     screen: 'W-29',
     to: '/settings',

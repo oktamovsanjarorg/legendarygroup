@@ -14,7 +14,6 @@ import { useState } from 'react';
 import type {
   AuditAction,
   AuditLogItem,
-  AuditModule,
   StaffActivityItem,
   SuspiciousActivityItem,
 } from './types.js';
@@ -26,18 +25,12 @@ interface Props {
   activeTab?: 'log' | 'suspicious' | 'staffActivity';
 }
 
-const ACTION_TONES: Record<AuditAction, 'success' | 'warning' | 'danger' | 'info'> = {
+const ACTION_TONES: Record<AuditAction, 'success' | 'warning' | 'danger' | 'info' | 'muted'> = {
   create: 'success',
   update: 'warning',
   delete: 'danger',
   login: 'info',
-};
-
-const MODULE_NAMES: Record<AuditModule, string> = {
-  finance: 'Moliya',
-  students: 'Oʻquvchilar',
-  attendance: 'Davomat',
-  system: 'Tizim',
+  other: 'muted',
 };
 
 const logColumns = (
@@ -61,7 +54,7 @@ const logColumns = (
   {
     accessorKey: 'module',
     header: t.audit.cols.module,
-    cell: ({ row }) => <Badge tone="muted">{MODULE_NAMES[row.original.module]}</Badge>,
+    cell: ({ row }) => <Badge tone="muted">{t.audit.modules[row.original.module]}</Badge>,
   },
   {
     accessorKey: 'action',

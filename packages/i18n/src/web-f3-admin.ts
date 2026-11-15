@@ -27,6 +27,13 @@ export const webF3AdminMessages = {
       update: 'Oʻzgartirildi',
       delete: 'Bekor qilindi',
       login: 'Kirish',
+      other: 'Boshqa amal',
+    },
+    modules: {
+      finance: 'Moliya',
+      students: 'Oʻquvchilar',
+      attendance: 'Davomat',
+      system: 'Tizim',
     },
     cols: {
       timestamp: 'Vaqt',
