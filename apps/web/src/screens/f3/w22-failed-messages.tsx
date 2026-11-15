@@ -1,127 +1,115 @@
-import { formatDateTime, formatPhone, webMessages as t } from '@lg/i18n';
-import { Badge, Button, Card, type ColumnDef, DataTable, PageHeader } from '@lg/ui-web';
+import { formatDateTime, webMessages as t } from '@lg/i18n';
+import { Badge, Button, type ColumnDef, DataTable, KpiCard, PageHeader } from '@lg/ui-web';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import type { FailedMessageItem, FailedMessageReason } from './types.js';
+
+const f = t.failedMessages;
+type LoadError = { message: string; requestId?: string; onRetry: () => void };
 
 interface Props {
   messages: readonly FailedMessageItem[];
   onRetry?: (id: string) => void;
   onRetryAll?: () => void;
+  /** Qayta yuborilayotgan xabar ID'lari. */
+  pending?: ReadonlySet<string>;
+  /** Natija yoki xato (server matni). */
+  message?: { text: string; error: boolean };
+  loading?: boolean;
+  loadError?: LoadError;
 }
 
-const REASON_TONES: Record<FailedMessageReason, 'danger' | 'warning' | 'muted' | 'info'> = {
-  TelegramChatBlocked: 'danger',
-  UserNotFound: 'warning',
-  NetworkError: 'muted',
-  RateLimit: 'info',
+const TONES: Record<FailedMessageReason, 'danger' | 'warning' | 'muted'> = {
+  blocked: 'danger',
+  notLinked: 'warning',
+  error: 'muted',
 };
 
-const columns = (onRetry?: (id: string) => void): ColumnDef<FailedMessageItem, unknown>[] => [
-  {
-    accessorKey: 'recipientName',
-    header: t.failedMessages.cols.recipient,
-    cell: ({ row }) => (
-      <div className="flex flex-col">
-        <span className="font-medium text-text">{row.original.recipientName}</span>
-        <span className="text-xs text-text-muted">{formatPhone(row.original.recipientPhone)}</span>
-      </div>
-    ),
-  },
-  {
-    id: 'student',
-    header: t.failedMessages.cols.student,
-    cell: ({ row }) => (
-      <div className="flex flex-col">
-        <span className="text-text">{row.original.studentName}</span>
-        <span className="text-xs text-text-muted">{row.original.groupName}</span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: 'type',
-    header: t.failedMessages.cols.type,
-    cell: ({ row }) => t.failedMessages.types[row.original.type],
-  },
+const columns = (
+  onRetry?: (id: string) => void,
+  pending?: ReadonlySet<string>,
+): ColumnDef<FailedMessageItem, unknown>[] => [
+  { accessorKey: 'recipientName', header: f.cols.recipient },
+  { accessorKey: 'type', header: f.cols.type, cell: ({ row }) => f.types[row.original.type] },
   {
     accessorKey: 'reason',
-    header: t.failedMessages.cols.reason,
+    header: f.cols.reason,
     cell: ({ row }) => (
-      <Badge tone={REASON_TONES[row.original.reason]}>
-        {t.failedMessages.reasons[row.original.reason]}
-      </Badge>
+      <span title={row.original.detail ?? undefined}>
+        <Badge tone={TONES[row.original.reason]}>{f.reasons[row.original.reason]}</Badge>
+      </span>
     ),
   },
-  {
-    accessorKey: 'attempts',
-    header: t.failedMessages.cols.attempts,
-  },
+  { accessorKey: 'attempts', header: f.cols.attempts },
   {
     accessorKey: 'date',
-    header: t.failedMessages.cols.date,
+    header: f.cols.date,
     cell: ({ row }) => formatDateTime(row.original.date),
   },
   {
     id: 'actions',
     header: t.common.actions,
-    cell: ({ row }) => (
-      <Button
-        variant="secondary"
-        className="h-8 px-2 text-xs"
-        onClick={() => onRetry?.(row.original.id)}
-      >
-        <RefreshCw className="size-3.5" aria-hidden />
-        {t.failedMessages.actions.retry}
-      </Button>
-    ),
+    cell: ({ row }) =>
+      onRetry && row.original.reason !== 'notLinked' ? (
+        <Button
+          variant="secondary"
+          onClick={() => onRetry(row.original.id)}
+          loading={pending?.has(row.original.id)}
+        >
+          <RefreshCw className="size-3.5" aria-hidden />
+          {f.actions.retry}
+        </Button>
+      ) : null,
   },
 ];
 
-/** W-22 Yetib bormagan xabarlar (FR-RPT-6). */
-export function FailedMessagesView({ messages, onRetry, onRetryAll }: Props) {
-  const blockedCount = messages.filter((m) => m.reason === 'TelegramChatBlocked').length;
-  const notFoundCount = messages.filter((m) => m.reason === 'UserNotFound').length;
+const count = (m: readonly FailedMessageItem[], r: FailedMessageReason) =>
+  m.filter((x) => x.reason === r).length;
 
+/** W-22 Yetib bormagan xabarlar (FR-RPT-6, T-109). */
+export function FailedMessagesView(p: Props) {
+  const retryable = p.messages.some((m) => m.reason !== 'notLinked');
   return (
     <>
       <PageHeader
-        title={t.failedMessages.title}
-        description={t.failedMessages.subtitle}
+        title={f.title}
+        description={f.subtitle}
         actions={
-          messages.length > 0 && (
-            <Button onClick={onRetryAll}>
+          p.onRetryAll &&
+          retryable && (
+            <Button onClick={p.onRetryAll} loading={(p.pending?.size ?? 0) > 0}>
               <RefreshCw className="size-4" aria-hidden />
-              {t.failedMessages.actions.retryAll}
+              {f.actions.retryAll}
             </Button>
           )
         }
       />
-
-      <div className="mb-4 flex items-center gap-3 rounded-lg border border-warning/30 bg-warning-bg/40 p-3 text-xs text-warning">
-        <AlertTriangle className="size-5 shrink-0" aria-hidden />
-        <span>{t.failedMessages.banner}</span>
-      </div>
-
+      {count(p.messages, 'notLinked') > 0 && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-warning/30 bg-warning-bg/40 p-3 text-xs text-warning">
+          <AlertTriangle className="size-5 shrink-0" aria-hidden />
+          <span>{f.notLinkedHint}</span>
+        </div>
+      )}
+      {p.message && (
+        <p
+          role={p.message.error ? 'alert' : 'status'}
+          className={`mb-4 text-sm ${p.message.error ? 'text-danger' : 'text-success'}`}
+        >
+          {p.message.text}
+        </p>
+      )}
       <div className="mb-6 grid grid-cols-3 gap-4">
-        <Card className="p-4">
-          <span className="text-xs text-text-muted">{t.failedMessages.kpi.totalFailed}</span>
-          <p className="text-xl font-semibold text-danger">{messages.length}</p>
-        </Card>
-        <Card className="p-4">
-          <span className="text-xs text-text-muted">{t.failedMessages.kpi.botBlocked}</span>
-          <p className="text-xl font-semibold text-text">{blockedCount}</p>
-        </Card>
-        <Card className="p-4">
-          <span className="text-xs text-text-muted">{t.failedMessages.kpi.userNotFound}</span>
-          <p className="text-xl font-semibold text-text">{notFoundCount}</p>
-        </Card>
+        <KpiCard label={f.kpi.totalFailed} value={String(p.messages.length)} />
+        <KpiCard label={f.kpi.botBlocked} value={String(count(p.messages, 'blocked'))} />
+        <KpiCard label={f.kpi.notLinked} value={String(count(p.messages, 'notLinked'))} />
       </div>
-
       <DataTable
-        data={messages}
-        columns={columns(onRetry)}
+        data={p.messages}
+        columns={columns(p.onRetry, p.pending)}
         getRowId={(r) => r.id}
         numeric={['attempts']}
-        empty={{ title: t.failedMessages.empty }}
+        empty={{ title: f.empty }}
+        loading={p.loading}
+        error={p.loadError}
       />
     </>
   );

@@ -75,19 +75,17 @@ export interface TicketMessage {
 }
 
 // W-22: Yetib bormagan xabarlar
-export type FailedMessageType =
-  'paymentReminder' | 'lessonCancel' | 'announcement' | 'attendanceAlert';
-export type FailedMessageReason =
-  'TelegramChatBlocked' | 'UserNotFound' | 'NetworkError' | 'RateLimit';
+// W-22: /notifications/undelivered. Sabab: bloklangan / Telegram yo'q / yuborish xatosi.
+export type FailedMessageType = NotificationType;
+export type FailedMessageReason = 'blocked' | 'notLinked' | 'error';
 
 export interface FailedMessageItem {
   id: string;
   recipientName: string;
-  recipientPhone: string;
-  studentName: string;
-  groupName: string;
   type: FailedMessageType;
   reason: FailedMessageReason;
+  /** Xom xato matni (faqat `error` uchun, maslahat sifatida). */
+  detail: string | null;
   attempts: number;
   date: Date;
 }
@@ -95,7 +93,7 @@ export interface FailedMessageItem {
 // W-23: Xarajatlar
 /** FR-FIN-1 kategoriyalari — API bilan bir xil (`@lg/contracts`). */
 export type { ExpenseCategory } from '@lg/contracts';
-import type { ExpenseCategory } from '@lg/contracts';
+import type { ExpenseCategory, NotificationType } from '@lg/contracts';
 
 export interface ExpenseItem {
   id: string;
