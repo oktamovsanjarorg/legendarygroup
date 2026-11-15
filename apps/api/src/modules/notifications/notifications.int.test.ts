@@ -1,5 +1,6 @@
 import {
   DEFAULT_BRANCH_ID,
+  type EventPayloads,
   type NotificationPreference,
   type RoleCode,
   type UndeliveredNotificationItem,
@@ -9,6 +10,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { EventHandlers, OutboxService } from '../outbox/index.js';
 import { NotificationsService } from './notifications.service.js';
 
 let t: TestApp;
@@ -122,5 +124,67 @@ describe('T-109: Bildirishnomalar moduli (FR-RPT-4, 6)', () => {
       directorToken,
     );
     expect(retryRes.statusCode).toBe(201);
+  });
+});
+
+describe('T-109, W-22: yetkazish holati — haqiqiy holatlar', () => {
+  const statusOf = async (id: string) =>
+    (await db.select().from(notifications).where(eq(notifications.id, id)))[0];
+  const events = () => t.app.get(EventHandlers);
+  const dispatch = async <T extends 'TelegramChatBlocked' | 'TelegramSendFailed'>(
+    type: T,
+    payload: EventPayloads[T],
+  ) => {
+    const eventId = await t.app.get(OutboxService).publish(type, payload);
+    await events().dispatch({ eventId, type, payload, occurredAt: new Date().toISOString() });
+  };
+
+  it('bug: Telegram bogʻlanmagan foydalanuvchi — xabar "queued" emas, "failed"/NO_TELEGRAM', async () => {
+    const noTg = await createUserWithRole(db, 'guardian', '+998905550001');
+    const id = await t.app.get(NotificationsService).notify({
+      userId: noTg,
+      type: 'attendance_absent',
+      payload: { studentName: 'A', groupName: 'B', date: '2026-11-15' },
+    });
+    const row = await statusOf(id!);
+    expect([row?.status, row?.failedReason]).toEqual(['failed', 'NO_TELEGRAM']);
+    // Telegram yoʻq — qayta yuborish maʼnosiz (409), holat oʻzgarmaydi.
+    const res = await call('POST', `notifications/undelivered/${id}/retry`, directorToken);
+    expect(res.json<{ code: string }>().code).toBe('NO_TELEGRAM');
+  });
+
+  it('bug: TelegramChatBlocked → "blocked"; TelegramSendFailed → "failed"', async () => {
+    const service = t.app.get(NotificationsService);
+    const payload = { studentName: 'A', groupName: 'B', date: '2026-11-15' };
+    await service.notify({
+      userId: parentUserId,
+      type: 'attendance_absent',
+      payload,
+      dedupeKey: 'w22-a',
+    });
+    const [row] = await db.select().from(notifications).where(eq(notifications.dedupeKey, 'w22-a'));
+    await dispatch('TelegramChatBlocked', { chatId: '987654321', description: 'Forbidden' });
+    expect((await statusOf(row!.id))?.status).toBe('blocked');
+
+    await db.update(notifications).set({ status: 'queued' }).where(eq(notifications.id, row!.id));
+    await dispatch('TelegramSendFailed', { notificationId: row!.id, error: 'Telegram 400' });
+    const failed = await statusOf(row!.id);
+    expect([failed?.status, failed?.failedReason]).toEqual(['failed', 'Telegram 400']);
+  });
+
+  it('retry: faqat failed/blocked — navbatdagi xabar 409 NOT_RETRYABLE', async () => {
+    const [q] = await db
+      .insert(notifications)
+      .values({
+        branchId: DEFAULT_BRANCH_ID,
+        userId: parentUserId,
+        type: 'announcement',
+        recipient: '987654321',
+        body: 'x',
+        status: 'queued',
+      })
+      .returning();
+    const res = await call('POST', `notifications/undelivered/${q!.id}/retry`, directorToken);
+    expect(res.json<{ code: string }>().code).toBe('NOT_RETRYABLE');
   });
 });

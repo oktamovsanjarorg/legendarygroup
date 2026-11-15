@@ -12,6 +12,8 @@ export const EVENT_TYPES = [
   'StaffSessionReuseDetected',
   // T-010: foydalanuvchi botni bloklagan (403) — T-109 bildirishnomani `blocked` qiladi, Admin ko'radi.
   'TelegramChatBlocked',
+  // T-109: bildirishnoma xabari barcha urinishlardan keyin yuborilmadi — `failed`, W-22 ko'rsatadi.
+  'TelegramSendFailed',
   // T-302: Test natijalari e'lon qilindi — ota-onaga xabar (T-109/T-302).
   'TestResultsPublished',
   // T-113: Davomat belgilandi — BR-31 3 daqiqalik tuzatish oynasidan keyin ota-onaga xabar.
@@ -25,6 +27,7 @@ export interface EventPayloads {
   StaffTelegramLoginRequested: { challengeId: string; userId: string; expiresAt: string };
   StaffSessionReuseDetected: { userId: string; familyId: string };
   TelegramChatBlocked: { chatId: string; description: string };
+  TelegramSendFailed: { notificationId: string; error: string };
   TestResultsPublished: { testId: string; groupId: string; title: string };
   AttendanceMarked: {
     lessonId: string;

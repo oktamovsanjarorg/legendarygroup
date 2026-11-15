@@ -22,13 +22,17 @@ import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
 import { Authenticated } from '../../common/decorators/access.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
+import { NotificationDeliveryService } from './notification-delivery.service.js';
 import { NotificationsService } from './notifications.service.js';
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
 @Controller('notifications')
 export class NotificationsController {
-  constructor(@Inject(NotificationsService) private readonly service: NotificationsService) {}
+  constructor(
+    @Inject(NotificationsService) private readonly service: NotificationsService,
+    @Inject(NotificationDeliveryService) private readonly delivery: NotificationDeliveryService,
+  ) {}
 
   @Get('preferences')
   @Authenticated()
@@ -68,7 +72,7 @@ export class NotificationsController {
   @Audit({ action: 'notification.retry', entity: 'notification' })
   @ApiOperation({ summary: 'Yetib bormagan xabarni qayta yuborish' })
   async retry(@Param('id', ParseUUIDPipe) id: string): Promise<{ success: boolean }> {
-    await this.service.retryNotification(id);
+    await this.delivery.retry(id);
     return { success: true };
   }
 }
