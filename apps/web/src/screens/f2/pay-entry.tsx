@@ -31,6 +31,8 @@ export interface PayEntryState {
   saving?: boolean;
   /** Saqlangach: chek raqami. */
   savedReceipt?: string;
+  /** Saqlash xatosi (server matni). */
+  error?: string;
 }
 
 export interface PayEntryProps {
@@ -41,6 +43,10 @@ export interface PayEntryProps {
   onMethod: (m: PayMethod) => void;
   onSubmit: () => void;
   onNext: () => void;
+  /** Chek PDF — yo'q bo'lsa tugma ko'rinmaydi. */
+  onPrint?: () => void;
+  /** Qo'lda taqsimlash — yo'q bo'lsa havola ko'rinmaydi. */
+  onManual?: () => void;
 }
 
 function StudentPicker({ s, onQuery, onPick }: Pick<PayEntryProps, 's' | 'onQuery' | 'onPick'>) {
@@ -134,7 +140,15 @@ export function payKeys(p: PayEntryProps, e: KeyboardEvent): void {
   }
 }
 
-function SavedCard({ receipt, onNext }: { receipt: string; onNext: () => void }) {
+function SavedCard({
+  receipt,
+  onNext,
+  onPrint,
+}: {
+  receipt: string;
+  onNext: () => void;
+  onPrint?: () => void;
+}) {
   return (
     <Card className="flex flex-col items-start gap-3 border-success/40 bg-success-bg">
       <p className="flex items-center gap-2 font-medium text-success">
@@ -142,17 +156,19 @@ function SavedCard({ receipt, onNext }: { receipt: string; onNext: () => void })
         {t.payEntry.done.replace('{no}', receipt)}
       </p>
       <span className="flex gap-2">
-        <Button variant="secondary">
-          <Printer className="size-4" aria-hidden />
-          {t.payEntry.printReceipt}
-        </Button>
+        {onPrint && (
+          <Button variant="secondary" onClick={onPrint}>
+            <Printer className="size-4" aria-hidden />
+            {t.payEntry.printReceipt}
+          </Button>
+        )}
         <Button onClick={onNext}>{t.payEntry.next}</Button>
       </span>
     </Card>
   );
 }
 
-function PreviewCard({ s }: { s: PayEntryState }) {
+function PreviewCard({ s, onManual }: { s: PayEntryState; onManual?: () => void }) {
   if (!s.student) return null;
   return (
     <Card className="flex flex-col gap-3">
@@ -173,9 +189,11 @@ function PreviewCard({ s }: { s: PayEntryState }) {
           {t.payEntry.advance.replace('{amount}', formatMoney(s.preview.advance))}
         </p>
       )}
-      <Button variant="link" className="self-start">
-        {t.payEntry.manual}
-      </Button>
+      {onManual && (
+        <Button variant="link" className="self-start" onClick={onManual}>
+          {t.payEntry.manual}
+        </Button>
+      )}
     </Card>
   );
 }
@@ -197,7 +215,7 @@ export function PayEntryView(p: PayEntryProps) {
           />
           <MethodPicker value={s.method} onMethod={p.onMethod} />
           {s.savedReceipt ? (
-            <SavedCard receipt={s.savedReceipt} onNext={p.onNext} />
+            <SavedCard receipt={s.savedReceipt} onNext={p.onNext} onPrint={p.onPrint} />
           ) : (
             <Button
               size="full"
@@ -208,9 +226,14 @@ export function PayEntryView(p: PayEntryProps) {
               {t.payEntry.submit}
             </Button>
           )}
+          {s.error && (
+            <p role="alert" className="text-sm text-danger">
+              {s.error}
+            </p>
+          )}
         </Card>
         <div className="col-span-2">
-          <PreviewCard s={s} />
+          <PreviewCard s={s} onManual={p.onManual} />
         </div>
       </div>
     </div>

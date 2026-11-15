@@ -13,6 +13,7 @@ import { InvitePage } from './pages/invite.js';
 import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
 import { VerifyPage } from './pages/verify.js';
+import { PayEntryPage } from './routes/billing/pay-entry.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { GroupsPage } from './routes/groups/index.js';
@@ -86,6 +87,11 @@ const studentCard = createRoute({
 });
 const leads = createRoute({ getParentRoute: () => app, path: '/leads', component: LeadsPage });
 const staff = createRoute({ getParentRoute: () => app, path: '/staff', component: StaffPage });
+const payNew = createRoute({
+  getParentRoute: () => app,
+  path: '/payments/new',
+  component: PayEntryPage,
+});
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
 const routeTree = root.addChildren([
@@ -104,6 +110,7 @@ const routeTree = root.addChildren([
     staff,
     sessions,
     wizard,
+    payNew,
   ]),
 ]);
 

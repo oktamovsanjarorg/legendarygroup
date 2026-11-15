@@ -18,13 +18,14 @@ export interface RequestInit {
   body?: unknown;
   /** `false` — 401'da tokenni yangilamaydi (masalan, kirishning o'zi). */
   retry?: boolean;
+  /** Qo'shimcha sarlavhalar (masalan `Idempotency-Key`, BR-11). */
+  headers?: Record<string, string>;
 }
 
 /** Tokensiz xom so'rov (yangilash strategiyasi uchun). */
-export type RawSend = (
-  path: string,
-  init: { method?: string; body?: unknown },
-) => Promise<Response>;
+export type RawSend = (path: string, init: SendInit) => Promise<Response>;
+
+type SendInit = Pick<RequestInit, 'method' | 'body' | 'headers'>;
 
 /**
  * Yangi access token olish strategiyasi: web — httpOnly refresh cookie (ADR 0006),
@@ -67,6 +68,17 @@ export class ApiClient {
     return this.parse<T>(res);
   }
 
+  /** Fayl (masalan chek PDF) — xato bo'lsa `ApiError`. */
+  async blob(path: string, retry = true): Promise<Blob> {
+    const res = await this.send(path, {}, true);
+    if (res.status === 401 && retry) {
+      if (await this.refresh()) return this.blob(path, false);
+      this.onSessionEnd();
+    }
+    if (!res.ok) return this.parse<never>(res);
+    return res.blob();
+  }
+
   /** Strategiya orqali yangi token (parallel chaqiruvlar — bitta so'rov). */
   refresh(): Promise<boolean> {
     this.renewing ??= this.renew((p, i) => this.send(p, i, false))
@@ -84,12 +96,8 @@ export class ApiClient {
     return this.renewing;
   }
 
-  private send(
-    path: string,
-    init: { method?: string; body?: unknown },
-    withToken: boolean,
-  ): Promise<Response> {
-    const headers: Record<string, string> = {};
+  private send(path: string, init: SendInit, withToken: boolean): Promise<Response> {
+    const headers: Record<string, string> = { ...init.headers };
     if (init.body !== undefined) headers['content-type'] = 'application/json';
     if (withToken && this.accessToken) headers['authorization'] = `Bearer ${this.accessToken}`;
     return this.fetchFn(`${this.base}${path}`, {

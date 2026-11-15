@@ -14,6 +14,8 @@ export interface Call {
   method: string;
   path: string;
   body: unknown;
+  /** BR-11 sarlavhasi — faqat yuborilganda (boshqa testlarning `toEqual`i o'zgarmasin). */
+  idempotencyKey?: string;
 }
 /** Ekran so'rovlariga javob; `undefined` — 404. */
 export type Handler = (call: Call) => Response | undefined;
@@ -41,6 +43,8 @@ export function fakeApi(permissions: readonly Permission[], handler: Handler): C
       path,
       body: init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     };
+    const key = (init?.headers as Record<string, string> | undefined)?.['idempotency-key'];
+    if (key) call.idempotencyKey = key;
     calls.push(call);
     return handler(call) ?? json(404, { code: 'NOT_FOUND', message: 'Topilmadi.' });
   });
