@@ -9,10 +9,12 @@ import {
   notifications,
   seed,
   studentGuardians,
+  users,
 } from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
+import { EventHandlers, OutboxService } from '../outbox/index.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 
 describe('Ommaviy eʼlonlar moduli (T-305 / FR-RPT-5)', () => {
@@ -42,6 +44,8 @@ describe('Ommaviy eʼlonlar moduli (T-305 / FR-RPT-5)', () => {
     teacher2Id = await createUserWithRole(db, 'teacher');
 
     guardianUserId = await createUserWithRole(db, 'guardian', '+998901230001');
+    // Haqiqiy holat: ota-ona botga ulangan (bug: notify job ID qaytarardi → recipient 'failed').
+    await db.update(users).set({ telegramId: 555000111n }).where(eq(users.id, guardianUserId));
 
     // Kurs va guruhlar
     const [c] = await db
@@ -247,6 +251,25 @@ describe('Ommaviy eʼlonlar moduli (T-305 / FR-RPT-5)', () => {
     expect(stats.totalRecipients).toBe(1);
     expect(stats.sentCount).toBe(1);
     expect(stats.recipients[0]?.status).toBe('sent');
+
+    // Navbatdan keyin ota-ona botni bloklasa — statistika haqiqiy holatni koʻrsatadi.
+    const payload = { chatId: '555000111', description: 'Forbidden: bot was blocked' };
+    const eventId = await t.app.get(OutboxService).publish('TelegramChatBlocked', payload);
+    await t.app.get(EventHandlers).dispatch({
+      eventId,
+      type: 'TelegramChatBlocked',
+      payload,
+      occurredAt: new Date().toISOString(),
+    });
+    const after = (
+      await t.app.inject({
+        method: 'GET',
+        url: `/api/announcements/${ann.id}/stats`,
+        headers: { authorization: `Bearer ${tokens.get('admin')}` },
+      })
+    ).json<{ blockedCount: number; recipients: Array<{ status: string }> }>();
+    expect(after.blockedCount).toBe(1);
+    expect(after.recipients[0]?.status).toBe('blocked');
   });
 
   it('Qarzdorlar auditoriyasi: qarzdor ota-onaga eʼlon yuborish', async () => {

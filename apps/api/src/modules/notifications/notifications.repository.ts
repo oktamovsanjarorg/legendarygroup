@@ -101,6 +101,18 @@ export class NotificationsRepository {
   }
 
   /** ID bo'yicha bildirishnomani topadi */
+  async findStatuses(ids: string[]) {
+    if (ids.length === 0) return [];
+    return this.db
+      .select({
+        id: notifications.id,
+        status: notifications.status,
+        failedReason: notifications.failedReason,
+      })
+      .from(notifications)
+      .where(inArray(notifications.id, ids));
+  }
+
   async findById(id: string) {
     const [row] = await this.db.select().from(notifications).where(eq(notifications.id, id));
     return row;
