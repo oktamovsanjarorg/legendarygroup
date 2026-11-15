@@ -1,4 +1,4 @@
-import type { LessonAttendance, RoleCode } from '@lg/contracts';
+import type { GroupAttendance, LessonAttendance, RoleCode } from '@lg/contracts';
 import { attendance, closeDb, createDb, type Database, guardians, lessons, seed } from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { addDays, formatDateToYmd } from '@lg/domain';
@@ -257,5 +257,33 @@ describe('T-111, T-112, T-113 Davomat tizimi (BR-29, BR-30, BR-31, BR-32)', () =
     const result = await service.sendAttendanceReminders();
     expect(result).toHaveProperty('teacherReminders');
     expect(result).toHaveProperty('adminReminders');
+  });
+});
+
+describe('GET attendance/groups (W-12, T-112, FR-ATT-4)', () => {
+  const url = () => `attendance/groups?groupId=${groupId}&from=${START}&to=${TODAY}`;
+
+  it('darslar × oʻquvchilar va belgilar; ustoz — oʻz guruhi', async () => {
+    await call('POST', `attendance/lessons/${todayLessonId}`, teacherToken, {
+      items: [{ studentId: student1Id, status: 'present' }],
+    });
+    const res = await call('GET', url(), tokens.get('admin')!);
+    expect(res.statusCode).toBe(200);
+    const g = res.json<GroupAttendance>();
+    expect(g.lessons.map((l) => l.id)).toEqual([pastLessonId, todayLessonId]);
+    expect(g.students.map((s) => s.id).sort()).toEqual([student1Id, student2Id].sort());
+    expect(g.marks).toContainEqual({
+      lessonId: todayLessonId,
+      studentId: student1Id,
+      status: 'present',
+    });
+    expect((await call('GET', url(), teacherToken)).statusCode).toBe(200);
+  });
+
+  it('forbidden: begona ustoz — 404 (guruh yashirin), ota-ona — 403; 62+ kun — 400', async () => {
+    expect((await call('GET', url(), teacher2Token)).statusCode).toBe(404);
+    expect((await call('GET', url(), parentToken)).statusCode).toBe(403);
+    const wide = `attendance/groups?groupId=${groupId}&from=${addDays(TODAY, -100)}&to=${TODAY}`;
+    expect((await call('GET', wide, tokens.get('admin')!)).statusCode).toBe(400);
   });
 });

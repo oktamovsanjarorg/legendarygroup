@@ -1,3 +1,5 @@
+import { AttendanceGridController } from './attendance-grid.controller.js';
+import { AttendanceGridService } from './attendance-grid.service.js';
 import { Module } from '@nestjs/common';
 import { AuditModule } from '../../common/audit/audit.module.js';
 import { ClockModule } from '../../common/clock/clock.module.js';
@@ -32,10 +34,11 @@ import { AttendanceService } from './attendance.service.js';
     NotificationsModule,
     SettingsModule,
   ],
-  controllers: [AttendanceController, AbsenceNoticesController],
+  controllers: [AttendanceGridController, AttendanceController, AbsenceNoticesController],
   providers: [
     AttendanceRepository,
     AttendanceService,
+    AttendanceGridService,
     AttendanceNoticeService,
     AttendanceNoticeProcessor,
     AbsenceNoticesRepository,

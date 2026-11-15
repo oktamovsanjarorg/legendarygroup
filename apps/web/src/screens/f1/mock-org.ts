@@ -211,7 +211,7 @@ export const GROUP_ROWS: GroupRow[] = [
 
 const marks = ['present', 'absent', 'late', 'excused', null] as const;
 export const GRID: AttendanceGrid = {
-  groups: GROUPS,
+  groups: GROUPS.map((g) => ({ value: g, label: g })),
   group: GROUPS[0] ?? '',
   dates: ['27.10', '29.10', '31.10', '03.11', '05.11', '07.11', '10.11', '12.11'],
   unmarked: [7],
@@ -238,6 +238,7 @@ export const SETTINGS: CenterSettings = {
   address: 'Toshkent, Chilonzor tumani',
   card: '8600 1234 5678 9012',
   cardHolder: 'LEGENDARY GROUP MCHJ',
+  bankName: 'Kapitalbank',
   dueDay: 10,
   adminDiscountLimit: 10,
   lateThreshold: 15,

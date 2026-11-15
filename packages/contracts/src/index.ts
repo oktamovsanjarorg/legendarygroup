@@ -17,6 +17,7 @@ export * from './payment-preview.js';
 export * from './payment-view.js';
 export * from './submissions.js';
 export * from './attendance.js';
+export * from './attendance-grid.js';
 export * from './grades.js';
 export * from './tests.js';
 export * from './payroll.js';

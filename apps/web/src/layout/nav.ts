@@ -4,12 +4,14 @@ import {
   BadgePercent,
   BookOpen,
   CalendarDays,
+  ClipboardCheck,
   CircleAlert,
   CheckCheck,
   Banknote,
   Home,
   Inbox,
   MonitorSmartphone,
+  Settings,
   Target,
   UserCog,
   Users,
@@ -64,6 +66,13 @@ export const NAV: readonly NavItem[] = [
     permission: 'group.view',
   },
   {
+    screen: 'W-12',
+    to: '/attendance',
+    label: t.menu.attendance,
+    icon: ClipboardCheck,
+    permission: 'attendance.mark',
+  },
+  {
     screen: 'W-13',
     to: '/payments/new',
     label: t.payEntry.title,
@@ -100,6 +109,13 @@ export const NAV: readonly NavItem[] = [
     permission: 'approval.decide',
   },
   { screen: 'W-28', to: '/staff', label: t.menu.staff, icon: UserCog, permission: 'staff.manage' },
+  {
+    screen: 'W-29',
+    to: '/settings',
+    label: t.menu.settings,
+    icon: Settings,
+    permission: 'settings.manage',
+  },
   { screen: 'W-32', to: '/sessions', label: t.nav.sessions, icon: MonitorSmartphone },
 ];
 
