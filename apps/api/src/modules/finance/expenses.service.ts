@@ -75,7 +75,11 @@ export class ExpensesService {
       limit: query.limit,
       offset: query.offset,
     });
-    return rows.map(mapExpenseRow);
+    const names = await this.repo.userNames([...new Set(rows.map((r) => r.createdBy))]);
+    return rows.map((r) => ({
+      ...mapExpenseRow(r),
+      createdByName: names.get(r.createdBy) ?? null,
+    }));
   }
 
   async getMonthlyPnL(

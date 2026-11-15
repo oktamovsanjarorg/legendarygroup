@@ -93,9 +93,9 @@ export interface FailedMessageItem {
 }
 
 // W-23: Xarajatlar
-export type ExpenseCategory =
-  'rent' | 'utilities' | 'marketing' | 'salary' | 'supplies' | 'equipment' | 'other';
-export type ExpenseMethod = 'cash' | 'bank' | 'card';
+/** FR-FIN-1 kategoriyalari — API bilan bir xil (`@lg/contracts`). */
+export type { ExpenseCategory } from '@lg/contracts';
+import type { ExpenseCategory } from '@lg/contracts';
 
 export interface ExpenseItem {
   id: string;
@@ -103,8 +103,8 @@ export interface ExpenseItem {
   category: ExpenseCategory;
   description: string;
   amount: bigint;
-  method: ExpenseMethod;
-  receiptUrl?: string;
+  /** Chek fayli bor (FR-FIN-1). */
+  hasReceipt: boolean;
   author: string;
 }
 

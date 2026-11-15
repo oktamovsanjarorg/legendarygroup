@@ -9,6 +9,7 @@ import {
   CheckCheck,
   Banknote,
   Home,
+  Receipt,
   Inbox,
   Link2,
   MonitorSmartphone,
@@ -117,6 +118,13 @@ export const NAV: readonly NavItem[] = [
     permission: 'approval.decide',
   },
   { screen: 'W-28', to: '/staff', label: t.menu.staff, icon: UserCog, permission: 'staff.manage' },
+  {
+    screen: 'W-23',
+    to: '/expenses',
+    label: t.expenses.title,
+    icon: Receipt,
+    permission: 'expense.manage',
+  },
   {
     screen: 'W-29',
     to: '/settings',

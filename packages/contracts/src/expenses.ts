@@ -24,6 +24,8 @@ export const ExpenseItemSchema = z.object({
   note: z.string().nullable(),
   fileId: z.string().uuid().nullable(),
   createdBy: z.string().uuid(),
+  /** Ro'yxatda — kiritgan xodim ismi (W-23). */
+  createdByName: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

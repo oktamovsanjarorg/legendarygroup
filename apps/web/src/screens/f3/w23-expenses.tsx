@@ -1,3 +1,4 @@
+import { EXPENSE_CATEGORIES } from '@lg/contracts';
 import { formatDateShort, formatMoney, webMessages as t } from '@lg/i18n';
 import {
   Badge,
@@ -13,37 +14,41 @@ import {
 } from '@lg/ui-web';
 import { FileText, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { MOCK_EXPENSES_MONTH_DELTA, MOCK_EXPENSES_TOTAL } from './mock-finance.js';
-import type { ExpenseCategory, ExpenseItem, ExpenseMethod } from './types.js';
+import type { ExpenseCategory, ExpenseItem } from './types.js';
+
+export interface NewExpense {
+  category: ExpenseCategory;
+  note: string;
+  amount: bigint;
+  date: string;
+  file: File | null;
+}
+
+/** KPI — server hisoblari (P&L); UI faqat ko'rsatadi. */
+export interface ExpensesKpi {
+  total: bigint;
+  topCategory: ExpenseCategory | null;
+  /** O'tgan oyga nisbatan farq (bigint ayirma, faqat ko'rinish). */
+  delta: bigint | null;
+}
 
 interface Props {
   expenses: readonly ExpenseItem[];
-  total?: bigint;
-  onAddExpense?: (item: {
-    category: ExpenseCategory;
-    description: string;
-    amount: bigint;
-    method: ExpenseMethod;
-    date: string;
-  }) => void;
+  kpi: ExpensesKpi;
+  /** Yo'q bo'lsa — "qo'shish" tugmasi ko'rinmaydi. */
+  onAdd?: (item: NewExpense) => void;
+  saving?: boolean;
+  /** Saqlash xatosi (server matni). */
+  error?: string;
+  /** Saqlangach drawer yopilishi uchun — har muvaffaqiyatda o'zgaradi. */
+  savedKey?: number;
+  loading?: boolean;
+  loadError?: { message: string; requestId?: string; onRetry: () => void };
 }
 
-const CATEGORIES: readonly ExpenseCategory[] = [
-  'rent',
-  'utilities',
-  'marketing',
-  'salary',
-  'supplies',
-  'equipment',
-  'other',
-];
-const isCategory = (v: string): v is ExpenseCategory =>
-  (CATEGORIES as readonly string[]).includes(v);
-
-const METHODS: readonly ExpenseMethod[] = ['cash', 'bank', 'card'];
-const isMethod = (v: string): v is ExpenseMethod => (METHODS as readonly string[]).includes(v);
-
 const compareBigint = (a: bigint, b: bigint): number => (a < b ? -1 : a > b ? 1 : 0);
+const isCategory = (v: string): v is ExpenseCategory =>
+  (EXPENSE_CATEGORIES as readonly string[]).includes(v);
 
 const CATEGORY_TONES: Record<ExpenseCategory, 'info' | 'warning' | 'muted' | 'success'> = {
   rent: 'warning',
@@ -51,7 +56,7 @@ const CATEGORY_TONES: Record<ExpenseCategory, 'info' | 'warning' | 'muted' | 'su
   marketing: 'success',
   salary: 'info',
   supplies: 'muted',
-  equipment: 'muted',
+  maintenance: 'muted',
   other: 'muted',
 };
 
@@ -84,15 +89,10 @@ const columns: ColumnDef<ExpenseItem, unknown>[] = [
     ),
   },
   {
-    accessorKey: 'method',
-    header: t.expenses.cols.method,
-    cell: ({ row }) => t.expenses.methods[row.original.method],
-  },
-  {
     id: 'receipt',
     header: t.expenses.cols.receipt,
     cell: ({ row }) =>
-      row.original.receiptUrl ? (
+      row.original.hasReceipt ? (
         <span className="flex items-center gap-1 text-xs text-primary">
           <FileText className="size-3.5" aria-hidden />
           {t.expenses.cols.receipt}
@@ -104,121 +104,66 @@ const columns: ColumnDef<ExpenseItem, unknown>[] = [
   { accessorKey: 'author', header: t.expenses.cols.author },
 ];
 
-const CAT_OPTIONS = Object.entries(t.expenses.categories).map(([val, label]) => ({
-  value: val,
-  label,
-}));
+const CAT_OPTIONS = EXPENSE_CATEGORIES.map((c) => ({ value: c, label: t.expenses.categories[c] }));
 
-const METHOD_OPTIONS = Object.entries(t.expenses.methods).map(([val, label]) => ({
-  value: val,
-  label,
-}));
-
-function ExpenseFormFields({
-  category,
-  desc,
-  amount,
-  method,
-  date,
-  onCategoryChange,
-  onDescChange,
-  onAmountChange,
-  onMethodChange,
-  onDateChange,
-}: {
-  category: ExpenseCategory;
-  desc: string;
-  amount: bigint | null;
-  method: ExpenseMethod;
-  date: string;
-  onCategoryChange: (c: ExpenseCategory) => void;
-  onDescChange: (d: string) => void;
-  onAmountChange: (a: bigint | null) => void;
-  onMethodChange: (m: ExpenseMethod) => void;
-  onDateChange: (d: string) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-4 text-sm">
-      <SelectField
-        label={t.expenses.form.categoryLabel}
-        options={CAT_OPTIONS}
-        value={category}
-        onChange={(e) => {
-          if (isCategory(e.target.value)) onCategoryChange(e.target.value);
-        }}
-      />
-      <MoneyField label={t.expenses.form.amountLabel} value={amount} onChange={onAmountChange} />
-      <Field
-        label={t.expenses.form.dateLabel}
-        type="date"
-        value={date}
-        onChange={(e) => onDateChange(e.target.value)}
-      />
-      <Field
-        label={t.expenses.form.descLabel}
-        value={desc}
-        onChange={(e) => onDescChange(e.target.value)}
-      />
-      <SelectField
-        label={t.expenses.form.methodLabel}
-        options={METHOD_OPTIONS}
-        value={method}
-        onChange={(e) => {
-          if (isMethod(e.target.value)) onMethodChange(e.target.value);
-        }}
-      />
-    </div>
-  );
+interface FormProps {
+  today: string;
+  onAdd: (item: NewExpense) => void;
+  onClose: () => void;
+  saving?: boolean;
+  error?: string;
 }
 
-function ExpenseFormDrawer({
-  open,
-  onClose,
-  onAdd,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onAdd?: (item: {
-    category: ExpenseCategory;
-    description: string;
-    amount: bigint;
-    method: ExpenseMethod;
-    date: string;
-  }) => void;
-}) {
+function ExpenseFormDrawer({ today, onAdd, onClose, saving, error }: FormProps) {
   const [category, setCategory] = useState<ExpenseCategory>('rent');
-  const [desc, setDesc] = useState('');
+  const [note, setNote] = useState('');
   const [amount, setAmount] = useState<bigint | null>(null);
-  const [method, setMethod] = useState<ExpenseMethod>('bank');
-  const [date, setDate] = useState('2026-11-12');
-
-  const handleSave = () => {
-    if (!amount || amount <= 0n) return;
-    onAdd?.({ category, description: desc, amount, method, date });
-    onClose();
+  const [date, setDate] = useState(today);
+  const [file, setFile] = useState<File | null>(null);
+  const [invalid, setInvalid] = useState(false);
+  const save = () => {
+    if (!amount || amount <= 0n) return setInvalid(true);
+    setInvalid(false);
+    onAdd({ category, note: note.trim(), amount, date, file });
   };
-
   return (
-    <Drawer
-      open={open}
-      title={t.expenses.form.title}
-      closeLabel={t.common.cancel}
-      onClose={onClose}
-    >
-      <ExpenseFormFields
-        category={category}
-        desc={desc}
-        amount={amount}
-        method={method}
-        date={date}
-        onCategoryChange={setCategory}
-        onDescChange={setDesc}
-        onAmountChange={setAmount}
-        onMethodChange={setMethod}
-        onDateChange={setDate}
-      />
-      <div className="mt-4">
-        <Button onClick={handleSave}>
+    <Drawer open title={t.expenses.form.title} closeLabel={t.common.cancel} onClose={onClose}>
+      <div className="flex flex-col gap-4 text-sm">
+        <SelectField
+          label={t.expenses.form.categoryLabel}
+          options={CAT_OPTIONS}
+          value={category}
+          onChange={(e) => isCategory(e.target.value) && setCategory(e.target.value)}
+        />
+        <MoneyField
+          label={t.expenses.form.amountLabel}
+          value={amount}
+          onChange={setAmount}
+          error={invalid ? t.expenses.form.amountRequired : undefined}
+        />
+        <Field
+          label={t.expenses.form.dateLabel}
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+        <Field
+          label={t.expenses.form.descLabel}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+        <Field
+          label={t.expenses.form.receiptLabel}
+          type="file"
+          accept="image/*,application/pdf"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+        {error && (
+          <p role="alert" className="text-danger">
+            {error}
+          </p>
+        )}
+        <Button onClick={save} loading={saving}>
           <Plus className="size-4" aria-hidden />
           {t.expenses.form.submit}
         </Button>
@@ -227,50 +172,64 @@ function ExpenseFormDrawer({
   );
 }
 
-/** W-23 Xarajatlar (FR-FIN-1). */
-export function ExpensesView({ expenses, total = MOCK_EXPENSES_TOTAL, onAddExpense }: Props) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+function Kpis({ kpi }: { kpi: ExpensesKpi }) {
+  const d = kpi.delta;
+  return (
+    <div className="mb-6 grid grid-cols-3 gap-4">
+      <KpiCard label={t.expenses.kpi.thisMonth} value={formatMoney(kpi.total)} />
+      <KpiCard
+        label={t.expenses.kpi.topCategory}
+        value={kpi.topCategory ? t.expenses.categories[kpi.topCategory] : '—'}
+      />
+      <KpiCard
+        label={t.expenses.kpi.compareMonth}
+        value={d === null ? '—' : `${d > 0n ? '+' : ''}${formatMoney(d)}`}
+      />
+    </div>
+  );
+}
 
+/** W-23 Xarajatlar (FR-FIN-1): kategoriya, summa, sana, izoh, chek fayli. */
+export function ExpensesView(p: Props & { today?: string }) {
+  const [open, setOpen] = useState(false);
+  const [seen, setSeen] = useState(p.savedKey);
+  if (p.savedKey !== seen) {
+    setSeen(p.savedKey);
+    setOpen(false);
+  }
   return (
     <>
       <PageHeader
         title={t.expenses.title}
         description={t.expenses.subtitle}
         actions={
-          <Button onClick={() => setDrawerOpen(true)}>
-            <Plus className="size-4" aria-hidden />
-            {t.expenses.new}
-          </Button>
+          p.onAdd && (
+            <Button onClick={() => setOpen(true)}>
+              <Plus className="size-4" aria-hidden />
+              {t.expenses.new}
+            </Button>
+          )
         }
       />
-
-      <div className="mb-6 grid grid-cols-3 gap-4">
-        <KpiCard
-          label={t.expenses.kpi.thisMonth}
-          value={formatMoney(total)}
-          delta={{ text: '+4%', up: true, good: false }}
-        />
-        <KpiCard label={t.expenses.kpi.topCategory} value={t.expenses.categories.rent} />
-        <KpiCard
-          label={t.expenses.kpi.compareMonth}
-          value={`+${formatMoney(MOCK_EXPENSES_MONTH_DELTA)}`}
-          delta={{ text: t.expenses.kpi.withinPlan, up: false, good: true }}
-        />
-      </div>
-
+      <Kpis kpi={p.kpi} />
       <DataTable
-        data={expenses}
+        data={p.expenses}
         columns={columns}
         getRowId={(r) => r.id}
         numeric={['amount']}
         empty={{ title: t.expenses.empty }}
+        loading={p.loading}
+        error={p.loadError}
       />
-
-      <ExpenseFormDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onAdd={onAddExpense}
-      />
+      {open && p.onAdd && (
+        <ExpenseFormDrawer
+          today={p.today ?? ''}
+          onAdd={p.onAdd}
+          onClose={() => setOpen(false)}
+          saving={p.saving}
+          error={p.error}
+        />
+      )}
     </>
   );
 }
