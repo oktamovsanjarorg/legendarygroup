@@ -51,12 +51,12 @@ jobs:
       - name: Run Migrations on Source Database
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/legendary_drill_source
-        run: pnpm --filter @lg/db migrate
+        run: pnpm --filter @lg/db db:migrate
 
       - name: Seed Database
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/legendary_drill_source
-        run: pnpm --filter @lg/db seed
+        run: pnpm --filter @lg/db db:seed
 
       - name: Execute Backup & Restore Drill
         env:
