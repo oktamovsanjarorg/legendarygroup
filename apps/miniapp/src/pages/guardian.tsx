@@ -2,6 +2,8 @@ import { miniappMessages as t } from '@lg/i18n';
 import { useNavigate } from '@tanstack/react-router';
 import {
   useChildPayments,
+  useReceipt,
+  useReceiptPdf,
   useChildResults,
   useChildren,
   useChildSummaries,
@@ -11,6 +13,7 @@ import { useSelectedChild } from '../data/selected-child.js';
 import { GuardianHomeView } from '../screens/guardian/home.js';
 import { type MoreTarget, MoreView } from '../screens/guardian/more.js';
 import { PaymentsView } from '../screens/guardian/payments.js';
+import { ReceiptView } from '../screens/guardian/receipt.js';
 import { ResultsView } from '../screens/guardian/results.js';
 
 /** "Ko'proq" menyusi → ekran (jadval va bildirishnomalar — sozlamalarda). */
@@ -68,7 +71,9 @@ export function GuardianPaymentsPage() {
               invoices={d.invoices}
               payments={d.payments}
               onPay={() => void navigate({ to: '/pay' })}
-              onReceipt={() => undefined}
+              onReceipt={(p) =>
+                void navigate({ to: '/receipt/$number', params: { number: p.receiptNo } })
+              }
             />
           )}
         </QueryView>
@@ -112,5 +117,16 @@ export function GuardianMorePage() {
         if (to) void navigate({ to });
       }}
     />
+  );
+}
+
+/** MG-05a Chek: to'lovlar tarixidan (FR-PAY-8). */
+export function GuardianReceiptPage({ number }: { number: string }) {
+  const receipt = useReceipt(number);
+  const pdf = useReceiptPdf();
+  return (
+    <QueryView query={receipt}>
+      {(r) => <ReceiptView r={r} onPdf={() => pdf.mutate(number)} pdfLoading={pdf.isPending} />}
+    </QueryView>
   );
 }

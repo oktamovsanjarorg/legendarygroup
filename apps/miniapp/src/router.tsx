@@ -14,7 +14,12 @@ import {
   StaffSearchPage,
   StaffStudentPage,
 } from './pages/staff.js';
-import { GuardianMorePage, GuardianPaymentsPage, GuardianResultsPage } from './pages/guardian.js';
+import {
+  GuardianMorePage,
+  GuardianPaymentsPage,
+  GuardianReceiptPage,
+  GuardianResultsPage,
+} from './pages/guardian.js';
 import {
   GuardianAbsencePage,
   GuardianPayPage,
@@ -98,6 +103,14 @@ const guardianPayments = createRoute({
   path: '/payments',
   component: GuardianPaymentsPage,
 });
+const guardianReceipt = createRoute({
+  getParentRoute: () => root,
+  path: '/receipt/$number',
+  component: function ReceiptRoute() {
+    const { number } = guardianReceipt.useParams();
+    return <GuardianReceiptPage number={number} />;
+  },
+});
 const guardianMore = createRoute({
   getParentRoute: () => root,
   path: '/more',
@@ -167,6 +180,7 @@ const routeTree = root.addChildren([
   teacherPayroll,
   guardianResults,
   guardianPayments,
+  guardianReceipt,
   guardianMore,
   guardianPay,
   guardianSubmission,
