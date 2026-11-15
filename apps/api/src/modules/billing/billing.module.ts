@@ -9,6 +9,8 @@ import { StudentsModule } from '../students/index.js';
 import { NotificationsModule } from '../notifications/index.js';
 import { TelegramModule } from '../telegram/index.js';
 import { BillingGeneratorService } from './billing-generator.service.js';
+import { MonthCloseRepository } from './month-close.repository.js';
+import { MonthCloseService } from './month-close.service.js';
 import { BillingController } from './billing.controller.js';
 import { BillingCron } from './billing.cron.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
@@ -51,6 +53,8 @@ import { SubmissionsService } from './submissions.service.js';
     SubmissionsController,
   ],
   providers: [
+    MonthCloseRepository,
+    MonthCloseService,
     BillingRepository,
     BillingBalanceRepository,
     BillingGeneratorService,

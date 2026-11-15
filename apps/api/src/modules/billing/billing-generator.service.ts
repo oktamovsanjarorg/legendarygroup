@@ -5,6 +5,7 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import type { ActiveEnrollmentInfo } from './billing.types.js';
+import { type MonthAdjustment, MonthCloseService } from './month-close.service.js';
 
 export interface GenerateResult {
   period: string;
@@ -15,9 +16,56 @@ export interface GenerateResult {
 
 interface PreparedLine {
   enrollmentId: string;
+  /** Qator summasi (o'qishda — kreditdan keyingi net). */
   amount: bigint;
   description: string;
-  kind: 'tuition';
+  kind: 'tuition' | 'penalty';
+  /** BR-5/9 kredit: ledger'da `invoice` (+brutto) va `credit` (−kredit) alohida. */
+  credit?: bigint;
+}
+
+/** BR-2: o'tgan oy yopilishi tuzatishlarini yangi oy qatorlariga qo'llash (manfiy qator yo'q). */
+export function applyAdjustments(
+  lines: PreparedLine[],
+  adj: readonly MonthAdjustment[],
+): PreparedLine[] {
+  const out = lines.map((l) => {
+    const a = adj.find((x) => x.enrollmentId === l.enrollmentId);
+    if (!a || a.credit <= 0n || l.kind !== 'tuition') return l;
+    const credit = a.credit < l.amount ? a.credit : l.amount;
+    return {
+      ...l,
+      amount: l.amount - credit,
+      credit,
+      description: `${l.description}; kredit −${credit} (${a.creditNote ?? ''})`,
+    };
+  });
+  for (const a of adj) {
+    if (a.penalty > 0n)
+      out.push({
+        enrollmentId: a.enrollmentId,
+        amount: a.penalty,
+        kind: 'penalty',
+        description: `Jarima: ${a.penaltyNote ?? ''}`,
+      });
+  }
+  return out;
+}
+
+/** Ledger: o'qish — `invoice` (+brutto) va kredit bo'lsa `credit` (−kredit); jarima — `penalty`. */
+function ledgerFor(
+  studentId: string,
+  lines: readonly PreparedLine[],
+  inserted: readonly { id: string; amount: bigint; kind: string }[],
+  occurredAt: Date,
+): NewLedgerEntryRow[] {
+  return inserted.flatMap((line, i) => {
+    const credit = lines[i]?.credit ?? 0n;
+    const at = { studentId, refTable: 'invoice_lines', refId: line.id, occurredAt };
+    const entryType = line.kind === 'penalty' ? ('penalty' as const) : ('invoice' as const);
+    const main = { ...at, entryType, amount: line.amount + credit };
+    return credit > 0n ? [main, { ...at, entryType: 'credit' as const, amount: -credit }] : [main];
+  });
 }
 
 @Injectable()
@@ -28,6 +76,7 @@ export class BillingGeneratorService {
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(BillingRepository) private readonly repo: BillingRepository,
     @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
+    @Inject(MonthCloseService) private readonly monthClose: MonthCloseService,
   ) {}
 
   async generateMonthlyInvoices(period: string, customDueDate?: string): Promise<GenerateResult> {
@@ -41,6 +90,12 @@ export class BillingGeneratorService {
       monthEnd,
       period,
     );
+    // BR-2 1-qadam: o'tgan oy yopiladi (kredit, jarima). Xato bo'lsa — 2-qadam (invoice) yo'q.
+    for (const [studentId, lines] of studentLinesMap)
+      studentLinesMap.set(
+        studentId,
+        applyAdjustments(lines, await this.monthClose.adjustments(studentId, period)),
+      );
 
     return this.persistInvoices(period, dueDate, studentLinesMap);
   }
@@ -150,14 +205,7 @@ export class BillingGeneratorService {
 
         const inserted = await this.repo.insertInvoiceLines(tx, linesToInsert);
 
-        const ledgerToInsert: NewLedgerEntryRow[] = inserted.map((line) => ({
-          studentId,
-          entryType: 'invoice',
-          amount: line.amount,
-          refTable: 'invoice_lines',
-          refId: line.id,
-          occurredAt: invoice.createdAt,
-        }));
+        const ledgerToInsert = ledgerFor(studentId, lines, inserted, invoice.createdAt);
 
         await this.repo.insertLedgerEntries(tx, ledgerToInsert);
         // BR-12: oldindan to'langan avans yangi invoice'ga darhol qo'llanadi.
