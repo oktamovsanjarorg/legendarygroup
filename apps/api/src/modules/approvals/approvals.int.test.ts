@@ -1,4 +1,4 @@
-import { type RoleCode } from '@lg/contracts';
+import { type EventPayloads, type RoleCode } from '@lg/contracts';
 import {
   approvalRequests,
   attendance,
@@ -7,6 +7,8 @@ import {
   createDb,
   type Database,
   lessons,
+  notifications,
+  outboxEvents,
   seed,
 } from '@lg/db';
 import { addDays, formatDateToYmd } from '@lg/domain';
@@ -14,6 +16,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { EventHandlers } from '../outbox/index.js';
 
 /** T-119, 02 §5: so'rov → Director qarori → amal bajariladi (yoki rad). */
 let t: TestApp;
@@ -214,5 +217,36 @@ describe('Approvals API (T-119, 02 §5)', () => {
     const actions = logs.map((l) => l.action);
     expect(actions).toContain('approval.create');
     expect(actions).toContain('approval.decide');
+  });
+
+  it('T-119: qaror soʻrovchiga xabar boʻlib boradi (ApprovalDecided → approval_decided)', async () => {
+    const r = await request('discount', {
+      enrollmentId: f.enrollment,
+      percent: 70,
+      reason: 'Oila',
+    });
+    await call('POST', `approvals/${r.id}/decide`, 'director', {
+      decision: 'reject',
+      note: 'Limit',
+    });
+    const events = await db
+      .select()
+      .from(outboxEvents)
+      .where(eq(outboxEvents.type, 'ApprovalDecided'));
+    const mine = events.find((e) => (e.payload as { requestId: string }).requestId === r.id)!;
+    await t.app.get(EventHandlers).dispatch({
+      eventId: mine.id,
+      type: 'ApprovalDecided',
+      payload: mine.payload as EventPayloads['ApprovalDecided'],
+      occurredAt: new Date().toISOString(),
+    });
+    const [req] = await db.select().from(approvalRequests).where(eq(approvalRequests.id, r.id));
+    const sent = await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.dedupeKey, `approval-decided-${r.id}`));
+    expect(sent.map((n) => [n.userId, n.type])).toEqual([[req!.requestedBy, 'approval_decided']]);
+    expect(sent[0]?.title).toBe('Soʻrovingiz rad etildi');
+    expect(sent[0]?.body).toContain('Limit');
   });
 });

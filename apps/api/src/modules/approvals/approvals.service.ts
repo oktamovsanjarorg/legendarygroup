@@ -12,6 +12,7 @@ import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
+import { OutboxService } from '../outbox/index.js';
 import { ApprovalExecutor } from './approval-executor.service.js';
 import { ApprovalsRepository, type ApprovalWithUsers } from './approvals.repository.js';
 import { serializeApproval } from './approvals.serializer.js';
@@ -26,6 +27,7 @@ export class ApprovalsService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(ApprovalExecutor) private readonly executor: ApprovalExecutor,
+    @Inject(OutboxService) private readonly outbox: OutboxService,
   ) {}
 
   async createRequest(
@@ -150,6 +152,18 @@ export class ApprovalsService {
           entityId: req.id,
           before: { status: req.status },
           after: { status: newStatus, note: input.note },
+        },
+        tx,
+      );
+      // Qaror bilan bir tranzaksiyada — so'rovchiga xabar (ApprovalNotifier).
+      await this.outbox.publish(
+        'ApprovalDecided',
+        {
+          requestId: req.id,
+          requestedBy: req.requestedBy,
+          type: req.type,
+          decision: newStatus,
+          note: input.note ?? null,
         },
         tx,
       );

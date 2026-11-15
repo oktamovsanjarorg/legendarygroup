@@ -12,6 +12,7 @@ export const NOTIFICATION_TITLES_UZ: Record<NotificationType, string> = {
   weekly_parent_report: 'Haftalik xulosa',
   monthly_parent_report: 'Oylik hisobot',
   announcement: 'Markaz eʼloni',
+  approval_decided: 'Soʻrov natijasi',
 };
 
 /**
@@ -84,6 +85,10 @@ const TEMPLATE_RENDERERS: Record<NotificationType, TemplateRenderer> = {
   announcement: (p) => ({
     title: String(p.title ?? 'Markaz eʼloni'),
     body: String(p.message ?? p.body ?? ''),
+  }),
+  approval_decided: (p) => ({
+    title: p.decision === 'approved' ? 'Soʻrovingiz tasdiqlandi' : 'Soʻrovingiz rad etildi',
+    body: `${String(p.typeLabel ?? 'Soʻrov')}${p.note ? `\nIzoh: ${String(p.note)}` : ''}`,
   }),
 };
 

@@ -239,6 +239,13 @@
       "when": 1794660000000,
       "tag": "0033_feedbacks",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794764487123,
+      "tag": "0034_notification_approval_decided",
+      "breakpoints": true
     }
   ]
 }
