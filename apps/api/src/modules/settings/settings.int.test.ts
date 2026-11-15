@@ -49,6 +49,8 @@ describe('Settings API (T-115, FR-SYS-1)', () => {
       expect(json.centerInfo.phone).toBe('+998901234567');
       expect(json.billingDueDay).toBe(10);
       expect(Array.isArray(json.paymentCards)).toBe(true);
+      // T-117: ota-onalar ulanadigan bot havolasi — env'dan, qattiq yozilmagan.
+      expect(res.json<{ botUrl: string }>().botUrl).toBe('https://t.me/legendary_test_bot');
     });
   });
 

@@ -30,7 +30,16 @@ export const W29_Settings: Story = {
 /** W-33: menyusiz, to'liq ekran usta (birinchi kirish). */
 export const W33_Wizard: Story = {
   tags: ['primary'],
-  render: () => <WizardView step={2} onNext={noop} onBack={noop} />,
+  render: () => (
+    <WizardView
+      step={2}
+      done={[true, true, false, false, false, false, false, false]}
+      count={0}
+      onNext={noop}
+      onBack={noop}
+      onSkip={noop}
+    />
+  ),
 };
 const states = webStates('/staff', t.staff.title);
 export const Loading: Story = states.Loading;

@@ -16,7 +16,7 @@ export function toSystemSettingsResponse(s: SystemSettings): SystemSettingsRespo
   };
 }
 
-export function toPublicSettings(s: SystemSettings): PublicSettings {
+export function toPublicSettings(s: SystemSettings): Omit<PublicSettings, 'botUrl'> {
   return {
     centerInfo: s.centerInfo,
     paymentCards: s.paymentCards,

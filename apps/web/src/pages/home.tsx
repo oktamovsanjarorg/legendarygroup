@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { api, ApiError } from '../api/client.js';
 import { useAuth } from '../auth/auth.js';
+import { SetupBanner } from '../components/setup-banner.js';
 import { TelegramLinkCard } from '../components/telegram-link-card.js';
 import { DashboardView, type WebKpi } from '../screens/f1/dashboard.js';
 import type { LessonCell } from '../screens/f1/types.js';
@@ -78,6 +79,7 @@ export function HomePage() {
   const greeting = t.home.greeting.replace('{name}', me?.fullName ?? '');
   return (
     <div className="flex flex-col gap-4">
+      <SetupBanner />
       {me && !me.telegramLinked && <TelegramLinkCard />}
       {staff ? (
         <StaffDashboard title={greeting} />

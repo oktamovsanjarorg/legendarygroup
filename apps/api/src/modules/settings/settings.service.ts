@@ -31,7 +31,7 @@ export class SettingsService {
     return SystemSettingsSchema.parse(row.value);
   }
 
-  async getPublicSettings(): Promise<PublicSettings> {
+  async getPublicSettings(): Promise<Omit<PublicSettings, 'botUrl'>> {
     const settings = await this.getSettings();
     return toPublicSettings(settings);
   }

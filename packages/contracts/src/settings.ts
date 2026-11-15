@@ -82,6 +82,8 @@ export const PublicSettingsSchema = z.object({
   centerInfo: CenterInfoSchema,
   paymentCards: z.array(PaymentCardSchema),
   billingDueDay: z.number().int().min(1).max(28),
+  /** Ota-onalar ulanadigan bot havolasi (`https://t.me/<bot>`), T-117 taklif QR. */
+  botUrl: z.string().url(),
 });
 
 export type PublicSettings = z.infer<typeof PublicSettingsSchema>;
