@@ -5,6 +5,7 @@ import { MOCK_LANDING_COURSES } from './mock-analytics.js';
 import { LandingView } from './w35-landing.js';
 
 const noop = () => undefined;
+const center = { name: 'Legendary Group', phone: '+998712000000', address: 'Toshkent' };
 
 const meta: Meta = { title: 'web/F3/W-35 Landing' };
 export default meta;
@@ -12,11 +13,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   tags: ['primary'],
-  render: () => <LandingView courses={MOCK_LANDING_COURSES} onLoginClick={noop} />,
+  render: () => <LandingView courses={MOCK_LANDING_COURSES} center={center} onLoginClick={noop} />,
 };
 
 export const Empty: Story = {
-  render: () => <LandingView courses={[]} onLoginClick={noop} />,
+  render: () => <LandingView courses={[]} center={null} onLoginClick={noop} />,
 };
 
 export const Offline: Story = {
@@ -25,7 +26,7 @@ export const Offline: Story = {
       <div className="bg-warning text-warning-fg p-2 text-center text-xs font-medium">
         Internet bilan aloqa yoʻq (Offline rejim)
       </div>
-      <LandingView courses={MOCK_LANDING_COURSES} onLoginClick={noop} />
+      <LandingView courses={MOCK_LANDING_COURSES} center={center} onLoginClick={noop} />
     </div>
   ),
 };

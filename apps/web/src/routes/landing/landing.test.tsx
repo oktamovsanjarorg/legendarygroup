@@ -1,61 +1,76 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { LandingPage } from './index.js';
+import type { PublicCourse } from '@lg/contracts';
+import { webMessages as t } from '@lg/i18n';
+import { cleanup, fireEvent, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { type Call, fakeApi, json, renderApp } from '../../test/app.js';
 
-const mockNavigate = vi.fn();
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => mockNavigate,
-}));
+const L = t.landing;
+const course: PublicCourse = {
+  id: '11111111-1111-4111-8111-111111111111',
+  name: 'Haqiqiy kurs',
+  description: null,
+  defaultMonthlyPrice: '450000',
+  lessonDurationMin: 90,
+  durationMonths: null,
+};
+const center = { name: 'LG', phone: '+998712000000', address: 'Chilonzor 1', logoFileId: null };
 
-const mockRequest = vi.fn();
-vi.mock('../../api/client.js', () => ({
-  api: {
-    request: (...args: unknown[]) => mockRequest(...args),
-  },
-}));
+const handler = (leadStatus: number) => (c: Call) => {
+  if (c.path === '/public/courses') return json(200, [course]);
+  if (c.path === '/settings/public')
+    return json(200, {
+      centerInfo: center,
+      paymentCards: [],
+      billingDueDay: 10,
+      botUrl: 'https://t.me/x',
+    });
+  if (c.path === '/public/leads') return json(leadStatus, { accepted: true });
+  return undefined;
+};
 
-describe('W-35 Landing sahifasi (T-503)', () => {
-  beforeEach(() => {
-    mockNavigate.mockReset();
-    mockRequest.mockReset();
-    mockRequest.mockResolvedValue({ accepted: true });
+const fill = () => {
+  fireEvent.change(screen.getByLabelText(L.form.nameLabel), { target: { value: 'Ali Valiyev' } });
+  fireEvent.change(screen.getByLabelText(L.form.phoneLabel), {
+    target: { value: '+998 90 123 45 67' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: L.form.submit }));
+};
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+describe('W-35 landing (T-503, FR-SYS-4)', () => {
+  it('kurslar va kontaktlar — API’dan (uydirma statistika va manzil yoʻq)', async () => {
+    fakeApi([], handler(202));
+    renderApp('/landing');
+    expect((await screen.findAllByText('Haqiqiy kurs')).length).toBeGreaterThan(0);
+    expect(await screen.findByText('Chilonzor 1')).toBeTruthy();
+    expect(screen.queryByText('1 200+')).toBeNull();
   });
 
-  afterEach(cleanup);
-
-  it('kurslar, sarlavha va afzalliklar koʻrinadi', () => {
-    render(<LandingPage />);
-
-    expect(screen.getAllByText('Legendary Group').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Chuqurlashtirilgan matematika').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('IELTS va akademik ingliz tili').length).toBeGreaterThan(0);
+  it('bug: ariza obyekt sifatida, courseId bilan yuboriladi; 202 — muvaffaqiyat', async () => {
+    const calls = fakeApi([], handler(202));
+    renderApp('/landing');
+    await screen.findAllByText('Haqiqiy kurs');
+    fill();
+    expect(await screen.findByText(L.form.successTitle)).toBeTruthy();
+    const lead = calls.find((c) => c.path === '/public/leads');
+    expect(lead?.body).toEqual({
+      fullName: 'Ali Valiyev',
+      phone: '+998 90 123 45 67',
+      courseId: course.id,
+      comment: null,
+    });
   });
 
-  it('Kirish tugmasi bosilganda /login sahifasiga yoʻnaltiradi', () => {
-    render(<LandingPage />);
-
-    const loginBtn = screen.getByRole('button', { name: /Tizimga kirish/i });
-    fireEvent.click(loginBtn);
-
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/login' });
-  });
-
-  it('Lid formasi toʻldirilib yuborilganda POST /api/public/leads chaqiriladi', async () => {
-    render(<LandingPage />);
-
-    const nameInput = screen.getByPlaceholderText('F.I.Sh');
-    const phoneInput = screen.getByPlaceholderText('+998 90 123 45 67');
-    const submitBtn = screen.getByRole('button', { name: /Joy band qilish/i });
-
-    fireEvent.change(nameInput, { target: { value: 'Aziz Aliyev' } });
-    fireEvent.change(phoneInput, { target: { value: '+998901234567' } });
-    fireEvent.click(submitBtn);
-
-    expect(mockRequest).toHaveBeenCalledWith(
-      '/public/leads',
-      expect.objectContaining({
-        method: 'POST',
-      }),
-    );
+  it('bug: server rad etsa — "qabul qilindi" koʻrsatilmaydi, xato chiqadi', async () => {
+    fakeApi([], handler(400));
+    renderApp('/landing');
+    await screen.findAllByText('Haqiqiy kurs');
+    fill();
+    expect(await screen.findByText(L.form.error)).toBeTruthy();
+    expect(screen.queryByText(L.form.successTitle)).toBeNull();
   });
 });

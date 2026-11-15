@@ -190,3 +190,27 @@ describe('Xonalar: CRUD, arxiv (FR-ORG-2)', () => {
     expect(codeOf(res)).toBe('ROOM_NAME_TAKEN');
   });
 });
+
+describe('GET public/courses (W-35, T-503)', () => {
+  it('tokensiz: faqat faol kurslar, ommaviy maydonlar; arxivlangan — yoʻq', async () => {
+    const make = async (name: string) =>
+      (await call('POST', 'courses', 'admin', { ...ielts, name })).json<{ id: string }>().id;
+    const live = await make('Landing faol kurs');
+    const old = await make('Landing eski kurs');
+    await call('POST', `courses/${old}/archive`);
+    const res = await t.app.inject({ method: 'GET', url: '/api/public/courses' });
+    expect(res.statusCode).toBe(200);
+    const list = res.json<Record<string, unknown>[]>();
+    const ids = list.map((c) => c.id);
+    expect(ids).toContain(live);
+    expect(ids).not.toContain(old);
+    expect(Object.keys(list.find((c) => c.id === live) ?? {}).sort()).toEqual([
+      'defaultMonthlyPrice',
+      'description',
+      'durationMonths',
+      'id',
+      'lessonDurationMin',
+      'name',
+    ]);
+  });
+});

@@ -13,16 +13,38 @@ export interface LeadInput {
   comment?: string;
 }
 
+function SubmitRow({ sending, error }: { sending: boolean; error: boolean }) {
+  return (
+    <>
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {L.form.error}
+        </p>
+      )}
+      <Button type="submit" size="full" className="mt-2" loading={sending}>
+        <Send className="size-4" aria-hidden />
+        {L.form.submit}
+      </Button>
+    </>
+  );
+}
+
 function LeadFields({
   courses,
   onSubmit,
+  sending,
+  error,
 }: {
   courses: readonly LandingCourseItem[];
   onSubmit: (v: LeadInput) => void;
+  sending: boolean;
+  error: boolean;
 }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+998 ');
-  const [courseId, setCourseId] = useState(courses[0]?.id ?? '');
+  const [picked, setCourseId] = useState('');
+  // Kurslar keyin yuklansa ham — ko'rinib turgan (birinchi) kurs yuboriladi.
+  const courseId = picked || courses[0]?.id || '';
   const [comment, setComment] = useState('');
 
   const submit = (e: FormEvent) => {
@@ -63,10 +85,7 @@ function LeadFields({
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       />
-      <Button type="submit" size="full" className="mt-2">
-        <Send className="size-4" aria-hidden />
-        {L.form.submit}
-      </Button>
+      <SubmitRow sending={sending} error={error} />
     </form>
   );
 }
@@ -76,9 +95,10 @@ export function LeadForm({
   onSubmitLead,
 }: {
   courses: readonly LandingCourseItem[];
-  onSubmitLead?: (v: LeadInput) => void;
+  onSubmitLead?: (v: LeadInput) => Promise<void>;
 }) {
-  const [submitted, setSubmitted] = useState(false);
+  const [state, setState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
+  const submitted = state === 'done';
 
   return (
     <section id="enroll" className="border-t border-border bg-surface-alt/40 px-6 py-16">
@@ -96,9 +116,15 @@ export function LeadForm({
         ) : (
           <LeadFields
             courses={courses}
+            sending={state === 'sending'}
+            error={state === 'error'}
             onSubmit={(v) => {
-              onSubmitLead?.(v);
-              setSubmitted(true);
+              if (!onSubmitLead) return;
+              setState('sending');
+              onSubmitLead(v).then(
+                () => setState('done'),
+                () => setState('error'),
+              );
             }}
           />
         )}

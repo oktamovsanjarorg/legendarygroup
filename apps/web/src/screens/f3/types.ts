@@ -257,11 +257,11 @@ export interface StaffActivityItem {
 }
 
 // W-35: Landing
+/** W-35: `GET /public/courses` dan. */
 export interface LandingCourseItem {
   id: string;
   title: string;
-  description: string;
-  durationMonths: number;
+  description: string | null;
+  durationMonths: number | null;
   pricePerMonth: bigint;
-  popular?: boolean;
 }

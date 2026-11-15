@@ -81,22 +81,11 @@ export const webF3AdminMessages = {
       login: 'Tizimga kirish',
     },
     hero: {
-      badge: '2026-yilgi qabul ochiq',
       title: 'Kelajak kasblarini professional ustozlardan oʻrganing',
       description:
-        'Matematika, fizika, ingliz tili va dasturlash boʻyicha chuqurlashtirilgan kurslar. Shaxsiy yondashuv va ota-onalar uchun toʻliq shaffof nazorat.',
+        'Markazimiz kurslari, tajribali ustozlar va ota-onalar uchun Telegram orqali toʻliq shaffof nazorat.',
       cta: 'Bepul darsga yozilish',
       viewCourses: 'Kurslarni koʻrish',
-    },
-    stats: {
-      studentsCount: '1 200+',
-      studentsLabel: 'Muvaffaqiyatli bitiruvchilar',
-      resultsRate: '96%',
-      resultsLabel: 'Universitetga kirish koʻrsatkichi',
-      teachersCount: '24+',
-      teachersLabel: 'Tajribali ustozlar',
-      yearsCount: '7 yil',
-      yearsLabel: 'Taʼlimdagi tajriba',
     },
     coursesSection: {
       title: 'Bizning taʼlim yoʻnalishlarimiz',
@@ -113,16 +102,14 @@ export const webF3AdminMessages = {
       item1Desc:
         'Ota-onalar har bir dars davomati va oʻzlashtirishini Telegram bot orqali real vaqtda kuzatib boradi.',
       item2Title: 'Kichik guruhlar va individual eʼtibor',
-      item2Desc:
-        'Guruhda maksimal 12 nafar oʻquvchi. Ustoz har bir oʻquvchi bilan shaxsan ishlaydi.',
+      item2Desc: 'Guruh sigʻimi cheklangan — ustoz har bir oʻquvchi bilan shaxsan ishlaydi.',
       item3Title: 'Zamonaviy metodika va amaliyot',
       item3Desc:
         'Nazariya va amaliyot uygʻunligi, oraliq testlar va doimiy mustahkamlash darslari.',
     },
     form: {
       title: 'Bepul sinov darsiga yoziling',
-      subtitle:
-        'Maʼlumotlaringizni qoldiring, administratorimiz 15 daqiqa ichida siz bilan bogʻlanadi.',
+      subtitle: 'Maʼlumotlaringizni qoldiring — administratorimiz tez orada siz bilan bogʻlanadi.',
       nameLabel: 'Ismingiz',
       namePlaceholder: 'F.I.Sh',
       phoneLabel: 'Telefon raqamingiz',
@@ -132,15 +119,13 @@ export const webF3AdminMessages = {
       commentPlaceholder: 'Ixtiyoriy izoh…',
       submit: 'Joy band qilish',
       successTitle: 'Arizangiz qabul qilindi!',
+      error: 'Arizani yuborib boʻlmadi. Birozdan soʻng qayta urinib koʻring.',
       successDesc:
         'Tez orada xodimimiz siz bilan bogʻlanadi va birinchi bepul dars vaqtini belgilaydi.',
     },
     footer: {
       about:
         'Oʻquvchilarga chuqur bilim berish va maqsadlariga erishishlariga koʻmaklashish — bizning oliy maqsadimiz.',
-      address: 'Toshkent shahri, Yunusobod tumani, Amir Temur koʻchasi 42-uy',
-      phone: '+998 71 200 00 00',
-      workHours: 'Dushanba – Shanba: 08:00 – 20:00',
       rights: 'Barcha huquqlar himoyalangan.',
     },
   },
