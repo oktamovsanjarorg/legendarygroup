@@ -14,6 +14,8 @@ import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
 import { VerifyPage } from './pages/verify.js';
 import { DebtorsPage } from './routes/billing/debtors.js';
+import { ApprovalsPage } from './routes/billing/approvals.js';
+import { CashPage } from './routes/billing/cash.js';
 import { DiscountsPage } from './routes/billing/discounts.js';
 import { PayEntryPage } from './routes/billing/pay-entry.js';
 import { PaymentDetailPage } from './routes/billing/payment-detail.js';
@@ -119,6 +121,12 @@ const discounts = createRoute({
   path: '/discounts',
   component: DiscountsPage,
 });
+const cash = createRoute({ getParentRoute: () => app, path: '/cash', component: CashPage });
+const approvals = createRoute({
+  getParentRoute: () => app,
+  path: '/approvals',
+  component: ApprovalsPage,
+});
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
 const routeTree = root.addChildren([
@@ -139,6 +147,8 @@ const routeTree = root.addChildren([
     wizard,
     payNew,
     debtors,
+    approvals,
+    cash,
     discounts,
     payment,
     queue,

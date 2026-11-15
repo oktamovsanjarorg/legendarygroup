@@ -41,3 +41,20 @@ export const DiscountListResponseSchema = z.object({
   items: z.array(DiscountListItemSchema),
 });
 export type DiscountListResponse = z.infer<typeof DiscountListResponseSchema>;
+
+/** W-16 (T-209, FR-PAY-10): kun bo'yicha naqd to'lovlar (storno — manfiy) va yopilish holati. */
+export const CashDaySchema = z.object({
+  date: z.string(),
+  expectedCash: z.string(),
+  payments: z.array(
+    z.object({
+      id: z.string().uuid(),
+      paidAt: z.string(),
+      student: z.string(),
+      amount: z.string(),
+      receiptNumber: z.string().nullable(),
+    }),
+  ),
+  closed: z.object({ at: z.string(), by: z.string().nullable() }).nullable(),
+});
+export type CashDay = z.infer<typeof CashDaySchema>;
