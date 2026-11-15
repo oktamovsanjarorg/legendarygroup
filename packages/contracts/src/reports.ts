@@ -188,7 +188,8 @@ export const TeacherPerformanceItemSchema = z.object({
   studentCount: z.number().int().nonnegative(),
   attendancePercentBp: z.number().int().nonnegative(),
   retentionPercentBp: z.number().int().nonnegative(),
-  averageGradeScoreBp: z.number().int().nonnegative(),
+  /** Baho qo'yilmagan bo'lsa — `null`. */
+  averageGradeScoreBp: z.number().int().nonnegative().nullable(),
 });
 export type TeacherPerformanceItem = z.infer<typeof TeacherPerformanceItemSchema>;
 

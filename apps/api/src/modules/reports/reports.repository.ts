@@ -213,8 +213,8 @@ export class ReportsRepository {
   }
 
   /** 4. Kohorta hisoboti */
-  async getCohortReport(branchId: string, monthsCount: number) {
-    return this.performanceRepo.getCohortReport(branchId, monthsCount);
+  async getCohortReport(branchId: string, monthsCount: number, today: string) {
+    return this.performanceRepo.getCohortReport(branchId, monthsCount, today);
   }
 
   /** 5. Lid konversiyasi hisoboti */

@@ -155,7 +155,7 @@ export class ReportsService {
   /** 4. Kohorta hisoboti */
   async getCohortReport(actor: RequestUser, monthsCount: number, branchId?: string) {
     const targetBranch = this.resolveBranchId(actor, branchId);
-    const cohorts = await this.repo.getCohortReport(targetBranch, monthsCount);
+    const cohorts = await this.repo.getCohortReport(targetBranch, monthsCount, this.clock.today());
     return { cohorts };
   }
 

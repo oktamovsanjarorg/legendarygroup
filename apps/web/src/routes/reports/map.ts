@@ -73,5 +73,5 @@ export const toTeacherRows = (r: TeacherPerformanceReportResponse): ReportTeache
     students: i.studentCount,
     attendancePercent: bp(i.attendancePercentBp),
     retentionPercent: bp(i.retentionPercentBp),
-    avgGrade: bp(i.averageGradeScoreBp),
+    avgGrade: i.averageGradeScoreBp === null ? null : bp(i.averageGradeScoreBp),
   }));
