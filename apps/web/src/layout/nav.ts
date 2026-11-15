@@ -4,6 +4,7 @@ import {
   BadgePercent,
   BookOpen,
   CalendarDays,
+  ChartColumn,
   ClipboardCheck,
   CircleAlert,
   CheckCheck,
@@ -136,6 +137,13 @@ export const NAV: readonly NavItem[] = [
     permission: 'payroll.manage',
   },
   { screen: 'W-24', to: '/pnl', label: t.pnl.title, icon: TrendingUp, permission: 'finance.view' },
+  {
+    screen: 'W-26',
+    to: '/reports',
+    label: t.reports.title,
+    icon: ChartColumn,
+    permission: 'stats.operational',
+  },
   {
     screen: 'W-30',
     to: '/audit',

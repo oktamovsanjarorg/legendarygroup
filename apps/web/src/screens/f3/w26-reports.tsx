@@ -1,311 +1,170 @@
 import { formatMoney, webMessages as t } from '@lg/i18n';
-import { Button, Card, type ColumnDef, DataTable, PageHeader, Tabs } from '@lg/ui-web';
+import { Button, DataTable, KpiCard, PageHeader, Tabs } from '@lg/ui-web';
 import { Download, FileSpreadsheet } from 'lucide-react';
-import { useState } from 'react';
 import type {
   ReportAgingRow,
   ReportAttendanceRow,
   ReportConversionRow,
+  ReportKpi,
   ReportRevenueRow,
   ReportTeacherRow,
 } from './types.js';
+import {
+  agingColumns,
+  attendanceColumns,
+  conversionColumns,
+  fmtPercent,
+  revenueColumns,
+  teacherColumns,
+} from './w26-report-columns.js';
+
+export type ReportTab = 'revenue' | 'aging' | 'attendance' | 'conversion' | 'teachers';
+
+/** Faol tab ma'lumoti (route faqat shu tabni so'raydi). */
+export type ReportData =
+  | { tab: 'revenue'; rows: readonly ReportRevenueRow[] }
+  | { tab: 'aging'; rows: readonly ReportAgingRow[] }
+  | { tab: 'attendance'; rows: readonly ReportAttendanceRow[] }
+  | { tab: 'conversion'; rows: readonly ReportConversionRow[] }
+  | { tab: 'teachers'; rows: readonly ReportTeacherRow[] };
+
+type LoadError = { message: string; requestId?: string; onRetry: () => void };
 
 interface Props {
-  revenueData: readonly ReportRevenueRow[];
-  agingData: readonly ReportAgingRow[];
-  attendanceData: readonly ReportAttendanceRow[];
-  conversionData: readonly ReportConversionRow[];
-  teacherData: readonly ReportTeacherRow[];
-  activeTab?: 'revenue' | 'aging' | 'attendance' | 'conversion' | 'teachers';
-  onExportExcel?: () => void;
-  onExportPdf?: () => void;
+  /** Ruxsat bo'yicha ko'rinadigan tablar (moliya tablari — `finance.view`). */
+  tabs: readonly ReportTab[];
+  tab: ReportTab;
+  onTab: (tab: ReportTab) => void;
+  data?: ReportData;
+  kpi: ReportKpi;
+  loading?: boolean;
+  loadError?: LoadError;
+  onExport?: (format: 'excel' | 'pdf') => void;
+  exporting?: boolean;
+  exportError?: string;
 }
 
-const oneDecFmt = new Intl.NumberFormat('uz', {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
+interface Common {
+  empty: { title: string };
+  loading?: boolean;
+  error?: LoadError;
+}
 
-const revenueColumns: ColumnDef<ReportRevenueRow, unknown>[] = [
-  {
-    accessorKey: 'course',
-    header: t.reports.cols.course,
-    cell: ({ row }) => <span className="font-medium text-text">{row.original.course}</span>,
-  },
-  { accessorKey: 'studentsCount', header: t.reports.cols.students },
-  {
-    accessorKey: 'revenue',
-    header: t.reports.cols.revenue,
-    cell: ({ row }) => (
-      <span className="font-semibold text-text">{formatMoney(row.original.revenue)}</span>
-    ),
-  },
-  {
-    accessorKey: 'sharePercent',
-    header: t.reports.agingCols.share,
-    cell: ({ row }) => (
-      <div className="flex items-center justify-end gap-2">
-        <div className="w-16 h-2 rounded-full bg-surface-alt overflow-hidden">
-          <div
-            className="h-full bg-primary rounded-full"
-            style={{ width: `${row.original.sharePercent}%` }}
-          />
-        </div>
-        <span className="w-8 text-right font-medium">{row.original.sharePercent}%</span>
-      </div>
-    ),
-  },
-];
+function ReportTable({ tab, data, common }: { tab: ReportTab; data?: ReportData; common: Common }) {
+  const rows = <T,>(want: ReportTab): readonly T[] =>
+    data?.tab === want ? (data.rows as readonly T[]) : [];
+  switch (tab) {
+    case 'revenue':
+      return (
+        <DataTable
+          {...common}
+          data={rows<ReportRevenueRow>('revenue')}
+          columns={revenueColumns}
+          getRowId={(r) => r.id}
+          numeric={['students', 'payments', 'revenue']}
+        />
+      );
+    case 'aging':
+      return (
+        <DataTable
+          {...common}
+          data={rows<ReportAgingRow>('aging')}
+          columns={agingColumns}
+          getRowId={(r) => r.bucket}
+          numeric={['count', 'debt']}
+        />
+      );
+    case 'attendance':
+      return (
+        <DataTable
+          {...common}
+          data={rows<ReportAttendanceRow>('attendance')}
+          columns={attendanceColumns}
+          getRowId={(r) => r.id}
+          numeric={['lessons', 'present', 'absent', 'percent']}
+        />
+      );
+    case 'conversion':
+      return (
+        <DataTable
+          {...common}
+          data={rows<ReportConversionRow>('conversion')}
+          columns={conversionColumns}
+          getRowId={(r) => r.source}
+          numeric={['total', 'contacted', 'trial', 'won', 'percent']}
+        />
+      );
+    default:
+      return (
+        <DataTable
+          {...common}
+          data={rows<ReportTeacherRow>('teachers')}
+          columns={teacherColumns}
+          getRowId={(r) => r.id}
+          numeric={['groups', 'students', 'attendancePercent', 'retentionPercent', 'avgGrade']}
+        />
+      );
+  }
+}
 
-const agingColumns: ColumnDef<ReportAgingRow, unknown>[] = [
-  {
-    accessorKey: 'interval',
-    header: t.reports.agingCols.interval,
-    cell: ({ row }) => <span className="font-medium text-text">{row.original.interval}</span>,
-  },
-  { accessorKey: 'count', header: t.reports.agingCols.count },
-  {
-    accessorKey: 'debtAmount',
-    header: t.reports.agingCols.debtAmount,
-    cell: ({ row }) => (
-      <span className="font-semibold text-danger">{formatMoney(row.original.debtAmount)}</span>
-    ),
-  },
-  {
-    accessorKey: 'sharePercent',
-    header: 'Ulush',
-    cell: ({ row }) => `${row.original.sharePercent}%`,
-  },
-];
+const orDash = <T,>(v: T | null, f: (x: T) => string) => (v === null ? '—' : f(v));
 
-const attendanceColumns: ColumnDef<ReportAttendanceRow, unknown>[] = [
-  {
-    accessorKey: 'course',
-    header: t.reports.cols.course,
-    cell: ({ row }) => <span className="font-medium text-text">{row.original.course}</span>,
-  },
-  { accessorKey: 'teacher', header: t.reports.cols.teacher },
-  {
-    accessorKey: 'attendancePercent',
-    header: t.reports.cols.attendance,
-    cell: ({ row }) => (
-      <span className="font-semibold text-success">{row.original.attendancePercent}%</span>
-    ),
-  },
-  {
-    accessorKey: 'retentionPercent',
-    header: t.reports.cols.retention,
-    cell: ({ row }) => `${row.original.retentionPercent}%`,
-  },
-];
-
-const conversionColumns: ColumnDef<ReportConversionRow, unknown>[] = [
-  {
-    accessorKey: 'stage',
-    header: t.reports.cols.leadStage,
-    cell: ({ row }) => <span className="font-medium text-text">{row.original.stage}</span>,
-  },
-  { accessorKey: 'count', header: t.reports.cols.count },
-  {
-    accessorKey: 'percent',
-    header: t.reports.cols.conversion,
-    cell: ({ row }) => (
-      <div className="flex items-center justify-end gap-2">
-        <div className="w-20 h-2 rounded-full bg-surface-alt overflow-hidden">
-          <div
-            className="h-full bg-success rounded-full"
-            style={{ width: `${row.original.percent}%` }}
-          />
-        </div>
-        <span className="w-8 text-right font-medium">{row.original.percent}%</span>
-      </div>
-    ),
-  },
-];
-
-const teacherColumns: ColumnDef<ReportTeacherRow, unknown>[] = [
-  {
-    accessorKey: 'teacher',
-    header: t.reports.cols.teacher,
-    cell: ({ row }) => <span className="font-medium text-text">{row.original.teacher}</span>,
-  },
-  { accessorKey: 'groupsCount', header: 'Guruhlar' },
-  { accessorKey: 'studentsCount', header: t.reports.cols.students },
-  {
-    accessorKey: 'attendancePercent',
-    header: t.reports.cols.attendance,
-    cell: ({ row }) => `${row.original.attendancePercent}%`,
-  },
-  {
-    accessorKey: 'avgGrade',
-    header: t.reports.cols.avgGrade,
-    cell: ({ row }) => (
-      <span className="font-semibold text-primary">{oneDecFmt.format(row.original.avgGrade)}</span>
-    ),
-  },
-];
-
-type ReportTab = 'revenue' | 'aging' | 'attendance' | 'conversion' | 'teachers';
-
-function ReportKpis() {
+function Kpis({ kpi }: { kpi: ReportKpi }) {
   return (
-    <div className="mb-6 grid grid-cols-4 gap-4">
-      <Card className="p-4">
-        <span className="text-xs text-text-muted">{t.reports.kpi.avgRetention}</span>
-        <p className="text-xl font-semibold text-success">93.5%</p>
-      </Card>
-      <Card className="p-4">
-        <span className="text-xs text-text-muted">{t.reports.kpi.avgAttendance}</span>
-        <p className="text-xl font-semibold text-primary">91.8%</p>
-      </Card>
-      <Card className="p-4">
-        <span className="text-xs text-text-muted">{t.reports.kpi.totalDebtors}</span>
-        <p className="text-xl font-semibold text-danger">3 ta</p>
-      </Card>
-      <Card className="p-4">
-        <span className="text-xs text-text-muted">{t.reports.kpi.conversionRate}</span>
-        <p className="text-xl font-semibold text-text">47.8%</p>
-      </Card>
+    <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <KpiCard label={t.reports.kpi.revenue} value={orDash(kpi.revenue, formatMoney)} />
+      <KpiCard
+        label={t.reports.kpi.avgAttendance}
+        value={orDash(kpi.attendancePercent, fmtPercent)}
+      />
+      <KpiCard label={t.reports.kpi.totalDebtors} value={orDash(kpi.debtors, String)} />
+      <KpiCard
+        label={t.reports.kpi.conversionRate}
+        value={orDash(kpi.conversionPercent, fmtPercent)}
+      />
     </div>
   );
 }
 
-function AcademicTabTable({
-  tab,
-  attendanceData,
-  conversionData,
-  teacherData,
-}: {
-  tab: 'attendance' | 'conversion' | 'teachers';
-  attendanceData: readonly ReportAttendanceRow[];
-  conversionData: readonly ReportConversionRow[];
-  teacherData: readonly ReportTeacherRow[];
-}) {
-  if (tab === 'attendance') {
-    return (
-      <DataTable
-        data={attendanceData}
-        columns={attendanceColumns}
-        getRowId={(r) => `${r.course}-${r.teacher}`}
-        numeric={['attendancePercent', 'retentionPercent']}
-        empty={{ title: t.reports.empty }}
-      />
-    );
-  }
-  if (tab === 'conversion') {
-    return (
-      <DataTable
-        data={conversionData}
-        columns={conversionColumns}
-        getRowId={(r) => r.stage}
-        numeric={['count', 'percent']}
-        empty={{ title: t.reports.empty }}
-      />
-    );
-  }
+function ExportActions({ onExport, exporting }: Pick<Props, 'onExport' | 'exporting'>) {
+  if (!onExport) return null;
   return (
-    <DataTable
-      data={teacherData}
-      columns={teacherColumns}
-      getRowId={(r) => r.teacher}
-      numeric={['groupsCount', 'studentsCount', 'attendancePercent', 'avgGrade']}
-      empty={{ title: t.reports.empty }}
-    />
+    <div className="flex gap-2">
+      <Button variant="secondary" onClick={() => onExport('excel')} loading={exporting}>
+        <FileSpreadsheet className="size-4 text-success" aria-hidden />
+        {t.reports.exportExcel}
+      </Button>
+      <Button variant="secondary" onClick={() => onExport('pdf')} disabled={exporting}>
+        <Download className="size-4" aria-hidden />
+        {t.reports.exportPdf}
+      </Button>
+    </div>
   );
 }
 
-function ReportTabTable(p: {
-  tab: ReportTab;
-  revenueData: readonly ReportRevenueRow[];
-  agingData: readonly ReportAgingRow[];
-  attendanceData: readonly ReportAttendanceRow[];
-  conversionData: readonly ReportConversionRow[];
-  teacherData: readonly ReportTeacherRow[];
-}) {
-  if (p.tab === 'revenue') {
-    return (
-      <DataTable
-        data={p.revenueData}
-        columns={revenueColumns}
-        getRowId={(r) => r.course}
-        numeric={['studentsCount', 'revenue', 'sharePercent']}
-        empty={{ title: t.reports.empty }}
-      />
-    );
-  }
-  if (p.tab === 'aging') {
-    return (
-      <DataTable
-        data={p.agingData}
-        columns={agingColumns}
-        getRowId={(r) => r.interval}
-        numeric={['count', 'debtAmount', 'sharePercent']}
-        empty={{ title: t.reports.empty }}
-      />
-    );
-  }
-  return (
-    <AcademicTabTable
-      tab={p.tab}
-      attendanceData={p.attendanceData}
-      conversionData={p.conversionData}
-      teacherData={p.teacherData}
-    />
-  );
-}
-
-/** W-26 Hisobotlar (FR-DASH-2/4). */
-export function ReportsView({
-  revenueData,
-  agingData,
-  attendanceData,
-  conversionData,
-  teacherData,
-  activeTab = 'revenue',
-  onExportExcel,
-  onExportPdf,
-}: Props) {
-  const [tab, setTab] = useState<ReportTab>(activeTab);
-
-  const tabItems = [
-    { value: 'revenue' as const, label: t.reports.tabs.revenue },
-    { value: 'aging' as const, label: t.reports.tabs.aging },
-    { value: 'attendance' as const, label: t.reports.tabs.attendance },
-    { value: 'conversion' as const, label: t.reports.tabs.conversion },
-    { value: 'teachers' as const, label: t.reports.tabs.teachers },
-  ];
-
+/** W-26 Hisobotlar (FR-DASH-2/4): server hisobotlari, Excel/PDF eksport. */
+export function ReportsView(p: Props) {
+  const items = p.tabs.map((value) => ({ value, label: t.reports.tabs[value] }));
+  const common: Common = {
+    empty: { title: t.reports.empty },
+    loading: p.loading,
+    error: p.loadError,
+  };
   return (
     <>
       <PageHeader
         title={t.reports.title}
         description={t.reports.subtitle}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={onExportExcel}>
-              <FileSpreadsheet className="size-4 text-success" aria-hidden />
-              {t.reports.exportExcel}
-            </Button>
-            <Button variant="secondary" onClick={onExportPdf}>
-              <Download className="size-4" aria-hidden />
-              {t.reports.exportPdf}
-            </Button>
-          </div>
-        }
+        actions={<ExportActions onExport={p.onExport} exporting={p.exporting} />}
       />
-
-      <ReportKpis />
-
-      <Tabs label={t.reports.title} value={tab} items={tabItems} onChange={setTab} />
-
-      <ReportTabTable
-        tab={tab}
-        revenueData={revenueData}
-        agingData={agingData}
-        attendanceData={attendanceData}
-        conversionData={conversionData}
-        teacherData={teacherData}
-      />
+      <Kpis kpi={p.kpi} />
+      {p.exportError && (
+        <p role="alert" className="mb-4 text-sm text-danger">
+          {p.exportError}
+        </p>
+      )}
+      <Tabs label={t.reports.title} value={p.tab} items={items} onChange={p.onTab} />
+      <ReportTable tab={p.tab} data={p.data} common={common} />
     </>
   );
 }

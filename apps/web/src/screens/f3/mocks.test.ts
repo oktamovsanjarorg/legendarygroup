@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MOCK_LANDING_COURSES, MOCK_REPORT_AGING, MOCK_REPORT_REVENUE } from './mock-analytics.js';
+import { MOCK_LANDING_COURSES, MOCK_REPORT_REVENUE } from './mock-analytics.js';
 import {
   MOCK_EXPENSES,
   MOCK_EXPENSES_TOTAL,
@@ -37,16 +37,12 @@ describe('F3 mock maʼlumotlari', () => {
     expect(sum(MOCK_PAYROLL_LIST.map((p) => p.total))).toBe(MOCK_PAYROLL_TOTAL);
   });
 
-  it('hisobot: faqat markaz kurslari, tushum = oʻquvchilar × narx, ulush = 100%', () => {
+  it('hisobot: faqat markaz kurslari, tushum = oʻquvchilar × narx', () => {
     for (const r of MOCK_REPORT_REVENUE) {
-      const price = PRICES[r.course];
-      expect(price, r.course).toBeDefined();
-      expect(r.revenue).toBe(BigInt(r.studentsCount) * (price ?? 0n));
+      const price = PRICES[r.name];
+      expect(price, r.name).toBeDefined();
+      expect(r.revenue).toBe(BigInt(r.students) * (price ?? 0n));
     }
-    const shares = (rows: readonly { sharePercent: number }[]) =>
-      rows.reduce((a, r) => a + r.sharePercent, 0);
-    expect(shares(MOCK_REPORT_REVENUE)).toBe(100);
-    expect(shares(MOCK_REPORT_AGING)).toBe(100);
   });
 
   it('landing: kurs narxlari markaz narxlari bilan bir xil', () => {
