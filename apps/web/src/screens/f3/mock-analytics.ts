@@ -1,8 +1,9 @@
 import type {
   AuditLogItem,
   ChurnStudentItem,
-  ForecastRevenue,
+  ForecastMonth,
   LandingCourseItem,
+  OccupancyItem,
   ReportAgingRow,
   ReportAttendanceRow,
   ReportConversionRow,
@@ -56,37 +57,51 @@ export const MOCK_REPORT_KPI: ReportKpi = {
   conversionPercent: 47.8,
 };
 
-// W-27: Prognozlar
-export const MOCK_FORECAST_REVENUE: ForecastRevenue = {
-  conservative: 74_000_000n,
-  expected: 82_000_000n,
-  optimistic: 90_000_000n,
-};
+// W-27: Prognozlar — faqat Storybook.
+export const MOCK_FORECAST_MONTHS: readonly ForecastMonth[] = [
+  { month: '2026-12', lower: 66_500_000n, expected: 70_000_000n, upper: 73_500_000n },
+  { month: '2027-01', lower: 63_000_000n, expected: 70_000_000n, upper: 77_000_000n },
+  { month: '2027-02', lower: 59_500_000n, expected: 70_000_000n, upper: 80_500_000n },
+];
 
 export const MOCK_CHURN_STUDENTS: readonly ChurnStudentItem[] = [
   {
-    id: 'ch-1',
-    name: 'Sirojiddin Alimov',
-    group: 'Matematika-101',
-    riskScore: 84,
-    reasons: ['Davomat 42% ga tushgan', 'Toʻlov 14 kun kechikkan', 'Baho 4.5 dan 2.9 ga pasaygan'],
-    guardianName: 'Gulnora Alimova',
-    guardianPhone: '+998 90 555 44 33',
-    debt: 550_000n,
+    id: 's1',
+    name: 'Jasur Aliyev',
+    group: 'MAT-1',
+    riskScore: 82,
+    factors: [
+      { factor: 'attendance_drop', score: 32 },
+      { factor: 'payment_delay', score: 30 },
+      { factor: 'grade_drop', score: 10 },
+      { factor: 'bot_unresponsive', score: 10 },
+    ],
   },
   {
-    id: 'ch-2',
-    name: 'Diyorbek Karimov',
-    group: 'Ingliz-tili-201',
-    riskScore: 68,
-    reasons: ['Bot xabarlari bloklangan', 'Oxirgi 3 ta darsga qatnashmagan'],
-    guardianName: 'Rustam Karimov',
-    guardianPhone: '+998 93 111 22 33',
-    debt: 650_000n,
+    id: 's2',
+    name: 'Madina Karimova',
+    group: 'IELTS-2',
+    riskScore: 64,
+    factors: [
+      { factor: 'payment_delay', score: 30 },
+      { factor: 'attendance_drop', score: 24 },
+      { factor: 'bot_unresponsive', score: 10 },
+    ],
   },
 ];
 
-// W-30: Audit
+export const MOCK_OCCUPANCY: readonly OccupancyItem[] = [
+  {
+    id: 'g1',
+    group: 'MAT-1',
+    capacity: 15,
+    active: 13,
+    occupancyPercent: 86.67,
+    projectedChurn: 1,
+    projectedPercent: 80,
+  },
+];
+
 export const MOCK_AUDIT_LOGS: readonly AuditLogItem[] = [
   {
     id: 'aud-1',

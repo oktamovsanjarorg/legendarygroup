@@ -188,22 +188,33 @@ export interface ReportKpi {
   conversionPercent: number | null;
 }
 
-// W-27: Prognozlar
-export interface ForecastRevenue {
-  conservative: bigint;
+// W-27: Prognozlar (API: /forecasts/*). Pul — bigint, hisob serverda.
+export interface ForecastMonth {
+  month: string;
+  lower: bigint;
   expected: bigint;
-  optimistic: bigint;
+  upper: bigint;
 }
+
+export type ChurnFactor = 'attendance_drop' | 'payment_delay' | 'grade_drop' | 'bot_unresponsive';
 
 export interface ChurnStudentItem {
   id: string;
   name: string;
-  group: string;
+  group: string | null;
   riskScore: number;
-  reasons: readonly string[];
-  guardianName: string;
-  guardianPhone: string;
-  debt: bigint;
+  /** Ball qo'shgan omillar (eng kattasi birinchi). */
+  factors: readonly { factor: ChurnFactor; score: number }[];
+}
+
+export interface OccupancyItem {
+  id: string;
+  group: string;
+  capacity: number;
+  active: number;
+  occupancyPercent: number;
+  projectedChurn: number;
+  projectedPercent: number;
 }
 
 // W-30: Audit
