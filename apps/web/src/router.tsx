@@ -29,6 +29,7 @@ import { PayrollPage } from './routes/finance/payroll.js';
 import { PnlPage } from './routes/finance/pnl.js';
 import { ForecastsPage } from './routes/forecasts/index.js';
 import { ReportsPage } from './routes/reports/index.js';
+import { TicketsPage } from './routes/tickets/index.js';
 import { GroupsPage } from './routes/groups/index.js';
 import { LandingPage } from './routes/landing/index.js';
 import { LeadsPage } from './routes/leads/index.js';
@@ -172,6 +173,11 @@ const forecasts = createRoute({
   path: '/forecasts',
   component: ForecastsPage,
 });
+const tickets = createRoute({
+  getParentRoute: () => app,
+  path: '/tickets',
+  component: TicketsPage,
+});
 const audit = createRoute({ getParentRoute: () => app, path: '/audit', component: AuditPage });
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
@@ -195,6 +201,7 @@ const routeTree = root.addChildren([
     audit,
     reports,
     forecasts,
+    tickets,
     payroll,
     pnl,
     expensesRoute,

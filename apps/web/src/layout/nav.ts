@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Inbox,
   Link2,
+  MessagesSquare,
   MonitorSmartphone,
   Settings,
   ShieldCheck,
@@ -144,6 +145,13 @@ export const NAV: readonly NavItem[] = [
     label: t.reports.title,
     icon: ChartColumn,
     permission: 'stats.operational',
+  },
+  {
+    screen: 'W-21',
+    to: '/tickets',
+    label: t.tickets.title,
+    icon: MessagesSquare,
+    permission: 'ticket.handle',
   },
   {
     screen: 'W-27',

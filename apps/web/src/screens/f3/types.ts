@@ -50,28 +50,28 @@ export interface AnnouncementItem {
 }
 
 // W-21: Murojaatlar
-export type TicketPriority = 'normal' | 'urgent';
-export type TicketStatus = 'open' | 'inProgress' | 'closed';
+export type { TicketPriority, TicketStatus } from '@lg/contracts';
+import type { TicketPriority, TicketStatus } from '@lg/contracts';
+
+/** W-21: /tickets ro'yxati (xabarlarsiz). */
+export interface TicketItem {
+  id: string;
+  senderName: string;
+  senderPhone: string | null;
+  studentName: string | null;
+  topic: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  assignedName: string | null;
+  lastAt: Date;
+}
 
 export interface TicketMessage {
   id: string;
   sender: string;
   isStaff: boolean;
   text: string;
-  time: string;
-}
-
-export interface TicketItem {
-  id: string;
-  senderName: string;
-  senderPhone: string;
-  studentName: string;
-  groupName: string;
-  topic: string;
-  status: TicketStatus;
-  priority: TicketPriority;
-  date: Date;
-  messages: readonly TicketMessage[];
+  at: Date;
 }
 
 // W-22: Yetib bormagan xabarlar
