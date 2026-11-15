@@ -11,6 +11,7 @@
 #    volume'lar qoladi; qo'lda ko'tarilgan eski stek uchun)
 # 4. deploy.sh production (snapshot GitHub Actions'da olingan — --skip-snapshot)
 # 5. /opt/lg/current → shu reliz; eski relizlar va image'lar tozalanadi (oxirgi 5 ta qoladi)
+# 6. lg-monitor.timer (T-016) — har 5 daqiqada infra/scripts/monitor.sh (joriy reliz)
 # ==============================================================================
 set -euo pipefail
 
@@ -23,15 +24,15 @@ export AWS_REGION="$REGION" AWS_DEFAULT_REGION="$REGION"
 export STATE_DIR=/var/lib/lg
 install -d -m 0750 "$STATE_DIR"
 
-echo "== 1/5 env"
+echo "== 1/6 env"
 "$HERE/render-env.sh" production /lg/prod/ "$SECRET_ARN"
 
-echo "== 2/5 ECR login"
+echo "== 2/6 ECR login"
 REGISTRY="$(grep -E '^LG_REGISTRY=' /etc/lg/production.env | cut -d"'" -f2)"
 aws ecr get-login-password | docker login --username AWS --password-stdin "$REGISTRY" >/dev/null
 echo "ECR: ${REGISTRY}"
 
-echo "== 3/5 port 80/443"
+echo "== 3/6 port 80/443"
 for id in $(docker ps -q --filter publish=80 --filter publish=443); do
   project="$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$id")"
   if [[ "$project" != "lg-prod" ]]; then
@@ -41,12 +42,36 @@ for id in $(docker ps -q --filter publish=80 --filter publish=443); do
   fi
 done
 
-echo "== 4/5 deploy ${TAG}"
+echo "== 4/6 deploy ${TAG}"
 "$HERE/deploy.sh" production "$TAG" --skip-snapshot
 
-echo "== 5/5 tozalash"
+echo "== 5/6 tozalash"
 ln -sfn "$RELEASE_DIR" /opt/lg/current
 find /opt/lg/releases -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -rn | tail -n +6 \
   | cut -d' ' -f2- | xargs -r rm -rf
 docker image prune -af --filter "until=168h" >/dev/null || true
 docker compose -p lg-prod ps --format '{{.Service}}: {{.Status}}'
+
+echo "== 6/6 monitoring (lg-monitor.timer)"
+cat >/etc/systemd/system/lg-monitor.service <<'UNIT'
+[Unit]
+Description=Legendary Group prod monitoring (T-016)
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/lg/current/infra/scripts/monitor.sh
+UNIT
+cat >/etc/systemd/system/lg-monitor.timer <<'UNIT'
+[Unit]
+Description=Legendary Group monitoring har 5 daqiqada
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
+UNIT
+systemctl daemon-reload
+systemctl enable --now lg-monitor.timer

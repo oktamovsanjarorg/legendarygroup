@@ -11,7 +11,7 @@ Ushbu runbook Legendary Group tizimining barcha qatlamlarida (API, Worker, Bot, 
 | **Metrikalar** | Prometheus OpenMetrics (`GET /api/health/metrics`) → Grafana Cloud | RPS, p95 latentsiya, DB/Redis holati, navbatlar   |
 | **Xatolar**    | Sentry (release tegi va source map'lar bilan)                      | 5xx xatoliklar, brauzer va Telegram xatolari      |
 | **Loglar**     | Pino JSON → Grafana Alloy → Grafana Cloud Loki                     | Strukturali qidiruv, audit va xatolik stack trace |
-| **Alertlar**   | `scripts/monitor-health-alerts.sh` → Telegram bot                  | Texnik guruhga kritik xabarlar                    |
+| **Alertlar**   | `infra/scripts/monitor.sh` (prod, systemd timer) → Telegram bot    | Texnik chatga kritik xabarlar                     |
 | **Uptime**     | Grafana Synthetic / tashqi UptimeRobot (har 1 daq)                 | `/api/health/ready` va bot webhook tekshiruvi     |
 
 ---
@@ -48,10 +48,15 @@ Quyidagi hodisalar yuz berganda darhol Telegram guruhiga bildirishnoma yuborilad
 
 ---
 
-## 4. Cron monitoring konfiguratsiyasi
+## 4. Prod'da ishga tushirish (systemd timer)
 
-Serverda har 5 daqiqada avtomatik tekshiruv:
+Prod serverda cron yo'q (Amazon Linux 2023). `infra/scripts/remote-deploy.sh` har deploy'da
+`lg-monitor.service` + `lg-monitor.timer` ni o'rnatadi: har 5 daqiqada
+`/opt/lg/current/infra/scripts/monitor.sh`.
 
-```crontab
-*/5 * * * * /srv/lg/scripts/monitor-health-alerts.sh >> /var/log/lg/monitor.log 2>&1
-```
+- Tekshiruvlar: tashqi `https://<APP_DOMAIN>/api/health/ready` (2 marta ketma-ket yiqilsa), disk > 80%,
+  `lg-prod` konteynerlari `running` emas.
+- Bir xil alert ko'pi bilan soatiga bir marta; tiklanganda "✅ tiklandi".
+- Chat: SSM `/lg/prod/ALERTS_TELEGRAM_CHAT_ID` (ixtiyoriy; yo'q bo'lsa faqat jurnal). Bot — asosiy bot tokeni.
+- Jurnal: `journalctl -u lg-monitor --since -1h`; holat: `systemctl list-timers lg-monitor.timer`.
+- Lokal/staging uchun eski `scripts/monitor-health-alerts.sh` qoladi.

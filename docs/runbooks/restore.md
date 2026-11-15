@@ -125,3 +125,23 @@ Ushbu skript quyidagilarni avtomatik bajaradi:
 ### 4.2. GitHub Actions orqali oylik ishga tushirish
 
 `.github/workflows/backup-restore-drill.yml` har oyning 1-sanasida avtomatik ishga tushadi yoki GitHub UI orqali qo'lda `Run workflow` tugmasi bilan ishga tushiriladi.
+
+## 5. Prod RDS snapshot drill (haqiqiy zaxira)
+
+`backup-restore-drill.yml` faqat CI'dagi seed bazani sinaydi. Prod zaxirasi esa RDS avtomatik
+snapshot'lari (14 kun saqlanadi) — ular quyidagicha sinaladi:
+
+1. Eng oxirgi snapshot: `aws rds describe-db-snapshots --db-instance-identifier lg-prod --snapshot-type automated`.
+2. Vaqtinchalik instansiya (ommaga yopiq, prod SG/subnet/parametr guruhi):
+   `aws rds restore-db-instance-from-db-snapshot --db-instance-identifier lg-drill-<sana> --db-snapshot-identifier <snapshot> --db-instance-class db.t4g.micro --db-subnet-group-name lg-prod --vpc-security-group-ids <db-sg> --db-parameter-group-name lg-prod-pg18 --no-publicly-accessible --no-multi-az --tags Key=Purpose,Value=restore-drill`
+3. Solishtirish (SSM orqali, api konteynerida): `infra/scripts/drill/compare.mjs` —
+   `DRILL_HOST=<endpoint> SNAPSHOT_TIME=<snapshot vaqti, UTC>`. Natija `ok: true` bo'lishi shart.
+4. O'chirish: `aws rds delete-db-instance --db-instance-identifier lg-drill-<sana> --skip-final-snapshot --delete-automated-backups`.
+
+### Natijalar
+
+| Sana       | Snapshot                     | Tiklash vaqti | Natija                                                                                                   |
+| ---------- | ---------------------------- | ------------- | -------------------------------------------------------------------------------------------------------- |
+| 2026-11-15 | rds:lg-prod-2026-11-14-21-07 | ~9 daqiqa     | ✅ `ok: true` — 64 jadval, users/audit_logs soni va pul yig'indilari teng, 11 ta forbid_mutation trigger |
+
+RTO (tiklash): ~10 daqiqa + DNS/konfiguratsiya almashtirish; RPO: PITR — 5 daqiqagacha, snapshot — 24 soat.
