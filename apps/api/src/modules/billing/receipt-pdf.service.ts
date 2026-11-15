@@ -120,7 +120,7 @@ export class ReceiptPdfService {
     const { receipt, payment, student, groupName, staffName, status } =
       await this.fetchReceiptDetails(number);
 
-    const appUrl = this.env.get('PUBLIC_APP_URL') ?? 'https://lg.uz';
+    const appUrl = this.env.get('PUBLIC_APP_URL');
     const verifyUrl = `${appUrl}/verify/${receipt.verifyToken}`;
     const qrPng = await QRCode.toBuffer(verifyUrl, { type: 'png', width: 130, margin: 1 });
 
