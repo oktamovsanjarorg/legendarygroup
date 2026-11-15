@@ -13,6 +13,7 @@ import { InvitePage } from './pages/invite.js';
 import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
 import { VerifyPage } from './pages/verify.js';
+import { DebtorsPage } from './routes/billing/debtors.js';
 import { PayEntryPage } from './routes/billing/pay-entry.js';
 import { PaymentDetailPage } from './routes/billing/payment-detail.js';
 import { QueuePage } from './routes/billing/queue.js';
@@ -107,6 +108,11 @@ const queue = createRoute({
   path: '/payments/queue',
   component: QueuePage,
 });
+const debtors = createRoute({
+  getParentRoute: () => app,
+  path: '/debtors',
+  component: DebtorsPage,
+});
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
 const routeTree = root.addChildren([
@@ -126,6 +132,7 @@ const routeTree = root.addChildren([
     sessions,
     wizard,
     payNew,
+    debtors,
     payment,
     queue,
   ]),

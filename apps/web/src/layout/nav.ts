@@ -3,6 +3,7 @@ import { webMessages as t } from '@lg/i18n';
 import {
   BookOpen,
   CalendarDays,
+  CircleAlert,
   Home,
   Inbox,
   MonitorSmartphone,
@@ -71,6 +72,13 @@ export const NAV: readonly NavItem[] = [
     to: '/payments/queue',
     label: t.queueWeb.title,
     icon: Inbox,
+    permission: 'payment.review',
+  },
+  {
+    screen: 'W-15',
+    to: '/debtors',
+    label: t.debtors.title,
+    icon: CircleAlert,
     permission: 'payment.review',
   },
   { screen: 'W-28', to: '/staff', label: t.menu.staff, icon: UserCog, permission: 'staff.manage' },
