@@ -33,20 +33,23 @@ export interface ImportPreviewRow {
 }
 
 // W-20: E'lonlar
-export type AnnouncementAudience = 'all' | 'groups' | 'debtors' | 'teachers';
+export type { AnnouncementStatus, AnnouncementTargetType } from '@lg/contracts';
+import type { AnnouncementStatus, AnnouncementTargetType } from '@lg/contracts';
 
+/** W-20: /announcements (yig'indilar — serverdan). */
 export interface AnnouncementItem {
   id: string;
   title: string;
-  content: string;
-  target: AnnouncementAudience;
-  groupName?: string;
-  date: Date;
+  body: string;
+  target: AnnouncementTargetType;
+  targetName: string | null;
   author: string;
-  sentCount: number;
-  deliveredCount: number;
-  failedCount: number;
-  readCount: number;
+  date: Date;
+  status: AnnouncementStatus;
+  total: number;
+  sent: number;
+  failed: number;
+  blocked: number;
 }
 
 // W-21: Murojaatlar

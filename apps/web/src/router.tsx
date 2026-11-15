@@ -21,6 +21,7 @@ import { PayEntryPage } from './routes/billing/pay-entry.js';
 import { PaymentDetailPage } from './routes/billing/payment-detail.js';
 import { QueuePage } from './routes/billing/queue.js';
 import { AttendancePage } from './routes/attendance/index.js';
+import { AnnouncementsPage } from './routes/announcements/index.js';
 import { AuditPage } from './routes/audit/index.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
@@ -184,6 +185,11 @@ const failedMessages = createRoute({
   path: '/failed-messages',
   component: FailedMessagesPage,
 });
+const announcements = createRoute({
+  getParentRoute: () => app,
+  path: '/announcements',
+  component: AnnouncementsPage,
+});
 const audit = createRoute({ getParentRoute: () => app, path: '/audit', component: AuditPage });
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
@@ -207,6 +213,7 @@ const routeTree = root.addChildren([
     audit,
     reports,
     forecasts,
+    announcements,
     tickets,
     failedMessages,
     payroll,
