@@ -12,6 +12,7 @@ export interface ActiveEnrollmentInfo {
 export interface OpenLineInfo {
   id: string;
   invoiceId: string;
+  period: string;
   dueDate: string;
   amount: bigint;
   allocated: bigint;

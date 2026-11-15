@@ -6,6 +6,7 @@ import {
   formatDateTime,
   formatMoney,
   formatMonth,
+  formatPeriod,
   formatPhone,
   formatTime,
   NBSP,
@@ -51,6 +52,8 @@ describe('Sana va vaqt (Asia/Tashkent)', () => {
     expect(formatDateTime(d)).toBe('11.11.2026 00:30');
     expect(formatMonth(d)).toBe('noyabr, 2026');
     expect(formatMonth(new Date('2026-12-31T19:00:00Z'))).toBe('yanvar, 2027');
+    expect(formatPeriod('2026-10')).toBe('oktabr, 2026');
+    expect(formatPeriod('bad')).toBe('bad');
   });
 });
 

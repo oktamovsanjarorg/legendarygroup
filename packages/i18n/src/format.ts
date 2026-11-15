@@ -106,6 +106,13 @@ export function formatMonth(date: Date): string {
   return `${MONTHS[m - 1]}, ${y}`;
 }
 
+/** Hisob davri `2026-11` → `noyabr, 2026` (vaqt zonasiga bog'liq emas). */
+export function formatPeriod(period: string): string {
+  const [y, m] = period.split('-');
+  const name = MONTHS[Number(m) - 1];
+  return name ? `${name}, ${y}` : period;
+}
+
 /** Telefon: `+998901234567` → `+998 90 123 45 67`. */
 export function formatPhone(e164: string): string {
   const m = /^\+998(\d{2})(\d{3})(\d{2})(\d{2})$/.exec(e164);

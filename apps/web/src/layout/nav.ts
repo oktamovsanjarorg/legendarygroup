@@ -9,6 +9,7 @@ import {
   UserCog,
   Users,
   UsersRound,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -56,6 +57,13 @@ export const NAV: readonly NavItem[] = [
     label: t.menu.calendar,
     icon: CalendarDays,
     permission: 'group.view',
+  },
+  {
+    screen: 'W-13',
+    to: '/payments/new',
+    label: t.payEntry.title,
+    icon: Wallet,
+    permission: 'payment.create',
   },
   { screen: 'W-28', to: '/staff', label: t.menu.staff, icon: UserCog, permission: 'staff.manage' },
   { screen: 'W-32', to: '/sessions', label: t.nav.sessions, icon: MonitorSmartphone },

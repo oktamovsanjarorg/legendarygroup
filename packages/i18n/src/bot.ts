@@ -42,6 +42,10 @@ export const botMessages = {
     confirmed: 'Toʻlovingiz tasdiqlandi. Chek raqami: {number}',
     rejected: 'Toʻlov chekingiz rad etildi. Sabab: {reason}',
   },
+  paymentReceipt: {
+    text: '✅ Toʻlov qabul qilindi\n{student}: {amount}\nChek raqami: {number}',
+    verify: 'Chekni tekshirish',
+  },
   receiptUploadHelp: {
     title: '🧾 Toʻlov cheki',
     body: 'Chekni hisobingizga biriktirish uchun ilovadagi «Toʻlov» boʻlimiga kiring yoki administratorga murojaat qiling.',

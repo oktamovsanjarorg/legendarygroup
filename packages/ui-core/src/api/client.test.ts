@@ -94,4 +94,24 @@ describe('ApiClient (ADR 0006: single-flight refresh)', () => {
     });
     expect(renew).not.toHaveBeenCalled();
   });
+
+  it('qoʻshimcha sarlavha (Idempotency-Key) yuboriladi; blob — fayl yoki ApiError', async () => {
+    const fetchFn = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      const h = init?.headers as Record<string, string>;
+      if (String(url).endsWith('/pdf')) return new Response('PDF', { status: 200 });
+      if (String(url).endsWith('/missing'))
+        return json(404, { code: 'NOT_FOUND', message: 'Yoʻq' });
+      return json(200, { key: h['idempotency-key'], auth: h['authorization'] });
+    });
+    const client = new ApiClient(viaRefresh, '/api', fetchFn as typeof fetch);
+    client.setToken('t');
+    const res = await client.request<{ key: string; auth: string }>('/p', {
+      method: 'POST',
+      body: {},
+      headers: { 'idempotency-key': 'k1' },
+    });
+    expect(res).toEqual({ key: 'k1', auth: 'Bearer t' });
+    expect(await (await client.blob('/r/pdf')).text()).toBe('PDF');
+    await expect(client.blob('/missing')).rejects.toBeInstanceOf(ApiError);
+  });
 });

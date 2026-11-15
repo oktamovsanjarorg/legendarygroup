@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Optional } from '@nestjs/common';
 import type {
   CreatePaymentInput,
   PaymentDetail,
@@ -12,10 +12,13 @@ import { type AuditContext, AuditService } from '../../common/audit/audit.servic
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import { EnvService } from '../../config/env.service.js';
 import type { RequestUser } from '../auth/index.js';
 import { StudentScopeService } from '../students/index.js';
+import { TelegramOutbox } from '../telegram/index.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
+import { notifyPaymentReceipt } from './payment-notify.js';
 import { receiptYear } from './receipt-year.js';
 
 /** API body + `Idempotency-Key` sarlavhasi (BR-11, faqat sarlavhadan — interceptor ham ko'radi). */
@@ -33,6 +36,7 @@ interface PaymentTxResult {
   receiptNumber: string;
   allocs: { paymentId: string; invoiceLineId: string; amount: bigint }[];
   advance: bigint;
+  verifyToken: string;
 }
 
 @Injectable()
@@ -44,6 +48,8 @@ export class PaymentsService {
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(EnvService) private readonly env: EnvService,
+    @Optional() @Inject(TelegramOutbox) private readonly telegramOutbox?: TelegramOutbox,
   ) {}
 
   async createPayment(
@@ -69,8 +75,8 @@ export class PaymentsService {
     const amount = BigInt(input.amount);
     const paidAt = input.paidAt ? new Date(input.paidAt) : this.clock.now();
 
-    const { payment, receiptNumber, allocs, advance } = await this.db.transaction((tx) =>
-      this.executePaymentTx(tx, { input, userId: user.id, amount, paidAt }),
+    const { payment, receiptNumber, allocs, advance, verifyToken } = await this.db.transaction(
+      (tx) => this.executePaymentTx(tx, { input, userId: user.id, amount, paidAt }),
     );
 
     await this.audit.record(ctx, {
@@ -84,6 +90,15 @@ export class PaymentsService {
         allocationsCount: allocs.length,
       },
     });
+    // O'tkazma cheki tasdiqlanganda ota-onaga o'z xabari boradi (BR-13) — bu yerda faqat kassa.
+    if (!input.submissionId)
+      await notifyPaymentReceipt(this.db, this.telegramOutbox, {
+        paymentId: payment.id,
+        studentId: payment.studentId,
+        amount,
+        receiptNumber,
+        verifyUrl: `${this.env.get('PUBLIC_APP_URL')}/verify/${verifyToken}`,
+      });
 
     return {
       id: payment.id,
@@ -145,7 +160,13 @@ export class PaymentsService {
     const verifyToken = randomBytes(16).toString('hex');
     await this.repo.insertReceipt(tx, { number: num, paymentId: paymentRow.id, verifyToken });
 
-    return { payment: paymentRow, receiptNumber: num, allocs, advance: allocation.advance };
+    return {
+      payment: paymentRow,
+      receiptNumber: num,
+      allocs,
+      advance: allocation.advance,
+      verifyToken,
+    };
   }
 
   async getPayments(user: RequestUser, query: PaymentListQueryInput): Promise<PaymentDetail[]> {
