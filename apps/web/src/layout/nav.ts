@@ -16,6 +16,7 @@ import {
   Inbox,
   Link2,
   MessagesSquare,
+  MailWarning,
   MonitorSmartphone,
   Settings,
   ShieldCheck,
@@ -152,6 +153,13 @@ export const NAV: readonly NavItem[] = [
     label: t.tickets.title,
     icon: MessagesSquare,
     permission: 'ticket.handle',
+  },
+  {
+    screen: 'W-22',
+    to: '/failed-messages',
+    label: t.failedMessages.title,
+    icon: MailWarning,
+    permission: 'settings.manage',
   },
   {
     screen: 'W-27',
