@@ -10,6 +10,9 @@ import type { NotificationStatus, NotificationType } from '@lg/contracts';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
+/** Tranzaksiya ichida ham (event handler) ishlashi uchun. */
+type Executor = Pick<Database, 'update'>;
+
 export interface CreateNotificationParams {
   branchId: string;
   userId: string;
@@ -107,23 +110,30 @@ export class NotificationsRepository {
   async updateStatus(
     id: string,
     status: NotificationStatus,
-    opts: { attempts?: number; failedReason?: string | null; sentAt?: Date | null } = {},
+    opts: {
+      attempts?: number;
+      failedReason?: string | null;
+      sentAt?: Date | null;
+      recipient?: string;
+    } = {},
+    db: Executor = this.db,
   ) {
-    await this.db
+    await db
       .update(notifications)
       .set({
         status,
         attempts: opts.attempts !== undefined ? opts.attempts : undefined,
         failedReason: opts.failedReason,
         sentAt: opts.sentAt,
+        recipient: opts.recipient,
         updatedAt: sql`now()`,
       })
       .where(eq(notifications.id, id));
   }
 
   /** Chat bloklanganda oxirgi xabarlarni 'blocked' ga o'tkazadi */
-  async markChatBlocked(chatId: string, reason: string) {
-    await this.db
+  async markChatBlocked(chatId: string, reason: string, db: Executor = this.db) {
+    await db
       .update(notifications)
       .set({
         status: 'blocked',

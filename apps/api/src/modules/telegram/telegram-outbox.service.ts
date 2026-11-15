@@ -6,6 +6,8 @@ export interface TelegramMessage {
   method: 'sendMessage' | 'sendDocument' | 'sendPhoto' | 'editMessageText';
   chatId: string;
   payload: Record<string, unknown>;
+  /** Bildirishnoma (T-109) — yakuniy xatoda `TelegramSendFailed` shu ID bilan. */
+  notificationId?: string;
 }
 
 export const SEND_ATTEMPTS = 8;

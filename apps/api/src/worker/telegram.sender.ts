@@ -47,6 +47,18 @@ export class TelegramSender implements OnApplicationBootstrap {
       concurrency: 5,
     });
     attachDeadLetter(this.worker, this.queues, this.logger);
+    this.worker.on('failed', (job, err) => void this.onFinalFailure(job, err));
+  }
+
+  /** T-109: urinishlar tugagan bildirishnoma — `TelegramSendFailed` (W-22 da `failed`). */
+  private async onFinalFailure(job: Job<TelegramMessage> | undefined, err: Error): Promise<void> {
+    const id = job?.data.notificationId;
+    if (!job || !id) return;
+    const exhausted = job.attemptsMade >= (job.opts.attempts ?? 1);
+    if (!exhausted && err.name !== 'UnrecoverableError') return;
+    await this.outbox
+      .publish('TelegramSendFailed', { notificationId: id, error: err.message.slice(0, 500) })
+      .catch((e: unknown) => this.logger.error({ err: e }, 'TelegramSendFailed yozilmadi'));
   }
 
   private async process(job: Job<TelegramMessage>, token?: string): Promise<unknown> {

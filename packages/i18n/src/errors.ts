@@ -127,6 +127,8 @@ export const errorMessages = {
   ALREADY_REVERSED: 'Bu toʻlov allaqachon bekor qilingan.',
   REFUND_EXCEEDS_ADVANCE: 'Qaytariladigan summa oʻquvchining avansidan koʻp.',
   PENALTY_ALREADY_PAID: 'Toʻlangan jarimani bekor qilib boʻlmaydi — avval toʻlovni storno qiling.',
+  NOT_RETRYABLE: 'Bu xabar yetkazilgan yoki navbatda — qayta yuborib boʻlmaydi.',
+  NO_TELEGRAM: 'Foydalanuvchi Telegram botga ulanmagan — avval botga ulanishi kerak.',
 } as const;
 
 export type ErrorCode = keyof typeof errorMessages;

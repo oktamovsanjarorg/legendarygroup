@@ -19,6 +19,9 @@ import { AppException } from '../../common/errors/app.exception.js';
 import { TelegramOutbox } from '../telegram/index.js';
 import { NotificationsRepository } from './notifications.repository.js';
 
+/** `failedReason`: foydalanuvchida Telegram yo'q. */
+export const NO_TELEGRAM = 'NO_TELEGRAM';
+
 export interface NotifyParams {
   userId: string;
   type: NotificationType;
@@ -70,6 +73,7 @@ export class NotificationsService {
           method: 'sendMessage',
           chatId: recipient,
           payload: { text, parse_mode: 'Markdown' },
+          notificationId: notif.id,
         },
         { dedupeKey: params.dedupeKey },
       );
@@ -77,6 +81,8 @@ export class NotificationsService {
       return jobId;
     }
 
+    // Telegram bog'lanmagan — yuborib bo'lmaydi: W-22 da ko'rinadi, bog'langach qayta yuboriladi.
+    await this.repo.updateStatus(notif.id, 'failed', { failedReason: NO_TELEGRAM });
     return notif.id;
   }
 
@@ -137,30 +143,5 @@ export class NotificationsService {
       attempts: r.attempts,
       createdAt: r.createdAt,
     }));
-  }
-
-  /** Yetib bormagan xabarni qayta yuborish */
-  async retryNotification(id: string): Promise<void> {
-    const notif = await this.repo.findById(id);
-    if (!notif) {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
-    }
-
-    const rendered = renderNotificationTemplate(
-      notif.type as NotificationType,
-      notif.payload as Record<string, unknown>,
-    );
-    const text = rendered.title ? `*${rendered.title}*\n\n${rendered.body}` : rendered.body;
-
-    await this.telegramOutbox.enqueue({
-      method: 'sendMessage',
-      chatId: notif.recipient,
-      payload: { text, parse_mode: 'Markdown' },
-    });
-
-    await this.repo.updateStatus(notif.id, 'queued', {
-      attempts: notif.attempts + 1,
-      failedReason: null,
-    });
   }
 }
