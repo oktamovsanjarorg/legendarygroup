@@ -58,20 +58,54 @@ interface Props {
   total: bigint;
   onBucket: (b: Bucket) => void;
   onOpen: (r: DebtorRow) => void;
+  onExport?: () => void;
+  /** FR-PAY-7: qo'lda eslatma — yo'q bo'lsa ustun ko'rinmaydi. */
+  onRemind?: (r: DebtorRow) => void;
+  remindingId?: string;
+  loading?: boolean;
+  error?: { message: string; requestId?: string; onRetry: () => void };
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }
 
+const remindColumn = (
+  onRemind: (r: DebtorRow) => void,
+  busy?: string,
+): ColumnDef<DebtorRow, unknown> => ({
+  id: 'remind',
+  header: '',
+  enableSorting: false,
+  cell: ({ row }) => (
+    <Button
+      size="sm"
+      variant="secondary"
+      loading={busy === row.original.id}
+      onClick={(e) => {
+        e.stopPropagation();
+        onRemind(row.original);
+      }}
+    >
+      {t.debtors.remindNow}
+    </Button>
+  ),
+});
+
 /** W-15 Qarzdorlar (FR-PAY-7, BR-21/22): aging, kritik belgi, eksport. */
-export function DebtorsView({ rows, bucket, total, onBucket, onOpen }: Props) {
+export function DebtorsView(p: Props) {
+  const { rows, bucket, total, onBucket, onOpen } = p;
+  const cols = p.onRemind ? [...columns, remindColumn(p.onRemind, p.remindingId)] : columns;
   return (
     <>
       <PageHeader
         title={t.debtors.title}
         description={t.debtors.total.replace('{amount}', formatMoney(total))}
         actions={
-          <Button variant="secondary">
-            <Download className="size-4" aria-hidden />
-            {t.common.export}
-          </Button>
+          p.onExport && (
+            <Button variant="secondary" onClick={p.onExport}>
+              <Download className="size-4" aria-hidden />
+              {t.common.export}
+            </Button>
+          )
         }
       />
       <Tabs
@@ -84,12 +118,16 @@ export function DebtorsView({ rows, bucket, total, onBucket, onOpen }: Props) {
         }))}
       />
       <DataTable
-        columns={columns}
+        columns={cols}
         data={rows}
         getRowId={(r) => r.id}
         numeric={['debt', 'overdue', 'reminders']}
         empty={{ title: t.debtors.empty }}
         onRowClick={onOpen}
+        loading={p.loading}
+        error={p.error}
+        onLoadMore={p.onLoadMore}
+        loadingMore={p.loadingMore}
       />
     </>
   );

@@ -66,8 +66,8 @@ function MethodSelect({ value, onChange }: { value: PayMethod; onChange: (m: Pay
   );
 }
 
-/** W-17: storno (BR-16) yoki refund (BR-17) — sabab majburiy; huquq yetmasa so'rov. */
-export function PaymentActionDrawer({ kind, p, direct, onDone, onClose }: ActionDrawerProps) {
+/** Forma holati va yuborish: sabab ≥ 3 belgi, refund'da summa > 0. */
+function useActionForm({ kind, p, direct, onDone }: Omit<ActionDrawerProps, 'onClose'>) {
   const act = usePaymentAction();
   const [reason, setReason] = useState('');
   const [amount, setAmount] = useState<bigint | null>(null);
@@ -83,20 +83,21 @@ export function PaymentActionDrawer({ kind, p, direct, onDone, onClose }: Action
     setErrors(errs);
     if (errs.reason || errs.amount) return;
     const done = { onSuccess: () => onDone(direct ? d.done : d.requestSent) };
-    if (kind === 'reverse') act.mutate({ kind, paymentId: p.id, reason: r, direct }, done);
-    else
-      act.mutate(
-        {
-          kind,
-          studentId: p.studentId,
-          amount: String(amount),
-          method: API_METHOD[method],
-          reason: r,
-          direct,
-        },
-        done,
-      );
+    if (kind === 'reverse') {
+      act.mutate({ kind, paymentId: p.id, reason: r, direct }, done);
+      return;
+    }
+    const body = { studentId: p.studentId, amount: String(amount), method: API_METHOD[method] };
+    act.mutate({ kind, ...body, reason: r, direct }, done);
   };
+  return { act, reason, setReason, amount, setAmount, method, setMethod, errors, submit };
+}
+
+/** W-17: storno (BR-16) yoki refund (BR-17) — sabab majburiy; huquq yetmasa so'rov. */
+export function PaymentActionDrawer(props: ActionDrawerProps) {
+  const { kind, direct, onClose } = props;
+  const { act, reason, setReason, amount, setAmount, method, setMethod, errors, submit } =
+    useActionForm(props);
   const footer = (
     <>
       <Button variant="secondary" onClick={onClose}>
