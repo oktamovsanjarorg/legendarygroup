@@ -114,7 +114,7 @@ export function paidAmount(
 }
 
 /** To'lovlar tarixi (MG-05): chek raqami bo'lganlari (bekor qilinganlari ham — tarix). */
-const METHOD: Record<PaymentDetail['method'], PaymentRow['method']> = {
+export const METHOD: Record<PaymentDetail['method'], PaymentRow['method']> = {
   cash: 'cash',
   card: 'card_terminal',
   bank: 'transfer',

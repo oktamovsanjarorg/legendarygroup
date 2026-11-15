@@ -1,4 +1,5 @@
 import type {
+  PublicReceipt,
   Invoice,
   InvoiceWithLines,
   LessonDto,
@@ -8,12 +9,14 @@ import type {
   StudentProgressResponse,
 } from '@lg/contracts';
 import type { ApiClient } from '@lg/ui-core';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import type { Receipt } from '../screens/guardian/receipt.js';
 import { useApi, useClock } from './deps.js';
 import {
   type AttendanceRow,
   childSummary,
   invoiceRows,
+  METHOD,
   paidAmount,
   paymentRows,
 } from './guardian-map.js';
@@ -123,6 +126,42 @@ export function useChildResults(studentId: string | undefined) {
         api.request<StudentProgressResponse>(`/grades/students/${id}/progress`).catch(() => null),
       ]);
       return childResults({ today, attendance, history, progress });
+    },
+  });
+}
+
+/** MG-05a: chek rekvizitlari (scope — API: faqat o'z farzandi). */
+export function useReceipt(number: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ['guardian', 'receipt', number],
+    queryFn: async (): Promise<Receipt> => {
+      const r = await api.request<PublicReceipt>(`/billing/receipts/${encodeURIComponent(number)}`);
+      return {
+        number: r.number,
+        amount: BigInt(r.amount),
+        date: new Date(r.paidAt),
+        method: METHOD[r.method],
+        cancelled: r.isCancelled,
+        cancelReason: r.cancelReason,
+      };
+    },
+  });
+}
+
+/** Chek PDF: auth bilan yuklab olinadi va ochiladi (Telegram'da — yangi oynada). */
+export function useReceiptPdf() {
+  const api = useApi();
+  return useMutation({
+    mutationFn: async (number: string) => {
+      const blob = await api.blob(`/billing/receipts/${encodeURIComponent(number)}/pdf`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chek-${number}.pdf`;
+      a.target = '_blank';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
     },
   });
 }
