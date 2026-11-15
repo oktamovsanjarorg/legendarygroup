@@ -93,6 +93,9 @@ export const teacherColumns: ColumnDef<ReportTeacherRow, unknown>[] = [
   {
     accessorKey: 'avgGrade',
     header: c.avgGrade,
-    cell: ({ row }) => strong(pct.format(row.original.avgGrade), 'text-primary'),
+    cell: ({ row }) => {
+      const g = row.original.avgGrade;
+      return g === null ? '—' : strong(pct.format(g), 'text-primary');
+    },
   },
 ];

@@ -1,17 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  attendance,
-  type Database,
-  enrollments,
-  grades,
-  groupTeachers,
-  groups,
-  lessons,
-  users,
-} from '@lg/db';
-import { calculateAttendanceRateBp, calculateRetentionRateBp } from '@lg/domain';
+import { attendance, type Database, groups, lessons, users } from '@lg/db';
+import { calculateAttendanceRateBp } from '@lg/domain';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { cohortRetention, teacherPerformance } from './reports-retention.js';
 
 @Injectable()
 export class ReportsPerformanceRepository {
@@ -99,86 +91,13 @@ export class ReportsPerformanceRepository {
     });
   }
 
-  /** Kohorta saqlanish (retention) hisoboti */
-  async getCohortReport(branchId: string, monthsCount: number) {
-    const rawEnrollments = await this.db
-      .select({
-        studentId: enrollments.studentId,
-        startDate: enrollments.startDate,
-      })
-      .from(enrollments)
-      .innerJoin(groups, eq(groups.id, enrollments.groupId))
-      .where(eq(groups.branchId, branchId));
-
-    const studentFirstDate = new Map<string, string>();
-    for (const e of rawEnrollments) {
-      const cur = studentFirstDate.get(e.studentId);
-      if (!cur || e.startDate < cur) studentFirstDate.set(e.studentId, e.startDate);
-    }
-
-    const cohortStudents = new Map<string, Set<string>>();
-    for (const [studentId, startDate] of studentFirstDate.entries()) {
-      const month = startDate.slice(0, 7);
-      if (!cohortStudents.has(month)) cohortStudents.set(month, new Set());
-      const sSet = cohortStudents.get(month);
-      if (sSet) sSet.add(studentId);
-    }
-
-    const sortedMonths = Array.from(cohortStudents.keys()).sort().slice(-monthsCount);
-    return sortedMonths.map((m) => {
-      const sIds = cohortStudents.get(m) ?? new Set<string>();
-      const initialCount = sIds.size;
-      const retention = [0, 1, 2, 3].map((monthIdx) => {
-        const activeCount = Math.max(0, initialCount - monthIdx);
-        return {
-          monthIndex: monthIdx,
-          activeCount,
-          retentionPercentBp: calculateRetentionRateBp(activeCount, initialCount),
-        };
-      });
-      return { cohortMonth: m, initialCount, retention };
-    });
+  /** Kohorta saqlanish (retention) hisoboti — haqiqiy faol yozilishlar bo'yicha. */
+  getCohortReport(branchId: string, monthsCount: number, today: string) {
+    return cohortRetention(this.db, branchId, monthsCount, today);
   }
 
   /** Ustoz samaradorligi hisoboti */
-  async getTeacherPerformanceReport(branchId: string) {
-    const teachersList = await this.db
-      .select({
-        teacherId: users.id,
-        teacherName: users.fullName,
-        groupCount: sql<number>`count(distinct ${groupTeachers.groupId})::int`,
-        studentCount: sql<number>`count(distinct ${enrollments.studentId})::int`,
-      })
-      .from(users)
-      .innerJoin(groupTeachers, eq(groupTeachers.teacherId, users.id))
-      .innerJoin(groups, eq(groups.id, groupTeachers.groupId))
-      .leftJoin(enrollments, eq(enrollments.groupId, groups.id))
-      .where(and(eq(groups.branchId, branchId), sql`${groups.status} <> 'finished'`))
-      .groupBy(users.id, users.fullName);
-
-    const avgGrades = await this.db
-      .select({
-        teacherId: lessons.teacherId,
-        avgGrade: sql<number>`coalesce(avg(${grades.value}), 0)::float`,
-      })
-      .from(grades)
-      .innerJoin(lessons, eq(lessons.id, grades.lessonId))
-      .innerJoin(groups, eq(groups.id, lessons.groupId))
-      .where(eq(groups.branchId, branchId))
-      .groupBy(lessons.teacherId);
-
-    const gradeMap = new Map(
-      avgGrades.map((g) => [g.teacherId, Math.round(Number(g.avgGrade) * 100)]),
-    );
-
-    return teachersList.map((t) => ({
-      teacherId: t.teacherId,
-      teacherName: t.teacherName,
-      groupCount: Number(t.groupCount),
-      studentCount: Number(t.studentCount),
-      attendancePercentBp: 9200,
-      retentionPercentBp: 9500,
-      averageGradeScoreBp: gradeMap.get(t.teacherId) ?? 8500,
-    }));
+  getTeacherPerformanceReport(branchId: string) {
+    return teacherPerformance(this.db, branchId);
   }
 }

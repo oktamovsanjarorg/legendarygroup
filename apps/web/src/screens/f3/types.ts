@@ -176,7 +176,8 @@ export interface ReportTeacherRow {
   students: number;
   attendancePercent: number;
   retentionPercent: number;
-  avgGrade: number;
+  /** Baho qo'yilmagan — `null`. */
+  avgGrade: number | null;
 }
 
 /** KPI — server yigʻindilari; ruxsat yoʻq boʻlsa `null`. */
