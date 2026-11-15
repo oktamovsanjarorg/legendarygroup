@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ChartColumn,
   ClipboardCheck,
+  ClipboardList,
   CircleAlert,
   CheckCheck,
   Banknote,
@@ -147,6 +148,13 @@ export const NAV: readonly NavItem[] = [
     label: t.reports.title,
     icon: ChartColumn,
     permission: 'stats.operational',
+  },
+  {
+    screen: 'W-19',
+    to: '/tests',
+    label: t.tests.title,
+    icon: ClipboardList,
+    permission: 'test.manage',
   },
   {
     screen: 'W-21',

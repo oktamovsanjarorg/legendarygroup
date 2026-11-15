@@ -31,6 +31,7 @@ import { PnlPage } from './routes/finance/pnl.js';
 import { FailedMessagesPage } from './routes/failed-messages/index.js';
 import { ForecastsPage } from './routes/forecasts/index.js';
 import { ReportsPage } from './routes/reports/index.js';
+import { TestsPage } from './routes/tests/index.js';
 import { TicketsPage } from './routes/tickets/index.js';
 import { GroupsPage } from './routes/groups/index.js';
 import { LandingPage } from './routes/landing/index.js';
@@ -190,6 +191,11 @@ const announcements = createRoute({
   path: '/announcements',
   component: AnnouncementsPage,
 });
+const testsRoute = createRoute({
+  getParentRoute: () => app,
+  path: '/tests',
+  component: TestsPage,
+});
 const audit = createRoute({ getParentRoute: () => app, path: '/audit', component: AuditPage });
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
@@ -214,6 +220,7 @@ const routeTree = root.addChildren([
     reports,
     forecasts,
     announcements,
+    testsRoute,
     tickets,
     failedMessages,
     payroll,

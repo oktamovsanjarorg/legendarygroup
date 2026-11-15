@@ -1,58 +1,48 @@
-import { formatDateShort, formatDateTime, webMessages as t } from '@lg/i18n';
-import {
-  Badge,
-  Button,
-  type ColumnDef,
-  DataTable,
-  Drawer,
-  PageHeader,
-  SelectField,
-  Tabs,
-} from '@lg/ui-web';
-import { AlertCircle, CheckCircle2, Download, FileSpreadsheet, Plus, Upload } from 'lucide-react';
-import { useState } from 'react';
-import type { ImportHistoryItem, ImportPreviewRow, TestItem } from './types.js';
+import { formatYmd, webMessages as t } from '@lg/i18n';
+import { Badge, Button, type ColumnDef, DataTable, PageHeader, SelectField } from '@lg/ui-web';
+import { Download, FileSpreadsheet, Plus, Send } from 'lucide-react';
+import type { ReactNode } from 'react';
+import type { TestItem, TestResultRow } from './types.js';
+
+const c = t.tests.cols;
+const pct = new Intl.NumberFormat('uz', { maximumFractionDigits: 1 });
+type LoadError = { message: string; requestId?: string; onRetry: () => void };
 
 interface Props {
+  groups: readonly { value: string; label: string }[];
+  groupId: string | null;
+  onGroup: (id: string) => void;
   tests: readonly TestItem[];
-  history: readonly ImportHistoryItem[];
-  previewRows?: readonly ImportPreviewRow[];
-  activeTab?: 'list' | 'history';
-  onNewTest?: () => void;
-  onImportConfirm?: () => void;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  results?: readonly TestResultRow[];
+  onNew?: () => void;
+  onTemplate?: () => void;
+  onImportFile?: (file: File) => void;
+  onPublish?: () => void;
+  busy?: boolean;
+  message?: { text: string; error: boolean };
+  /** Import preview / forma (route beradi). */
+  children?: ReactNode;
+  loading?: boolean;
+  loadError?: LoadError;
 }
 
-const oneDecFmt = new Intl.NumberFormat('uz', {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
-
-const testColumns: ColumnDef<TestItem, unknown>[] = [
+const testColumns = (selectedId: string | null): ColumnDef<TestItem, unknown>[] => [
   {
     accessorKey: 'title',
-    header: t.tests.cols.title,
-    cell: ({ row }) => <span className="font-medium text-text">{row.original.title}</span>,
+    header: c.title,
+    cell: ({ row }) => (
+      <span className={row.original.id === selectedId ? 'font-semibold text-primary' : 'text-text'}>
+        {row.original.title}
+      </span>
+    ),
   },
-  { accessorKey: 'group', header: t.tests.cols.group },
-  {
-    accessorKey: 'date',
-    header: t.tests.cols.date,
-    cell: ({ row }) => formatDateShort(row.original.date),
-  },
-  { accessorKey: 'maxScore', header: t.tests.cols.maxScore },
-  {
-    id: 'participants',
-    header: t.tests.cols.participants,
-    cell: ({ row }) => `${row.original.participants} / ${row.original.totalStudents}`,
-  },
-  {
-    accessorKey: 'avgScore',
-    header: t.tests.cols.avgScore,
-    cell: ({ row }) => oneDecFmt.format(row.original.avgScore),
-  },
+  { accessorKey: 'date', header: c.date, cell: ({ row }) => formatYmd(row.original.date) },
+  { accessorKey: 'maxScore', header: c.maxScore },
   {
     accessorKey: 'status',
-    header: t.tests.cols.status,
+    header: c.status,
     cell: ({ row }) => (
       <Badge tone={row.original.status === 'published' ? 'success' : 'muted'}>
         {t.tests.status[row.original.status]}
@@ -61,222 +51,126 @@ const testColumns: ColumnDef<TestItem, unknown>[] = [
   },
 ];
 
-const historyColumns: ColumnDef<ImportHistoryItem, unknown>[] = [
+const resultColumns: ColumnDef<TestResultRow, unknown>[] = [
+  { accessorKey: 'studentName', header: c.student },
   {
-    accessorKey: 'fileName',
-    header: t.tests.historyCols.fileName,
-    cell: ({ row }) => (
-      <span className="flex items-center gap-2 font-medium text-text">
-        <FileSpreadsheet className="size-4 text-success" aria-hidden />
-        {row.original.fileName}
-      </span>
-    ),
+    accessorKey: 'studentCode',
+    header: c.code,
+    cell: ({ row }) => row.original.studentCode ?? '—',
   },
+  { accessorKey: 'score', header: c.score },
   {
-    accessorKey: 'date',
-    header: t.tests.historyCols.date,
-    cell: ({ row }) => formatDateTime(row.original.date),
-  },
-  { accessorKey: 'author', header: t.tests.historyCols.author },
-  { accessorKey: 'totalRows', header: t.tests.historyCols.totalRows },
-  {
-    accessorKey: 'successCount',
-    header: t.tests.historyCols.successCount,
-    cell: ({ row }) => <span className="text-success">{row.original.successCount}</span>,
-  },
-  {
-    accessorKey: 'errorCount',
-    header: t.tests.historyCols.errorCount,
-    cell: ({ row }) =>
-      row.original.errorCount > 0 ? (
-        <span className="text-danger">{row.original.errorCount}</span>
-      ) : (
-        '0'
-      ),
-  },
-  {
-    accessorKey: 'status',
-    header: t.tests.historyCols.status,
-    cell: ({ row }) => (
-      <Badge tone={row.original.status === 'success' ? 'success' : 'warning'}>
-        {row.original.status === 'success' ? 'Muvaffaqiyatli' : 'Ogohlantirish'}
-      </Badge>
-    ),
+    accessorKey: 'percent',
+    header: c.percent,
+    cell: ({ row }) => `${pct.format(row.original.percent)}%`,
   },
 ];
 
-function ImportPreviewList({ rows }: { rows: readonly ImportPreviewRow[] }) {
+function Actions(p: Props & { draft: boolean }) {
   return (
-    <div className="rounded-md border border-border p-3">
-      <h4 className="font-medium text-text">{t.tests.import.step3}</h4>
-      <div className="mt-2 space-y-1.5">
-        {rows.map((r) => (
-          <div
-            key={r.studentCode}
-            className="flex items-center justify-between text-xs border-b border-border/50 py-1"
-          >
-            <span className="flex items-center gap-1.5">
-              {r.error ? (
-                <AlertCircle className="size-3.5 text-danger" aria-hidden />
-              ) : (
-                <CheckCircle2 className="size-3.5 text-success" aria-hidden />
-              )}
-              <span className="font-medium">{r.studentName}</span>
-              <span className="text-text-muted">({r.studentCode})</span>
-            </span>
-            <span className={r.error ? 'text-danger font-medium' : 'font-semibold'}>
-              {r.error ? r.error : `${r.score} ball`}
-            </span>
-          </div>
-        ))}
-      </div>
+    <div className="mb-3 flex flex-wrap gap-2">
+      {p.onTemplate && (
+        <Button variant="secondary" onClick={p.onTemplate}>
+          <Download className="size-4" aria-hidden />
+          {t.tests.downloadTemplate}
+        </Button>
+      )}
+      {p.draft && p.onImportFile && (
+        <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-border px-4 text-sm font-medium text-text hover:bg-surface">
+          <FileSpreadsheet className="size-4 text-success" aria-hidden />
+          {t.tests.importExcel}
+          <input
+            type="file"
+            accept=".xlsx"
+            aria-label={t.tests.import.file}
+            className="sr-only"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) p.onImportFile?.(f);
+              e.target.value = '';
+            }}
+          />
+        </label>
+      )}
+      {p.draft && p.onPublish && (
+        <Button onClick={p.onPublish} loading={p.busy}>
+          <Send className="size-4" aria-hidden />
+          {t.tests.publish}
+        </Button>
+      )}
     </div>
   );
 }
 
-function ImportDrawerContent({
-  previewRows,
-  onConfirm,
-}: {
-  previewRows: readonly ImportPreviewRow[];
-  onConfirm: () => void;
-}) {
-  const [colStudent, setColStudent] = useState('B');
-  const [colScore, setColScore] = useState('C');
-  const colOptions = [
-    { value: 'A', label: 'A ustuni (Kod)' },
-    { value: 'B', label: 'B ustuni (F.I.Sh)' },
-    { value: 'C', label: 'C ustuni (Ball)' },
-    { value: 'D', label: 'D ustuni (Izoh)' },
-  ];
-
-  return (
-    <div className="flex flex-col gap-4 text-sm">
-      <div className="rounded-lg border-2 border-dashed border-border p-4 text-center">
-        <Upload className="mx-auto size-8 text-primary" aria-hidden />
-        <p className="mt-1 font-medium">{t.tests.import.dropzone}</p>
-        <p className="text-xs text-text-muted">{t.tests.import.uploadHint}</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <SelectField
-          label={t.tests.import.colStudent}
-          options={colOptions}
-          value={colStudent}
-          onChange={(e) => setColStudent(e.target.value)}
-        />
-        <SelectField
-          label={t.tests.import.colScore}
-          options={colOptions}
-          value={colScore}
-          onChange={(e) => setColScore(e.target.value)}
-        />
-      </div>
-
-      <ImportPreviewList rows={previewRows} />
-
-      <Button onClick={onConfirm}>
-        <CheckCircle2 className="size-4" aria-hidden />
-        {t.tests.import.confirmSubmit}
-      </Button>
-    </div>
-  );
-}
-
-function TabContent({
-  tab,
-  tests,
-  history,
-}: {
-  tab: 'list' | 'history';
-  tests: readonly TestItem[];
-  history: readonly ImportHistoryItem[];
-}) {
-  if (tab === 'list') {
-    return (
-      <DataTable
-        data={tests}
-        columns={testColumns}
-        getRowId={(r) => r.id}
-        numeric={['maxScore', 'participants', 'avgScore']}
-        empty={{ title: t.tests.empty }}
-      />
-    );
-  }
-  return (
-    <DataTable
-      data={history}
-      columns={historyColumns}
-      getRowId={(r) => r.id}
-      numeric={['totalRows', 'successCount', 'errorCount']}
-      empty={{ title: t.tests.empty }}
-    />
-  );
-}
-
-/** W-19 Testlar va importlar (FR-GRD-3/4/6, BR-35). */
-export function TestsView({
-  tests,
-  history,
-  previewRows = [],
-  activeTab = 'list',
-  onNewTest,
-  onImportConfirm,
-}: Props) {
-  const [tab, setTab] = useState<'list' | 'history'>(activeTab);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const tabItems = [
-    { value: 'list' as const, label: t.tests.tabs.list, count: tests.length },
-    { value: 'history' as const, label: t.tests.tabs.history, count: history.length },
-  ];
-
+function Header(p: Props) {
   return (
     <>
       <PageHeader
         title={t.tests.title}
         description={t.tests.subtitle}
         actions={
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={() => setDrawerOpen(true)}>
-              <FileSpreadsheet className="size-4 text-success" aria-hidden />
-              {t.tests.importExcel}
-            </Button>
-            <Button onClick={onNewTest}>
+          p.onNew &&
+          p.groupId && (
+            <Button onClick={p.onNew}>
               <Plus className="size-4" aria-hidden />
               {t.tests.newTest}
             </Button>
-          </div>
+          )
         }
       />
-
-      <div className="mb-4 flex items-center justify-between">
-        <Tabs label={t.tests.title} value={tab} items={tabItems} onChange={setTab} />
-        <button
-          type="button"
-          className="flex items-center gap-1 text-xs text-primary hover:underline"
-        >
-          <Download className="size-3.5" aria-hidden />
-          {t.tests.downloadTemplate}
-        </button>
-      </div>
-
-      <TabContent tab={tab} tests={tests} history={history} />
-
-      <Drawer
-        open={drawerOpen}
-        title={t.tests.import.title}
-        closeLabel={t.common.cancel}
-        onClose={() => setDrawerOpen(false)}
-      >
-        <ImportDrawerContent
-          previewRows={previewRows}
-          onConfirm={() => {
-            onImportConfirm?.();
-            setDrawerOpen(false);
-          }}
+      <div className="mb-4 max-w-sm">
+        <SelectField
+          label={t.tests.group}
+          options={[{ value: '', label: t.tests.pickGroup }, ...p.groups]}
+          value={p.groupId ?? ''}
+          onChange={(e) => e.target.value && p.onGroup(e.target.value)}
         />
-      </Drawer>
+      </div>
+    </>
+  );
+}
+
+/** W-19 Testlar (FR-GRD-4/5, T-302, BR-34/35). */
+export function TestsView(p: Props) {
+  const selected = p.tests.find((x) => x.id === p.selectedId);
+  return (
+    <>
+      <Header {...p} />
+      {p.message && (
+        <p
+          role={p.message.error ? 'alert' : 'status'}
+          className={`mb-3 text-sm ${p.message.error ? 'text-danger' : 'text-success'}`}
+        >
+          {p.message.text}
+        </p>
+      )}
+      {p.groupId && (
+        <DataTable
+          data={p.tests}
+          columns={testColumns(p.selectedId)}
+          getRowId={(r) => r.id}
+          numeric={['maxScore']}
+          onRowClick={(r) => p.onSelect(r.id)}
+          empty={{ title: t.tests.empty }}
+          loading={p.loading}
+          error={p.loadError}
+        />
+      )}
+      {selected && (
+        <section className="mt-6">
+          <h3 className="mb-2 font-semibold text-text">{selected.title}</h3>
+          <Actions {...p} draft={selected.status === 'draft'} />
+          {p.children}
+          <DataTable
+            data={p.results ?? []}
+            columns={resultColumns}
+            getRowId={(r) => r.id}
+            numeric={['score', 'percent']}
+            empty={{ title: t.tests.noResults }}
+            loading={p.results === undefined}
+          />
+        </section>
+      )}
     </>
   );
 }
