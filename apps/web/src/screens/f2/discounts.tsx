@@ -62,7 +62,12 @@ export function DiscountsView({
           {t.discounts.limitNote.replace('{n}', String(adminLimit))} {t.discounts.biggestWins}
         </span>
       </p>
-      <DataTable columns={columns} data={rows} getRowId={(r) => r.id} empty={{ title: '—' }} />
+      <DataTable
+        columns={columns}
+        data={rows}
+        getRowId={(r) => r.id}
+        empty={{ title: t.discounts.empty }}
+      />
     </>
   );
 }

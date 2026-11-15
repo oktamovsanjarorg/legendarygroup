@@ -1,4 +1,10 @@
-import type { PaymentPreview, PaymentView, RoleCode, StudentLedgerSummary } from '@lg/contracts';
+import type {
+  DiscountListResponse,
+  PaymentPreview,
+  PaymentView,
+  RoleCode,
+  StudentLedgerSummary,
+} from '@lg/contracts';
 import { closeDb, createDb, type Database, seed } from '@lg/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
@@ -108,5 +114,33 @@ describe('GET billing/payments/:id/view (W-17, FR-PAY-8/9, BR-16)', () => {
     const missing = '22222222-2222-4222-8222-222222222222';
     expect((await call('GET', `billing/payments/${missing}/view`, 'teacher')).statusCode).toBe(403);
     expect((await call('GET', `billing/payments/${missing}/view`, 'admin')).statusCode).toBe(404);
+  });
+});
+
+describe('GET billing/discounts (W-18, BR-18)', () => {
+  it('BR-18: amaldagi chegirma — sabab va bergan xodim audit’dan; ustoz/ota-ona — 403', async () => {
+    const [enr] = (await call('GET', `students/${studentId}/enrollments`, 'admin')).json<
+      { id: string }[]
+    >();
+    const set = await t.app.inject({
+      method: 'PATCH',
+      url: `/api/billing/enrollments/${enr!.id}/discount`,
+      payload: { percent: 5, reason: 'Aka-uka' },
+      headers: { authorization: `Bearer ${tokens.get('admin')!}` },
+    });
+    expect(set.statusCode).toBe(200);
+    const res = (await call('GET', 'billing/discounts', 'admin')).json<DiscountListResponse>();
+    expect(res.adminLimitPercent).toBeGreaterThan(0);
+    expect(res.items).toEqual([
+      expect.objectContaining({
+        enrollmentId: enr!.id,
+        percent: 5,
+        reason: 'Aka-uka',
+        group: 'EN-1',
+      }),
+    ]);
+    expect(res.items[0]?.by).toBeTruthy();
+    expect((await call('GET', 'billing/discounts', 'teacher')).statusCode).toBe(403);
+    expect((await call('GET', 'billing/discounts', 'guardian')).statusCode).toBe(403);
   });
 });

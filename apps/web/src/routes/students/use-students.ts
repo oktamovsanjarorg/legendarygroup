@@ -38,6 +38,7 @@ export const useEnrollments = (id: string) =>
   useQuery({
     queryKey: ['students', 'enrollments', id],
     queryFn: () => api.request<EnrollmentDto[]>(`/students/${id}/enrollments`),
+    enabled: id !== '',
   });
 
 /** FR-STU-2: telefon bo'yicha mavjud ota-onani topish (raqam to'liq kiritilgach). */

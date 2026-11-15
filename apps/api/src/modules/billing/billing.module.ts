@@ -20,6 +20,7 @@ import { DebtorsService } from './debtors.service.js';
 import { DiscountsRepository } from './discounts.repository.js';
 import { DiscountsService } from './discounts.service.js';
 import { PaymentPreviewController } from './payment-preview.controller.js';
+import { DiscountListService } from './discount-list.service.js';
 import { PaymentPreviewService } from './payment-preview.service.js';
 import { PaymentViewService } from './payment-view.service.js';
 import { PaymentsService } from './payments.service.js';
@@ -56,6 +57,7 @@ import { SubmissionsService } from './submissions.service.js';
     BillingCron,
     PaymentsService,
     PaymentPreviewService,
+    DiscountListService,
     PaymentViewService,
     DiscountsRepository,
     DiscountsService,

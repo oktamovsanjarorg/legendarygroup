@@ -23,3 +23,21 @@ export const PaymentViewSchema = z.object({
   canReverseNow: z.boolean(),
 });
 export type PaymentView = z.infer<typeof PaymentViewSchema>;
+
+/** W-18 (T-203, BR-18): amaldagi doimiy chegirmalar — sabab va bergan xodim audit'dan. */
+export const DiscountListItemSchema = z.object({
+  enrollmentId: z.string().uuid(),
+  studentId: z.string().uuid(),
+  student: z.string(),
+  group: z.string(),
+  percent: z.number().int(),
+  reason: z.string().nullable(),
+  by: z.string().nullable(),
+});
+export type DiscountListItem = z.infer<typeof DiscountListItemSchema>;
+
+export const DiscountListResponseSchema = z.object({
+  adminLimitPercent: z.number().int(),
+  items: z.array(DiscountListItemSchema),
+});
+export type DiscountListResponse = z.infer<typeof DiscountListResponseSchema>;
