@@ -2,7 +2,8 @@
 # ==============================================================================
 # Legendary Group — prod monitoring (T-016, 06 §6). systemd timer har 5 daqiqada (lg-monitor).
 #
-# Tekshiruvlar: tashqi HTTPS health (Caddy + API + DB/Redis), disk > 80%, konteynerlar ishlayaptimi.
+# Tekshiruvlar: tashqi HTTPS health (Caddy + API + DB/Redis), disk > 80%, konteynerlar ishlayaptimi,
+# API 5xx > 2% va p95 > 1 s (api-stats.py, API loglaridan).
 # Alert → Telegram (TELEGRAM_BOT_TOKEN, ALERTS_TELEGRAM_CHAT_ID /etc/lg/production.env dan).
 # Bir xil alert — ko'pi bilan soatiga bir marta; tiklanganda "tiklandi" xabari.
 # Health — 2 marta ketma-ket yiqilsa (06 §6).
@@ -60,4 +61,12 @@ down="$(docker ps -a --filter label=com.docker.compose.project=lg-prod \
   --format '{{.Names}} {{.State}}' | awk '$2 != "running" {print $1}' | paste -sd, -)"
 if [[ -n "$down" ]]; then alert containers "ishlamayotgan konteyner: ${down}"
 else resolve containers "barcha konteynerlar ishlayapti"; fi
+# 4. API: 5xx > 2% va p95 > 1 s (oxirgi 5 daqiqa; kamida 20 so'rov bo'lsa).
+read -r total errors p95 < <(docker logs --since 5m lg-prod-api-1 2>&1 \
+  | python3 "$(dirname "$0")/api-stats.py" || echo "0 0 0")
+if (( total >= 20 && errors * 100 > total * 2 )); then
+  alert api5xx "API 5xx: ${errors}/${total} (5 daq)"
+else resolve api5xx "API 5xx normal (${errors}/${total})"; fi
+if (( total >= 20 && p95 > 1000 )); then alert apip95 "API p95 = ${p95} ms (5 daq)"
+else resolve apip95 "API p95 normal (${p95} ms)"; fi
 exit 0
