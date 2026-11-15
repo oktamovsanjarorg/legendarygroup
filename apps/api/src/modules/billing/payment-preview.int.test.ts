@@ -1,4 +1,4 @@
-import type { PaymentPreview, RoleCode, StudentLedgerSummary } from '@lg/contracts';
+import type { PaymentPreview, PaymentView, RoleCode, StudentLedgerSummary } from '@lg/contracts';
 import { closeDb, createDb, type Database, seed } from '@lg/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
@@ -10,13 +10,13 @@ let db: Database;
 let tokens: Map<RoleCode, string>;
 let studentId = '';
 
-const call = (method: 'GET' | 'POST', url: string, role: RoleCode, payload?: object) =>
-  t.app.inject({
-    method,
-    url: `/api/${url}`,
-    payload,
-    headers: { authorization: `Bearer ${tokens.get(role)!}` },
-  });
+const call = (method: 'GET' | 'POST', url: string, role: RoleCode, payload?: object) => {
+  // BR-11: kalit — faqat sarlavhada.
+  const { idempotencyKey, ...body } = (payload ?? {}) as Record<string, unknown>;
+  const headers: Record<string, string> = { authorization: `Bearer ${tokens.get(role)!}` };
+  if (typeof idempotencyKey === 'string') headers['idempotency-key'] = idempotencyKey;
+  return t.app.inject({ method, url: `/api/${url}`, payload: payload ? body : undefined, headers });
+};
 const preview = (amount: string, role: RoleCode = 'admin') =>
   call('GET', `billing/payments/preview?studentId=${studentId}&amount=${amount}`, role);
 
@@ -76,5 +76,37 @@ describe('GET billing/payments/preview (T-204, BR-12)', () => {
     expect((await preview('1000', 'teacher')).statusCode).toBe(403);
     expect((await preview('1000', 'guardian')).statusCode).toBe(403);
     expect((await preview('-5')).statusCode).toBe(400);
+  });
+});
+
+describe('GET billing/payments/:id/view (W-17, FR-PAY-8/9, BR-16)', () => {
+  it('chek, oy boʻyicha taqsimot, kiritgan xodim; storno qilingach — sabab', async () => {
+    const paid = await call('POST', 'billing/payments', 'admin', {
+      studentId,
+      amount: '500000',
+      method: 'cash',
+      idempotencyKey: 'view-pay-1',
+    });
+    const id = paid.json<{ id: string }>().id;
+    const v = (await call('GET', `billing/payments/${id}/view`, 'admin')).json<PaymentView>();
+    expect(v.studentName).toBe('Preview Oʻquvchi');
+    expect(v.receiptNumber).toMatch(/^LG-\d{4}-\d{6}$/);
+    expect(v.verifyUrl).toMatch(/\/verify\/[0-9a-f]{32}$/);
+    expect(v.allocations).toEqual([
+      { period: '2026-10', amount: '400000' },
+      { period: '2026-11', amount: '100000' },
+    ]);
+    expect(v.reversed).toBeNull();
+    expect(v.canReverseNow).toBe(true);
+
+    await call('POST', `billing/payments/${id}/reverse`, 'admin', { reason: 'Kassa xatosi' });
+    const after = (await call('GET', `billing/payments/${id}/view`, 'admin')).json<PaymentView>();
+    expect(after.reversed?.reason).toBe('Kassa xatosi');
+  });
+
+  it('forbidden: ustoz — 403; yoʻq toʻlov — 404', async () => {
+    const missing = '22222222-2222-4222-8222-222222222222';
+    expect((await call('GET', `billing/payments/${missing}/view`, 'teacher')).statusCode).toBe(403);
+    expect((await call('GET', `billing/payments/${missing}/view`, 'admin')).statusCode).toBe(404);
   });
 });

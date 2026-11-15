@@ -21,6 +21,7 @@ import { DiscountsRepository } from './discounts.repository.js';
 import { DiscountsService } from './discounts.service.js';
 import { PaymentPreviewController } from './payment-preview.controller.js';
 import { PaymentPreviewService } from './payment-preview.service.js';
+import { PaymentViewService } from './payment-view.service.js';
 import { PaymentsService } from './payments.service.js';
 import { ReceiptPdfService } from './receipt-pdf.service.js';
 import { StornoCashRepository } from './storno-cash.repository.js';
@@ -55,6 +56,7 @@ import { SubmissionsService } from './submissions.service.js';
     BillingCron,
     PaymentsService,
     PaymentPreviewService,
+    PaymentViewService,
     DiscountsRepository,
     DiscountsService,
     StornoCashRepository,

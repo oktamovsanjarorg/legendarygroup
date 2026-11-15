@@ -12,12 +12,14 @@ import { FormError } from '../../components/panel-section.js';
 import { type CardTab, StudentCardView } from '../../screens/f1/student-card.js';
 import { EnrollmentsTab } from './enrollments-tab.js';
 import { InfoTab } from './info-tab.js';
+import { ReceiptsTab } from './receipts-tab.js';
 import { EditDrawer, EnrollDrawer, GuardianDrawer } from './student-drawers.js';
 import { useStudent, useStudentCall } from './use-students.js';
 
 const c = t.studentCard;
-/** Davomat, baholar, hisob, cheklar tablari — o'z vazifalari bilan (T-112, T-301, T-202, T-207). */
-const TABS: readonly CardTab[] = ['info', 'groups'];
+/** Davomat, baholar, hisob tablari — o'z vazifalari bilan (T-112, T-301, T-202). */
+const tabsFor = (perms: ReadonlySet<string>): readonly CardTab[] =>
+  perms.has('billing.view') ? ['info', 'groups', 'receipts'] : ['info', 'groups'];
 type Panel = 'edit' | 'guardian' | 'enroll' | null;
 
 const useGroupOptions = (enabled: boolean) =>
@@ -68,7 +70,23 @@ function Actions({ s, onPanel }: ActionsProps) {
   );
 }
 
+function TabBody({ tab, s, editable, groups, onGuardian }: TabBodyProps) {
+  if (tab === 'groups')
+    return <EnrollmentsTab studentId={s.id} groups={groups} canManage={editable} />;
+  if (tab === 'receipts') return <ReceiptsTab studentId={s.id} />;
+  return <InfoTab s={s} canManage={editable} onAddGuardian={onGuardian} />;
+}
+
+interface TabBodyProps {
+  tab: CardTab;
+  s: StudentDetail;
+  editable: boolean;
+  groups: ReturnType<typeof useGroupOptions>;
+  onGuardian: () => void;
+}
+
 function Card({ s, canManage }: { s: StudentDetail; canManage: boolean }) {
+  const { permissions } = useAuth();
   const [tab, setTab] = useState<CardTab>('info');
   const [panel, setPanel] = useState<Panel>(null);
   const groups = useGroupOptions(canManage);
@@ -79,15 +97,17 @@ function Card({ s, canManage }: { s: StudentDetail; canManage: boolean }) {
       <StudentCardView
         s={{ name: s.fullName, code: `LG-${s.code}`, status: s.archivedAt ? 'archived' : 'active' }}
         tab={tab}
-        tabs={TABS}
+        tabs={tabsFor(permissions)}
         actions={canManage && <Actions s={s} onPanel={setPanel} />}
         onTab={setTab}
       >
-        {tab === 'groups' ? (
-          <EnrollmentsTab studentId={s.id} groups={groups} canManage={editable} />
-        ) : (
-          <InfoTab s={s} canManage={editable} onAddGuardian={() => setPanel('guardian')} />
-        )}
+        <TabBody
+          tab={tab}
+          s={s}
+          editable={editable}
+          groups={groups}
+          onGuardian={() => setPanel('guardian')}
+        />
       </StudentCardView>
       {panel === 'edit' && <EditDrawer s={s} onClose={close} />}
       {panel === 'guardian' && <GuardianDrawer s={s} onClose={close} />}

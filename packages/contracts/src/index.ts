@@ -14,6 +14,7 @@ export * from './leads.js';
 export * from './settings.js';
 export * from './billing.js';
 export * from './payment-preview.js';
+export * from './payment-view.js';
 export * from './submissions.js';
 export * from './attendance.js';
 export * from './grades.js';

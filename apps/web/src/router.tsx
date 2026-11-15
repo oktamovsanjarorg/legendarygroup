@@ -14,6 +14,7 @@ import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
 import { VerifyPage } from './pages/verify.js';
 import { PayEntryPage } from './routes/billing/pay-entry.js';
+import { PaymentDetailPage } from './routes/billing/payment-detail.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { GroupsPage } from './routes/groups/index.js';
@@ -92,6 +93,14 @@ const payNew = createRoute({
   path: '/payments/new',
   component: PayEntryPage,
 });
+const payment = createRoute({
+  getParentRoute: () => app,
+  path: '/payments/$id',
+  component: function Payment() {
+    const { id } = payment.useParams();
+    return <PaymentDetailPage key={id} id={id} />;
+  },
+});
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
 const routeTree = root.addChildren([
@@ -111,6 +120,7 @@ const routeTree = root.addChildren([
     sessions,
     wizard,
     payNew,
+    payment,
   ]),
 ]);
 
