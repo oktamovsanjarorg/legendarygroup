@@ -5,6 +5,7 @@ import type {
   ImportPreviewRow,
   TestItem,
   TicketItem,
+  TicketMessage,
 } from './types.js';
 import { at } from './mock-time.js';
 
@@ -116,52 +117,38 @@ export const MOCK_ANNOUNCEMENTS: readonly AnnouncementItem[] = [
 
 export const MOCK_TICKETS: readonly TicketItem[] = [
   {
-    id: 'TCK-201',
-    senderName: 'Dilfuza Rahimova',
-    senderPhone: '+998 90 123 45 67',
-    studentName: 'Jasur Saidov',
-    groupName: 'Algebra-101',
-    topic: 'Toʻlov cheki boʻyicha savol',
+    id: 'tk-1',
+    senderName: 'Malika Ergasheva',
+    senderPhone: '+998901112233',
+    studentName: 'Jasur Ergashev',
+    topic: 'Dars jadvali oʻzgarishi',
     status: 'open',
-    priority: 'urgent',
-    date: at('2026-11-12 11:20'),
-    messages: [
-      {
-        id: 'm1',
-        sender: 'Dilfuza Rahimova',
-        isStaff: false,
-        text: 'Assalomu alaykum! Kecha Click orqali toʻlov qilgandim, botda hali ham qarz koʻrinyapti. Tekshirib bera olasizmi?',
-        time: '11:20',
-      },
-    ],
+    priority: 'normal',
+    assignedName: null,
+    lastAt: at('2026-11-15 09:20'),
   },
   {
-    id: 'TCK-202',
-    senderName: 'Botir Temirov',
-    senderPhone: '+998 93 456 78 90',
-    studentName: 'Madina Temirova',
-    groupName: 'Geometriya-201',
-    topic: 'Kasallik sababli dars qoldirish',
-    status: 'inProgress',
-    priority: 'normal',
-    date: at('2026-11-11 15:40'),
-    messages: [
-      {
-        id: 'm2',
-        sender: 'Botir Temirov',
-        isStaff: false,
-        text: 'Farzandim shamollab qoldi, bu haftadagi darslarga qatnasha olmaydi.',
-        time: '15:40',
-      },
-      {
-        id: 'm3',
-        sender: 'Administrator',
-        isStaff: true,
-        text: 'Salomat boʻlsin! Davomatda sababli deb belgiladik. Topshiriqlarni bot orqali yetkazamiz.',
-        time: '16:05',
-      },
-    ],
+    id: 'tk-2',
+    senderName: 'Rustam Aliyev',
+    senderPhone: null,
+    studentName: null,
+    topic: 'Toʻlov cheki kelmadi',
+    status: 'in_progress',
+    priority: 'high',
+    assignedName: 'Admin',
+    lastAt: at('2026-11-14 18:05'),
   },
+];
+
+export const MOCK_TICKET_MESSAGES: readonly TicketMessage[] = [
+  {
+    id: 'm1',
+    sender: 'Malika Ergasheva',
+    isStaff: false,
+    text: 'Ertangi dars soat nechada boʻladi?',
+    at: at('2026-11-15 09:20'),
+  },
+  { id: 'm2', sender: 'Admin', isStaff: true, text: 'Soat 15:00 da.', at: at('2026-11-15 09:40') },
 ];
 
 export const MOCK_FAILED_MESSAGES: readonly FailedMessageItem[] = [
