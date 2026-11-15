@@ -5,7 +5,8 @@ import { Info } from 'lucide-react';
 export type Mark = 'present' | 'absent' | 'late' | 'excused' | null;
 
 export interface AttendanceGrid {
-  groups: readonly string[];
+  /** Tanlov: `value` — guruh ID'si (nomlar takrorlanishi mumkin). */
+  groups: readonly { value: string; label: string }[];
   group: string;
   /** Dars sanalari (ustunlar), `10.11` ko'rinishida. */
   dates: readonly string[];
@@ -93,7 +94,7 @@ export function AttendanceGridView({
             label={t.groups.cols.name}
             value={g.group}
             onChange={(e) => onGroup(e.target.value)}
-            options={g.groups.map((x) => ({ value: x, label: x }))}
+            options={g.groups}
           />
         </div>
         <p className="flex items-center gap-2 pb-2 text-sm text-text-muted">

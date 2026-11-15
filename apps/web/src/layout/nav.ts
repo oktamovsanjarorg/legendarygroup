@@ -4,6 +4,7 @@ import {
   BadgePercent,
   BookOpen,
   CalendarDays,
+  ClipboardCheck,
   CircleAlert,
   CheckCheck,
   Banknote,
@@ -62,6 +63,13 @@ export const NAV: readonly NavItem[] = [
     label: t.menu.calendar,
     icon: CalendarDays,
     permission: 'group.view',
+  },
+  {
+    screen: 'W-12',
+    to: '/attendance',
+    label: t.menu.attendance,
+    icon: ClipboardCheck,
+    permission: 'attendance.mark',
   },
   {
     screen: 'W-13',

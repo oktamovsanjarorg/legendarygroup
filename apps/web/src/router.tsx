@@ -20,6 +20,7 @@ import { DiscountsPage } from './routes/billing/discounts.js';
 import { PayEntryPage } from './routes/billing/pay-entry.js';
 import { PaymentDetailPage } from './routes/billing/payment-detail.js';
 import { QueuePage } from './routes/billing/queue.js';
+import { AttendancePage } from './routes/attendance/index.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
 import { GroupsPage } from './routes/groups/index.js';
@@ -127,6 +128,11 @@ const approvals = createRoute({
   path: '/approvals',
   component: ApprovalsPage,
 });
+const attendanceGrid = createRoute({
+  getParentRoute: () => app,
+  path: '/attendance',
+  component: AttendancePage,
+});
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
 const routeTree = root.addChildren([
@@ -146,6 +152,7 @@ const routeTree = root.addChildren([
     sessions,
     wizard,
     payNew,
+    attendanceGrid,
     debtors,
     approvals,
     cash,
