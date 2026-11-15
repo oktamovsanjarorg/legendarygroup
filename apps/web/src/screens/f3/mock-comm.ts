@@ -1,87 +1,54 @@
 import type {
   AnnouncementItem,
   FailedMessageItem,
-  ImportHistoryItem,
-  ImportPreviewRow,
+  ImportRow,
   TestItem,
+  TestResultRow,
   TicketItem,
   TicketMessage,
 } from './types.js';
 import { at } from './mock-time.js';
 
 export const MOCK_TESTS: readonly TestItem[] = [
-  {
-    id: 'test-1',
-    title: 'Algebra 1-chorak oraliq imtihoni',
-    group: 'Algebra-101',
-    date: at('2026-10-15'),
-    maxScore: 100,
-    participants: 18,
-    totalStudents: 18,
-    avgScore: 82.4,
-    status: 'published',
-  },
-  {
-    id: 'test-2',
-    title: 'Geometriya starter sinov testi',
-    group: 'Geometriya-201',
-    date: at('2026-10-22'),
-    maxScore: 50,
-    participants: 14,
-    totalStudents: 15,
-    avgScore: 38.5,
-    status: 'published',
-  },
-  {
-    id: 'test-3',
-    title: 'Fizika mexanika boʻlimi nazorati',
-    group: 'Fizika-Olimp',
-    date: at('2026-11-05'),
-    maxScore: 100,
-    participants: 12,
-    totalStudents: 12,
-    avgScore: 76.0,
-    status: 'draft',
-  },
+  { id: 't1', title: 'Oraliq nazorat №1', date: '2026-10-15', maxScore: 100, status: 'published' },
+  { id: 't2', title: 'IELTS mock', date: '2026-11-12', maxScore: 9, status: 'draft' },
 ];
 
-export const MOCK_IMPORT_HISTORY: readonly ImportHistoryItem[] = [
-  {
-    id: 'imp-1',
-    fileName: 'algebra_101_oraliq.xlsx',
-    date: at('2026-10-15 14:30'),
-    author: 'Aziz Rahimov (Ustoz)',
-    totalRows: 18,
-    successCount: 18,
-    errorCount: 0,
-    status: 'success',
-  },
-  {
-    id: 'imp-2',
-    fileName: 'fizika_natijalar_nov.xlsx',
-    date: at('2026-11-05 11:20'),
-    author: 'Malika Karimova (Admin)',
-    totalRows: 15,
-    successCount: 13,
-    errorCount: 2,
-    status: 'warning',
-  },
+export const MOCK_TEST_RESULTS: readonly TestResultRow[] = [
+  { id: 'r1', studentName: 'Jasur Ergashev', studentCode: 1024, score: 86, percent: 86 },
+  { id: 'r2', studentName: 'Madina Karimova', studentCode: 1031, score: 74, percent: 74 },
 ];
 
-export const MOCK_IMPORT_PREVIEW: readonly ImportPreviewRow[] = [
-  { studentCode: 'LG-1042', studentName: 'Jasur Saidov', score: 92 },
-  { studentCode: 'LG-1043', studentName: 'Madina Ilhomova', score: 85 },
+export const MOCK_IMPORT_ROWS: readonly ImportRow[] = [
   {
-    studentCode: 'LG-1044',
-    studentName: 'Olim Boboyev',
-    score: 105,
-    error: 'Ball maksimaldan oshiq (maks: 100)',
+    key: 'm2',
+    rowNumber: 2,
+    kind: 'matched',
+    raw: '1024',
+    studentId: 's1',
+    studentName: 'Jasur Ergashev',
+    score: 86,
+    note: null,
   },
   {
-    studentCode: 'LG-9999',
-    studentName: 'Farrux Umarov',
-    score: 70,
-    error: 'Oʻquvchi tizimda topilmadi',
+    key: 's3',
+    rowNumber: 3,
+    kind: 'suggested',
+    raw: 'Madina Karimovа',
+    studentId: 's2',
+    studentName: 'Madina Karimova',
+    score: 74,
+    note: '92%',
+  },
+  {
+    key: 'u4',
+    rowNumber: 4,
+    kind: 'unmatched',
+    raw: 'Noma’lum',
+    studentId: null,
+    studentName: null,
+    score: null,
+    note: 'Oʻquvchi topilmadi',
   },
 ];
 

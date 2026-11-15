@@ -1,35 +1,34 @@
 /** F3 web ekranlari ko'rinish modellari (maket; W-19…W-27, W-30, W-35). */
 
 // W-19: Testlar
+/** W-19: /tests?groupId (ro'yxat). */
 export interface TestItem {
   id: string;
   title: string;
-  group: string;
-  date: Date;
+  date: string;
   maxScore: number;
-  participants: number;
-  totalStudents: number;
-  avgScore: number;
   status: 'published' | 'draft';
 }
 
-export interface ImportHistoryItem {
+/** Test natijasi (foiz — serverdan). */
+export interface TestResultRow {
   id: string;
-  fileName: string;
-  date: Date;
-  author: string;
-  totalRows: number;
-  successCount: number;
-  errorCount: number;
-  status: 'success' | 'warning';
+  studentName: string;
+  studentCode: number | null;
+  score: number;
+  percent: number;
 }
 
-export interface ImportPreviewRow {
-  studentCode: string;
-  studentName: string;
-  score: number;
-  notes?: string;
-  error?: string;
+/** Excel import preview qatori: mos kelgan / taklif (tasdiq kerak) / mos kelmagan. */
+export interface ImportRow {
+  key: string;
+  rowNumber: number;
+  kind: 'matched' | 'suggested' | 'unmatched';
+  raw: string;
+  studentId: string | null;
+  studentName: string | null;
+  score: number | null;
+  note: string | null;
 }
 
 // W-20: E'lonlar
