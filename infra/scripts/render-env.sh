@@ -50,6 +50,9 @@ def url(user, password):
             f"{params['DB_HOST']}:5432/{params['DB_NAME']}?sslmode=require")
 
 env = {k: params[k] for k in required if k not in ('DB_HOST', 'DB_NAME')}
+# Ixtiyoriy: texnik alertlar chati (T-016, monitor.sh). Yo'q bo'lsa — alert faqat jurnalga.
+if params.get('ALERTS_TELEGRAM_CHAT_ID'):
+    env['ALERTS_TELEGRAM_CHAT_ID'] = params['ALERTS_TELEGRAM_CHAT_ID']
 env['DATABASE_URL'] = url(params['APP_DB_LOGIN'], params['APP_DB_PASSWORD'])
 env['MIGRATION_DATABASE_URL'] = url(owner['username'], owner['password'])
 

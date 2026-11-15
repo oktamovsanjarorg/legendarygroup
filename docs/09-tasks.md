@@ -124,6 +124,7 @@
 - **Bog'liq:** T-012, T-005
 - **AC:** kunlik pg_dump (shifrlangan, SHA256 checksum) → S3; oylik arxiv; oylik avtomatik restore drill job (`scripts/backup-restore-drill.sh` va `.github/workflows/backup-restore-drill.yml`) + Telegram hisobot; `docs/runbooks/restore.md` (PITR va dump'dan tiklash qadamlari) — sinab ko'rilgan.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Real AWS/GitHub muhitida hali ishga tushirilmagan — prod deploy'da sinaladi.
+- **Restore drill (2026-11-15):** prod RDS avtomatik snapshot'idan vaqtinchalik instansiyaga tiklandi va prod bilan solishtirildi — natija `docs/runbooks/restore.md` da.
 
 ### 🟨 T-016 · Monitoring va alertlar
 
@@ -131,6 +132,7 @@
 - **AC:** Sentry (api, worker, bot, web, miniapp — source map'lar bilan); OTel → Grafana Cloud; asosiy dashboard (RPS, p95, xatolar, navbatlar, DB); uptime tekshiruvlari; 06-infrastructure.md §6 dagi barcha alertlar texnik Telegram guruhiga.
 - **Bajarildi (2026-11-14):** `GET /api/health/metrics` (Prometheus OpenMetrics: uptime, heap/rss xotira, DB va Redis statusi, kutayotgan to'lov va ota-ona arizalari ko'rsatkichlari); `scripts/send-telegram-alert.sh` (texnik Telegram guruhiga HTML formatli alert yuborish); `scripts/monitor-health-alerts.sh` (ketma-ket 2 marta healthcheck xatosi, disk > 80%, DB/Redis uzilishi monitoringi); `docs/runbooks/monitoring-alerting.md` runbook'i yaratildi.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Real AWS/GitHub muhitida hali ishga tushirilmagan — prod deploy'da sinaladi.
+- **Prod'ga o'rnatildi (2026-11-15):** `infra/scripts/monitor.sh` — tashqi health (2 marta ketma-ket), disk > 80%, konteyner holati; deploy'da `lg-monitor.timer` (5 daq) o'rnatiladi; alert chati — SSM `ALERTS_TELEGRAM_CHAT_ID`. Sentry/Grafana — hali yo'q.
 
 ### ✅ T-017a · UX: ekranlar xaritasi va oqimlar
 
