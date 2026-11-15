@@ -56,6 +56,8 @@ Prod serverda cron yo'q (Amazon Linux 2023). `infra/scripts/remote-deploy.sh` ha
 
 - Tekshiruvlar: tashqi `https://<APP_DOMAIN>/api/health/ready` (2 marta ketma-ket yiqilsa), disk > 80%,
   `lg-prod` konteynerlari `running` emas.
+- API: 5xx > 2% va p95 > 1 s — oxirgi 5 daqiqa (kamida 20 so'rov), `infra/scripts/api-stats.py`
+  API pino loglaridan (`/api/health/*` hisobga olinmaydi).
 - Bir xil alert ko'pi bilan soatiga bir marta; tiklanganda "✅ tiklandi".
 - Chat: SSM `/lg/prod/ALERTS_TELEGRAM_CHAT_ID` (ixtiyoriy; yo'q bo'lsa faqat jurnal). Bot — asosiy bot tokeni.
 - Jurnal: `journalctl -u lg-monitor --since -1h`; holat: `systemctl list-timers lg-monitor.timer`.
