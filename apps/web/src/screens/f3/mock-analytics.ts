@@ -194,7 +194,6 @@ export const MOCK_LANDING_COURSES: readonly LandingCourseItem[] = [
       'Prezident maktablari va litseylarga tayyorgarlik, mantiqiy fikrlash va olimpiada masalalari.',
     durationMonths: 9,
     pricePerMonth: 550_000n,
-    popular: true,
   },
   {
     id: 'crs-2',
@@ -203,6 +202,5 @@ export const MOCK_LANDING_COURSES: readonly LandingCourseItem[] = [
       'Natijaga yoʻnaltirilgan intensiv ingliz tili darslari (maqsad 7.0+). Mock imtihonlar bepul.',
     durationMonths: 6,
     pricePerMonth: 650_000n,
-    popular: true,
   },
 ];

@@ -62,6 +62,17 @@ export const CourseSchema = z.object({
   updatedAt: z.string(),
 });
 
+/** Landing (W-35, T-503): faqat faol kurslar, ommaviy maydonlar. */
+export const PublicCourseSchema = CourseSchema.pick({
+  id: true,
+  name: true,
+  description: true,
+  defaultMonthlyPrice: true,
+  lessonDurationMin: true,
+  durationMonths: true,
+});
+export type PublicCourse = z.infer<typeof PublicCourseSchema>;
+
 export const CreateRoomRequest = z.object({
   name: Name,
   capacity: z.number().int().min(1).max(500),

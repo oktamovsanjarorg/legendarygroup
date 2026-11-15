@@ -1,16 +1,7 @@
-import { formatMoney, webMessages as t } from '@lg/i18n';
-import { Badge, Button, Card } from '@lg/ui-web';
+import { formatMoney, formatPhone, webMessages as t } from '@lg/i18n';
+import { Button, Card } from '@lg/ui-web';
 import type { LucideIcon } from 'lucide-react';
-import {
-  ArrowRight,
-  Award,
-  BookOpen,
-  Calendar,
-  GraduationCap,
-  LogIn,
-  Phone,
-  Users,
-} from 'lucide-react';
+import { ArrowRight, Award, BookOpen, LogIn, Phone, Users } from 'lucide-react';
 import type { LandingCourseItem } from './types.js';
 import { LeadForm, type LeadInput } from './w35-lead-form.js';
 
@@ -52,24 +43,9 @@ function SiteHeader({ onLoginClick }: { onLoginClick?: () => void }) {
   );
 }
 
-const STATS: { icon: LucideIcon; value: string; label: string; tone: string }[] = [
-  { icon: Users, value: L.stats.studentsCount, label: L.stats.studentsLabel, tone: 'text-primary' },
-  { icon: Award, value: L.stats.resultsRate, label: L.stats.resultsLabel, tone: 'text-success' },
-  {
-    icon: GraduationCap,
-    value: L.stats.teachersCount,
-    label: L.stats.teachersLabel,
-    tone: 'text-primary',
-  },
-  { icon: Calendar, value: L.stats.yearsCount, label: L.stats.yearsLabel, tone: 'text-text' },
-];
-
 function Hero() {
   return (
     <section className="mx-auto max-w-5xl px-6 py-16 text-center">
-      <Badge tone="info" className="mb-4 px-3 py-1 text-xs">
-        {L.hero.badge}
-      </Badge>
       <h1 className="text-3xl font-extrabold tracking-tight text-text md:text-5xl">
         {L.hero.title}
       </h1>
@@ -83,17 +59,6 @@ function Hero() {
           {L.hero.viewCourses}
         </a>
       </div>
-      <div className="mt-14 grid grid-cols-2 gap-4 border-y border-border py-8 text-left md:grid-cols-4">
-        {STATS.map((s) => (
-          <div key={s.label}>
-            <div className={`flex items-center gap-2 font-semibold ${s.tone}`}>
-              <s.icon className="size-4" aria-hidden />
-              <span className="text-2xl font-bold">{s.value}</span>
-            </div>
-            <p className="mt-1 text-xs text-text-muted">{s.label}</p>
-          </div>
-        ))}
-      </div>
     </section>
   );
 }
@@ -101,20 +66,17 @@ function Hero() {
 function CourseCard({ c }: { c: LandingCourseItem }) {
   return (
     <Card className="relative flex flex-col justify-between p-6">
-      {c.popular && (
-        <Badge tone="warning" className="absolute right-4 top-4">
-          {L.coursesSection.popular}
-        </Badge>
-      )}
       <div>
         <h3 className="text-lg font-bold text-text">{c.title}</h3>
-        <p className="mt-2 text-sm text-text-muted">{c.description}</p>
+        {c.description && <p className="mt-2 text-sm text-text-muted">{c.description}</p>}
       </div>
       <div className="mt-6 flex items-baseline justify-between border-t border-border pt-4">
         <div>
-          <span className="block text-xs text-text-muted">
-            {L.coursesSection.duration.replace('{months}', String(c.durationMonths))}
-          </span>
+          {c.durationMonths !== null && (
+            <span className="block text-xs text-text-muted">
+              {L.coursesSection.duration.replace('{months}', String(c.durationMonths))}
+            </span>
+          )}
           <span className="text-xl font-bold text-text">{formatMoney(c.pricePerMonth)}</span>
           <span className="text-xs text-text-muted"> / {L.coursesSection.pricePerMonth}</span>
         </div>
@@ -189,17 +151,26 @@ function Advantages() {
   );
 }
 
-function SiteFooter() {
+/** Markaz kontaktlari — sozlamalardan (`GET /settings/public`), qattiq yozilmagan. */
+export interface LandingCenter {
+  name: string;
+  phone: string;
+  address: string | null;
+}
+
+function SiteFooter({ center }: { center: LandingCenter | null }) {
   return (
     <footer className="border-t border-border bg-bg px-6 py-8 text-xs text-text-muted">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 md:flex-row">
         <div>
           <p className="font-semibold text-text">{L.brand}</p>
-          <p className="mt-1">{L.footer.address}</p>
-          <p className="mt-0.5 flex items-center gap-1.5">
-            <Phone className="size-3" aria-hidden />
-            {L.footer.phone}
-          </p>
+          {center?.address && <p className="mt-1">{center.address}</p>}
+          {center && (
+            <a href={`tel:${center.phone}`} className="mt-0.5 flex items-center gap-1.5">
+              <Phone className="size-3" aria-hidden />
+              {formatPhone(center.phone)}
+            </a>
+          )}
         </div>
         <p>
           © 2026 {L.brand}. {L.footer.rights}
@@ -211,12 +182,14 @@ function SiteFooter() {
 
 interface Props {
   courses: readonly LandingCourseItem[];
-  onSubmitLead?: (data: LeadInput) => void;
+  center: LandingCenter | null;
+  /** Rad etilsa — forma xato ko'rsatadi (muvaffaqiyat faqat server qabul qilgach). */
+  onSubmitLead?: (data: LeadInput) => Promise<void>;
   onLoginClick?: () => void;
 }
 
 /** W-35 Landing (FR-SYS-4): ommaviy sayt — kurslar va lid formasi (WebFrame'siz). */
-export function LandingView({ courses, onSubmitLead, onLoginClick }: Props) {
+export function LandingView({ courses, center, onSubmitLead, onLoginClick }: Props) {
   return (
     <div className="min-h-screen bg-bg text-text">
       <SiteHeader onLoginClick={onLoginClick} />
@@ -226,7 +199,7 @@ export function LandingView({ courses, onSubmitLead, onLoginClick }: Props) {
         <Advantages />
         <LeadForm courses={courses} onSubmitLead={onSubmitLead} />
       </main>
-      <SiteFooter />
+      <SiteFooter center={center} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { PublicCoursesController } from './public-courses.controller.js';
 import { CoursesController } from './courses.controller.js';
 import { CoursesService } from './courses.service.js';
 import { GroupScheduleController } from './group-schedule.controller.js';
@@ -22,6 +23,7 @@ import { RoomsService } from './rooms.service.js';
 @Module({
   controllers: [
     CoursesController,
+    PublicCoursesController,
     RoomsController,
     GroupsController,
     GroupScheduleController,
