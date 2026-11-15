@@ -18,6 +18,7 @@ import {
   MonitorSmartphone,
   Settings,
   ShieldCheck,
+  Sparkles,
   Target,
   UserCog,
   Users,
@@ -142,6 +143,13 @@ export const NAV: readonly NavItem[] = [
     to: '/reports',
     label: t.reports.title,
     icon: ChartColumn,
+    permission: 'stats.operational',
+  },
+  {
+    screen: 'W-27',
+    to: '/forecasts',
+    label: t.forecasts.title,
+    icon: Sparkles,
     permission: 'stats.operational',
   },
   {
