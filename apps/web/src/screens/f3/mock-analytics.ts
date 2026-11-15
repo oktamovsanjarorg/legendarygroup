@@ -6,6 +6,7 @@ import type {
   ReportAgingRow,
   ReportAttendanceRow,
   ReportConversionRow,
+  ReportKpi,
   ReportRevenueRow,
   ReportTeacherRow,
   StaffActivityItem,
@@ -14,74 +15,46 @@ import type {
 import { at } from './mock-time.js';
 
 // W-26: Hisobotlar — faqat markaz kurslari (Matematika 550 000, Ingliz tili 650 000 soʻm);
-// toʻlagan oʻquvchilar × narx = tushum (~78 mln, W-04 bilan mos).
+// toʻlagan oʻquvchilar × narx = tushum (~78 mln, W-04 bilan mos). Faqat Storybook.
 export const MOCK_REPORT_REVENUE: readonly ReportRevenueRow[] = [
-  {
-    course: 'Matematika',
-    studentsCount: 88,
-    revenue: 48_400_000n, // 88 * 550_000n
-    sharePercent: 62,
-  },
-  {
-    course: 'Ingliz tili (IELTS)',
-    studentsCount: 46,
-    revenue: 29_900_000n, // 46 * 650_000n
-    sharePercent: 38,
-  },
+  { id: 'c1', name: 'Matematika', students: 88, payments: 88, revenue: 48_400_000n },
+  { id: 'c2', name: 'Ingliz tili (IELTS)', students: 46, payments: 46, revenue: 29_900_000n },
 ];
 
 export const MOCK_REPORT_AGING: readonly ReportAgingRow[] = [
-  { interval: '0–7 kun (yangi)', count: 24, debtAmount: 18_200_000n, sharePercent: 45 },
-  { interval: '8–15 kun', count: 12, debtAmount: 11_400_000n, sharePercent: 28 },
-  { interval: '16–30 kun', count: 6, debtAmount: 6_800_000n, sharePercent: 17 },
-  { interval: '30+ kun (kritik)', count: 3, debtAmount: 4_100_000n, sharePercent: 10 },
+  { bucket: 'fresh', count: 24, debt: 18_200_000n },
+  { bucket: 'overdue', count: 18, debt: 18_200_000n },
+  { bucket: 'critical', count: 4, debt: 4_100_000n },
 ];
 
 export const MOCK_REPORT_ATTENDANCE: readonly ReportAttendanceRow[] = [
-  {
-    course: 'Matematika',
-    teacher: 'Aziz Rahimov',
-    attendancePercent: 93,
-    retentionPercent: 95,
-  },
-  {
-    course: 'Ingliz tili (IELTS)',
-    teacher: 'Nilufar Yusupova',
-    attendancePercent: 90,
-    retentionPercent: 92,
-  },
+  { id: 'g1', name: 'MAT-1', lessons: 12, present: 130, absent: 14, percent: 90.3 },
+  { id: 'g2', name: 'IELTS-2', lessons: 12, present: 104, absent: 4, percent: 96.3 },
 ];
 
 export const MOCK_REPORT_CONVERSION: readonly ReportConversionRow[] = [
-  { stage: 'Yangi lidlar (Ariza)', count: 180, percent: 100 },
-  { stage: 'Bogʻlanilgan lidlar', count: 154, percent: 85 },
-  { stage: 'Sinov darsiga qatnashgan', count: 112, percent: 62 },
-  { stage: 'Toʻlov qilib oʻqishni boshlagan', count: 86, percent: 48 },
+  { source: 'instagram', total: 120, contacted: 104, trial: 76, won: 58, percent: 48.3 },
+  { source: 'telegram', total: 60, contacted: 50, trial: 36, won: 28, percent: 46.7 },
 ];
 
 export const MOCK_REPORT_TEACHERS: readonly ReportTeacherRow[] = [
   {
+    id: 't1',
     teacher: 'Aziz Rahimov',
-    groupsCount: 4,
-    studentsCount: 52,
-    attendancePercent: 94,
-    avgGrade: 4.6,
-  },
-  {
-    teacher: 'Nilufar Yusupova',
-    groupsCount: 3,
-    studentsCount: 46,
-    attendancePercent: 90,
-    avgGrade: 4.3,
-  },
-  {
-    teacher: 'Jamshid Qodirov',
-    groupsCount: 3,
-    studentsCount: 36,
-    attendancePercent: 91,
-    avgGrade: 4.4,
+    groups: 4,
+    students: 52,
+    attendancePercent: 92.4,
+    retentionPercent: 95,
+    avgGrade: 82.5,
   },
 ];
+
+export const MOCK_REPORT_KPI: ReportKpi = {
+  revenue: 78_300_000n,
+  attendancePercent: 91.8,
+  debtors: 46,
+  conversionPercent: 47.8,
+};
 
 // W-27: Prognozlar
 export const MOCK_FORECAST_REVENUE: ForecastRevenue = {

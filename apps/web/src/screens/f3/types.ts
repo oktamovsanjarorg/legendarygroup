@@ -135,40 +135,56 @@ export interface PayrollRow {
   lines: readonly { kind: PayrollLineKind; amount: bigint; note: string | null }[];
 }
 
-// W-26: Hisobotlar
+// W-26: Hisobotlar (API: /reports/*). Foizlar — bazis punktdan, faqat ko'rsatish.
 export interface ReportRevenueRow {
-  course: string;
-  studentsCount: number;
+  id: string;
+  name: string;
+  students: number;
+  payments: number;
   revenue: bigint;
-  sharePercent: number;
 }
 
+export type ReportAgingBucket = 'fresh' | 'overdue' | 'critical';
 export interface ReportAgingRow {
-  interval: string;
+  bucket: ReportAgingBucket;
   count: number;
-  debtAmount: bigint;
-  sharePercent: number;
+  debt: bigint;
 }
 
 export interface ReportAttendanceRow {
-  course: string;
-  teacher: string;
-  attendancePercent: number;
-  retentionPercent: number;
+  id: string;
+  name: string;
+  lessons: number;
+  present: number;
+  absent: number;
+  percent: number;
 }
 
 export interface ReportConversionRow {
-  stage: string;
-  count: number;
+  source: string;
+  total: number;
+  contacted: number;
+  trial: number;
+  won: number;
   percent: number;
 }
 
 export interface ReportTeacherRow {
+  id: string;
   teacher: string;
-  groupsCount: number;
-  studentsCount: number;
+  groups: number;
+  students: number;
   attendancePercent: number;
+  retentionPercent: number;
   avgGrade: number;
+}
+
+/** KPI — server yigʻindilari; ruxsat yoʻq boʻlsa `null`. */
+export interface ReportKpi {
+  revenue: bigint | null;
+  attendancePercent: number | null;
+  debtors: number | null;
+  conversionPercent: number | null;
 }
 
 // W-27: Prognozlar
