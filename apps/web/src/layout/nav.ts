@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Inbox,
   Link2,
+  Megaphone,
   MessagesSquare,
   MailWarning,
   MonitorSmartphone,
@@ -160,6 +161,13 @@ export const NAV: readonly NavItem[] = [
     label: t.failedMessages.title,
     icon: MailWarning,
     permission: 'settings.manage',
+  },
+  {
+    screen: 'W-20',
+    to: '/announcements',
+    label: t.announcements.title,
+    icon: Megaphone,
+    permission: 'announcement.send',
   },
   {
     screen: 'W-27',
