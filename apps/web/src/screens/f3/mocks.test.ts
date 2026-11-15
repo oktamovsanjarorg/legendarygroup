@@ -29,11 +29,10 @@ describe('F3 mock maʼlumotlari', () => {
     }
   });
 
-  it('oylik: jami = asosiy + bonus − avans; guruhlar boʻyicha yigʻindi = asosiy', () => {
+  it('oylik: jami = ishlangan + qoʻshimcha − avans = qatorlar yigʻindisi', () => {
     for (const p of MOCK_PAYROLL_LIST) {
-      expect(p.total).toBe(p.baseAmount + p.bonus - p.advance);
-      const parts = p.details.groupBreakdowns.map((g) => g.amount);
-      if (parts.length > 0) expect(sum(parts)).toBe(p.baseAmount);
+      expect(p.total).toBe(p.earned + p.extras - p.advances);
+      expect(sum(p.lines.map((l) => l.amount))).toBe(p.total);
     }
     expect(sum(MOCK_PAYROLL_LIST.map((p) => p.total))).toBe(MOCK_PAYROLL_TOTAL);
   });

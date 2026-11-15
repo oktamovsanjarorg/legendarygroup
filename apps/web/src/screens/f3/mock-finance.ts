@@ -1,4 +1,4 @@
-import type { ExpenseItem, PayrollItem, PnlMonthRow } from './types.js';
+import type { ExpenseItem, PayrollRow, PnlMonthRow } from './types.js';
 import { at } from './mock-time.js';
 
 export const MOCK_EXPENSES: readonly ExpenseItem[] = [
@@ -76,62 +76,33 @@ export const MOCK_PNL_MONTHS: readonly PnlMonthRow[] = [
   },
 ];
 
-export const MOCK_PAYROLL_LIST: readonly PayrollItem[] = [
+export const MOCK_PAYROLL_LIST: readonly PayrollRow[] = [
   {
     id: 'pay-1',
     staffName: 'Aziz Rahimov',
-    role: 'Katta matematika ustozi',
-    contractType: 'percent',
-    baseAmount: 18_400_000n,
-    bonus: 2_000_000n,
-    advance: 3_000_000n,
+    earned: 18_400_000n,
+    extras: 2_000_000n,
+    advances: 3_000_000n,
     total: 17_400_000n,
-    status: 'paid',
-    details: {
-      lessonsCount: 48,
-      studentsCount: 36,
-      formula: 'Guruh toʻlovlaridan 40%',
-      groupBreakdowns: [
-        { group: 'Algebra-101', amount: 9_200_000n },
-        { group: 'Geometriya-201', amount: 9_200_000n },
-      ],
-    },
+    lines: [
+      { kind: 'percent', amount: 18_400_000n, note: 'Guruh toʻlovlaridan 40%' },
+      { kind: 'bonus', amount: 2_000_000n, note: 'Olimpiada natijasi' },
+      { kind: 'advance', amount: -3_000_000n, note: 'Avans ushlab qolindi' },
+    ],
   },
   {
     id: 'pay-2',
     staffName: 'Jamshid Qodirov',
-    role: 'Matematika ustozi',
-    contractType: 'mixed',
-    baseAmount: 7_000_000n,
-    bonus: 1_000_000n,
-    advance: 0n,
+    earned: 7_000_000n,
+    extras: 1_000_000n,
+    advances: 0n,
     total: 8_000_000n,
-    status: 'approved',
-    details: {
-      lessonsCount: 32,
-      studentsCount: 22,
-      formula: '2 000 000 fiks + 25% foiz',
-      groupBreakdowns: [{ group: 'Matematika-102', amount: 7_000_000n }],
-    },
-  },
-  {
-    id: 'pay-3',
-    staffName: 'Malika Karimova',
-    role: 'Bosh administrator',
-    contractType: 'fixed',
-    baseAmount: 8_000_000n,
-    bonus: 1_000_000n,
-    advance: 1_000_000n,
-    total: 8_000_000n,
-    status: 'draft',
-    details: {
-      lessonsCount: 0,
-      studentsCount: 0,
-      formula: 'Qatʼiy oylik stavka',
-      groupBreakdowns: [],
-    },
+    lines: [
+      { kind: 'fixed', amount: 5_000_000n, note: null },
+      { kind: 'percent', amount: 2_000_000n, note: null },
+      { kind: 'bonus', amount: 1_000_000n, note: null },
+    ],
   },
 ];
 
-/** UI pul hisoblamaydi — mock'da tayyor yig'indi. */
-export const MOCK_PAYROLL_TOTAL = 33_400_000n;
+export const MOCK_PAYROLL_TOTAL = 25_400_000n;

@@ -8,6 +8,7 @@ import {
   CircleAlert,
   CheckCheck,
   Banknote,
+  HandCoins,
   Home,
   Receipt,
   TrendingUp,
@@ -125,6 +126,13 @@ export const NAV: readonly NavItem[] = [
     label: t.expenses.title,
     icon: Receipt,
     permission: 'expense.manage',
+  },
+  {
+    screen: 'W-25',
+    to: '/payroll',
+    label: t.payroll.title,
+    icon: HandCoins,
+    permission: 'payroll.manage',
   },
   { screen: 'W-24', to: '/pnl', label: t.pnl.title, icon: TrendingUp, permission: 'finance.view' },
   {

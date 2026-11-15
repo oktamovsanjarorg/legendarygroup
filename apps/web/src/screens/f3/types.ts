@@ -119,26 +119,20 @@ export interface PnlMonthRow {
   marginPercent: number;
 }
 
-// W-25: Oyliklar
-export type PayrollContractType = 'fixed' | 'percent' | 'mixed' | 'hourly';
+// W-25: Oyliklar (hisob bir butun: qoralama → tasdiqlangan → to'langan, BR-27)
 export type PayrollStatus = 'draft' | 'approved' | 'paid';
+export type PayrollLineKind =
+  'fixed' | 'percent' | 'per_lesson' | 'bonus' | 'penalty' | 'advance' | 'adjustment';
 
-export interface PayrollItem {
+export interface PayrollRow {
   id: string;
   staffName: string;
-  role: string;
-  contractType: PayrollContractType;
-  baseAmount: bigint;
-  bonus: bigint;
-  advance: bigint;
+  /** Server yig'indilari (UI pul qo'shmaydi). */
+  earned: bigint;
+  extras: bigint;
+  advances: bigint;
   total: bigint;
-  status: PayrollStatus;
-  details: {
-    lessonsCount: number;
-    studentsCount: number;
-    formula: string;
-    groupBreakdowns: readonly { group: string; amount: bigint }[];
-  };
+  lines: readonly { kind: PayrollLineKind; amount: bigint; note: string | null }[];
 }
 
 // W-26: Hisobotlar
