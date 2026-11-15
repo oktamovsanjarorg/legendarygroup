@@ -1,10 +1,25 @@
-import type { ImportPreviewResponse, RoleCode, TestDetailResponse, TestItem } from '@lg/contracts';
-import { closeDb, createDb, type Database, guardians, outboxEvents, seed } from '@lg/db';
+import type {
+  EventPayloads,
+  ImportPreviewResponse,
+  RoleCode,
+  TestDetailResponse,
+  TestItem,
+} from '@lg/contracts';
+import {
+  closeDb,
+  createDb,
+  type Database,
+  guardians,
+  notifications,
+  outboxEvents,
+  seed,
+} from '@lg/db';
 import { eq } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { EventHandlers } from '../outbox/index.js';
 
 let t: TestApp;
 let db: Database;
@@ -321,6 +336,20 @@ describe('T-302: Testlar va Excel import (Tests & Excel Import)', () => {
       .where(eq(outboxEvents.type, 'TestResultsPublished'));
     expect(eventRow).toBeDefined();
     expect((eventRow?.payload as Record<string, unknown>)?.['testId']).toBe(testId);
+
+    // Bug: event bor edi, lekin iste'molchi yo'q — ota-ona natijani hech qachon olmasdi.
+    await t.app.get(EventHandlers).dispatch({
+      eventId: eventRow!.id,
+      type: 'TestResultsPublished',
+      payload: eventRow!.payload as EventPayloads['TestResultsPublished'],
+      occurredAt: new Date().toISOString(),
+    });
+    const sent = await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.type, 'test_results_published'));
+    expect(sent.map((n) => n.userId)).toEqual([parentUserId]);
+    expect(sent[0]?.body).toContain('ball');
   });
 
   it('Eʼlon qilingan testni tahrirlab yoki natija kiritib boʻlmaydi (400)', async () => {
