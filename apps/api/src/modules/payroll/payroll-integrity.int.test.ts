@@ -222,4 +222,18 @@ describe('BR-23…BR-28: oylik hisobining yaxlitligi', () => {
     const detail = await call('GET', `payroll/runs/${run.id}`);
     expect(detail.json<PayrollRunDetail>().status).toBe('paid');
   });
+
+  it('W-25: davr boʻyicha hisob — GET generatsiya qilmaydi; yoʻq davr — null; Admin — 403', async () => {
+    const byPeriod = (p: string, role: RoleCode) =>
+      t.app.inject({
+        method: 'GET',
+        url: `/api/payroll/runs?period=${p}`,
+        headers: { authorization: `Bearer ${tokens.get(role)!}` },
+      });
+    const run = (await byPeriod(PERIOD, 'director')).json<PayrollRunDetail>();
+    expect(run.period).toBe(PERIOD);
+    expect(run.teachers.length).toBeGreaterThan(0);
+    expect((await byPeriod('2020-01', 'director')).body).toBe('null');
+    expect((await byPeriod(PERIOD, 'admin')).statusCode).toBe(403);
+  });
 });

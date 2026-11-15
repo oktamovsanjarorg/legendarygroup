@@ -63,6 +63,8 @@ export const MonthlyPnLSummarySchema = z.object({
   revenue: z.string().regex(MoneyRegex),
   expenses: z.string().regex(MoneyRegex),
   payroll: z.string().regex(MoneyRegex),
+  /** Operatsion xarajat + oylik (W-24 "Jami xarajat"). */
+  totalCosts: z.string().regex(MoneyRegex),
   netProfit: z.string(), // musbat yoki manfiy bo'lishi mumkin (-1000000)
   profitMarginBp: z.number().int(), // bazis punktlarda (100% = 10000)
   expensesByCategory: z.record(z.string(), z.string()),

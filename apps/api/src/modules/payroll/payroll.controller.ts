@@ -5,6 +5,7 @@ import {
   CreateTeacherContractRequest,
   DEFAULT_BRANCH_ID,
   GeneratePayrollRunRequest,
+  PayrollRunByPeriodQuery,
   type PayrollRunDetail,
   type TeacherContract,
 } from '@lg/contracts';
@@ -12,7 +13,7 @@ import { Controller, Get, Inject, Param, ParseUUIDPipe, Post, Query } from '@nes
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Audit, NoAudit } from '../../common/audit/audit.decorator.js';
 import { Authenticated, RequirePermission } from '../../common/decorators/access.decorators.js';
-import { ZodBody } from '../../common/decorators/zod.decorators.js';
+import { ZodBody, ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { PayrollService } from './payroll.service.js';
 
@@ -72,6 +73,17 @@ export class PayrollController {
   @ApiOperation({ summary: "FR-SAL-4 Ustozning o'z oyliklari (oylar ro'yxati)" })
   listOwn(@CurrentUser() actor: RequestUser): Promise<OwnPayrollMonth[]> {
     return this.service.listOwnPayroll(actor);
+  }
+
+  @Get('runs')
+  @RequirePermission('payroll.manage')
+  @NoAudit('GET query')
+  @ApiOperation({ summary: "W-25: davr bo'yicha oylik hisobi (yo'q bo'lsa — null)" })
+  async runByPeriod(
+    @CurrentUser() actor: RequestUser,
+    @ZodQuery(PayrollRunByPeriodQuery) q: PayrollRunByPeriodQuery,
+  ): Promise<PayrollRunDetail | null> {
+    return this.service.findRunByPeriod(actor, DEFAULT_BRANCH_ID, q.period);
   }
 
   @Get('runs/:id')

@@ -1,8 +1,10 @@
 import { webMessages as t } from '@lg/i18n';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { WebFrame, webStates } from '../story-kit.js';
-import { MOCK_PAYROLL_LIST } from './mock-finance.js';
+import { MOCK_PAYROLL_LIST, MOCK_PAYROLL_TOTAL } from './mock-finance.js';
 import { PayrollView } from './w25-payroll.js';
+
+const noop = () => undefined;
 
 const meta: Meta = { title: 'web/F3/W-25 Oyliklar' };
 export default meta;
@@ -12,7 +14,14 @@ export const Default: Story = {
   tags: ['primary'],
   render: () => (
     <WebFrame active="/finance">
-      <PayrollView items={MOCK_PAYROLL_LIST} />
+      <PayrollView
+        periodLabel="noyabr, 2026"
+        status="draft"
+        rows={MOCK_PAYROLL_LIST}
+        total={MOCK_PAYROLL_TOTAL}
+        onGenerate={noop}
+        onApprove={noop}
+      />
     </WebFrame>
   ),
 };
@@ -20,7 +29,13 @@ export const Default: Story = {
 export const Empty: Story = {
   render: () => (
     <WebFrame active="/finance">
-      <PayrollView items={[]} />
+      <PayrollView
+        periodLabel="noyabr, 2026"
+        status={null}
+        rows={[]}
+        total={0n}
+        onGenerate={noop}
+      />
     </WebFrame>
   ),
 };
@@ -28,7 +43,14 @@ export const Empty: Story = {
 export const Offline: Story = {
   render: () => (
     <WebFrame active="/finance" offline>
-      <PayrollView items={MOCK_PAYROLL_LIST} />
+      <PayrollView
+        periodLabel="noyabr, 2026"
+        status="draft"
+        rows={MOCK_PAYROLL_LIST}
+        total={MOCK_PAYROLL_TOTAL}
+        onGenerate={noop}
+        onApprove={noop}
+      />
     </WebFrame>
   ),
 };
