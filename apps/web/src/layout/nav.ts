@@ -10,6 +10,7 @@ import {
   Banknote,
   Home,
   Receipt,
+  TrendingUp,
   Inbox,
   Link2,
   MonitorSmartphone,
@@ -125,6 +126,7 @@ export const NAV: readonly NavItem[] = [
     icon: Receipt,
     permission: 'expense.manage',
   },
+  { screen: 'W-24', to: '/pnl', label: t.pnl.title, icon: TrendingUp, permission: 'finance.view' },
   {
     screen: 'W-29',
     to: '/settings',

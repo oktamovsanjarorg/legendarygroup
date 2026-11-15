@@ -143,10 +143,12 @@ export function PnlView({ months, onExportExcel }: Props) {
         title={t.pnl.title}
         description={t.pnl.subtitle}
         actions={
-          <Button variant="secondary" onClick={onExportExcel}>
-            <Download className="size-4" aria-hidden />
-            {t.pnl.exportExcel}
-          </Button>
+          onExportExcel && (
+            <Button variant="secondary" onClick={onExportExcel}>
+              <Download className="size-4" aria-hidden />
+              {t.pnl.exportExcel}
+            </Button>
+          )
         }
       />
 

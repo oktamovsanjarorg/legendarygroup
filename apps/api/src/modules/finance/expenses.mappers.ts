@@ -54,6 +54,7 @@ export function buildMonthlyPnLSummary(params: {
     revenue: totalRevenue.toString(),
     expenses: totalExpenses.toString(),
     payroll: params.payrollTotal.toString(),
+    totalCosts: (totalExpenses + params.payrollTotal).toString(),
     netProfit: netProfit.toString(),
     profitMarginBp: marginBp,
     expensesByCategory: expensesByCategoryStr,

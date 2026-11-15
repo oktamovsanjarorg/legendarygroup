@@ -209,6 +209,7 @@ describe('T-403: Xarajatlar va P&L (Expenses & P&L)', () => {
 
     // 3) Payroll: 4 000 000
     expect(pnl.payroll).toBe('4000000');
+    expect(pnl.totalCosts).toBe('7200000');
 
     // 4) Net Profit: 10 000 000 - 3 200 000 - 4 000 000 = 2 800 000
     expect(pnl.netProfit).toBe('2800000');
