@@ -17,6 +17,7 @@ import {
   invoices,
   ledgerEntries,
   lessons,
+  payments,
   seed,
   students,
 } from '@lg/db';
@@ -25,6 +26,11 @@ import { CronJobs } from '../../common/scheduler/cron-jobs.js';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { ForecastsCron } from './forecasts.cron.js';
+import { errorPercent } from './forecasts.service.js';
+import { prevMonthRange } from './prev-month.js';
+
+const todayTashkent = () =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(new Date());
 
 let t: TestApp;
 let db: Database;
@@ -84,6 +90,14 @@ beforeAll(async () => {
     })
     .returning();
   if (!student) throw new Error('student not created');
+  // Backtest: o'tgan oyning 15-sanasida (Toshkent) 700 000 so'm to'lov.
+  await db.insert(payments).values({
+    branchId: DEFAULT_BRANCH_ID,
+    studentId: student.id,
+    amount: 700000n,
+    method: 'cash',
+    paidAt: new Date(`${prevMonthRange(todayTashkent()).period}-15T12:00:00+05:00`),
+  });
 
   await db.insert(enrollments).values({
     groupId: group.id,
@@ -186,9 +200,13 @@ describe('T-502: Prognozlar va churn risk (FR-DASH-3, BR-36)', () => {
     expect(res.statusCode).toBe(200);
 
     const body = res.json() as BacktestReportResponse;
-    expect(body).toHaveProperty('period');
-    expect(body).toHaveProperty('errorPercentage');
-    expect(BigInt(body.actualRevenue)).toBeGreaterThan(0n);
+    expect(body.period).toBe(prevMonthRange(todayTashkent()).period);
+    // Qattiq '12100000' emas — o'tgan oydagi haqiqiy to'lovlar.
+    expect(body.actualRevenue).toBe('700000');
+    expect(BigInt(body.predictedRevenue)).toBeGreaterThan(0n);
+    expect(body.errorPercentage).toBe(
+      errorPercent(BigInt(body.predictedRevenue), BigInt(body.actualRevenue)),
+    );
   });
 
   it('Dushanba 09:00 haftalik cron vazifasi roʻyxatdan oʻtgan va xatoliksiz bajariladi', async () => {

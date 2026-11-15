@@ -13,6 +13,7 @@ import {
 } from '@lg/db';
 import { and, eq, gte, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { gradeDropMap, minusDays, paidRevenue } from './forecasts-history.js';
 
 export interface RawStudentChurnData {
   studentId: string;
@@ -86,8 +87,11 @@ export class ForecastsRepository {
 
     const studentIds = activeStudents.map((s) => s.id);
     const delaysMap = await this.fetchPaymentDelays(studentIds, today);
-    const botMap = await this.fetchBotUnresponsiveMap(studentIds);
-    const attendanceMap = await this.fetchAttendanceDropMap(studentIds, today);
+    const [botMap, attendanceMap, gradeMap] = await Promise.all([
+      this.fetchBotUnresponsiveMap(studentIds),
+      this.fetchAttendanceDropMap(studentIds, today),
+      gradeDropMap(this.db, studentIds, today),
+    ]);
 
     return activeStudents.map((s) => ({
       studentId: s.id,
@@ -95,9 +99,10 @@ export class ForecastsRepository {
       studentCode: Number(s.code),
       groupId: s.groupId,
       groupName: s.groupName,
-      attendanceDropPercent: attendanceMap.get(s.id) ?? 15,
+      // Ma'lumot yo'q — xavf belgisi yo'q (uydirma standart qiymat emas).
+      attendanceDropPercent: attendanceMap.get(s.id) ?? 0,
       paymentDelayDays: delaysMap.get(s.id) ?? 0,
-      gradeDropPercent: 10,
+      gradeDropPercent: gradeMap.get(s.id) ?? 0,
       botUnresponsive: botMap.get(s.id) ?? false,
     }));
   }
@@ -128,9 +133,7 @@ export class ForecastsRepository {
     studentIds: string[],
     today: string,
   ): Promise<Map<string, number>> {
-    const fourWeeksAgo = new Date(new Date(today).getTime() - 28 * 86400000)
-      .toISOString()
-      .slice(0, 10);
+    const fourWeeksAgo = minusDays(today, 28);
 
     const rows = await this.db
       .select({
@@ -231,6 +234,11 @@ export class ForecastsRepository {
       capacity: Number(g.capacity),
       currentActive: Number(g.currentActive),
     }));
+  }
+
+  /** Oraliqdagi haqiqiy tushum (backtest). */
+  getPaidRevenue(branchId: string, start: string, endExclusive: string): Promise<bigint> {
+    return paidRevenue(this.db, branchId, start, endExclusive);
   }
 
   async getActualChurnCount(

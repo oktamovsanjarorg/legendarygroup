@@ -15,7 +15,15 @@ import {
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import type { RequestUser } from '../auth/index.js';
 import { ForecastsRepository } from './forecasts.repository.js';
+import { addMonths } from './forecasts-history.js';
 import { prevMonthRange } from './prev-month.js';
+
+/** |prognoz − haqiqiy| / haqiqiy, 0.1% aniqlik (pul emas — nisbat); haqiqiy 0 bo'lsa 0. */
+export const errorPercent = (predicted: bigint, actual: bigint): number => {
+  if (actual <= 0n) return 0;
+  const diff = predicted > actual ? predicted - actual : actual - predicted;
+  return Number((diff * 1000n) / actual) / 10;
+};
 
 @Injectable()
 export class ForecastsService {
@@ -43,9 +51,7 @@ export class ForecastsService {
     const collectionRateBp = await this.repo.getHistoricalCollectionRateBp(targetBranch);
 
     const items = [1, 2, 3].map((monthDistance) => {
-      const forecastDate = new Date();
-      forecastDate.setMonth(forecastDate.getMonth() + monthDistance);
-      const monthStr = forecastDate.toISOString().slice(0, 7);
+      const monthStr = addMonths(today.slice(0, 7), monthDistance);
 
       const forecast = calculateRevenueForecast({
         activeValue: totalValue,
@@ -160,17 +166,24 @@ export class ForecastsService {
       return res.isAtRisk;
     }).length;
 
-    const actualChurnCount = await this.repo.getActualChurnCount(
-      targetBranch,
-      prev.start,
-      prev.endExclusive,
-    );
+    const [actualChurnCount, active, rateBp, actualRevenue] = await Promise.all([
+      this.repo.getActualChurnCount(targetBranch, prev.start, prev.endExclusive),
+      this.repo.getActiveEnrollmentsMonthlyTotal(targetBranch, prev.start),
+      this.repo.getHistoricalCollectionRateBp(targetBranch),
+      this.repo.getPaidRevenue(targetBranch, prev.start, prev.endExclusive),
+    ]);
+    // Tushum: o'sha oy boshidagi faol yozilishlar × yig'ilish koeffitsienti (1 oylik model).
+    const { expected } = calculateRevenueForecast({
+      activeValue: active.totalValue,
+      historicalCollectionRateBp: rateBp,
+      monthDistance: 1,
+    });
 
     return {
       period: prev.period,
-      predictedRevenue: '12500000',
-      actualRevenue: '12100000',
-      errorPercentage: 3.2,
+      predictedRevenue: expected.toString(),
+      actualRevenue: actualRevenue.toString(),
+      errorPercentage: errorPercent(expected, actualRevenue),
       predictedChurnCount,
       actualChurnCount,
     };
