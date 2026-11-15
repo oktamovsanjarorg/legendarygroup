@@ -23,9 +23,11 @@ import { QueuePage } from './routes/billing/queue.js';
 import { AttendancePage } from './routes/attendance/index.js';
 import { CalendarPage } from './routes/calendar/index.js';
 import { CoursesPage } from './routes/courses/index.js';
+import { ExpensesPage } from './routes/finance/expenses.js';
 import { GroupsPage } from './routes/groups/index.js';
 import { LandingPage } from './routes/landing/index.js';
 import { LeadsPage } from './routes/leads/index.js';
+import { LinkRequestsPage } from './routes/link-requests/index.js';
 import { SettingsPage } from './routes/settings/index.js';
 import { StaffPage } from './routes/staff/index.js';
 import { StudentCardPage } from './routes/students/card.js';
@@ -139,6 +141,16 @@ const settings = createRoute({
   path: '/settings',
   component: SettingsPage,
 });
+const linkRequests = createRoute({
+  getParentRoute: () => app,
+  path: '/link-requests',
+  component: LinkRequestsPage,
+});
+const expensesRoute = createRoute({
+  getParentRoute: () => app,
+  path: '/expenses',
+  component: ExpensesPage,
+});
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
 
 const routeTree = root.addChildren([
@@ -158,6 +170,8 @@ const routeTree = root.addChildren([
     sessions,
     wizard,
     payNew,
+    expensesRoute,
+    linkRequests,
     settings,
     attendanceGrid,
     debtors,

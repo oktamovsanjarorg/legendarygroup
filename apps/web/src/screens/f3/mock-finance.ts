@@ -8,8 +8,7 @@ export const MOCK_EXPENSES: readonly ExpenseItem[] = [
     category: 'rent',
     description: 'Bosh bino oylik ijara toʻlovi (noyabr)',
     amount: 8_000_000n,
-    method: 'bank',
-    receiptUrl: '/receipts/rent-nov.pdf',
+    hasReceipt: true,
     author: 'Sardor Aliyev (Direktor)',
   },
   {
@@ -18,8 +17,7 @@ export const MOCK_EXPENSES: readonly ExpenseItem[] = [
     category: 'marketing',
     description: 'Instagram va Telegram target reklamasi',
     amount: 2_500_000n,
-    method: 'card',
-    receiptUrl: '/receipts/target-nov.jpg',
+    hasReceipt: true,
     author: 'Malika Karimova (Admin)',
   },
   {
@@ -28,8 +26,7 @@ export const MOCK_EXPENSES: readonly ExpenseItem[] = [
     category: 'utilities',
     description: 'Elektr energiyasi va internet provayder',
     amount: 1_300_000n,
-    method: 'bank',
-    receiptUrl: '/receipts/utilities-nov.pdf',
+    hasReceipt: true,
     author: 'Malika Karimova (Admin)',
   },
   {
@@ -38,8 +35,7 @@ export const MOCK_EXPENSES: readonly ExpenseItem[] = [
     category: 'supplies',
     description: 'Ofis qogʻozi va oʻquv materiallari bosmasi',
     amount: 700_000n,
-    method: 'cash',
-    receiptUrl: '/receipts/supplies-nov.jpg',
+    hasReceipt: true,
     author: 'Aziz Rahimov (Ustoz)',
   },
 ];

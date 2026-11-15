@@ -164,6 +164,8 @@ describe('T-403: Xarajatlar va P&L (Expenses & P&L)', () => {
     const items = res.json<ExpenseItem[]>();
     expect(items.length).toBeGreaterThanOrEqual(1);
     expect(items[0]?.category).toBe('rent');
+    // W-23: "Kiritdi" — xodim ismi (UUID emas).
+    expect(items[0]?.createdByName).toBeTruthy();
 
     const resDate = await call('GET', 'expenses?from=2026-11-01&to=2026-11-08', directorToken);
     expect(resDate.statusCode).toBe(200);

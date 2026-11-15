@@ -5,10 +5,11 @@ import {
   type NewExpenseRow,
   payments,
   payrollRuns,
+  users,
 } from '@lg/db';
 import { tashkentMonthRange, type Clock } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, gte, lt, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lt, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 
@@ -68,6 +69,16 @@ export class ExpensesRepository {
       .orderBy(desc(expenses.date), desc(expenses.createdAt))
       .limit(filter.limit)
       .offset(filter.offset);
+  }
+
+  /** W-23 "Kiritdi" ustuni uchun xodim ismlari. */
+  async userNames(ids: readonly string[]): Promise<Map<string, string>> {
+    if (ids.length === 0) return new Map();
+    const rows = await this.db
+      .select({ id: users.id, name: users.fullName })
+      .from(users)
+      .where(inArray(users.id, [...ids]));
+    return new Map(rows.map((r) => [r.id, r.name]));
   }
 
   async findExpensesForPeriod(branchId: string, period: string): Promise<ExpenseRow[]> {
