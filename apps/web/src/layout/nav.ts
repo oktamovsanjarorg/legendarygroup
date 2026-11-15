@@ -1,10 +1,12 @@
 import type { Permission } from '@lg/contracts';
-import { webMessages as t } from '@lg/i18n';
+import { miniappMessages as m, webMessages as t } from '@lg/i18n';
 import {
   BadgePercent,
   BookOpen,
   CalendarDays,
   CircleAlert,
+  CheckCheck,
+  Banknote,
   Home,
   Inbox,
   MonitorSmartphone,
@@ -88,6 +90,14 @@ export const NAV: readonly NavItem[] = [
     label: t.discounts.title,
     icon: BadgePercent,
     permission: 'discount.grant',
+  },
+  { screen: 'W-16', to: '/cash', label: t.cash.title, icon: Banknote, permission: 'cash.close' },
+  {
+    screen: 'W-31',
+    to: '/approvals',
+    label: m.approvals.title,
+    icon: CheckCheck,
+    permission: 'approval.decide',
   },
   { screen: 'W-28', to: '/staff', label: t.menu.staff, icon: UserCog, permission: 'staff.manage' },
   { screen: 'W-32', to: '/sessions', label: t.nav.sessions, icon: MonitorSmartphone },

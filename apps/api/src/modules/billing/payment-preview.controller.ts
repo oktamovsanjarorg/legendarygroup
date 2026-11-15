@@ -1,6 +1,8 @@
 import { Controller, Get, Inject, Param, ParseUUIDPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
+  type CashDay,
+  CloseCashRequest,
   type DiscountListResponse,
   type PaymentPreview,
   PaymentPreviewQuery,
@@ -11,6 +13,7 @@ import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
 import { ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
+import { CashDayService } from './cash-day.service.js';
 import { DiscountListService } from './discount-list.service.js';
 import { PaymentPreviewService } from './payment-preview.service.js';
 import { PaymentViewService } from './payment-view.service.js';
@@ -23,7 +26,18 @@ export class PaymentPreviewController {
     @Inject(PaymentPreviewService) private readonly svc: PaymentPreviewService,
     @Inject(PaymentViewService) private readonly views: PaymentViewService,
     @Inject(DiscountListService) private readonly discounts: DiscountListService,
+    @Inject(CashDayService) private readonly cash: CashDayService,
   ) {}
+
+  @Get('cash/day')
+  @RequirePermission('cash.close')
+  @NoAudit('GET — yozuv yoʻq')
+  @ApiOperation({ summary: 'W-16: kun boʻyicha naqd toʻlovlar va yopilish holati (FR-PAY-10)' })
+  async cashDay(
+    @ZodQuery(CloseCashRequest.pick({ date: true })) query: { date: string },
+  ): Promise<CashDay> {
+    return this.cash.day(query.date);
+  }
 
   @Get('discounts')
   @RequirePermission('discount.grant')

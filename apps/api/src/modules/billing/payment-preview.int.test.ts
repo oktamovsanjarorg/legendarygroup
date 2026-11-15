@@ -1,4 +1,5 @@
 import type {
+  CashDay,
   DiscountListResponse,
   PaymentPreview,
   PaymentView,
@@ -142,5 +143,26 @@ describe('GET billing/discounts (W-18, BR-18)', () => {
     expect(res.items[0]?.by).toBeTruthy();
     expect((await call('GET', 'billing/discounts', 'teacher')).statusCode).toBe(403);
     expect((await call('GET', 'billing/discounts', 'guardian')).statusCode).toBe(403);
+  });
+});
+
+describe('GET billing/cash/day (W-16, FR-PAY-10)', () => {
+  it('bugungi naqd toʻlovlar (storno — manfiy) yigʻindisi = expectedCash; yopilgach — kim', async () => {
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent' }).format(
+      new Date(),
+    );
+    const day = (await call('GET', `billing/cash/day?date=${today}`, 'admin')).json<CashDay>();
+    const sum = day.payments.reduce((s, p) => s + BigInt(p.amount), 0n);
+    expect(day.payments.length).toBeGreaterThanOrEqual(2);
+    expect(day.payments.some((p) => BigInt(p.amount) < 0n)).toBe(true);
+    expect(sum.toString()).toBe(day.expectedCash);
+    expect(day.closed).toBeNull();
+    await call('POST', 'billing/cash/close', 'admin', {
+      date: today,
+      countedCash: day.expectedCash,
+    });
+    const after = (await call('GET', `billing/cash/day?date=${today}`, 'admin')).json<CashDay>();
+    expect(after.closed?.by).toBeTruthy();
+    expect((await call('GET', `billing/cash/day?date=${today}`, 'teacher')).statusCode).toBe(403);
   });
 });
