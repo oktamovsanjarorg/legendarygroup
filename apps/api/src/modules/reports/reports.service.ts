@@ -9,6 +9,7 @@ import type { Clock } from '@lg/domain';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
+import { PermissionsService } from '../rbac/index.js';
 import { ReportsExporterService } from './reports-exporter.service.js';
 import { ReportsRepository } from './reports.repository.js';
 
@@ -32,7 +33,18 @@ export class ReportsService {
     @Inject(ReportsRepository) private readonly repo: ReportsRepository,
     @Inject(ReportsExporterService) private readonly exporter: ReportsExporterService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(PermissionsService) private readonly permissions: PermissionsService,
   ) {}
+
+  /**
+   * FR-FIN-3: moliyaviy hisobotlar (daromad, qarzdorlik) eksporti — endpoint'lari bilan bir xil
+   * `finance.view`. Eksport marshruti umumiy (`stats.operational`), shuning uchun turi bo'yicha shu yerda.
+   */
+  private async assertCanExport(actor: RequestUser, type: ReportType): Promise<void> {
+    if (type !== 'revenue' && type !== 'debt-aging') return;
+    const perms = await this.permissions.forUser(actor.id, actor.role, actor.pv);
+    if (!perms.has('finance.view')) throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+  }
 
   private resolveBranchId(_actor: RequestUser, branchId?: string): string {
     return branchId ?? DEFAULT_BRANCH_ID;
@@ -188,6 +200,7 @@ export class ReportsService {
     actor: RequestUser,
     branchId?: string,
   ): Promise<{ buffer: Buffer; filename: string; mimeType: string }> {
+    await this.assertCanExport(actor, reportType);
     let data: unknown;
     if (reportType === 'revenue') {
       data = await this.getRevenueReport(actor, { branchId });
