@@ -160,6 +160,16 @@ export class PayrollService {
     return detail;
   }
 
+  /** W-25: davr hisobi (generatsiya qilinmagan bo'lsa — `null`, yozuvsiz). */
+  async findRunByPeriod(
+    actor: RequestUser,
+    branchId: string,
+    period: string,
+  ): Promise<PayrollRunDetail | null> {
+    const run = await this.repo.findPayrollRunByPeriod(branchId, period);
+    return run ? this.getPayrollRun(actor, run.id) : null;
+  }
+
   /** Ustozning o'z oyliklari ro'yxati (payroll.view_own). */
   async listOwnPayroll(actor: RequestUser): Promise<OwnPayrollMonth[]> {
     const rows = await this.repo.findTeacherRuns(actor.id);

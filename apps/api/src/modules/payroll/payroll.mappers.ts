@@ -38,6 +38,9 @@ export function mapItemRow(row: PayrollItemRow & { teacherName?: string }): Payr
   };
 }
 
+const EARNED_KINDS = ['fixed', 'percent', 'per_lesson'] as const;
+const EXTRA_KINDS = ['bonus', 'penalty', 'adjustment'] as const;
+
 export function buildPayrollRunDetail(
   run: PayrollRunRow,
   items: Array<PayrollItemRow & { teacherName: string }>,
@@ -56,10 +59,15 @@ export function buildPayrollRunDetail(
   for (const [tId, val] of teacherMap.entries()) {
     // Manfiy bo'lishi mumkin (avans > oylik) — yashirilmaydi, tasdiqlash bloklanadi.
     const net = val.items.reduce((sum, i) => sum + BigInt(i.amount), 0n);
+    const sumOf = (kinds: readonly string[]) =>
+      val.items.filter((i) => kinds.includes(i.kind)).reduce((s, i) => s + BigInt(i.amount), 0n);
     summaries.push({
       teacherId: tId,
       teacherName: val.name,
       totalNet: net.toString(),
+      earned: sumOf(EARNED_KINDS).toString(),
+      extras: sumOf(EXTRA_KINDS).toString(),
+      advances: (-sumOf(['advance'])).toString(),
       items: val.items,
     });
   }

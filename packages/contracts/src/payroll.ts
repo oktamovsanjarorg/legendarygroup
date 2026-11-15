@@ -80,6 +80,9 @@ export const GeneratePayrollRunRequest = z.object({
 });
 export type GeneratePayrollRunRequest = z.infer<typeof GeneratePayrollRunRequest>;
 
+export const PayrollRunByPeriodQuery = z.object({ period: z.string().regex(/^\d{4}-\d{2}$/) });
+export type PayrollRunByPeriodQuery = z.infer<typeof PayrollRunByPeriodQuery>;
+
 export const PayrollItemSchema = z.object({
   id: z.string().uuid(),
   runId: z.string().uuid(),
@@ -97,6 +100,12 @@ export const TeacherPayrollSummarySchema = z.object({
   teacherId: z.string().uuid(),
   teacherName: z.string(),
   totalNet: z.string(), // to'lanadigan jami summa
+  /** W-25 ustunlari (server yig'indilari): ishlangan (fiks/foiz/dars) */
+  earned: z.string(),
+  /** bonus + jarima + tuzatish (ishorali) */
+  extras: z.string(),
+  /** ushlab qolingan avanslar (musbat) */
+  advances: z.string(),
   items: z.array(PayrollItemSchema),
 });
 export type TeacherPayrollSummary = z.infer<typeof TeacherPayrollSummarySchema>;

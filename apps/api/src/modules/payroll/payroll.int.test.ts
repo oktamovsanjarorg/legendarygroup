@@ -244,6 +244,8 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
 
     // Net: 5 000 000 + 150 000 - 1 000 000 = 4 150 000
     expect(t1?.totalNet).toBe('4150000');
+    // W-25 ustunlari — server yig'indilari.
+    expect(t1).toMatchObject({ earned: '5150000', extras: '0', advances: '1000000' });
 
     const t2 = run.teachers.find((t) => t.teacherId === teacher2UserId);
     expect(t2).toBeDefined();
