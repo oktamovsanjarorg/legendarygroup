@@ -3,6 +3,7 @@ import {
   DEFAULT_BRANCH_ID,
   NOTIFICATION_TYPES,
   type NotificationPreference,
+  type NotificationStatus,
   type NotificationType,
   type UndeliveredNotificationItem,
 } from '@lg/contracts';
@@ -38,7 +39,10 @@ export class NotificationsService {
     @Inject(DB_TOKEN) private readonly db: Database,
   ) {}
 
-  /** Bildirishnoma yuborish (AC: T-109 notify API) */
+  /**
+   * Bildirishnoma yuborish (AC: T-109 notify API). Qaytaradi: bildirishnoma ID'si (BullMQ job
+   * ID'si emas); turi o'chirilgan yoki dedupe — `null`.
+   */
   async notify(params: NotifyParams): Promise<string | null> {
     const enabled = await this.isTypeEnabled(params.userId, params.type);
     if (!enabled) return null;
@@ -68,7 +72,7 @@ export class NotificationsService {
     if (!notif) return null;
 
     if (user.telegramId) {
-      const jobId = await this.telegramOutbox.enqueue(
+      await this.telegramOutbox.enqueue(
         {
           method: 'sendMessage',
           chatId: recipient,
@@ -78,7 +82,7 @@ export class NotificationsService {
         { dedupeKey: params.dedupeKey },
       );
       await this.repo.updateStatus(notif.id, 'queued', { sentAt: null });
-      return jobId;
+      return notif.id;
     }
 
     // Telegram bog'lanmagan — yuborib bo'lmaydi: W-22 da ko'rinadi, bog'langach qayta yuboriladi.
@@ -143,5 +147,13 @@ export class NotificationsService {
       attempts: r.attempts,
       createdAt: r.createdAt,
     }));
+  }
+
+  /** Yetkazish holati (e'lon statistikasi uchun — boshqa modul jadvalga to'g'ridan-to'g'ri kirmaydi). */
+  async deliveryOf(
+    ids: string[],
+  ): Promise<Map<string, { status: NotificationStatus; failedReason: string | null }>> {
+    const rows = await this.repo.findStatuses(ids);
+    return new Map(rows.map((r) => [r.id, { status: r.status, failedReason: r.failedReason }]));
   }
 }

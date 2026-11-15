@@ -146,12 +146,19 @@ export class AnnouncementsService {
           },
         });
 
+        // Telegram bog'lanmagan — notify xabarni darhol `failed` qiladi (NO_TELEGRAM).
+        const d = notifId
+          ? (await this.notificationsService.deliveryOf([notifId])).get(notifId)
+          : undefined;
+        const failedNow = d?.status === 'failed';
         await this.repo.updateRecipientDelivery(announcementId, r.userId, {
           notificationId: notifId,
-          status: 'sent',
-          sentAt: this.clock.now(),
+          status: failedNow ? 'failed' : 'sent',
+          sentAt: failedNow ? null : this.clock.now(),
+          failedReason: failedNow ? d.failedReason : null,
         });
-        sent += 1;
+        if (failedNow) failed += 1;
+        else sent += 1;
       } catch (err) {
         await this.repo.updateRecipientDelivery(announcementId, r.userId, {
           status: 'failed',
@@ -249,7 +256,17 @@ export class AnnouncementsService {
   /** E'lon yetkazilish statistikasi (FR-RPT-5) */
   async getStats(actor: RequestUser, id: string): Promise<AnnouncementStats> {
     const ann = await this.getById(actor, id);
-    const recipients = await this.repo.findRecipients(id);
+    const stored = await this.repo.findRecipients(id);
+    // Navbatga qo'yilgandan keyin Telegram bloklagan/yiqilgan bo'lishi mumkin — haqiqiy holat.
+    const live = await this.notificationsService.deliveryOf(
+      stored.flatMap((r) => (r.notificationId ? [r.notificationId] : [])),
+    );
+    const recipients = stored.map((r) => {
+      const d = r.notificationId ? live.get(r.notificationId) : undefined;
+      return d && (d.status === 'blocked' || d.status === 'failed')
+        ? { ...r, status: d.status, failedReason: d.failedReason }
+        : r;
+    });
 
     const queuedCount = recipients.filter((r) => r.status === 'queued').length;
     const sentCount = recipients.filter((r) => r.status === 'sent').length;
