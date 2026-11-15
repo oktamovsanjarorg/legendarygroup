@@ -1,3 +1,5 @@
+import { NotificationsModule } from '../notifications/index.js';
+import { TestResultsNotifier } from './test-results-notifier.js';
 import { Module } from '@nestjs/common';
 import { AuditModule } from '../../common/audit/audit.module.js';
 import { DbModule } from '../../common/db/db.module.js';
@@ -10,9 +12,9 @@ import { TestsRepository } from './tests.repository.js';
 import { TestsService } from './tests.service.js';
 
 @Module({
-  imports: [DbModule, AuditModule, OrgModule, StudentsModule, OutboxModule],
+  imports: [DbModule, AuditModule, OrgModule, StudentsModule, OutboxModule, NotificationsModule],
   controllers: [TestsController],
-  providers: [TestsRepository, ExcelTestService, TestsService],
+  providers: [TestsRepository, ExcelTestService, TestsService, TestResultsNotifier],
   exports: [TestsService, TestsRepository, ExcelTestService],
 })
 export class TestsModule {}
