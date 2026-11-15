@@ -10,6 +10,7 @@ import {
   Banknote,
   Home,
   Inbox,
+  Link2,
   MonitorSmartphone,
   Settings,
   Target,
@@ -42,6 +43,13 @@ export const NAV: readonly NavItem[] = [
     label: t.menu.students,
     icon: Users,
     permission: 'student.view',
+  },
+  {
+    screen: 'W-33',
+    to: '/link-requests',
+    label: t.menu.linkRequests,
+    icon: Link2,
+    permission: 'student.manage',
   },
   { screen: 'W-08', to: '/leads', label: t.menu.leads, icon: Target, permission: 'lead.manage' },
   {
