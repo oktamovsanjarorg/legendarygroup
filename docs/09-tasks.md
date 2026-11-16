@@ -303,6 +303,21 @@
 - **Sabab (2026-11-16):** egasi: "login parolni kiritdim — Telegram'dan tasdiqlash so'rovi o'zi kelsin". Direktor Authenticator kodida adashgan edi.
 - **Bajarildi (2026-11-16):** `TelegramChallenges` (umumiy), `AuthService.mfaStep` → `telegramChallengeId`; web `useTelegramPoll` + `TelegramHint`; testlar: API 4 integratsiya, web 3. Shu bilan birga "Telegram orqali kirish" tuzatildi — avval bot xabari umuman yuborilmasdi (`TelegramLoginNotifier`, bot `staff-login.ts`).
 
+### ⬜ T-123 · Panel ichida «Yordam» boʻlimi va sahifalarda «?»
+
+- **Bog'liq:** T-506 · **Bajaruvchi:** agy (A-6, `docs/13-antigravity.md`), review — Claude
+- **AC:** W-36 `/help` — `docs/manuals/director.md` mazmuni qidiruv bilan, ruxsatga qarab boʻlimlar; `PageHeader help` → `/help#<id>`.
+
+### ⬜ T-124 · Web: birinchi kirishda panel bilan tanishtiruv
+
+- **Bog'liq:** T-123 · **Bajaruvchi:** agy (A-7), review — Claude
+- **AC:** birinchi kirishda menyu boʻylab 7–8 qadamli tur (ruxsatga qarab), oʻtkazib yuborish, «Yordam»dan qayta; holat brauzerda (server holati yoʻq — ataylab).
+
+### ⬜ T-125 · Mini App: birinchi ochilishda rolga qarab 3 ta kartochka
+
+- **Bog'liq:** T-114, T-116, T-120 · **Bajaruvchi:** agy (A-8), review — Claude
+- **AC:** C-05; Ustoz / Ota-ona / Direktor-Admin uchun 3 kartochka, faqat MainButton/BackButton; koʻrilgani Telegram CloudStorage'da.
+
 ### 🟨 T-115 · Tizim sozlamalari
 
 - **Bog'liq:** T-008 · **Talablar:** FR-SYS-1

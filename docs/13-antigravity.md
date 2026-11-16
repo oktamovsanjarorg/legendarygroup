@@ -225,6 +225,93 @@ e'lon qiladi; asosiy ustoz guruhga e'lon yuboradi; yordamchi faqat ko'radi; CI y
 
 ---
 
+## A-6 · T-123 — panel ichida «Yordam» boʻlimi va har sahifada «?»
+
+**Worktree:** `git worktree add ../legendarygroup-agy-help -b feat/t-123-help origin/main`.
+**Manba matn:** `docs/manuals/director.md` (Claude yozgan, ekrandagi tugma nomlari bilan) — mazmuni
+oʻzgarmaydi, faqat panelga koʻchiriladi.
+
+1. **Matnlar:** `packages/i18n/src/web-help.ts` (yangi fayl, `webMessages`ga ulanadi). Tuzilma:
+   `sections: { id, title, items: { id, q, steps: string[], note?: string }[] }[]` — 11 boʻlim
+   (`kirish`, `xodimlar`, `kurslar`, `guruhlar`, `oquvchilar`, `tolovlar`, `sorovlar`, `oylik`,
+   `hisobotlar`, `xabarlar`, `sozlamalar`). Tugma nomlari `«…»` ichida, `ʻ`/`ʼ` toʻgʻri.
+   Jadvallar (kirish muammolari, hisobotlar) — `items` sifatida (savol → javob).
+2. **Ekran W-36 «Yordam»** — `apps/web/src/routes/help/index.tsx` (+ `help.test.tsx`), marshrut
+   `/help` (ilova ichida, ruxsatsiz — har kirgan xodim). Andoza: `routes/settings/index.tsx`
+   (PageHeader + boʻlimlar). Yuqorida qidiruv (`SearchField`, `@lg/ui-web`) — `normalize` bilan
+   (`@lg/i18n` — `oʻ`/`o'`/`o‘` bir xil); boʻlim chiplari; savol kartalari. Hash `#<item id>` —
+   oʻsha savolga scroll (`location.hash`). Admin'ga faqat Admin ruxsatlariga mos boʻlimlar:
+   har boʻlimga `permission?: Permission` (nav.ts dagi bilan bir xil) — `useAuth().permissions` bilan
+   filtr.
+3. **Menyu:** `layout/nav.ts` oxiriga (`sessions` dan oldin) `{ screen: 'W-36', to: '/help',
+label: t.menu.help, icon: LifeBuoy }`. `nav.test.ts` yangilanadi.
+4. **«?» har sahifada:** `PageHeader`ga yangi ixtiyoriy prop `help?: string` (`@lg/ui-web`,
+   `page-header.tsx` + story + test) — sarlavha yonida kichik ikonka-havola `aria-label={t.help.open}`,
+   `/help#<id>` ga. Ulash: Toʻlov kiritish, Chek navbati, Qarzdorlar, Chegirmalar, Kassa, Xodimlar,
+   Guruhlar, Oʻquvchilar, Oyliklar hisobi, Sozlamalar, Tasdiqlash soʻrovlari.
+5. **5 holat:** qidiruvda topilmadi — `EmptyState` (i18n). Yuklash/xato yoʻq (statik).
+6. **Testlar:** qidiruv `o'qituvchi`/`oʻqituvchi` bir xil topadi; Admin'da `oylik` boʻlimi yoʻq;
+   `/help#kassa-yopish` — oʻsha karta; `PageHeader help` havolasi.
+
+**Qabul mezoni:** menyudan «Yordam» ochiladi, qidiruv ishlaydi, Kassa sahifasidagi «?» toʻgʻridan-toʻgʻri
+«Kassani qanday yopaman?» ga olib boradi; CI yashil. Bitta commit ≤ 400 qator boʻlmasa — 2 ta
+(matnlar; ekran + PageHeader).
+
+---
+
+## A-7 · T-124 — web: birinchi kirishda panel bilan tanishtiruv (tur)
+
+**Bogʻliq:** A-6 (matnlar va `/help`). **Worktree:** `feat/t-124-tour` (A-6 branchidan).
+
+1. **Komponent `Tour`** — `packages/ui-web/src/tour.tsx` (+ story, test). Props:
+   `steps: { target: string /* CSS selector */; title: string; body: string }[]`, `open`, `onClose`.
+   Maqsad elementni yoritadi (ustida qolgan qism xiralashadi), yonida kartochka: sarlavha, 1–2 gap,
+   `«Orqaga»`, `«Keyingisi»` / oxirida `«Tushunarli»`, `«Oʻtkazib yuborish»`, `{i} / {n}`.
+   Klaviatura: `Esc` — yopish, `→`/`←`. Fokus kartochkada (`role="dialog"`, `aria-modal`).
+   Target topilmasa — oʻsha qadam oʻtkazib yuboriladi. `prefers-reduced-motion` — animatsiyasiz.
+   Telefon kengligida — kartochka pastda, toʻliq kenglikda. Kutubxona qoʻshilmaydi.
+2. **Qadamlar** (`packages/i18n/src/web-help.ts` → `tour`): Bosh sahifa → Oʻquvchilar → Guruhlar →
+   Toʻlov kiritish (`Alt+P`) → Chek navbati → Tasdiqlash soʻrovlari (faqat Direktor) → Xodimlar →
+   «Yordam» (oxirgi: «Savol boʻlsa — shu yerda»). Har qadam menyudagi `nav` elementiga
+   (`AppShell` nav havolalariga `data-tour="<to>"` atributi qoʻshiladi). Ruxsatsiz boʻlim — qadam yoʻq.
+3. **Qachon ochiladi:** birinchi marta panelga kirganda (Bosh sahifa). Koʻrilgani —
+   `localStorage['lg_tour_v1:<userId>']` (try/catch; bloklangan boʻlsa — har safar ochilmaydi,
+   faqat shu sessiyada bir marta). Yangi qurilmada qayta chiqishi — qabul qilingan (server holati yoʻq).
+   Qayta ochish — «Yordam» sahifasida `«Tanishtiruvni qayta koʻrish»` tugmasi.
+4. **Testlar:** birinchi kirishda ochiladi, «Oʻtkazib yuborish»dan keyin qayta ochilmaydi; Admin'da
+   «Tasdiqlash soʻrovlari» qadami yoʻq; `Esc` yopadi; target yoʻq qadam oʻtkaziladi.
+
+**Qabul mezoni:** yangi Direktor panelga kirganda tur oʻzi boshlanadi, 7–8 qadamda menyuni tanishtiradi,
+qayta kirganda chiqmaydi, «Yordam»dan qayta ochiladi; CI yashil.
+
+---
+
+## A-8 · T-125 — Mini App: birinchi ochilishda 3 ta kartochka (rolga qarab)
+
+**Worktree:** `feat/t-125-miniapp-intro` (`origin/main`dan).
+
+1. **Ekran C-05 «Tanishuv»** — `apps/miniapp/src/screens/common/intro.tsx` (+ story, test). 3 ta
+   kartochka (rasm oʻrniga `lucide` ikonka, sarlavha, 1–2 gap), pastda nuqtalar; tugma — **faqat
+   `MainButton`** (`useMainButton`, CLAUDE.md: Mini App'da native boshqaruv): «Keyingisi» →
+   oxirida «Boshlash». `BackButton` — oldingi kartochka. Andoza: `screens/common/feedback.tsx`.
+2. **Matnlar** (`packages/i18n/src/miniapp.ts` → `intro`):
+   - **Ustoz:** «Bugun» — darslaringiz; davomat bir tegishda (kelmagan/kech — ota-onaga xabar ketadi);
+     baho va izoh — oʻquvchi kartasida; jadval va oylik — pastki menyuda.
+   - **Ota-ona:** farzandingiz davomati va baholari — «Asosiy»; toʻlov: karta raqamiga oʻtkazing,
+     chek rasmini «Toʻlovlar»dan yuboring; savol — «Koʻproq» → «Murojaat».
+   - **Direktor/Admin:** «Bugun» — tushum va davomat; «Navbat» — ota-onalar cheklari; (Direktor)
+     «Soʻrovlar»; katta ishlar — «Boshqaruv panelini ochish».
+3. **Qachon:** rol tanlangandan keyin, shu rolda birinchi marta. Koʻrilgani — Telegram
+   `CloudStorage` (`lg_intro_v1_<role>`; `useWebApp().CloudStorage`, andoza: `session/role-store.ts`)
+   — boshqa telefonda ham chiqmaydi. CloudStorage xato bersa — koʻrsatiladi, lekin ilova ishlaydi.
+4. **Testlar** (`createFakeWebApp`): birinchi ochilishda chiqadi, «Boshlash»dan keyin bosh sahifa va
+   storage'ga yoziladi; ikkinchi ochilishda chiqmaydi; rol almashtirilsa — yangi rol uchun bir marta.
+
+**Qabul mezoni:** yangi ustoz/ota-ona Mini App'ni birinchi ochganda 3 kartochka koʻradi, keyin chiqmaydi;
+CI yashil.
+
+---
+
 ## Keyinroq (hozir BERILMAYDI — bog'liqliklari tayyor emas)
 
 | Vazifa                            | Nima uchun hozir emas                                          |
