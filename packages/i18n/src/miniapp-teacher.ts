@@ -105,6 +105,8 @@ export const teacherMessages = {
     atomicNote:
       'Import toʻliq bajariladi yoki umuman bajarilmaydi. Qayta import natijalarni yangilaydi.',
     template: 'Namuna shablonni yuklab olish',
+    fileTooLarge: 'Fayl hajmi 5 MB dan oshmasin.',
+    chooseFile: 'Excel fayl tanlash (.xlsx)',
   },
   schedule: {
     title: 'Jadval',
@@ -115,6 +117,7 @@ export const teacherMessages = {
   announce: {
     title: 'Eʼlon yuborish',
     to: 'Kimga: {group} ota-onalari ({n})',
+    groupTitle: '{group} guruhi eʼloni',
     text: 'Xabar matni',
     placeholder: 'Masalan: Ertaga dars 16:00 da boshlanadi.',
     attach: 'Fayl yoki rasm qoʻshish',
