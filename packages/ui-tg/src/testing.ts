@@ -55,6 +55,8 @@ export interface FakeWebApp extends WebApp {
   SettingsButton: FakeSimpleButton;
   closingConfirmation: boolean;
   closed: boolean;
+  /** `openLink` bilan ochilgan havolalar. */
+  links: string[];
   haptics: string[];
   storage: Map<string, string>;
   colors: { header?: string; background?: string; bottomBar?: string };
@@ -98,6 +100,7 @@ export function createFakeWebApp(o: FakeOptions = {}): FakeWebApp {
     ready: () => undefined,
     expand: () => undefined,
     close: () => void (wa.closed = true),
+    openLink: (url) => void wa.links.push(url),
     MainButton: bottomButton(),
     SecondaryButton: bottomButton(),
     BackButton: simpleButton(),
@@ -121,6 +124,7 @@ export function createFakeWebApp(o: FakeOptions = {}): FakeWebApp {
     emit: (e) => listeners.get(e)?.forEach((cb) => cb()),
     closingConfirmation: false,
     closed: false,
+    links: [],
     haptics: [],
     storage: new Map(),
     colors: {},

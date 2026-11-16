@@ -10,6 +10,7 @@ export const staffMessages = {
     approvals: 'Tasdiqlash soʻrovlari',
     absentToday: 'Bugun kelmaganlar',
     vsYesterday: 'kecha: {v}',
+    openPanel: 'Boshqaruv panelini ochish',
   },
   review: {
     title: 'Chek navbati',

@@ -57,6 +57,8 @@ export interface WebApp {
   ready(): void;
   expand(): void;
   close(): void;
+  /** Tashqi havola — tizim brauzerida (Mini App ochiq qoladi). */
+  openLink(url: string): void;
   MainButton: BottomButton;
   SecondaryButton: BottomButton;
   BackButton: SimpleButton;

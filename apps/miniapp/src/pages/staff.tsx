@@ -1,4 +1,6 @@
+import { miniappMessages as t } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
+import { useMainButton, useWebApp } from '@lg/ui-tg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { QueryView } from '../data/query-view.js';
@@ -6,6 +8,7 @@ import {
   useApproval,
   useApprovals,
   useDecideApproval,
+  usePanelHandoff,
   useReviewDecision,
   useReviewQueue,
   useStaffKpi,
@@ -31,23 +34,42 @@ const KPI_ROUTES: Partial<Record<KpiTarget, '/staff/queue' | '/staff/approvals'>
   approvals: '/staff/approvals',
 };
 
+/**
+ * MS-01 asosiy tugmasi (T-121): web panel tizim brauzerida, parol/2FA'siz — kalit bir martalik.
+ * Xodim rejimi faqat Director/Admin'da ochiladi, ya'ni web paneli bor rollarda.
+ */
+function useOpenPanel() {
+  const wa = useWebApp();
+  const handoff = usePanelHandoff();
+  useMainButton({
+    text: t.dashboard.openPanel,
+    loading: handoff.isPending,
+    onClick: () => handoff.mutate(undefined, { onSuccess: (r) => wa.openLink(r.url) }),
+  });
+  return handoff;
+}
+
 /** MS-01 xodim bosh sahifasi (T-120). */
 export function StaffDashboardPage() {
   const me = useMe();
   const navigate = useNavigate();
   const query = useStaffKpi(me.activeRole === 'director');
+  const handoff = useOpenPanel();
   return (
-    <QueryView query={query}>
-      {(k) => (
-        <StaffDashboardView
-          k={k}
-          onOpen={(target) => {
-            const to = KPI_ROUTES[target];
-            if (to) void navigate({ to });
-          }}
-        />
-      )}
-    </QueryView>
+    <>
+      {handoff.isError && <Alert error={handoff.error} />}
+      <QueryView query={query}>
+        {(k) => (
+          <StaffDashboardView
+            k={k}
+            onOpen={(target) => {
+              const to = KPI_ROUTES[target];
+              if (to) void navigate({ to });
+            }}
+          />
+        )}
+      </QueryView>
+    </>
   );
 }
 
