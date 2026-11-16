@@ -6,6 +6,7 @@ import { useAuth } from '../auth/auth.js';
 import { AppShell } from './app-shell.js';
 import { visibleNav } from './nav.js';
 import { useAppLinks } from './app-links.js';
+import { AppTour } from './app-tour.js';
 
 function useOnline(): boolean {
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -55,19 +56,21 @@ export function AppLayout() {
   // Ichki sahifa (masalan `/students/<id>`) ham o'z bo'limini belgilaydi.
   const nav = visibleNav(permissions);
   return (
-    <AppShell
-      nav={nav}
-      active={nav.find((i) => path === i.to || path.startsWith(`${i.to}/`))?.to ?? path}
-      user={{ name: me.fullName, role: t.roles[me.activeRole] }}
-      offline={!online}
-      onLogout={() => void signOut()}
-      renderLink={(item, className, children) => (
-        <Link key={item.screen} to={item.to} className={className}>
-          {children}
-        </Link>
-      )}
-    >
-      <Outlet />
-    </AppShell>
+    <AppTour userId={me.id}>
+      <AppShell
+        nav={nav}
+        active={nav.find((i) => path === i.to || path.startsWith(`${i.to}/`))?.to ?? path}
+        user={{ name: me.fullName, role: t.roles[me.activeRole] }}
+        offline={!online}
+        onLogout={() => void signOut()}
+        renderLink={(item, className, children) => (
+          <Link key={item.screen} to={item.to} className={className} data-tour={item.to}>
+            {children}
+          </Link>
+        )}
+      >
+        <Outlet />
+      </AppShell>
+    </AppTour>
   );
 }

@@ -259,7 +259,7 @@ label: t.menu.help, icon: LifeBuoy }`. `nav.test.ts` yangilanadi.
 
 ---
 
-## A-7 · T-124 — web: birinchi kirishda panel bilan tanishtiruv (tur)
+## A-7 · T-124 — web: birinchi kirishda panel bilan tanishtiruv (tur) — ✅ Claude bajardi (berilmaydi)
 
 **Bogʻliq:** A-6 (matnlar va `/help`). **Worktree:** `feat/t-124-tour` (A-6 branchidan).
 

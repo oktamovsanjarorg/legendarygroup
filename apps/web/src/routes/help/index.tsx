@@ -1,8 +1,9 @@
 import { normalizeUz, webMessages as t } from '@lg/i18n';
-import { Card, cn, EmptyState, PageHeader, SearchField } from '@lg/ui-web';
+import { Button, Card, cn, EmptyState, PageHeader, SearchField } from '@lg/ui-web';
 import { useLocation } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../auth/auth.js';
+import { useStartTour } from '../../layout/app-tour.js';
 
 interface ItemProps {
   id: string;
@@ -139,12 +140,23 @@ function visibleHelp(permissions: ReadonlySet<string>): SectionProps[] {
     .filter((s) => s.items.length > 0);
 }
 
+/** Tanlangan boʻlim va qidiruv (`oʻ`/`o'` normalizatsiya) boʻyicha. */
+function filterHelp(sections: readonly SectionProps[], selected: string, query: string) {
+  const q = normalizeUz(query);
+  const pool = selected === 'all' ? sections : sections.filter((s) => s.id === selected);
+  if (!q) return pool;
+  return pool.map((sec) => filterSection(sec, q)).filter((sec) => sec.items.length > 0);
+}
+
 /** W-36 «Yordam» koʻrinishi: qidiruv, boʻlim chiplari va savol kartalari. */
 export function HelpView({
   permissions,
   hash = '',
+  onReplayTour,
 }: {
   permissions: ReadonlySet<string>;
+  /** «Tanishtiruvni qayta koʻrish» (T-124). */
+  onReplayTour?: () => void;
   /** Router'dagi `#` qismi (savol id), `#`siz. */
   hash?: string;
 }) {
@@ -158,21 +170,25 @@ export function HelpView({
     setQuery('');
   });
 
-  const filtered = useMemo(() => {
-    const q = normalizeUz(query);
-    const pool =
-      selectedSection === 'all'
-        ? visibleSections
-        : visibleSections.filter((s) => s.id === selectedSection);
-    if (!q) return pool;
-    return pool.map((sec) => filterSection(sec, q)).filter((sec) => sec.items.length > 0);
-  }, [visibleSections, selectedSection, query]);
-
-  const total = useMemo(() => filtered.reduce((sum, s) => sum + s.items.length, 0), [filtered]);
+  const filtered = useMemo(
+    () => filterHelp(visibleSections, selectedSection, query),
+    [visibleSections, selectedSection, query],
+  );
+  const total = filtered.reduce((sum, s) => sum + s.items.length, 0);
 
   return (
     <>
-      <PageHeader title={t.help.title} description={t.help.description} />
+      <PageHeader
+        title={t.help.title}
+        description={t.help.description}
+        actions={
+          onReplayTour && (
+            <Button variant="secondary" onClick={onReplayTour}>
+              {t.help.replayTour}
+            </Button>
+          )
+        }
+      />
       <SearchField
         value={query}
         placeholder={t.help.searchPlaceholder}
@@ -202,5 +218,6 @@ export function HelpView({
 export function HelpPage() {
   const { permissions } = useAuth();
   const hash = useLocation({ select: (l) => l.hash });
-  return <HelpView permissions={permissions} hash={hash} />;
+  const startTour = useStartTour();
+  return <HelpView permissions={permissions} hash={hash} onReplayTour={startTour} />;
 }

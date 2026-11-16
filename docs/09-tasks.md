@@ -309,10 +309,11 @@
 - **AC:** W-36 `/help` — `docs/manuals/director.md` mazmuni qidiruv bilan, ruxsatga qarab boʻlimlar; `PageHeader help` → `/help#<id>`.
 - **Bajarildi (2026-11-16):** agy (0608376, a972b09); review — hash chip tanlovini qaytarardi, «?» sahifani qayta yuklardi (`useAppLinks`), ruxsat savol darajasiga, Admin uchun «sizga» → «Direktorga», shartnoma ogohlantirishi qaytarildi.
 
-### ⬜ T-124 · Web: birinchi kirishda panel bilan tanishtiruv
+### ✅ T-124 · Web: birinchi kirishda panel bilan tanishtiruv
 
-- **Bog'liq:** T-123 · **Bajaruvchi:** agy (A-7), review — Claude
+- **Bog'liq:** T-123 · **Bajaruvchi:** Claude (egasi kutayotgani uchun agy'ga berilmadi)
 - **AC:** birinchi kirishda menyu boʻylab 7–8 qadamli tur (ruxsatga qarab), oʻtkazib yuborish, «Yordam»dan qayta; holat brauzerda (server holati yoʻq — ataylab).
+- **Bajarildi (2026-11-16):** `@lg/ui-web` `Tour` (kutubxonasiz: `box-shadow` yoritish, `Esc`/strelkalar, fokus, tor ekranda pastda) + story; `layout/app-tour.tsx` (birinchi kirishda, `localStorage lg_tour_v1:<userId>`), menyu `data-tour`, «Yordam» → «Tanishtiruvni qayta koʻrish». Testlar: ui-web 3, web 3.
 
 ### ⬜ T-125 · Mini App: birinchi ochilishda rolga qarab 3 ta kartochka
 

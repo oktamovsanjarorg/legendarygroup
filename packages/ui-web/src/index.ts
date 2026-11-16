@@ -12,4 +12,5 @@ export * from './search-field.js';
 export * from './select.js';
 export * from './states.js';
 export * from './tabs.js';
+export * from './tour.js';
 export * from './feedback-dialog.js';
