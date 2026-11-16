@@ -79,6 +79,16 @@ export const teacherMessages = {
     emptyHint: 'Test yarating va natijalarni Excel orqali yuklang.',
     emptyHintAssistant: 'Testlarni asosiy ustoz yaratadi.',
   },
+  testCreate: {
+    title: 'Yangi test',
+    name: 'Test nomi',
+    namePlaceholder: 'Masalan: Mock IELTS — Reading',
+    date: 'Sana',
+    maxScore: 'Maks. ball',
+    maxScoreHint: '1 dan {max} gacha butun son',
+    maxScoreError: 'Maks. ball 1 dan {max} gacha boʻlsin',
+    submit: 'Test yaratish',
+  },
   testImport: {
     title: 'Natijalarni import qilish',
     mapping: 'Ustunlar',

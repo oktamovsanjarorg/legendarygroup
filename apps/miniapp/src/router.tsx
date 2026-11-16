@@ -36,6 +36,7 @@ import {
   TeacherSchedulePage,
 } from './pages/teacher.js';
 import { TeacherAnnouncePage } from './pages/teacher-announce.js';
+import { TeacherTestCreatePage } from './pages/teacher-test-create.js';
 import { TeacherTestImportPage } from './pages/teacher-test-import.js';
 import { TeacherTestsPage } from './pages/teacher-tests.js';
 
@@ -77,6 +78,11 @@ const teacherTests = createRoute({
   getParentRoute: () => root,
   path: '/group/$id/tests',
   component: TeacherTestsPage,
+});
+const teacherTestCreate = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$id/tests/new',
+  component: TeacherTestCreatePage,
 });
 const teacherTestImport = createRoute({
   getParentRoute: () => root,
@@ -193,6 +199,7 @@ const routeTree = root.addChildren([
   teacherLesson,
   teacherGroup,
   teacherTests,
+  teacherTestCreate,
   teacherTestImport,
   teacherAnnounce,
   teacherStudent,

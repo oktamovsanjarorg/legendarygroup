@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Segmented, TextArea } from './inputs.js';
+import { Segmented, TextArea, TextField } from './inputs.js';
 
 afterEach(cleanup);
 
@@ -44,5 +44,18 @@ describe('TextArea (11-ux §4.8)', () => {
     const textarea = screen.getByLabelText('Izoh');
     expect(textarea.getAttribute('aria-invalid')).toBe('true');
     expect(screen.getByRole('alert').textContent).toBe('Izoh kiritish majburiy');
+  });
+});
+
+describe('TextField (11-ux §4.8)', () => {
+  it('yorliq bilan bogʻlangan, xato boʻlsa aria-invalid va alert (hint oʻrniga)', () => {
+    const { rerender } = render(<TextField label="Test nomi" hint="Qisqa nom" />);
+    expect(screen.getByLabelText('Test nomi').getAttribute('aria-invalid')).toBeNull();
+    expect(screen.getByText('Qisqa nom')).toBeTruthy();
+
+    rerender(<TextField label="Test nomi" hint="Qisqa nom" error="Nomni kiriting" />);
+    expect(screen.getByLabelText('Test nomi').getAttribute('aria-invalid')).toBe('true');
+    expect(screen.getByRole('alert').textContent).toBe('Nomni kiriting');
+    expect(screen.queryByText('Qisqa nom')).toBeNull();
   });
 });

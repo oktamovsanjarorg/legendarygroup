@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './app.js';
-import { CLOCK, setupApi } from './teacher-flow-helpers.test-util.js';
+import { baseTest, CLOCK, setupApi } from './teacher-flow-helpers.test-util.js';
 
 afterEach(() => {
   cleanup();
@@ -41,21 +41,18 @@ describe('Ustoz MT-08 Excel import, fuzzy qaror va tasdiqlash (T-302, BR-35)', (
       unmatched: [],
     };
 
-    const calls = setupApi({ preview });
+    const calls = setupApi({ preview, tests: [{ ...baseTest(), resultsCount: 0 }] });
     const wa = createFakeWebApp();
     render(<App webApp={wa} clock={CLOCK} />);
 
     await userEvent.click(await screen.findByRole('button', { name: t.tabs.groups }));
     await userEvent.click(await screen.findByText('IELTS B2'));
     await userEvent.click(await screen.findByText(t.groups.tests));
-
-    await waitFor(() => expect(wa.MainButton.params.is_visible).toBe(true));
-    act(() => wa.MainButton.click());
-
+    await userEvent.click(await screen.findByText('Mock IELTS — Reading'));
     await screen.findByText(t.testImport.title);
 
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    expect(input).toBeTruthy();
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!input) throw new Error('fayl input yoʻq');
     const file = new File(['mock content'], 'test.xlsx', {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });

@@ -1,4 +1,4 @@
-import { type TextareaHTMLAttributes, useId } from 'react';
+import { type InputHTMLAttributes, type TextareaHTMLAttributes, useId } from 'react';
 
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label: string;
@@ -58,6 +58,38 @@ export function Segmented<T extends string>({
           {o.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  hint?: string;
+  error?: string | null;
+}
+
+/** Bir qatorli maydon (nom, sana, son) — yorliq ko'rinadi, xato maydon ostida (11-ux §4.8). */
+export function TextField({ label, hint, error, id, className = '', ...props }: TextFieldProps) {
+  const auto = useId();
+  const inputId = id ?? auto;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={inputId} className="px-4 text-sm uppercase tracking-wide text-text-muted">
+        {label}
+      </label>
+      <input
+        id={inputId}
+        aria-invalid={error ? true : undefined}
+        className={`min-h-12 w-full rounded-xl bg-bg px-4 text-base text-text outline-none placeholder:text-text-muted ${className}`}
+        {...props}
+      />
+      {error ? (
+        <p role="alert" className="px-4 text-sm text-danger">
+          {error}
+        </p>
+      ) : (
+        hint && <p className="px-4 text-sm text-text-muted">{hint}</p>
+      )}
     </div>
   );
 }
