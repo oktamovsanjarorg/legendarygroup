@@ -16,7 +16,11 @@ REGION="${3:?REGION}"
 SECRET_ARN="${4:?DB owner secret ARN}"
 [[ "$TAG" =~ ^[A-Za-z0-9._-]{1,100}$ ]] || { echo "Yaroqsiz teg: $TAG" >&2; exit 1; }
 
-BUNDLE="$(tar -czf - compose.prod.yml infra/scripts | base64 -w0)"
+# Reliz yozuvlari: "<sha> <sarlavha>" (eng yangisi birinchi) — server oldingi relizdan beri
+# qo'shilganlarini Telegram'ga yuboradi (remote-deploy.sh, notify-telegram.sh).
+git log --format='%H %s' -n 100 > release-log.txt
+BUNDLE="$(tar -czf - compose.prod.yml infra/scripts release-log.txt | base64 -w0)"
+rm -f release-log.txt
 if (( ${#BUNDLE} > 40000 )); then
   echo "XATO: reliz to'plami juda katta (${#BUNDLE} bayt, SSM chegarasi)" >&2
   exit 1

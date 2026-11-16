@@ -54,6 +54,10 @@ Prod serverda cron yo'q (Amazon Linux 2023). `infra/scripts/remote-deploy.sh` ha
 `lg-monitor.service` + `lg-monitor.timer` ni o'rnatadi: har 5 daqiqada
 `/opt/lg/current/infra/scripts/monitor.sh`.
 
+- Deploy xabari (2026-11-16): `remote-deploy.sh` shu chatga «✅ yangi versiya chiqdi (<teg>)» va
+  oldingi relizdan beri commit sarlavhalari (`release-log.txt`, ko'pi bilan 15 ta) yuboradi;
+  yiqilsa — «❌ … deploy yiqildi (bosqich: …)». Skriptlar: `notify-telegram.sh`, `release-notes.sh`.
+- `migrate` — bir martalik servis: `Exited (0)` alert emas, faqat nol bo'lmagan kod.
 - Tekshiruvlar: tashqi `https://<APP_DOMAIN>/api/health/ready` (2 marta ketma-ket yiqilsa), disk > 80%,
   `lg-prod` konteynerlari `running` emas.
 - API: 5xx > 2% va p95 > 1 s — oxirgi 5 daqiqa (kamida 20 so'rov), `infra/scripts/api-stats.py`
