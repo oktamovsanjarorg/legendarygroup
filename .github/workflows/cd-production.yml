@@ -45,6 +45,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || github.ref }}
+          # Reliz yozuvlari (release-log.txt) uchun oxirgi commitlar kerak.
+          fetch-depth: 100
 
       - name: Image tegi
         id: meta
