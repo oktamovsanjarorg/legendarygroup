@@ -1,7 +1,7 @@
 # Legendary Group — kirish nuqtasi (T-011, 06 §1). Tizim bitta hostda (APP_DOMAIN), yo'llar bilan:
 #   /api/*        → api:3000        /bot/webhook → bot:3002
 #   /app/*        → Mini App statik  /, /verify/* → web panel statik (SPA)
-# SITE_DOMAIN (apex) va www — markazning tashrif sayti (T-503); LEGACY_DOMAIN — eski manzil, redirect.
+# SITE_DOMAIN (apex) — markazning tashrif sayti (T-503, /srv/site), www → apex; LEGACY_DOMAIN — eski manzil.
 # TLS — avtomatik (Let's Encrypt). `/internal/*` (bot ↔ api) va Bull Board tashqariga CHIQMAYDI.
 # Majburiy env (yashirin standart yo'q): APP_DOMAIN, SITE_DOMAIN, LEGACY_DOMAIN. ACME email yo'q — Let's Encrypt 2025-yildan
 # muddat eslatmalarini yubormaydi; hisob emailsiz ro'yxatdan o'tadi (shaxsiy ma'lumot ketmaydi).
@@ -41,7 +41,17 @@
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
 		Cross-Origin-Opener-Policy "same-origin"
+		# Panel va Mini App qidiruvda chiqmaydi — Google'da faqat sayt (SITE_DOMAIN).
+		X-Robots-Tag "noindex, nofollow"
 		-Server
+	}
+
+	handle /robots.txt {
+		header Content-Type "text/plain; charset=utf-8"
+		respond <<TXT
+			User-agent: *
+			Disallow: /
+			TXT 200
 	}
 
 	handle /api/* {
@@ -68,11 +78,66 @@
 	}
 }
 
-# Tashrif sayti (apex + www). T-503 Astro sayti (`apps/site`) tayyor bo'lguncha — panel ichidagi
-# landing'ga 302 (vaqtinchalik: brauzer keshlamaydi, sayt chiqqanda darhol almashadi).
+# Tashrif sayti (T-503, `apps/site` — statik Astro). Apex'da faqat saytga kerakli ochiq API
+# (kurslar, kontaktlar, ariza) — bir xil origin, CORS yo'q; panel API'si apex'da yopiq.
 # HSTS bu yerda YO'Q: `includeSubDomains` apex'da eskiz'dagi webmail/ftp subdomenlarini buzadi.
-{$SITE_DOMAIN}, www.{$SITE_DOMAIN} {
-	redir https://{$APP_DOMAIN}/landing 302
+{$SITE_DOMAIN} {
+	encode zstd gzip
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		X-Frame-Options "DENY"
+		-Server
+	}
+
+	@siteApi path /api/public/* /api/settings/public
+	handle @siteApi {
+		reverse_proxy api:3000
+	}
+	handle /api/* {
+		respond 404
+	}
+
+	handle /robots.txt {
+		header Content-Type "text/plain; charset=utf-8"
+		respond <<TXT
+			User-agent: *
+			Allow: /
+			Disallow: /api/
+			Sitemap: https://{$SITE_DOMAIN}/sitemap.xml
+			TXT 200
+	}
+	handle /sitemap.xml {
+		header Content-Type "application/xml; charset=utf-8"
+		respond <<XML
+			<?xml version="1.0" encoding="UTF-8"?>
+			<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://{$SITE_DOMAIN}/</loc></url></urlset>
+			XML 200
+	}
+
+	# Saytdagi "Tizimga kirish" — panel boshqa hostda.
+	redir /kirish https://{$APP_DOMAIN}/login 302
+
+	handle {
+		root * /srv/site
+		# Astro skripti va uslubi HTML ichida (inline) — sayt foydalanuvchi kontentini HTML sifatida chizmaydi (textContent).
+		header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		@html path / /index.html
+		header @html Cache-Control "public, max-age=300"
+		try_files {path} {path}.html
+		file_server
+	}
+
+	handle_errors 404 {
+		root * /srv/site
+		rewrite * /404.html
+		file_server
+	}
+}
+
+www.{$SITE_DOMAIN} {
+	redir https://{$SITE_DOMAIN}{uri} 308
 }
 
 # Eski manzil — yo'l saqlangan holda yangi hostga (eski taklif/chek havolalari ishlashda davom etadi).

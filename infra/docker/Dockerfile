@@ -30,7 +30,7 @@ RUN cp /tmp/pnpm-workspace.target.yaml pnpm-workspace.yaml
 RUN --mount=type=cache,id=lg-pnpm-$TARGETARCH,target=/pnpm/store pnpm install --frozen-lockfile --offline
 RUN pnpm turbo build \
       --filter=@lg/api... --filter=@lg/worker... --filter=@lg/bot... \
-      --filter=@lg/web... --filter=@lg/miniapp...
+      --filter=@lg/web... --filter=@lg/miniapp... --filter=@lg/site...
 RUN --mount=type=cache,id=lg-pnpm-$TARGETARCH,target=/pnpm/store \
     pnpm --filter=@lg/api deploy --prod --legacy /out/api \
  && pnpm --filter=@lg/worker deploy --prod --legacy /out/worker \
@@ -74,6 +74,7 @@ FROM ${CADDY_IMAGE} AS web
 COPY infra/caddy/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /repo/apps/web/dist /srv/web
 COPY --from=build /repo/apps/miniapp/dist /srv/miniapp
+COPY --from=build /repo/apps/site/dist /srv/site
 COPY --from=caddy-dirs --chown=1000:1000 /out/data /data
 COPY --from=caddy-dirs --chown=1000:1000 /out/config /config
 ENV XDG_DATA_HOME=/data XDG_CONFIG_HOME=/config
