@@ -1,0 +1,168 @@
+---
+import { siteMessages as s, webMessages } from '@lg/i18n';
+import Base from '../layouts/Base.astro';
+import { SITE_TEXTS } from '../lib/texts.js';
+
+const L = webMessages.landing;
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': 'EducationalOrganization',
+  name: L.brand,
+  description: s.seoDescription,
+};
+const advantages = [
+  [L.advantagesSection.item1Title, L.advantagesSection.item1Desc],
+  [L.advantagesSection.item2Title, L.advantagesSection.item2Desc],
+  [L.advantagesSection.item3Title, L.advantagesSection.item3Desc],
+] as const;
+const field =
+  'mt-1 w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-base text-text outline-none focus:border-primary';
+const year = new Date().getFullYear(); // build vaqti — faqat footer yili
+---
+
+<Base title={s.seoTitle} description={s.seoDescription}>
+  <script slot="head" type="application/ld+json" id="ld" set:html={JSON.stringify(ld)} />
+  <header class="border-b border-border bg-bg">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4" aria-label={L.brand}>
+      <a href="/" class="text-lg font-bold text-text">{L.brand}</a>
+      <div class="hidden gap-6 text-sm md:flex">
+        <a href="#kurslar" class="text-text-muted hover:text-text">{L.menu.courses}</a>
+        <a href="#afzalliklar" class="text-text-muted hover:text-text">{L.menu.advantages}</a>
+        <a href="#aloqa" class="text-text-muted hover:text-text">{L.menu.contact}</a>
+      </div>
+      <a href="/kirish" class="rounded-lg border border-border px-3 py-2 text-sm text-text hover:bg-surface"
+        >{L.menu.login}</a
+      >
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="bg-surface">
+      <div class="mx-auto max-w-6xl px-4 py-16 md:py-24">
+        <p class="text-sm font-semibold uppercase tracking-wide text-primary">{L.tagline}</p>
+        <h1 class="mt-3 max-w-3xl text-3xl font-bold leading-tight md:text-5xl">{L.hero.title}</h1>
+        <p class="mt-4 max-w-2xl text-lg text-text-muted">{L.hero.description}</p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="#ariza" class="rounded-lg bg-primary px-5 py-3 font-semibold text-primary-text">{L.hero.cta}</a>
+          <a href="#kurslar" class="rounded-lg border border-border bg-bg px-5 py-3 font-semibold text-text"
+            >{L.hero.viewCourses}</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <section id="kurslar" class="mx-auto max-w-6xl scroll-mt-4 px-4 py-16" aria-labelledby="kurslar-h">
+      <h2 id="kurslar-h" class="text-2xl font-bold md:text-3xl">{L.coursesSection.title}</h2>
+      <p class="mt-2 text-text-muted">{L.coursesSection.subtitle}</p>
+      <p id="courses-status" class="mt-8 text-text-muted" role="status" data-empty={s.coursesEmpty} data-error={s.coursesError}>
+        {s.coursesLoading}
+      </p>
+      <ul id="courses" class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></ul>
+      <template id="course-tpl">
+        <li class="flex flex-col rounded-xl border border-border bg-bg p-5">
+          <h3 class="text-lg font-semibold" data-f="name"></h3>
+          <p class="mt-2 flex-1 text-sm text-text-muted" data-f="description"></p>
+          <p class="mt-3 text-sm text-text-muted" data-f="meta"></p>
+          <p class="mt-4 text-sm text-text-muted">
+            {L.coursesSection.pricePerMonth}: <span class="text-lg font-bold text-text" data-f="price"></span>
+          </p>
+          <a href="#ariza" class="mt-4 rounded-lg border border-border px-4 py-2 text-center text-sm font-semibold" data-f="enroll"
+            >{L.coursesSection.enroll}</a
+          >
+        </li>
+      </template>
+    </section>
+
+    <section id="afzalliklar" class="scroll-mt-4 bg-surface" aria-labelledby="afz-h">
+      <div class="mx-auto max-w-6xl px-4 py-16">
+        <h2 id="afz-h" class="text-2xl font-bold md:text-3xl">{L.advantagesSection.title}</h2>
+        <p class="mt-2 text-text-muted">{L.advantagesSection.subtitle}</p>
+        <ul class="mt-8 grid gap-4 md:grid-cols-3">
+          {advantages.map(([title, desc]) => (
+            <li class="rounded-xl bg-bg p-5">
+              <h3 class="font-semibold">{title}</h3>
+              <p class="mt-2 text-sm text-text-muted">{desc}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section id="ariza" class="mx-auto max-w-2xl scroll-mt-4 px-4 py-16" aria-labelledby="ariza-h">
+      <h2 id="ariza-h" class="text-2xl font-bold md:text-3xl">{L.form.title}</h2>
+      <p class="mt-2 text-text-muted">{L.form.subtitle}</p>
+      <form id="lead" class="mt-8 flex flex-col gap-4" novalidate data-texts={JSON.stringify(SITE_TEXTS)}>
+        <label class="text-sm font-medium"
+          >{L.form.nameLabel}
+          <input name="fullName" required autocomplete="name" placeholder={L.form.namePlaceholder} class={field} />
+        </label>
+        <label class="text-sm font-medium"
+          >{L.form.phoneLabel}
+          <input
+            name="phone"
+            type="tel"
+            required
+            autocomplete="tel"
+            inputmode="tel"
+            placeholder={L.form.phonePlaceholder}
+            class={field}
+          />
+        </label>
+        <label class="text-sm font-medium"
+          >{L.form.courseLabel}
+          <select name="courseId" class={field}><option value="">{s.courseAny}</option></select>
+        </label>
+        <label class="text-sm font-medium"
+          >{L.form.commentLabel}
+          <textarea name="comment" rows="3" maxlength="500" placeholder={L.form.commentPlaceholder} class={field}
+          ></textarea>
+        </label>
+        <label class="absolute -left-[9999px]" aria-hidden="true"
+          >Website<input name="website" tabindex="-1" autocomplete="off" /></label
+        >
+        <p id="lead-error" class="hidden rounded-lg bg-danger-bg p-3 text-sm text-danger" role="alert"></p>
+        <button type="submit" class="rounded-lg bg-primary px-5 py-3 font-semibold text-primary-text disabled:opacity-60"
+          >{L.form.submit}</button
+        >
+      </form>
+      <div id="lead-ok" class="mt-8 hidden rounded-xl bg-success-bg p-5 text-success" role="status">
+        <p class="font-semibold">{L.form.successTitle}</p>
+        <p class="mt-1 text-sm">{L.form.successDesc}</p>
+      </div>
+      <template id="lead-texts" data-error={L.form.error} data-sending={s.sending} data-submit={L.form.submit}
+      ></template>
+    </section>
+
+    <section id="aloqa" class="scroll-mt-4 bg-surface" aria-labelledby="aloqa-h">
+      <div class="mx-auto max-w-6xl px-4 py-16">
+        <h2 id="aloqa-h" class="text-2xl font-bold md:text-3xl">{s.contactTitle}</h2>
+        <dl class="mt-6 grid gap-6 sm:grid-cols-3">
+          <div>
+            <dt class="text-sm text-text-muted">{s.phone}</dt>
+            <dd class="mt-1 font-semibold"><a id="c-phone" class="text-link" href="#ariza">—</a></dd>
+          </div>
+          <div>
+            <dt class="text-sm text-text-muted">{s.address}</dt>
+            <dd id="c-address" class="mt-1 font-semibold">—</dd>
+          </div>
+          <div>
+            <dt class="text-sm text-text-muted">{s.telegram}</dt>
+            <dd class="mt-1 font-semibold"><a id="c-bot" class="text-link" href="#ariza">—</a></dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-border">
+    <div class="mx-auto max-w-6xl px-4 py-8 text-sm text-text-muted">
+      <p>{L.footer.about}</p>
+      <p class="mt-2">© {year} {L.brand}. {L.footer.rights}</p>
+    </div>
+  </footer>
+</Base>
+
+<script>
+  import { init } from '../scripts/site.js';
+  init();
+</script>
