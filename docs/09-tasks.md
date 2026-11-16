@@ -437,6 +437,7 @@
     - API: `POST /api/tests`, `GET /api/tests?groupId=...`, `GET /api/tests/:id`, `PATCH /api/tests/:id` (draft tekshiruvi), `POST /api/tests/:id/results` (BR-34 tekshiruvi va versiya oshishi), `POST /api/tests/:id/publish` (outbox orqali `TestResultsPublished` navbatga yoziladi), `GET /api/tests/:id/template` (Excel shablonini generatsiya qilish va yuklab olish), `POST /api/tests/:id/import-preview` (Excel faylni tahlil qilib mos kelgan, o'xshash va topilmagan qatorlarni ko'rsatish), `POST /api/tests/:id/import-confirm` (atomar import va import auditi), `GET /api/tests/student/:studentId` (ota-ona uchun o'z farzandi testlari va IDOR 404 himoyasi).
   - Integratsiya testlari: `tests.int.test.ts` (13 ta test: RBAC, test yaratish, guruh testlari ro'yxati, BR-34 ball cheklovi, BR-34 bo'lim bali cheklovi, versiyalanish, Excel shablon yuklab olish, BR-35 Excel preview, BR-35 Excel import confirm, test e'lon qilish va outbox event, e'lon qilingan testni o'zgartirish taqiqi, ota-ona scope va IDOR himoyasi).
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+- **Mini App ulandi (2026-11-16, A4, #46):** MT-07 ro'yxat (holat: kiritilmagan / kiritilgan — `resultsCount` / e'lon qilingan), MT-07a yaratish formasi (nom, sana, maks. ball), MT-08 import (preview → fuzzy qaror → confirm → tasdiq bilan e'lon); yordamchi ustoz faqat ko'radi (Q-62). Qolgan: bo'limli test yaratish UI'da yo'q (web W-19 da ham), Excel'ni botga yuborish (B-04).
 
 ### 🟨 T-303 · O'quvchi progressi va reyting
 
@@ -458,6 +459,7 @@
 - **AC:** auditoriya tanlash (hamma / kurs / guruh / qarzdorlar), matn + rasm/fayl, oldindan ko'rish, yetkazilish statistikasi.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/announcements.ts` (`CreateAnnouncementSchema`, `AnnouncementPreviewResponseSchema`, `AnnouncementStatsSchema` DTOlari); `packages/db` da `0030_announcements.sql` migratsiyasi (`announcements`, `announcement_recipients` jadvallari); `apps/api/src/modules/announcements/` (`AnnouncementsRepository`, `AnnouncementsService`, `AnnouncementsController` preview, create, list, stats endpointlari, teacher faqat o'z guruhiga yuborish scope tekshiruvi); 5 ta integratsiya testi yashil.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+- **Mini App ulandi (2026-11-16, A4, #46):** MT-10 — asosiy ustoz o'z guruhiga e'lon (qabul qiluvchilar soni, tasdiq, takroriy bosishdan himoya). Qolgan: e'longa fayl/rasm biriktirish (Mini App'da `onAttach` ulanmagan).
 
 ### 🟨 T-306 · Murojaatlar va "sababli" oldindan xabar
 
