@@ -10,11 +10,16 @@ import {
   seed,
   students,
 } from '@lg/db';
+import { addDays, formatDateToYmd } from '@lg/domain';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { DebtorsService } from './debtors.service.js';
+
+// Aging bucket haqiqiy bugungi kunga nisbatan hisoblanadi — qattiq sana (2026-11-08) 16-noyabrdan
+// boshlab boshqa bucket'ga o'tib, CI'ni yiqitardi. Muddatlar bugundan sanaladi.
+const TODAY = formatDateToYmd(new Date());
 
 let t: TestApp;
 let db: Database;
@@ -84,8 +89,8 @@ beforeAll(async () => {
     .insert(invoices)
     .values({
       studentId: student1Id,
-      period: '2026-10',
-      dueDate: '2026-10-20',
+      period: addDays(TODAY, -20).slice(0, 7),
+      dueDate: addDays(TODAY, -20), // d8_30
       total: 60000000n,
       status: 'open',
     })
@@ -120,8 +125,8 @@ beforeAll(async () => {
     .insert(invoices)
     .values({
       studentId: student2Id,
-      period: '2026-11',
-      dueDate: '2026-11-08',
+      period: addDays(TODAY, -5).slice(0, 7),
+      dueDate: addDays(TODAY, -5), // d0_7
       total: 30000000n,
       status: 'open',
     })
