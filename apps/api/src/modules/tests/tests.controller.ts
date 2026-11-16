@@ -6,6 +6,7 @@ import {
   RecordTestResultsRequest,
   type TestDetailResponse,
   type TestItem,
+  type TestListItem,
   type TestResultItem,
   UpdateTestRequest,
 } from '@lg/contracts';
@@ -57,7 +58,7 @@ export class TestsController {
   async listGroupTests(
     @CurrentUser() actor: RequestUser,
     @Query('groupId') groupId: string,
-  ): Promise<TestItem[]> {
+  ): Promise<TestListItem[]> {
     return this.service.listGroupTests(actor, groupId);
   }
 

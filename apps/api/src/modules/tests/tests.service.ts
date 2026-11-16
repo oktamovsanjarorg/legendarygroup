@@ -5,6 +5,7 @@ import type {
   RecordTestResultsRequest,
   TestDetailResponse,
   TestItem,
+  TestListItem,
   TestResultItem,
   TestSectionScore,
   UpdateTestRequest,
@@ -95,10 +96,10 @@ export class TestsService {
     };
   }
 
-  async listGroupTests(actor: RequestUser, groupId: string): Promise<TestItem[]> {
+  async listGroupTests(actor: RequestUser, groupId: string): Promise<TestListItem[]> {
     await this.groupScope.assertVisible(actor, groupId);
     const rows = await this.repo.findTestsByGroupId(groupId);
-    return rows.map((r) => this.mapTestRow(r));
+    return rows.map((r) => ({ ...this.mapTestRow(r), resultsCount: r.resultsCount }));
   }
 
   async recordResults(

@@ -4,6 +4,7 @@ import type {
   RoleCode,
   TestDetailResponse,
   TestItem,
+  TestListItem,
 } from '@lg/contracts';
 import {
   closeDb,
@@ -158,9 +159,11 @@ describe('T-302: Testlar va Excel import (Tests & Excel Import)', () => {
   it('guruh testlari roʻyxatini olish (Admin va Ustoz)', async () => {
     const res = await call('GET', `tests?groupId=${groupId}`, tokens.get('admin')!);
     expect(res.statusCode).toBe(200);
-    const list = res.json<TestItem[]>();
+    const list = res.json<TestListItem[]>();
     expect(list.length).toBeGreaterThanOrEqual(1);
     expect(list.some((item) => item.id === testId)).toBe(true);
+    // MT-07 holati "Natija kiritilmagan" / "Natijalar kiritilgan" uchun.
+    expect(list.find((item) => item.id === testId)?.resultsCount).toBe(0);
 
     const teacherRes = await call('GET', `tests?groupId=${groupId}`, teacherToken);
     expect(teacherRes.statusCode).toBe(200);
@@ -317,6 +320,8 @@ describe('T-302: Testlar va Excel import (Tests & Excel Import)', () => {
       ],
     });
     expect(confirmRes.statusCode).toBe(201);
+    const listed = await call('GET', `tests?groupId=${groupId}`, tokens.get('admin')!);
+    expect(listed.json<TestListItem[]>().find((x) => x.id === testId)?.resultsCount).toBe(2);
 
     const getRes = await call('GET', `tests/${testId}`, tokens.get('admin')!);
     const detail = getRes.json<TestDetailResponse>();

@@ -64,6 +64,10 @@ export const TestSchema = z.object({
 });
 export type TestItem = z.infer<typeof TestSchema>;
 
+/** MT-07/W-19 ro'yxati: holat chipi uchun kiritilgan natijalar soni ("Natijalar kiritilgan"). */
+export const TestListItemSchema = TestSchema.extend({ resultsCount: z.number().int().min(0) });
+export type TestListItem = z.infer<typeof TestListItemSchema>;
+
 export const TestResultItemSchema = z.object({
   id: z.string().uuid(),
   testId: z.string().uuid(),

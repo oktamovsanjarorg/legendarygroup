@@ -51,8 +51,19 @@ export class TestsRepository {
     return row;
   }
 
-  async findTestsByGroupId(groupId: string): Promise<TestRow[]> {
-    return this.db.select().from(tests).where(eq(tests.groupId, groupId)).orderBy(desc(tests.date));
+  async findTestsByGroupId(groupId: string): Promise<Array<TestRow & { resultsCount: number }>> {
+    const resultsCount = this.db
+      .select({ testId: testResults.testId, n: sql<number>`count(*)::int`.as('n') })
+      .from(testResults)
+      .groupBy(testResults.testId)
+      .as('rc');
+    const rows = await this.db
+      .select({ test: tests, n: resultsCount.n })
+      .from(tests)
+      .leftJoin(resultsCount, eq(resultsCount.testId, tests.id))
+      .where(eq(tests.groupId, groupId))
+      .orderBy(desc(tests.date));
+    return rows.map((r) => ({ ...r.test, resultsCount: r.n ?? 0 }));
   }
 
   async findTestResultsWithStudents(testId: string): Promise<
