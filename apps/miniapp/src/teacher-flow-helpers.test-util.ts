@@ -8,6 +8,8 @@ import type {
   RosterResult,
   TestDetailResponse,
   TestItem,
+  TestListItem,
+  TestResultItem,
 } from '@lg/contracts';
 import { vi } from 'vitest';
 import { fixedClock } from './data/clock.js';
@@ -55,61 +57,83 @@ function orgResponse(ctx: {
   return null;
 }
 
-function testListOrDetailResponse(ctx: {
-  path: string;
-  method: string;
-  body: { title?: string; date?: string; maxScore?: number } | null;
-  testsList: TestItem[];
-}): Response | null {
-  if (ctx.path === '/tests?groupId=g1') return json(200, ctx.testsList);
-  if (ctx.path === '/tests' && ctx.method === 'POST') {
-    const created: TestItem = {
-      id: 't-new',
-      branchId: 'b1',
-      groupId: 'g1',
-      title: ctx.body?.title ?? 'Yangi test',
-      date: ctx.body?.date ?? '2026-11-16',
-      maxScore: ctx.body?.maxScore ?? 100,
-      sections: [],
-      status: 'draft',
-      publishedAt: null,
-      createdBy: 'u1',
-      createdAt: '2026-11-16T10:00:00.000Z',
-      updatedAt: '2026-11-16T10:00:00.000Z',
-    };
-    ctx.testsList.push(created);
-    return json(201, created);
+/** Soxta server holati: bitta test (`t-…`), confirm natija yozadi, publish holatni o'zgartiradi. */
+interface TestsState {
+  list: TestListItem[];
+  results: TestResultItem[];
+  published: boolean;
+}
+
+export const baseTest = (over: Partial<TestItem> = {}): TestItem => ({
+  id: 't-new',
+  branchId: 'b1',
+  groupId: 'g1',
+  title: 'Mock IELTS — Reading',
+  date: '2026-11-16',
+  maxScore: 40,
+  sections: [],
+  status: 'draft',
+  publishedAt: null,
+  createdBy: 'u1',
+  createdAt: '2026-11-16T10:00:00.000Z',
+  updatedAt: '2026-11-16T10:00:00.000Z',
+  ...over,
+});
+
+type Body = { title?: string; date?: string; maxScore?: number } | null;
+
+function createTest(body: Body, st: TestsState): Response {
+  const created = baseTest({
+    title: body?.title ?? '',
+    date: body?.date ?? '',
+    maxScore: body?.maxScore ?? 0,
+  });
+  st.list.push({ ...created, resultsCount: 0 });
+  return json(201, created);
+}
+
+function testDetail(st: TestsState): Response {
+  const detail: TestDetailResponse = {
+    ...baseTest({ status: st.published ? 'published' : 'draft' }),
+    results: st.results,
+  };
+  return json(200, detail);
+}
+
+function testListOrDetailResponse(path: string, method: string, body: Body, st: TestsState) {
+  if (path === '/tests?groupId=g1') return json(200, st.list);
+  if (path === '/tests' && method === 'POST') return createTest(body, st);
+  if (method === 'POST' && /^\/tests\/t-[^/]+\/publish$/.test(path)) {
+    st.published = true;
+    return json(201, baseTest({ status: 'published' }));
   }
-  if (ctx.path.startsWith('/tests/t-') && ctx.method === 'GET') {
-    return json(200, {
-      id: 't-new',
-      branchId: 'b1',
-      groupId: 'g1',
-      title: 'Testlar 1',
-      date: '2026-11-16',
-      maxScore: 100,
-      sections: [],
-      status: 'draft',
-      publishedAt: null,
-      createdBy: 'u1',
-      createdAt: '2026-11-16T10:00:00.000Z',
-      updatedAt: '2026-11-16T10:00:00.000Z',
-      results: [],
-    } as TestDetailResponse);
-  }
+  if (method === 'GET' && /^\/tests\/t-[^/]+$/.test(path)) return testDetail(st);
   return null;
 }
 
 function testImportActionsResponse(
   path: string,
   method: string,
+  st: TestsState,
   preview?: ImportPreviewResponse,
 ): Response | null {
   if (path.includes('/import-preview') && method === 'POST') {
     return json(200, preview ?? { matched: [], suggested: [], unmatched: [] });
   }
   if (path.includes('/import-confirm') && method === 'POST') {
-    return json(200, { success: true });
+    st.results = (preview?.matched ?? []).map((m) => ({
+      id: `r-${m.studentId}`,
+      testId: 't-new',
+      studentId: m.studentId,
+      studentName: m.studentName,
+      score: m.score,
+      percentage: 0,
+      sectionScores: [],
+      version: 1,
+      createdAt: '2026-11-16T10:00:00.000Z',
+      updatedAt: '2026-11-16T10:00:00.000Z',
+    }));
+    return json(201, { success: true });
   }
   return null;
 }
@@ -121,7 +145,7 @@ function announceResponse(path: string, method: string): Response | null {
       targetId: 'g1',
       recipientCount: 12,
       sampleRecipients: [],
-    } as AnnouncementPreviewResponse);
+    } satisfies AnnouncementPreviewResponse);
   }
   if (path === '/announcements' && method === 'POST') {
     return json(201, { id: 'a1', success: true });
@@ -184,19 +208,22 @@ function buildMockOrgData(isAssistant?: boolean) {
 
 export function setupApi(opts: {
   isAssistant?: boolean;
-  tests?: TestItem[];
+  tests?: TestListItem[];
   preview?: ImportPreviewResponse;
+  results?: TestResultItem[];
 }) {
   const calls: { method: string; path: string; body: unknown }[] = [];
   const org = buildMockOrgData(opts.isAssistant);
-  const testsList: TestItem[] = [...(opts.tests ?? [])];
+  const st: TestsState = {
+    list: [...(opts.tests ?? [])],
+    results: opts.results ?? [],
+    published: false,
+  };
 
   vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
     const path = String(url).replace('/api', '');
     const method = init?.method ?? 'GET';
-    const body = init?.body
-      ? (JSON.parse(String(init.body)) as { title?: string; date?: string; maxScore?: number })
-      : null;
+    const body: Body = init?.body ? JSON.parse(String(init.body)) : null;
     calls.push({ method, path, body });
 
     return (
@@ -208,8 +235,8 @@ export function setupApi(opts: {
         roster: org.roster,
         board: org.board,
       }) ??
-      testListOrDetailResponse({ path, method, body, testsList }) ??
-      testImportActionsResponse(path, method, opts.preview) ??
+      testListOrDetailResponse(path, method, body, st) ??
+      testImportActionsResponse(path, method, st, opts.preview) ??
       announceResponse(path, method) ??
       json(404, { code: 'NOT_FOUND' })
     );

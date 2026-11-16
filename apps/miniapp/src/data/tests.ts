@@ -4,6 +4,7 @@ import type {
   ImportPreviewResponse,
   TestDetailResponse,
   TestItem,
+  TestListItem,
 } from '@lg/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from './deps.js';
@@ -17,7 +18,7 @@ export function useGroupTests(groupId: string) {
   return useQuery({
     queryKey: [...TESTS_KEY, 'group', groupId],
     queryFn: async () => {
-      const items = await api.request<TestItem[]>(`/tests?groupId=${groupId}`);
+      const items = await api.request<TestListItem[]>(`/tests?groupId=${groupId}`);
       return toGroupTests(items);
     },
     enabled: Boolean(groupId),

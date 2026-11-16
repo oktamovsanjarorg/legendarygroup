@@ -1,7 +1,7 @@
 import type { ImportPreviewResponse, TestDetailResponse } from '@lg/contracts';
+import { miniappMessages as t } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
-import { ForbiddenState } from '@lg/ui-tg';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { QueryView } from '../data/query-view.js';
 import { useTeacherGroup } from '../data/teacher.js';
@@ -46,8 +46,15 @@ function useTestImport(testId: string) {
         },
       });
     } catch {
-      setFileError(errorText(new Error('Faylni oʻqib boʻlmadi')));
+      setFileError(t.testImport.fileUnreadable);
     }
+  };
+
+  /** Import saqlangach — ko'rib chiqish yopiladi, ro'yxat serverdagi natijalardan (e'lon qilish ochiladi). */
+  const reset = () => {
+    setPreview(null);
+    setFileName(undefined);
+    setDecisions(new Map());
   };
 
   const handleDecide = (row: number, decision: 'accept' | 'reject') => {
@@ -62,6 +69,7 @@ function useTestImport(testId: string) {
     isPending: previewMutation.isPending,
     handleFileSelect,
     handleDecide,
+    reset,
   };
 }
 
@@ -70,7 +78,6 @@ export function TeacherTestImportPage() {
   const { id, testId } = useParams({ from: FROM });
   const me = useMe();
   const online = useOnline();
-  const navigate = useNavigate();
 
   const groupQuery = useTeacherGroup(id, me.id);
   const detailQuery = useTestDetail(testId);
@@ -79,14 +86,20 @@ export function TeacherTestImportPage() {
   const downloadTemplate = useDownloadTemplate();
   const imp = useTestImport(testId);
 
-  if (groupQuery.data && groupQuery.data.group.role !== 'main') {
-    return <ForbiddenState onHome={() => void navigate({ to: '/' })} />;
-  }
+  // Q-62: yordamchi ustoz natijalarni ko'radi, o'zgartirmaydi (API ham shunday).
+  const canManage = groupQuery.data?.group.role === 'main';
 
   const handleImport = () => {
-    if (!imp.preview || !online || confirmMutation.isPending) return;
-    confirmMutation.mutate(confirmImportBody(imp.preview, imp.decisions));
+    if (!canManage || !imp.preview || !online || confirmMutation.isPending) return;
+    confirmMutation.mutate(confirmImportBody(imp.preview, imp.decisions), {
+      onSuccess: imp.reset,
+    });
   };
+  const handlePublish = () => {
+    if (!canManage || !online || publishMutation.isPending) return;
+    publishMutation.mutate();
+  };
+  const actionError = confirmMutation.error ?? publishMutation.error;
 
   return (
     <QueryView query={detailQuery}>
@@ -96,17 +109,15 @@ export function TeacherTestImportPage() {
           preview={imp.preview}
           decisions={imp.decisions}
           fileName={imp.fileName}
-          fileError={
-            imp.fileError ??
-            (confirmMutation.isError ? errorText(confirmMutation.error) : undefined)
-          }
+          fileError={imp.fileError ?? (actionError ? errorText(actionError) : undefined)}
           online={online}
+          canManage={canManage}
           isImporting={imp.isPending || confirmMutation.isPending}
           onFileSelect={imp.handleFileSelect}
           onDownloadTemplate={() => downloadTemplate.mutate(testId)}
           onDecide={imp.handleDecide}
           onImport={handleImport}
-          onPublish={() => publishMutation.mutate()}
+          onPublish={handlePublish}
         />
       )}
     </QueryView>
@@ -120,6 +131,7 @@ function TestImportContent(p: {
   fileName?: string;
   fileError?: string;
   online: boolean;
+  canManage: boolean;
   isImporting: boolean;
   onFileSelect: (file: File) => void;
   onDownloadTemplate: () => void;
@@ -143,6 +155,8 @@ function TestImportContent(p: {
       columns={toColumnMaps(p.test.sections)}
       rows={rows}
       importing={p.isImporting}
+      reviewing={p.preview !== null}
+      canManage={p.canManage}
       fileName={p.fileName}
       fileError={p.fileError}
       isPublished={p.test.status === 'published'}
@@ -150,7 +164,6 @@ function TestImportContent(p: {
       onFileSelect={p.onFileSelect}
       onDownloadTemplate={p.onDownloadTemplate}
       onDecide={p.onDecide}
-      onChangeColumns={() => undefined}
       onImport={p.onImport}
       onPublish={p.onPublish}
     />

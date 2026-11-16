@@ -1,7 +1,7 @@
 import type {
   ExcelImportConfirmRequest,
   ImportPreviewResponse,
-  TestItem,
+  TestListItem,
   TestSection,
 } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
@@ -10,18 +10,21 @@ import type { GroupTest } from '../screens/teacher/tests.js';
 
 export const MAX_EXCEL_BYTES = 5 * 1024 * 1024; // 5 MB (A-5)
 
-export function toGroupTest(x: TestItem): GroupTest {
+const testState = (x: TestListItem): GroupTest['state'] =>
+  x.status === 'published' ? 'published' : x.resultsCount > 0 ? 'imported' : 'draft';
+
+export function toGroupTest(x: TestListItem): GroupTest {
   const iso = x.date.includes('T') ? x.date : `${x.date}T00:00:00+05:00`;
   return {
     id: x.id,
     name: x.title,
     date: new Date(iso),
     maxScore: x.maxScore,
-    state: x.status === 'published' ? 'published' : 'draft',
+    state: testState(x),
   };
 }
 
-export const toGroupTests = (items: readonly TestItem[]): GroupTest[] =>
+export const toGroupTests = (items: readonly TestListItem[]): GroupTest[] =>
   items.map(toGroupTest).sort((a, b) => b.date.getTime() - a.date.getTime());
 
 /** BR-35: API preview javobini MT-08 ko'rib chiqish qatorlariga o'tkazish. */
@@ -104,6 +107,9 @@ export function confirmImportBody(
 
 /** Fayl tekshiruvi: ≤ 5 MB va .xlsx. */
 export function validateExcelFile(file: File): { ok: true } | { ok: false; error: string } {
+  if (!file.name.toLowerCase().endsWith('.xlsx')) {
+    return { ok: false, error: t.testImport.fileNotXlsx };
+  }
   if (file.size > MAX_EXCEL_BYTES) {
     return { ok: false, error: t.testImport.fileTooLarge };
   }

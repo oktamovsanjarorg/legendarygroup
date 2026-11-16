@@ -106,6 +106,12 @@ export const teacherMessages = {
       'Import toʻliq bajariladi yoki umuman bajarilmaydi. Qayta import natijalarni yangilaydi.',
     template: 'Namuna shablonni yuklab olish',
     fileTooLarge: 'Fayl hajmi 5 MB dan oshmasin.',
+    fileNotXlsx: 'Faqat Excel (.xlsx) fayl yuklanadi.',
+    fileUnreadable: 'Faylni oʻqib boʻlmadi. Qaytadan tanlang.',
+    publish: 'Natijalarni eʼlon qilish',
+    publishHint: 'Ota-onalarga farzandining natijasi yuboriladi.',
+    publishConfirm:
+      'Natijalar ota-onalarga yuboriladi. Eʼlondan keyin ballarni oʻzgartirib boʻlmaydi.',
     chooseFile: 'Excel fayl tanlash (.xlsx)',
   },
   schedule: {

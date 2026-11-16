@@ -1,4 +1,4 @@
-import type { ImportPreviewResponse, TestItem } from '@lg/contracts';
+import type { ImportPreviewResponse, TestListItem } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
 import { describe, expect, it } from 'vitest';
 import {
@@ -44,7 +44,7 @@ describe('tests-map (T-302, BR-35)', () => {
   };
 
   it('toGroupTest: draft va published holatlari, sana konvertatsiyasi', () => {
-    const item1: TestItem = {
+    const item1: TestListItem = {
       id: 't-1',
       branchId: 'b-1',
       groupId: 'g-1',
@@ -57,6 +57,7 @@ describe('tests-map (T-302, BR-35)', () => {
       createdBy: 'u-1',
       createdAt: '2026-11-16T10:00:00.000Z',
       updatedAt: '2026-11-16T10:00:00.000Z',
+      resultsCount: 0,
     };
     const t1 = toGroupTest(item1);
     expect(t1.name).toBe('Grammar Test');
@@ -64,12 +65,14 @@ describe('tests-map (T-302, BR-35)', () => {
     expect(t1.maxScore).toBe(100);
     expect(t1.date.getFullYear()).toBe(2026);
 
-    const item2: TestItem = { ...item1, id: 't-2', status: 'published' };
+    const item2: TestListItem = { ...item1, id: 't-2', status: 'published', resultsCount: 3 };
     expect(toGroupTest(item2).state).toBe('published');
+    // Natija bor, hali e'lon qilinmagan — "Natijalar kiritilgan" (MT-07 maketi).
+    expect(toGroupTest({ ...item1, resultsCount: 3 }).state).toBe('imported');
   });
 
   it('toGroupTests: sanasi bo‘yicha kamayish tartibida saralaydi', () => {
-    const items: TestItem[] = [
+    const items: TestListItem[] = [
       {
         id: 't-1',
         branchId: 'b-1',
@@ -83,6 +86,7 @@ describe('tests-map (T-302, BR-35)', () => {
         createdBy: 'u-1',
         createdAt: '2026-11-10T10:00:00.000Z',
         updatedAt: '2026-11-10T10:00:00.000Z',
+        resultsCount: 0,
       },
       {
         id: 't-2',
@@ -97,6 +101,7 @@ describe('tests-map (T-302, BR-35)', () => {
         createdBy: 'u-1',
         createdAt: '2026-11-15T10:00:00.000Z',
         updatedAt: '2026-11-15T10:00:00.000Z',
+        resultsCount: 0,
       },
     ];
     const list = toGroupTests(items);
@@ -143,11 +148,15 @@ describe('tests-map (T-302, BR-35)', () => {
     expect(body2.results[0]?.studentId).toBe('st-1');
   });
 
-  it('validateExcelFile: 5 MB cheklovi', () => {
+  it('validateExcelFile: 5 MB cheklovi va faqat .xlsx', () => {
     const smallFile = new File([new Uint8Array(100)], 'test.xlsx');
     expect(validateExcelFile(smallFile).ok).toBe(true);
+    expect(validateExcelFile(new File([new Uint8Array(100)], 'natija.csv'))).toEqual({
+      ok: false,
+      error: t.testImport.fileNotXlsx,
+    });
 
-    const largeFile = { size: MAX_EXCEL_BYTES + 10 } as File;
+    const largeFile = new File([new Uint8Array(MAX_EXCEL_BYTES + 10)], 'katta.xlsx');
     const res = validateExcelFile(largeFile);
     expect(res.ok).toBe(false);
     if (!res.ok) {

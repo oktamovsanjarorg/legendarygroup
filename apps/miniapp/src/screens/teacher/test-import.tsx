@@ -1,7 +1,7 @@
 import { miniappMessages as t } from '@lg/i18n';
-import { InlineButton, ListItem, Section, StatusChip, useMainButton } from '@lg/ui-tg';
+import { ActionSheet, InlineButton, ListItem, Section, StatusChip, useMainButton } from '@lg/ui-tg';
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, HelpCircle } from 'lucide-react';
-import { useRef, type ChangeEvent } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 
 /** BR-35 moslashtirish natijasi: ID/aniq ism — mos; noaniq — taklif (inson tasdiqlaydi); xato — import qilinmaydi. */
 export type ImportRow =
@@ -29,8 +29,13 @@ interface Props {
   rows: readonly ImportRow[];
   importing?: boolean;
   onDecide: (row: number, decision: 'accept' | 'reject') => void;
-  onChangeColumns: () => void;
+  /** Ustunlarni qo'lda moslash — API hali qo'llamaydi; berilmasa havola ko'rinmaydi. */
+  onChangeColumns?: () => void;
   onImport: () => void;
+  /** Fayl tahlil qilingan, natijalar hali saqlanmagan — MainButton "Import qilish" faqat shunda. */
+  reviewing?: boolean;
+  /** Yordamchi ustoz — faqat ko'radi (Q-62): fayl, import, e'lon yo'q. Standart: true. */
+  canManage?: boolean;
   fileName?: string;
   fileError?: string;
   onFileSelect?: (file: File) => void;
@@ -53,8 +58,7 @@ export function TestImportView(p: Props) {
   const matched = p.rows.filter(of('matched'));
   const fuzzy = p.rows.filter(of('fuzzy'));
   const errors = p.rows.filter(of('not_found', 'bad_score'));
-  const pending = fuzzy.some((r) => !r.decision);
-  const count = matched.length + fuzzy.filter((r) => r.decision === 'accept').length;
+  const manage = p.canManage !== false && !p.isPublished;
 
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,12 +66,12 @@ export function TestImportView(p: Props) {
     e.target.value = '';
   };
 
-  useMainButton({
-    text: pending ? t.testImport.resolveFirst : t.testImport.submit.replace('{n}', String(count)),
-    onClick: p.onImport,
-    disabled: pending || count === 0,
-    loading: p.importing,
+  useImportButton(matched.length, fuzzy, {
+    onImport: p.onImport,
+    loading: p.importing === true,
+    visible: manage && p.reviewing === true,
   });
+  const choose = manage && p.onFileSelect ? () => fileInputRef.current?.click() : undefined;
 
   return (
     <main className="flex flex-col gap-4 p-2 pt-3 pb-6">
@@ -87,22 +91,54 @@ export function TestImportView(p: Props) {
       <MappingSection
         columns={p.columns}
         fileName={p.fileName}
-        onChangeColumns={p.onChangeColumns}
-        onChooseFile={p.onFileSelect ? () => fileInputRef.current?.click() : undefined}
-        onDownloadTemplate={p.onDownloadTemplate}
+        onChangeColumns={manage ? p.onChangeColumns : undefined}
+        onChooseFile={choose}
+        onDownloadTemplate={manage ? p.onDownloadTemplate : undefined}
       />
-      {p.canPublish && p.onPublish && (
-        <Section>
-          <ListItem
-            title={<span className="font-semibold text-primary">{t.tests.published}</span>}
-            onClick={p.onPublish}
-          />
-        </Section>
-      )}
-      <ReviewSection rows={fuzzy} onDecide={p.onDecide} />
+      {manage && p.canPublish && p.onPublish && <PublishSection onPublish={p.onPublish} />}
+      <ReviewSection rows={fuzzy} onDecide={manage ? p.onDecide : undefined} />
       <ErrorsSection rows={errors} maxScore={p.maxScore} />
       <MatchedSection rows={matched} />
     </main>
+  );
+}
+
+/** MainButton "Import qilish (N ta)" — faqat ko'rib chiqishda; hal qilinmagan taklif bo'lsa nofaol. */
+function useImportButton(
+  matchedCount: number,
+  fuzzy: readonly Extract<ImportRow, { kind: 'fuzzy' }>[],
+  o: { onImport: () => void; loading: boolean; visible: boolean },
+) {
+  const pending = fuzzy.some((r) => !r.decision);
+  const count = matchedCount + fuzzy.filter((r) => r.decision === 'accept').length;
+  useMainButton({
+    text: pending ? t.testImport.resolveFirst : t.testImport.submit.replace('{n}', String(count)),
+    onClick: o.onImport,
+    disabled: pending || count === 0,
+    loading: o.loading,
+    visible: o.visible,
+  });
+}
+
+/** BR-35: e'lon ota-onalarga xabar yuboradi va ballarni qotiradi — tasdiq bilan. */
+function PublishSection({ onPublish }: { onPublish: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Section footer={t.testImport.publishHint}>
+        <ListItem
+          title={<span className="font-semibold text-link">{t.testImport.publish}</span>}
+          onClick={() => setOpen(true)}
+        />
+      </Section>
+      <ActionSheet
+        open={open}
+        title={t.testImport.publishConfirm}
+        cancelLabel={t.attendance.cancel}
+        onClose={() => setOpen(false)}
+        actions={[{ label: t.testImport.publish, onSelect: () => (setOpen(false), onPublish()) }]}
+      />
+    </>
   );
 }
 
@@ -133,7 +169,7 @@ function ReviewSection({
   onDecide,
 }: {
   rows: readonly Extract<ImportRow, { kind: 'fuzzy' }>[];
-  onDecide: Props['onDecide'];
+  onDecide?: Props['onDecide'];
 }) {
   if (rows.length === 0) return null;
   return (
@@ -154,7 +190,7 @@ function MappingSection({
 }: {
   columns: readonly ColumnMap[];
   fileName?: string;
-  onChangeColumns: () => void;
+  onChangeColumns?: () => void;
   onChooseFile?: () => void;
   onDownloadTemplate?: () => void;
 }) {
@@ -167,10 +203,12 @@ function MappingSection({
           after={t.testImport.column.replace('{c}', c.column)}
         />
       ))}
-      <ListItem
-        title={<span className="text-link">{t.testImport.change}</span>}
-        onClick={onChangeColumns}
-      />
+      {onChangeColumns && (
+        <ListItem
+          title={<span className="text-link">{t.testImport.change}</span>}
+          onClick={onChangeColumns}
+        />
+      )}
       {onChooseFile && (
         <ListItem
           before={<FileSpreadsheet className="size-5" aria-hidden />}
@@ -228,7 +266,7 @@ function MatchedSection({ rows }: { rows: readonly Extract<ImportRow, { kind: 'm
 
 type Fuzzy = Extract<ImportRow, { kind: 'fuzzy' }>;
 
-function FuzzyRow({ r, onDecide }: { r: Fuzzy; onDecide: Props['onDecide'] }) {
+function FuzzyRow({ r, onDecide }: { r: Fuzzy; onDecide?: Props['onDecide'] }) {
   return (
     <li className="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-0">
       <span className="flex items-start gap-3">
@@ -247,7 +285,7 @@ function FuzzyRow({ r, onDecide }: { r: Fuzzy; onDecide: Props['onDecide'] }) {
           </StatusChip>
         )}
       </span>
-      {!r.decision && (
+      {!r.decision && onDecide && (
         <span className="flex justify-end gap-2">
           <InlineButton onClick={() => onDecide(r.row, 'reject')}>
             {t.testImport.reject}
