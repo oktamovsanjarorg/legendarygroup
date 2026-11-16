@@ -89,7 +89,12 @@ export function TeacherGroupPage() {
                 params: { groupId: id, id: st.id },
               })
             }
-            onTests={() => undefined}
+            onTests={() => void navigate({ to: '/group/$id/tests', params: { id } })}
+            onAnnounce={
+              d.group.role === 'main'
+                ? () => void navigate({ to: '/group/$id/announce', params: { id } })
+                : undefined
+            }
           />
         )
       }

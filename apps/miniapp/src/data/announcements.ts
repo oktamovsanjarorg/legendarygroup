@@ -1,4 +1,4 @@
-import type { AnnouncementPreviewResponse, CreateAnnouncementRequest } from '@lg/contracts';
+import type { AnnouncementPreviewResponse } from '@lg/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from './deps.js';
 
@@ -22,14 +22,14 @@ export function useSendAnnouncement(groupId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: Omit<CreateAnnouncementRequest, 'targetType' | 'targetId'>) =>
+    mutationFn: (body: { title: string; body: string; sendNow?: boolean }) =>
       api.request('/announcements', {
         method: 'POST',
         body: {
           ...body,
           targetType: 'group',
           targetId: groupId,
-          sendNow: true,
+          sendNow: body.sendNow ?? true,
         },
       }),
     onSuccess: () => {

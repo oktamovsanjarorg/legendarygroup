@@ -35,6 +35,9 @@ import {
   TeacherProfilePage,
   TeacherSchedulePage,
 } from './pages/teacher.js';
+import { TeacherAnnouncePage } from './pages/teacher-announce.js';
+import { TeacherTestImportPage } from './pages/teacher-test-import.js';
+import { TeacherTestsPage } from './pages/teacher-tests.js';
 
 const root = createRootRoute({ component: AppLayout, notFoundComponent: ForbiddenPage });
 const home = createRoute({ getParentRoute: () => root, path: '/', component: HomePage });
@@ -69,6 +72,21 @@ const teacherGroup = createRoute({
   getParentRoute: () => root,
   path: '/group/$id',
   component: TeacherGroupPage,
+});
+const teacherTests = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$id/tests',
+  component: TeacherTestsPage,
+});
+const teacherTestImport = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$id/tests/$testId/import',
+  component: TeacherTestImportPage,
+});
+const teacherAnnounce = createRoute({
+  getParentRoute: () => root,
+  path: '/group/$id/announce',
+  component: TeacherAnnouncePage,
 });
 const teacherStudent = createRoute({
   getParentRoute: () => root,
@@ -174,6 +192,9 @@ const routeTree = root.addChildren([
   teacherSchedule,
   teacherLesson,
   teacherGroup,
+  teacherTests,
+  teacherTestImport,
+  teacherAnnounce,
   teacherStudent,
   teacherComment,
   teacherProfile,
