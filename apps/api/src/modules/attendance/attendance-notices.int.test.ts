@@ -8,6 +8,7 @@ import {
   notifications,
   outboxEvents,
   seed,
+  users,
 } from '@lg/db';
 import { eq, and, like } from 'drizzle-orm';
 import { addDays, formatDateToYmd } from '@lg/domain';
@@ -80,6 +81,8 @@ beforeAll(async () => {
 
   // Ota-ona foydalanuvchisi va o'quvchi
   parentUserId = await createUserWithRole(db, 'guardian', '+998909998877');
+  // BR-31 xabari Telegram orqali ketadi; Telegram'siz ota-ona — darhol `failed` (T-109, #33).
+  await db.update(users).set({ telegramId: 7_000_113n }).where(eq(users.id, parentUserId));
 
   const studentRes = await call('POST', 'students', adminToken, {
     fullName: 'Anvar Qodirov',
