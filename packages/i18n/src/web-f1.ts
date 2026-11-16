@@ -19,6 +19,7 @@ export const webF1Messages = {
     staff: 'Xodimlar',
     settings: 'Sozlamalar',
     audit: 'Audit',
+    help: 'Yordam',
   },
   common: {
     add: 'Qoʻshish',
