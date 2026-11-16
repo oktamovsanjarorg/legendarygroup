@@ -153,6 +153,78 @@ saralash, yuklanmoqda, bo'sh, xato, "Yana yuklash", raqamli ustunlar), `MoneyFie
 
 ---
 
+## A-5 · Plan A4 — Ustoz Mini App: testlar, Excel import, e'lon (T-302, T-305, T-114) ⬜
+
+**Worktree:** yangi, `origin/main`dan, branch `feat/a4-teacher-tests`:
+
+```bash
+cd ~/projects/legendarygroup && git fetch origin
+git worktree add ../legendarygroup-agy-a4 -b feat/a4-teacher-tests origin/main
+cd ../legendarygroup-agy-a4 && pnpm install
+```
+
+**Hozirgi holat:** backend tayyor (API o'zgarmaydi). Ekranlar bor, lekin route yo'q va mock'ga ulangan:
+`apps/miniapp/src/screens/teacher/{tests,test-import,announce}.tsx`. `pages/teacher.tsx`dagi
+`GroupPage`da `onTests={() => undefined}`, `onAnnounce` umuman berilmagan — ustoz testlar va e'lonni ocha olmaydi.
+
+**Maketlar (majburiy, avval ko'ring):** `docs/ux/screens/miniapp/ustoz-mt-07-08-testlar-va-import/*.png`,
+`docs/ux/screens/miniapp/ustoz-mt-10-e-lon-yuborish/*.png`. Talablar: FR-GRD-4/5, FR-RPT-5, BR-35.
+
+**Andozalar (props/naqshni shulardan oling):**
+
+- Ma'lumot qatlami: `apps/miniapp/src/data/teacher.ts` + `teacher-map.ts` + `teacher-map.test.ts`
+  (TanStack Query hook → map funksiya → screen props). `QueryView` (`data/query-view.tsx`) — 5 holat.
+- Web'dagi xuddi shu oqim (API chaqiruvlari tayyor): `apps/web/src/routes/tests/{use-tests,map}.ts`
+  (`fileBase64`, `confirmBody`), `apps/web/src/routes/announcements/index.tsx`.
+- Route qo'shish: `apps/miniapp/src/router.tsx` (`/group/$id` naqshi), BackButton — mavjud sahifalardagidek.
+
+**API (faqat shular, yangi endpoint yo'q):**
+
+| Ekran          | Chaqiruv                                                                                                                                                                      |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MT-07 ro'yxat  | `GET /tests?groupId=…` → `TestItem[]`                                                                                                                                         |
+| MT-07 yaratish | `POST /tests` (`CreateTestRequest`: `groupId`, `title`, `date` `YYYY-MM-DD` — Toshkent bo'yicha bugun `Clock`dan, `maxScore`, `sections`)                                     |
+| MT-08 import   | `GET /tests/:id/template` (xlsx), `POST /tests/:id/import-preview` `{ fileBase64 }` → `ImportPreviewResponse`; `POST /tests/:id/import-confirm` (`ExcelImportConfirmRequest`) |
+| MT-08 e'lon    | `POST /tests/:id/publish` (natijalar ota-onaga ketadi — BR-35)                                                                                                                |
+| MT-10 e'lon    | `GET /announcements/preview?targetType=group&targetId=…` (qabul qiluvchilar soni), `POST /announcements` (`targetType: 'group'`, `targetId`, `body`, `sendNow: true`)         |
+
+**Qilinadi:**
+
+1. Route'lar: `/group/$id/tests` (MT-07), `/group/$id/tests/$testId/import` (MT-08), `/group/$id/announce` (MT-10).
+   `GroupPage`da `onTests` va `onAnnounce` (faqat `group.role === 'main'`) shu route'larga navigatsiya qiladi.
+2. `data/tests.ts` + `data/tests-map.ts` (+ `tests-map.test.ts`): API javobi → `GroupTest[]`, `ImportRow[]`,
+   `ColumnMap`. Map — sof funksiya, testda har `ImportRow` turi (aniq, noaniq/fuzzy, topilmadi) bor.
+3. **Yordamchi ustoz** (`group.role !== 'main'`): faqat ko'radi — `canManage = false`, yaratish/import/e'lon
+   tugmalari yo'q (Q-62). API 403 qaytarsa — "ruxsat yo'q" holati, xom xato emas.
+4. **Excel fayl:** Telegram WebView'da `<input type="file" accept=".xlsx">` (`data/upload.ts`dagi naqsh), fayl ≤ 5 MB —
+   aks holda i18n xato matni. Fuzzy qatorlar bo'yicha `accept`/`reject` qarori `import-confirm` body'siga kiradi;
+   hal qilinmagan fuzzy qator qolsa MainButton nofaol.
+5. **E'lon (MT-10):** `CreateAnnouncementSchema`da `title` majburiy (3–200), ekranda esa faqat matn bor —
+   `title` = i18n `t.announce.groupTitle` (`"{group} guruhi eʼloni"`), foydalanuvchi kiritmaydi.
+   Yuborishdan oldin tasdiq ActionSheet'ida qabul qiluvchilar soni (`preview`dan). Ikki marta bosish = bitta e'lon
+   (yuborilayotganda MainButton `showProgress` + nofaol).
+6. Mutatsiyadan keyin tegishli query `invalidate` (ro'yxat yangilanadi). Offline bo'lsa — yuborish tugmasi
+   nofaol va offline holati (`use-online.ts`); davomatdagi offline navbat bu yerga **kerak emas**.
+7. Screen fayllardagi `mock.ts`/`mock-more.ts` importlari faqat story'larda qoladi; route sahifa mock import qilmaydi.
+8. Testlar: `apps/miniapp/src/app.test.tsx` naqshida 3 ta oqim testi (MSW yoki mavjud `deps.tsx` fake API bilan):
+   ro'yxat → test yaratish; import preview → fuzzy qaror → confirm; e'lon → tasdiq → `POST /announcements` 1 marta.
+   Yordamchi ustozda tugmalar yo'qligi testi.
+
+**Tegmang:** `apps/api/**`, `packages/{db,domain,contracts}/**`, `apps/web/**`, `infra/**`, `docs/09-tasks.md`.
+`packages/i18n` — faqat `miniapp*.ts`ga yangi kalitlar.
+
+**Tekshirish:** `pnpm -F @lg/miniapp typecheck && pnpm -F @lg/miniapp lint && pnpm -F @lg/miniapp test`,
+`pnpm -F @lg/i18n test`, ildizda `pnpm test:int` (o'zgarmasligi kerak). Skrinshotlarni maket bilan solishtiring.
+
+**Yakun:** ≤ 400 qatorlik bir nechta commit (masalan: 1 — data qatlami + map testlari, 2 — MT-07, 3 — MT-08, 4 — MT-10),
+`git push -u origin feat/a4-teacher-tests`, PR ochiladi (`main`ga merge — yo'q). Sarlavha:
+`feat(miniapp): T-302/T-305 ustoz testlari, Excel import va eʼlon (A4)`. Keyin Claude `/review-ai apps/miniapp` qiladi.
+
+**Qabul mezoni:** ustoz guruhdan testlar ro'yxatini ochadi, test yaratadi, Excel'ni yuklab natijani tasdiqlaydi va
+e'lon qiladi; asosiy ustoz guruhga e'lon yuboradi; yordamchi faqat ko'radi; CI yashil.
+
+---
+
 ## Keyinroq (hozir BERILMAYDI — bog'liqliklari tayyor emas)
 
 | Vazifa                            | Nima uchun hozir emas                                          |
