@@ -46,6 +46,11 @@ export const webMessages = {
     mismatch: 'Parollar mos emas.',
     submit: 'Davom etish',
   },
+  handoff: {
+    loading: 'Boshqaruv paneliga kirilmoqda…',
+    missing: 'Kirish havolasi toʻliq emas. Mini Appʼda tugmani qayta bosing.',
+    toLogin: 'Telefon va parol bilan kirish',
+  },
   nav: {
     home: 'Bosh sahifa',
     sessions: 'Mening sessiyalarim',

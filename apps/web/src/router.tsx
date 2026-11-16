@@ -8,6 +8,7 @@ import {
   type RouterHistory,
 } from '@tanstack/react-router';
 import { AppLayout } from './layout/app-layout.js';
+import { HandoffPage } from './pages/handoff.js';
 import { HomePage } from './pages/home.js';
 import { InvitePage } from './pages/invite.js';
 import { LoginPage } from './pages/login.js';
@@ -67,6 +68,11 @@ const verify = createRoute({
   component: function Verify() {
     return <VerifyPage token={verify.useParams().token} />;
   },
+});
+const handoff = createRoute({
+  getParentRoute: () => root,
+  path: '/handoff',
+  component: () => <HandoffPage />,
 });
 const landing = createRoute({
   getParentRoute: () => root,
@@ -203,6 +209,7 @@ const routeTree = root.addChildren([
   login,
   invite,
   verify,
+  handoff,
   landing,
   app.addChildren([
     home,
