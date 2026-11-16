@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/auth.js';
 import { AppShell } from './app-shell.js';
 import { visibleNav } from './nav.js';
+import { useAppLinks } from './app-links.js';
 
 function useOnline(): boolean {
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -43,6 +44,7 @@ export function AppLayout() {
   const online = useOnline();
   const path = useRouterState({ select: (s) => s.location.pathname });
   usePayHotkey(permissions.has('payment.create'));
+  useAppLinks();
   if (status === 'loading')
     return (
       <div className="p-8">

@@ -303,10 +303,11 @@
 - **Sabab (2026-11-16):** egasi: "login parolni kiritdim — Telegram'dan tasdiqlash so'rovi o'zi kelsin". Direktor Authenticator kodida adashgan edi.
 - **Bajarildi (2026-11-16):** `TelegramChallenges` (umumiy), `AuthService.mfaStep` → `telegramChallengeId`; web `useTelegramPoll` + `TelegramHint`; testlar: API 4 integratsiya, web 3. Shu bilan birga "Telegram orqali kirish" tuzatildi — avval bot xabari umuman yuborilmasdi (`TelegramLoginNotifier`, bot `staff-login.ts`).
 
-### ⬜ T-123 · Panel ichida «Yordam» boʻlimi va sahifalarda «?»
+### ✅ T-123 · Panel ichida «Yordam» boʻlimi va sahifalarda «?»
 
 - **Bog'liq:** T-506 · **Bajaruvchi:** agy (A-6, `docs/13-antigravity.md`), review — Claude
 - **AC:** W-36 `/help` — `docs/manuals/director.md` mazmuni qidiruv bilan, ruxsatga qarab boʻlimlar; `PageHeader help` → `/help#<id>`.
+- **Bajarildi (2026-11-16):** agy (0608376, a972b09); review — hash chip tanlovini qaytarardi, «?» sahifani qayta yuklardi (`useAppLinks`), ruxsat savol darajasiga, Admin uchun «sizga» → «Direktorga», shartnoma ogohlantirishi qaytarildi.
 
 ### ⬜ T-124 · Web: birinchi kirishda panel bilan tanishtiruv
 

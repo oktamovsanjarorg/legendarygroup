@@ -6,7 +6,10 @@ export interface PageHeaderProps {
   title: string;
   description?: ReactNode;
   actions?: ReactNode;
-  /** Yordam boʻlimi havolasi (W-36): `/help#<id>` ga eltuvchi «?» ikonka. */
+  /**
+   * Yordam boʻlimi havolasi (W-36): `/help#<id>` ga eltuvchi «?» ikonka. Havola `data-app-link`
+   * bilan — ilova (router) uni sahifani qayta yuklamasdan ochadi (`useAppLinks`, apps/web).
+   */
   help?: string;
 }
 
@@ -26,6 +29,7 @@ export function PageHeader({ title, description, actions, help }: PageHeaderProp
           {helpHref && (
             <a
               href={helpHref}
+              data-app-link
               aria-label={t.help.open}
               title={t.help.open}
               className="inline-flex items-center rounded text-text-muted transition-colors hover:text-text focus:outline-none focus:ring-2 focus:ring-primary/30"

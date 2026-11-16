@@ -66,7 +66,7 @@ describe('W-36 «Yordam» ekrani (T-123)', () => {
 
     // Adminʼda oylik boʻlimi umuman yoʻq (na sarlavha, na chip)
     expect(screen.queryByRole('heading', { level: 2, name: 'Ustozlar oyligi' })).toBeNull();
-    expect(screen.queryByRole('tab', { name: 'Ustozlar oyligi' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Ustozlar oyligi' })).toBeNull();
     expect(
       screen.queryByText('Oʻqituvchilar (ustozlar) oyligi qanday hisoblanadi va toʻlanadi?'),
     ).toBeNull();
@@ -74,7 +74,6 @@ describe('W-36 «Yordam» ekrani (T-123)', () => {
 
   it('/help#kassa-yopish — toʻgʻridan-toʻgʻri oʻsha savol kartasini koʻrsatadi', async () => {
     fakeApi(ROLE_PERMISSIONS.director, () => undefined);
-    window.location.hash = '#kassa-yopish';
     renderApp('/help#kassa-yopish');
 
     await waitFor(() => {
@@ -98,5 +97,30 @@ describe('W-36 «Yordam» ekrani (T-123)', () => {
 
     expect(screen.getByText(t.help.emptyTitle)).toBeDefined();
     expect(screen.getByText(t.help.emptyHint)).toBeDefined();
+  });
+
+  it('hash bilan ochilgandan keyin boʻlim chipi ishlaydi (hash tanlovni qaytarib yubormaydi)', async () => {
+    const user = userEvent.setup();
+    fakeApi(ROLE_PERMISSIONS.director, () => undefined);
+    renderApp('/help#kassa-yopish');
+    await screen.findByText('Kassani qanday yopaman?');
+    await user.click(screen.getByText('Xodimlar', { selector: 'button' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('heading', { level: 2, name: 'Toʻlovlar' })).toBeNull(),
+    );
+    expect(screen.getByRole('heading', { level: 2, name: 'Xodimlar' })).toBeDefined();
+  });
+
+  it('Adminʼga «Direktorga soʻrov ketadi» deb yoziladi, «sizga» emas', async () => {
+    fakeApi(ROLE_PERMISSIONS.admin, () => undefined);
+    renderApp('/help');
+    await screen.findByText('Oʻquvchiga qanday chegirma beriladi?');
+    expect(screen.queryByText(/sizga tasdiqlash soʻrovi keladi/)).toBeNull();
+  });
+
+  it('oylik: shartnoma web panelda yoʻqligi aytiladi (yoʻriqnoma bilan bir xil)', async () => {
+    fakeApi(ROLE_PERMISSIONS.director, () => undefined);
+    renderApp('/help');
+    expect(await screen.findByText(/shartnoma.*texnik masʼulga/i)).toBeDefined();
   });
 });

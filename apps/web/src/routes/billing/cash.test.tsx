@@ -75,4 +75,16 @@ describe('W-16 Kassa (T-209, FR-PAY-10)', () => {
     const link = screen.getByLabelText(t.help.open);
     expect(link.getAttribute('href')).toBe('/help#kassa-yopish');
   });
+
+  it('«?» bosilsa — sahifa qayta yuklanmaydi, ilova ichida /help#kassa-yopish ochiladi', async () => {
+    fakeApi(['cash.close'], handler);
+    const router = renderApp('/cash');
+    await screen.findByText(/Aliyev Jasur/);
+    await userEvent.setup().click(screen.getByLabelText(t.help.open));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/help'));
+    expect(router.state.location.hash).toBe('kassa-yopish');
+    expect(await screen.findByText('Kassani qanday yopaman?')).toBeTruthy();
+    // Faqat cash.close: toʻlov kiritish savoli (payment.create) koʻrinmaydi.
+    expect(screen.queryByText('Naqd yoki karta toʻlovini qanday kiritaman?')).toBeNull();
+  });
 });

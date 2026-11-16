@@ -1,6 +1,7 @@
 import { normalizeUz, webMessages as t } from '@lg/i18n';
 import { Card, cn, EmptyState, PageHeader, SearchField } from '@lg/ui-web';
-import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from '@tanstack/react-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../auth/auth.js';
 
 interface ItemProps {
@@ -66,11 +67,10 @@ function SectionChips({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap gap-2" role="tablist" aria-label={t.help.title}>
+    <div className="mb-6 flex flex-wrap gap-2" role="group" aria-label={t.help.allSections}>
       <button
         type="button"
-        role="tab"
-        aria-selected={selected === 'all'}
+        aria-pressed={selected === 'all'}
         onClick={() => onSelect('all')}
         className={cn(
           'rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors',
@@ -85,8 +85,7 @@ function SectionChips({
         <button
           key={sec.id}
           type="button"
-          role="tab"
-          aria-selected={selected === sec.id}
+          aria-pressed={selected === sec.id}
           onClick={() => onSelect(sec.id)}
           className={cn(
             'rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors',
@@ -113,42 +112,51 @@ function filterSection(sec: SectionProps, q: string) {
   return { ...sec, items: matched };
 }
 
-function useHashScroll(
-  visibleSections: readonly SectionProps[],
-  selectedSection: string,
-  onSelect: (id: string) => void,
-) {
+/**
+ * `#<savol id>` bilan ochilsa — barcha boʻlimlar va oʻsha kartaga scroll. Faqat hash
+ * oʻzgarganda ishlaydi: keyin chip tanlansa, hash uni qaytarib yubormaydi.
+ */
+function useHashScroll(hash: string, showAll: () => void) {
+  const show = useRef(showAll);
+  show.current = showAll;
   useEffect(() => {
-    const handleHash = () => {
-      const hash = window.location.hash.replace(/^#/, '');
-      if (!hash) return;
-      const target = visibleSections.find((s) => s.items.some((i) => i.id === hash));
-      if (target && selectedSection !== 'all' && selectedSection !== target.id) {
-        onSelect('all');
-      }
-      setTimeout(() => {
-        const el = document.getElementById(hash);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 50);
-    };
+    if (!hash) return;
+    show.current();
+    const frame = requestAnimationFrame(() =>
+      document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [hash]);
+}
 
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
-  }, [visibleSections, selectedSection, onSelect]);
+const allowed = (permissions: ReadonlySet<string>, p?: string) => !p || permissions.has(p);
+
+/** Ruxsatga qarab: boʻlim va savol darajasida; savoli qolmagan boʻlim — yashirin. */
+function visibleHelp(permissions: ReadonlySet<string>): SectionProps[] {
+  return t.help.sections
+    .filter((s) => allowed(permissions, s.permission))
+    .map((s) => ({ ...s, items: s.items.filter((i) => allowed(permissions, i.permission)) }))
+    .filter((s) => s.items.length > 0);
 }
 
 /** W-36 «Yordam» koʻrinishi: qidiruv, boʻlim chiplari va savol kartalari. */
-export function HelpView({ permissions }: { permissions: ReadonlySet<string> }) {
+export function HelpView({
+  permissions,
+  hash = '',
+}: {
+  permissions: ReadonlySet<string>;
+  /** Router'dagi `#` qismi (savol id), `#`siz. */
+  hash?: string;
+}) {
   const [query, setQuery] = useState('');
   const [selectedSection, setSelectedSection] = useState<string>('all');
 
-  const visibleSections = useMemo(
-    () => t.help.sections.filter((s) => !s.permission || permissions.has(s.permission)),
-    [permissions],
-  );
+  const visibleSections = useMemo(() => visibleHelp(permissions), [permissions]);
 
-  useHashScroll(visibleSections, selectedSection, setSelectedSection);
+  useHashScroll(hash, () => {
+    setSelectedSection('all');
+    setQuery('');
+  });
 
   const filtered = useMemo(() => {
     const q = normalizeUz(query);
@@ -193,5 +201,6 @@ export function HelpView({ permissions }: { permissions: ReadonlySet<string> }) 
 /** W-36 «Yordam» sahifasi: har kirgan xodim uchun ochiq. */
 export function HelpPage() {
   const { permissions } = useAuth();
-  return <HelpView permissions={permissions} />;
+  const hash = useLocation({ select: (l) => l.hash });
+  return <HelpView permissions={permissions} hash={hash} />;
 }

@@ -31,7 +31,7 @@ export const helpSectionsOps: readonly HelpSection[] = [
           'Tekshirgach «Tasdiqlash» (faqat Direktor). Tasdiqlangan hisob qayta hisoblanmaydi.',
           'Pul berilgach «Toʻlandi deb belgilash».',
         ],
-        note: 'Shartnomasiz ustozga oylik hisoblanmaydi.',
+        note: 'Ustoz shartnomasini (fiks, foiz, aralash, darsbay) web panelda hozircha kiritib boʻlmaydi — texnik masʼulga ayting. Shartnomasiz ustozga oylik hisoblanmaydi.',
       },
     ],
   },

@@ -1,5 +1,7 @@
 export interface HelpItem {
   id: string;
+  /** Savol faqat shu ruxsat bilan koʻrinadi (boʻlim ruxsatidan tashqari). */
+  permission?: string;
   q: string;
   steps: readonly string[];
   note?: string;
@@ -186,10 +188,10 @@ export const helpSectionsOrg: readonly HelpSection[] = [
   {
     id: 'tolovlar',
     title: 'Toʻlovlar',
-    permission: 'payment.create',
     items: [
       {
         id: 'tolov-kiritish',
+        permission: 'payment.create',
         q: 'Naqd yoki karta toʻlovini qanday kiritaman?',
         steps: [
           'Menyu → «Toʻlov kiritish» (yoki istalgan sahifadan «Alt+P»).',
@@ -198,6 +200,7 @@ export const helpSectionsOrg: readonly HelpSection[] = [
       },
       {
         id: 'chek-navbati',
+        permission: 'payment.review',
         q: 'Ota-ona yuborgan oʻtkazma cheki qanday tekshiriladi?',
         steps: [
           'Menyu → «Chek navbati» (yoki Mini App → «Navbat»).',
@@ -207,6 +210,7 @@ export const helpSectionsOrg: readonly HelpSection[] = [
       },
       {
         id: 'qarzdorlar',
+        permission: 'payment.review',
         q: 'Qarzdorlar bilan qanday ishlanadi?',
         steps: [
           'Menyu → «Qarzdorlar» — muddat boʻyicha (0–7, 8–30, 30+ kun).',
@@ -215,18 +219,21 @@ export const helpSectionsOrg: readonly HelpSection[] = [
       },
       {
         id: 'chegirmalar',
+        permission: 'discount.grant',
         q: 'Oʻquvchiga qanday chegirma beriladi?',
         steps: ['Oʻquvchi kartasi → «Chegirma berish» yoki menyu → «Chegirmalar».'],
-        note: 'Admin oʻz limitidan oshirsa sizga tasdiqlash soʻrovi keladi.',
+        note: 'Admin oʻz limitidan oshirsa, Direktorga tasdiqlash soʻrovi ketadi.',
       },
       {
         id: 'storno-qaytarish',
+        permission: 'payment.reverse',
         q: 'Toʻlovni qanday bekor qilaman (storno) yoki pulni qaytaraman?',
         steps: ['Toʻlov sahifasi → «Storno» yoki qaytarish.'],
-        note: 'Admin buni qilsa sizga tasdiqlash soʻrovi keladi.',
+        note: 'Admin buni qilsa, Direktorga tasdiqlash soʻrovi ketadi.',
       },
       {
         id: 'kassa-yopish',
+        permission: 'cash.close',
         q: 'Kassani qanday yopaman?',
         steps: [
           'Menyu → «Kassa» → «Sanalgan naqd»ni kiriting.',
