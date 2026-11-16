@@ -54,3 +54,4 @@ temp/
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+.astro/

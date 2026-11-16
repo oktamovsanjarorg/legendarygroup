@@ -24,5 +24,6 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     }
-  }
+  },
+  "sideEffects": false
 }
