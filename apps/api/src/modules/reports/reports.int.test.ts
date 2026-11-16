@@ -161,6 +161,20 @@ afterAll(async () => {
   await t.close();
 });
 
+describe('T-304: ota-ona hisobotidagi Mini App havolasi', () => {
+  it('sozlangan bot va MG-04 deep link (`rep_<id>`) — qattiq yozilgan bot nomi emas', async () => {
+    const res = await call(
+      'GET',
+      `reports/parent-digest/preview?studentId=${studentId}`,
+      directorToken,
+    );
+    expect(res.statusCode).toBe(200);
+    expect(res.json<{ miniAppUrl: string }>().miniAppUrl).toBe(
+      `https://t.me/legendary_test_bot/app?startapp=rep_${studentId}`,
+    );
+  });
+});
+
 describe('T-501: Hisobotlar toʻplami va eksport (FR-DASH-2, 4)', () => {
   it('RBAC: Ota-ona moliya hisobotini koʻrolmaydi (403), Director koʻradi (200)', async () => {
     const forbiddenRes = await call('GET', 'reports/revenue', parentToken);

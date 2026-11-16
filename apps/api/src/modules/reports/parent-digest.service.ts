@@ -8,6 +8,7 @@ import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import type { Database } from '@lg/db';
 import { AppException } from '../../common/errors/app.exception.js';
+import { EnvService } from '../../config/env.service.js';
 import type { RequestUser } from '../auth/index.js';
 import { NotificationsService } from '../notifications/index.js';
 import { ProgressService } from '../grades/index.js';
@@ -23,6 +24,7 @@ export class ParentDigestService {
     @Inject(ProgressService) private readonly progressService: ProgressService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(EnvService) private readonly env: EnvService,
   ) {}
 
   /** Haftalik yoki oylik ota-ona hisoboti (FR-RPT-2, 3) */
@@ -70,7 +72,8 @@ export class ParentDigestService {
       testResults: testRes,
       rank,
       totalStudents,
-      miniAppUrl: `https://t.me/LegendaryGroupBot/app?startapp=progress_${student.id}`,
+      // screens.md §5: `<bot>/app?startapp=rep_<id>` → MG-04 (`progress_` prefiksi Mini App'da yo'q edi).
+      miniAppUrl: `https://t.me/${this.env.get('TELEGRAM_BOT_USERNAME')}/app?startapp=rep_${student.id}`,
     };
   }
 
