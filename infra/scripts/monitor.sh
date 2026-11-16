@@ -57,8 +57,13 @@ disk="$(df --output=pcent / | tail -1 | tr -dc '0-9')"
 if (( disk > 80 )); then alert disk "disk ${disk}% band"; else resolve disk "disk ${disk}%"; fi
 
 # 3. Konteynerlar (docker compose -p lg-prod): ishlamayotgani bo'lsa.
+# `migrate` — bir martalik servis (restart: 'no'): `Exited (0)` — normal holat, alert emas;
+# faqat nol bo'lmagan kod bilan tugagani (migratsiya yiqilgan) alert.
 down="$(docker ps -a --filter label=com.docker.compose.project=lg-prod \
-  --format '{{.Names}} {{.State}}' | awk '$2 != "running" {print $1}' | paste -sd, -)"
+  --format '{{.Names}}|{{.Label "com.docker.compose.service"}}|{{.State}}|{{.Status}}' \
+  | awk -F'|' '$3 == "running" { next }
+      $2 == "migrate" && $3 == "exited" && $4 ~ /^Exited \(0\)/ { next }
+      { print $1 }' | paste -sd, -)"
 if [[ -n "$down" ]]; then alert containers "ishlamayotgan konteyner: ${down}"
 else resolve containers "barcha konteynerlar ishlayapti"; fi
 # 4. API: 5xx > 2% va p95 > 1 s (oxirgi 5 daqiqa; kamida 20 so'rov bo'lsa).
