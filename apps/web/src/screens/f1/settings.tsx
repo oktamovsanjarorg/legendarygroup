@@ -140,7 +140,7 @@ export function SettingsView({
 }: Props) {
   return (
     <>
-      <PageHeader title={t.settings.title} />
+      <PageHeader title={t.settings.title} help="sozlamalar-turlari" />
       <Tabs
         label={t.settings.title}
         value={section}

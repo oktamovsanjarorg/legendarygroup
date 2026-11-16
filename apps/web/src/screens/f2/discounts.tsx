@@ -49,6 +49,7 @@ export function DiscountsView({
     <>
       <PageHeader
         title={t.discounts.title}
+        help="chegirmalar"
         actions={
           <Button onClick={onGrant}>
             <BadgePercent className="size-4" aria-hidden />

@@ -51,3 +51,11 @@ export const WithActions: Story = {
     </div>
   ),
 };
+
+export const WithHelp: Story = {
+  render: () => (
+    <div className="p-4">
+      <PageHeader title="Kunlik kassa" description="2026-11-16" help="kassa-yopish" />
+    </div>
+  ),
+};

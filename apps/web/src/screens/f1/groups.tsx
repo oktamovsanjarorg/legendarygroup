@@ -89,6 +89,7 @@ export function GroupsView(p: Props) {
     <>
       <PageHeader
         title={t.groups.title}
+        help="guruh-yaratish"
         actions={
           p.onNew && (
             <Button onClick={p.onNew}>

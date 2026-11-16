@@ -50,7 +50,7 @@ interface Props {
 export function WebApprovalsView({ rows, open, onOpen, onClose, onApprove, onReject }: Props) {
   return (
     <>
-      <PageHeader title={m.approvals.title} />
+      <PageHeader title={m.approvals.title} help="tasdiqlash-sorovlari" />
       <DataTable
         columns={columns}
         data={rows}

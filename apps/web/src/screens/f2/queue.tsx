@@ -109,6 +109,7 @@ export function WebQueueView(p: Props) {
       <PageHeader
         title={t.queueWeb.title}
         description={t.queueWeb.waiting.replace('{n}', String(p.items.length))}
+        help="chek-navbati"
       />
       {p.items.length === 0 ? (
         <EmptyState title={m.review.empty} />

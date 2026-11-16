@@ -99,6 +99,7 @@ export function DebtorsView(p: Props) {
       <PageHeader
         title={t.debtors.title}
         description={t.debtors.total.replace('{amount}', formatMoney(total))}
+        help="qarzdorlar"
         actions={
           p.onExport && (
             <Button variant="secondary" onClick={p.onExport}>

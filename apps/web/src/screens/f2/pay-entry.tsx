@@ -203,7 +203,7 @@ export function PayEntryView(p: PayEntryProps) {
   const { s } = p;
   return (
     <div onKeyDown={(e) => payKeys(p, e)}>
-      <PageHeader title={t.payEntry.title} description={t.payEntry.hotkey} />
+      <PageHeader title={t.payEntry.title} description={t.payEntry.hotkey} help="tolov-kiritish" />
       <div className="grid grid-cols-5 gap-6">
         <Card className="col-span-3 flex flex-col gap-5">
           <StudentPicker s={s} onQuery={p.onQuery} onPick={p.onPick} />

@@ -1,6 +1,6 @@
 import { Home } from 'lucide-react';
 import { describe, expect, it } from 'vitest';
-import { visibleNav } from './nav.js';
+import { NAV, visibleNav } from './nav.js';
 
 describe('Menyu ruxsatga qarab (11-ux §2)', () => {
   const items = [
@@ -13,5 +13,20 @@ describe('Menyu ruxsatga qarab (11-ux §2)', () => {
       'W-04',
       'W-30',
     ]);
+  });
+
+  it('W-36 «Yordam» menyuda sessions oldidan joylashgan va hammaga koʻrinadi', () => {
+    const helpIdx = NAV.findIndex((i) => i.screen === 'W-36');
+    const sessionsIdx = NAV.findIndex((i) => i.screen === 'W-32');
+    expect(helpIdx).toBeGreaterThan(-1);
+    expect(sessionsIdx).toBe(helpIdx + 1);
+
+    const helpItem = NAV[helpIdx];
+    expect(helpItem?.to).toBe('/help');
+    expect(helpItem?.permission).toBeUndefined();
+
+    // Ruxsat bo'lmaganda ham ko'rinadi
+    const visible = visibleNav(new Set());
+    expect(visible.some((i) => i.screen === 'W-36')).toBe(true);
   });
 });

@@ -76,6 +76,7 @@ export function StaffView({
     <>
       <PageHeader
         title={t.staff.title}
+        help="xodim-qoshish"
         actions={
           <Button onClick={onInvite}>
             <UserPlus className="size-4" aria-hidden />

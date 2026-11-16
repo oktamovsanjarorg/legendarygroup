@@ -138,6 +138,7 @@ export function PayrollView({ periodLabel, status, rows, total, ...a }: Props) {
       <PageHeader
         title={p.title}
         description={p.subtitle}
+        help="oylik-hisoblash"
         actions={<HeaderActions status={status} a={a} />}
       />
       {a.error && (

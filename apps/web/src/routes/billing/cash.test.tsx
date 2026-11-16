@@ -67,4 +67,12 @@ describe('W-16 Kassa (T-209, FR-PAY-10)', () => {
       }),
     );
   });
+
+  it('PageHeader «?» havolasi toʻgʻridan-toʻgʻri /help#kassa-yopish ga olib boradi', async () => {
+    fakeApi(['cash.close'], handler);
+    renderApp('/cash');
+    expect(await screen.findByText(/Aliyev Jasur/)).toBeTruthy();
+    const link = screen.getByLabelText(t.help.open);
+    expect(link.getAttribute('href')).toBe('/help#kassa-yopish');
+  });
 });

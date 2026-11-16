@@ -95,6 +95,7 @@ export function StudentsView(p: Props) {
     <>
       <PageHeader
         title={t.students.title}
+        help="oquvchi-qoshish"
         actions={
           p.onNew && (
             <Button onClick={p.onNew}>

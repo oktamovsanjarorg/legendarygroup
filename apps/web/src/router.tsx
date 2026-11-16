@@ -35,6 +35,7 @@ import { ReportsPage } from './routes/reports/index.js';
 import { TestsPage } from './routes/tests/index.js';
 import { TicketsPage } from './routes/tickets/index.js';
 import { GroupsPage } from './routes/groups/index.js';
+import { HelpPage } from './routes/help/index.js';
 import { LandingPage } from './routes/landing/index.js';
 import { LeadsPage } from './routes/leads/index.js';
 import { LinkRequestsPage } from './routes/link-requests/index.js';
@@ -204,6 +205,7 @@ const testsRoute = createRoute({
 });
 const audit = createRoute({ getParentRoute: () => app, path: '/audit', component: AuditPage });
 const wizard = createRoute({ getParentRoute: () => app, path: '/wizard', component: WizardPage });
+const helpRoute = createRoute({ getParentRoute: () => app, path: '/help', component: HelpPage });
 
 const routeTree = root.addChildren([
   login,
@@ -222,6 +224,7 @@ const routeTree = root.addChildren([
     staff,
     sessions,
     wizard,
+    helpRoute,
     payNew,
     audit,
     reports,

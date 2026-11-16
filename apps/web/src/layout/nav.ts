@@ -15,6 +15,7 @@ import {
   Receipt,
   TrendingUp,
   Inbox,
+  LifeBuoy,
   Link2,
   Megaphone,
   MessagesSquare,
@@ -198,6 +199,7 @@ export const NAV: readonly NavItem[] = [
     icon: Settings,
     permission: 'settings.manage',
   },
+  { screen: 'W-36', to: '/help', label: t.menu.help, icon: LifeBuoy },
   { screen: 'W-32', to: '/sessions', label: t.nav.sessions, icon: MonitorSmartphone },
 ];
 

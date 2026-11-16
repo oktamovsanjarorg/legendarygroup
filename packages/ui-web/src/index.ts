@@ -8,6 +8,7 @@ export * from './field.js';
 export * from './kpi-card.js';
 export * from './money-field.js';
 export * from './page-header.js';
+export * from './search-field.js';
 export * from './select.js';
 export * from './states.js';
 export * from './tabs.js';
