@@ -27,6 +27,8 @@ export const webMessages = {
     secretLabel: 'Qoʻlda kiritish uchun kalit',
     verifyTitle: 'Tasdiqlash kodi',
     verifyHint: 'Autentifikator ilovasidagi 6 xonali kodni kiriting.',
+    telegramSent:
+      'Telegramga tasdiqlash soʻrovi yuborildi: botdagi «Tasdiqlash»ni bossangiz, kodsiz kirasiz. Yoki quyida kodni kiriting.',
     code: 'Kod',
     useBackup: 'Zaxira kod bilan kirish',
     backupCode: 'Zaxira kod',

@@ -29,6 +29,11 @@
    Xabar: `TelegramLoginNotifier` (worker) → navbat → «Tasdiqlash» (`callback_data: tgl:<id>`);
    bot `staff-login.ts` → `/internal/auth/telegram/confirm` (2026-11-16 gacha xabar umuman
    yuborilmasdi — iste'molchi yo'q edi).
+   **Parol → MFA (T-122):** parol to'g'ri va Telegram ulangan bo'lsa, MFA javobida
+   `telegramChallengeId` ham qaytadi va botga shu so'rov darhol ketadi. Web kod sahifasi fonda
+   `telegram/poll` qiladi: kod kiritiladi **yoki** botda «Tasdiqlash» bosiladi — qaysi biri oldin.
+   Ikkinchi omil Telegram'ga egalik bo'lgani uchun TOTP sozlanmagan xodim ham shu yo'l bilan
+   kira oladi (TOTP sozlash majburiy emas, lekin ekranda taklif qilinadi).
 7. **Taklif havolasi** (`staff_invites`, 24 soat, bir marta): parol o'rnatish → TOTP sozlash.
    Havolani T-008 (`pnpm cli director:create`) va T-101 (xodim qo'shish) yaratadi.
 8. **Rate limit** (Redis): login — telefon 5/daq + IP 30/daq; TOTP — 5/daq; Telegram start — 5/daq.

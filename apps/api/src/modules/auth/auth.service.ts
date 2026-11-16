@@ -19,6 +19,7 @@ import {
   toAuthUser,
   WEB_ROLES,
 } from './staff-users.js';
+import { TelegramChallenges } from './telegram-challenges.js';
 import { TokensService } from './tokens.service.js';
 import { TotpService } from './totp.service.js';
 
@@ -52,6 +53,7 @@ export class AuthService {
     @Inject(RateLimiter) private readonly limiter: RateLimiter,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(OutboxService) private readonly outbox: OutboxService,
+    @Inject(TelegramChallenges) private readonly challenges: TelegramChallenges,
   ) {}
 
   /** 1-qadam: telefon + parol → MFA bosqichi (Director/Admin uchun 2FA majburiy). */
@@ -224,9 +226,16 @@ export class AuthService {
     await this.audit.record(ctx, { action: 'auth.logout', entity: 'session' });
   }
 
+  /**
+   * Parol to'g'ri → MFA. Telegram ulangan bo'lsa — botga darhol tasdiq so'rovi ham (T-122):
+   * xodim kod kiritadi yoki botda «Tasdiqlash»ni bosadi (web `telegram/poll`) — qaysi biri oldin.
+   */
   private async mfaStep(user: StaffUser): Promise<LoginResult> {
     const step = user.totpSecret ? 'totp' : 'totp_setup';
-    return { next: step, mfaToken: await this.tokens.signMfa({ sub: user.id, step }) };
+    const mfaToken = await this.tokens.signMfa({ sub: user.id, step });
+    if (!user.telegramId) return { next: step, mfaToken };
+    const { challengeId } = await this.challenges.create(user.id);
+    return { next: step, mfaToken, telegramChallengeId: challengeId };
   }
 
   private async mfaUser(mfaToken: string, step: 'totp' | 'totp_setup'): Promise<StaffUser> {

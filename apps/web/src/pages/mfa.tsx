@@ -4,6 +4,7 @@ import { Button, Card, CardTitle, Field } from '@lg/ui-web';
 import QRCode from 'qrcode';
 import { type FormEvent, useEffect, useState } from 'react';
 import { api, ApiError } from '../api/client.js';
+import { useTelegramPoll } from './telegram-poll.js';
 
 interface Done {
   accessToken: string;
@@ -62,14 +63,32 @@ function SetupQr({ qr, secret }: { qr: string; secret: string }) {
   );
 }
 
-/** W-02: TOTP sozlash (birinchi kirish) — QR, kod, so'ng zaxira kodlar (bir marta). */
-export function TotpSetupStep({
-  mfaToken,
+interface StepProps {
+  mfaToken: string;
+  /** T-122: botga tasdiq so'rovi ketgan — «Tasdiqlash» bosilsa, kodsiz kiriladi. */
+  telegramChallengeId?: string | undefined;
+  onDone: (d: Done) => void;
+}
+
+/** Bot tasdig'i kutiladi (fonda); muddati o'tsa — jim, kod bilan kirish qoladi. */
+function TelegramHint({
+  challengeId,
   onDone,
 }: {
-  mfaToken: string;
+  challengeId?: string;
   onDone: (d: Done) => void;
 }) {
+  useTelegramPoll(challengeId, (accessToken) => onDone({ accessToken }));
+  if (!challengeId) return null;
+  return (
+    <p role="status" className="rounded-md bg-surface px-3 py-2 text-sm text-text-muted">
+      {t.totp.telegramSent}
+    </p>
+  );
+}
+
+/** W-02: TOTP sozlash (birinchi kirish) — QR, kod, so'ng zaxira kodlar (bir marta). */
+export function TotpSetupStep({ mfaToken, telegramChallengeId, onDone }: StepProps) {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const setup = useTotpSetup(mfaToken, setError);
@@ -102,6 +121,7 @@ export function TotpSetupStep({
     <Card>
       <form className="flex flex-col gap-4" onSubmit={submit}>
         <CardTitle>{t.totp.setupTitle}</CardTitle>
+        <TelegramHint challengeId={telegramChallengeId} onDone={onDone} />
         <p className="text-sm text-text-muted">{t.totp.setupHint}</p>
         {setup && <SetupQr qr={setup.qr} secret={setup.secret} />}
         <Field
@@ -122,13 +142,7 @@ export function TotpSetupStep({
 }
 
 /** W-02: TOTP yoki zaxira kod. */
-export function TotpVerifyStep({
-  mfaToken,
-  onDone,
-}: {
-  mfaToken: string;
-  onDone: (d: Done) => void;
-}) {
+export function TotpVerifyStep({ mfaToken, telegramChallengeId, onDone }: StepProps) {
   const [useBackup, setUseBackup] = useState(false);
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -154,6 +168,7 @@ export function TotpVerifyStep({
     <Card>
       <form className="flex flex-col gap-4" onSubmit={submit}>
         <CardTitle>{t.totp.verifyTitle}</CardTitle>
+        <TelegramHint challengeId={telegramChallengeId} onDone={onDone} />
         <p className="text-sm text-text-muted">{t.totp.verifyHint}</p>
         <Field
           label={useBackup ? t.totp.backupCode : t.totp.code}

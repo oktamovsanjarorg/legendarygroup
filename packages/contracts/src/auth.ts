@@ -50,8 +50,17 @@ export const AuthUser = z.object({
 /** Login javobi: yoki sessiya, yoki keyingi MFA qadami. */
 export const LoginResult = z.discriminatedUnion('next', [
   z.object({ next: z.literal('done'), accessToken: z.string(), user: AuthUser }),
-  z.object({ next: z.literal('totp'), mfaToken: z.string() }),
-  z.object({ next: z.literal('totp_setup'), mfaToken: z.string() }),
+  // T-122: Telegram ulangan bo'lsa — botga tasdiq so'rovi ham yuborildi (`telegram/poll` bilan kutiladi).
+  z.object({
+    next: z.literal('totp'),
+    mfaToken: z.string(),
+    telegramChallengeId: z.string().optional(),
+  }),
+  z.object({
+    next: z.literal('totp_setup'),
+    mfaToken: z.string(),
+    telegramChallengeId: z.string().optional(),
+  }),
 ]);
 
 /** `GET /api/auth/me` — UI menyusi va tugmalar uchun samarali ruxsatlar (faol rol bo'yicha). */

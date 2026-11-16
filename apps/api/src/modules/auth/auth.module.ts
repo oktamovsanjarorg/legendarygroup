@@ -10,6 +10,7 @@ import { SessionsService } from './sessions.service.js';
 import { StaffUsers } from './staff-users.js';
 import { TelegramAuthService } from './telegram-auth.service.js';
 import { TelegramModule } from '../telegram/index.js';
+import { TelegramChallenges } from './telegram-challenges.js';
 import { TelegramLoginNotifier } from './telegram-login-notifier.js';
 import { TelegramLoginService } from './telegram-login.service.js';
 import { TokensService } from './tokens.service.js';
@@ -24,6 +25,7 @@ import { TotpService } from './totp.service.js';
     SessionsService,
     StaffUsers,
     TelegramLoginService,
+    TelegramChallenges,
     TelegramLoginNotifier,
     TelegramAuthService,
     TokensService,

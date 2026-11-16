@@ -1,21 +1,16 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { Clock } from '@lg/domain';
 import type { Redis } from 'ioredis';
-import { uuidv7 } from 'uuidv7';
 import type { AuditContext } from '../../common/audit/audit.service.js';
-import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { type RateLimit, RateLimiter } from '../../common/rate-limit/rate-limiter.js';
 import { REDIS_TOKEN } from '../../common/redis/redis.tokens.js';
-import { OutboxService } from '../outbox/index.js';
 import { AuthService, type Issued } from './auth.service.js';
 import type { ClientMeta } from './sessions.service.js';
 import { defaultWebRole, StaffUsers } from './staff-users.js';
+import { confirmedKey, pendingKey, TelegramChallenges } from './telegram-challenges.js';
 
-export const CHALLENGE_TTL_S = 300; // 5 daqiqa (T-006 Aniqlik)
+export { CHALLENGE_TTL_S } from './telegram-challenges.js';
 const START_LIMIT: RateLimit = { scope: 'login:tg', limit: 5, windowS: 60 };
-const pendingKey = (id: string) => `auth:tg:pending:${id}`;
-const confirmedKey = (id: string) => `auth:tg:ok:${id}`;
 
 /**
  * "Telegram orqali kirish" (FR-AUTH-3 muqobili): web → challenge → bot xodimga tasdiq tugmasini
@@ -27,9 +22,8 @@ const confirmedKey = (id: string) => `auth:tg:ok:${id}`;
 export class TelegramLoginService {
   constructor(
     @Inject(REDIS_TOKEN) private readonly redis: Redis,
-    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(StaffUsers) private readonly staff: StaffUsers,
-    @Inject(OutboxService) private readonly outbox: OutboxService,
+    @Inject(TelegramChallenges) private readonly challenges: TelegramChallenges,
     @Inject(AuthService) private readonly auth: AuthService,
     @Inject(RateLimiter) private readonly limiter: RateLimiter,
   ) {}
@@ -39,20 +33,10 @@ export class TelegramLoginService {
     ip: string | null,
   ): Promise<{ challengeId: string; expiresAt: string }> {
     await this.limiter.hit(START_LIMIT, ip ?? 'unknown');
-    const challengeId = uuidv7();
-    const expiresAt = new Date(this.clock.now().getTime() + CHALLENGE_TTL_S * 1000).toISOString();
     const user = await this.staff.byPhone(phone);
     const eligible =
       user && user.status === 'active' && user.telegramId && defaultWebRole(user.roles);
-    await this.redis.set(pendingKey(challengeId), eligible ? user.id : '', 'EX', CHALLENGE_TTL_S);
-    if (eligible) {
-      await this.outbox.publish('StaffTelegramLoginRequested', {
-        challengeId,
-        userId: user.id,
-        expiresAt,
-      });
-    }
-    return { challengeId, expiresAt };
+    return this.challenges.create(eligible ? user.id : null);
   }
 
   /** Bot tasdig'i: tugmani bosgan Telegram akkaunti aynan shu xodimniki bo'lishi shart. */

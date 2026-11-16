@@ -2,12 +2,12 @@ import type { LoginResult } from '@lg/contracts';
 import { webMessages as t } from '@lg/i18n';
 import { Button, Card, CardTitle, Field } from '@lg/ui-web';
 import { useNavigate } from '@tanstack/react-router';
-import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type FormEvent, type ReactNode, useState } from 'react';
 import { api, ApiError } from '../api/client.js';
 import { useAuth } from '../auth/auth.js';
 import { type MfaNext, TotpSetupStep, TotpVerifyStep } from './mfa.js';
+import { useTelegramPoll } from './telegram-poll.js';
 
-const POLL_MS = 2000;
 const message = (e: unknown): string => (e instanceof ApiError ? e.message : String(e));
 
 /** "Telegram orqali kirish" — bot tasdig'ini kutish (ADR 0006 §6). */
@@ -21,30 +21,7 @@ function TelegramWait({
   onCancel: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
-  const doneRef = useRef(onDone);
-  doneRef.current = onDone;
-  useEffect(() => {
-    let stop = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const tick = async () => {
-      try {
-        const r = await api.request<{ accessToken?: string; code?: string }>(
-          '/auth/telegram/poll',
-          { method: 'POST', body: { challengeId } },
-        );
-        if (stop) return;
-        if (r.accessToken) return doneRef.current(r.accessToken);
-        timer = setTimeout(() => void tick(), POLL_MS);
-      } catch (e) {
-        if (!stop) setError(message(e));
-      }
-    };
-    void tick();
-    return () => {
-      stop = true;
-      clearTimeout(timer);
-    };
-  }, [challengeId]);
+  useTelegramPoll(challengeId, onDone, (e) => setError(message(e)));
   return (
     <Card className="flex flex-col gap-4">
       <CardTitle>{t.login.viaTelegram}</CardTitle>
@@ -117,8 +94,22 @@ interface StepViewProps {
 
 function StepView({ step, form, finish, reset }: StepViewProps) {
   const done = (d: { accessToken: string }) => finish(d.accessToken);
-  if (step?.next === 'totp_setup') return <TotpSetupStep mfaToken={step.mfaToken} onDone={done} />;
-  if (step?.next === 'totp') return <TotpVerifyStep mfaToken={step.mfaToken} onDone={done} />;
+  if (step?.next === 'totp_setup')
+    return (
+      <TotpSetupStep
+        mfaToken={step.mfaToken}
+        telegramChallengeId={step.telegramChallengeId}
+        onDone={done}
+      />
+    );
+  if (step?.next === 'totp')
+    return (
+      <TotpVerifyStep
+        mfaToken={step.mfaToken}
+        telegramChallengeId={step.telegramChallengeId}
+        onDone={done}
+      />
+    );
   if (step?.next === 'telegram')
     return <TelegramWait challengeId={step.challengeId} onDone={finish} onCancel={reset} />;
   return form;

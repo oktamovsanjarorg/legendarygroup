@@ -289,6 +289,13 @@
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 - **Mini App API'ga ulandi (2026-11-14):** dashboard (absentToday qo'shildi, unmarked tuzatildi), chek navbati (lock, BR-15 dublikat), tasdiqlashlar + qaror, qidiruv, o'quvchi kartasi.
 
+### ✅ T-122 · Parol kiritilgach Telegram'ga avtomatik tasdiq so'rovi
+
+- **Bog'liq:** T-006, T-010 · **Talablar:** FR-AUTH-3, ADR 0006 §6
+- **AC:** Telefon + parol to'g'ri va xodimning Telegram'i ulangan bo'lsa, botga «Tasdiqlash» tugmali xabar darhol ketadi; kod sahifasida (W-02) izoh chiqadi va sahifa fonda kutadi — kod kiritiladi yoki botda tasdiqlanadi, qaysi biri oldin. Noto'g'ri parolda xabar ketmaydi; Telegram ulanmagan xodimda — faqat kod; begona Telegram akkaunti tasdiqlay olmaydi.
+- **Sabab (2026-11-16):** egasi: "login parolni kiritdim — Telegram'dan tasdiqlash so'rovi o'zi kelsin". Direktor Authenticator kodida adashgan edi.
+- **Bajarildi (2026-11-16):** `TelegramChallenges` (umumiy), `AuthService.mfaStep` → `telegramChallengeId`; web `useTelegramPoll` + `TelegramHint`; testlar: API 4 integratsiya, web 3. Shu bilan birga "Telegram orqali kirish" tuzatildi — avval bot xabari umuman yuborilmasdi (`TelegramLoginNotifier`, bot `staff-login.ts`).
+
 ### 🟨 T-115 · Tizim sozlamalari
 
 - **Bog'liq:** T-008 · **Talablar:** FR-SYS-1
