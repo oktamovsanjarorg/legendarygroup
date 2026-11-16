@@ -117,4 +117,5 @@ Tartib muhim: S3 CORS va SSM yangilanmasdan deploy qilinsa, Mini App'dan chek yu
    yangi `APP_DOMAIN` bilan o'zi qayta ro'yxatdan o'tkazadi; Caddy yangi hostlar uchun sertifikat oladi.
 6. BotFather → `/myapps` → Mini App URL'ini `https://app.<domen>/app/` ga o'zgartiring (`t.me/<bot>/app?startapp=…` havolalari uchun).
 7. Tekshiruv: `curl -sI https://app.<domen>/api/health/ready` → 200; `curl -sI https://<eski-host>/x` → 308 `app.<domen>/x`;
-   `curl -sI https://<domen>` → 302 `/landing`.
+   `curl -sI https://<domen>` → 200 (sayt), `curl -s https://<domen>/sitemap.xml` → XML.
+8. Google Search Console → Sayt xaritalari: `https://<domen>/sitemap.xml` ni qayta yuboring; URL tekshiruvi → "Indekslashni so'rash".

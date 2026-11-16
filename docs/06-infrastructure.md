@@ -10,7 +10,7 @@
 
 - Har muhit uchun **alohida bot token, alohida AWS resurslari, alohida S3 bucket, alohida sirlar**.
 - **Marshrutlash (bitta host, yo'llar bilan — CORS va `SameSite=Strict` cookie oddiy qoladi):** `/api/*` → api · `/bot/webhook` → bot · `/app/*` → miniapp · `/verify/*` va `/` → web. Staging: `staging.<domen>` xuddi shu yo'llar bilan (hozircha lokal, DNS yozuvi yo'q).
-- **Domen (2026-11-16):** `legendary-academy.uz` (DNS — eskiz.uz). `app.legendary-academy.uz` — tizim (`APP_DOMAIN`); apex va `www` — markazning tashrif sayti (`SITE_DOMAIN`, T-503: Astro `apps/site` chiqquncha `app.…/landing`ga 302); `legendarygroup.uzbek-talim.uz` — eski manzil (`LEGACY_DOMAIN`), yo'l saqlangan 308 redirect. `mail`/`webmail`/`ftp` va MX/SPF — eskiz hostingida, tegilmaydi (shu sababli apex'da HSTS `includeSubDomains` yo'q). Uchala qiymat SSM `/lg/prod/`da majburiy (`render-env.sh`); almashtirish tartibi — [runbook](runbooks/deploy-rollback.md#5-domenni-almashtirish).
+- **Domen (2026-11-16):** `legendary-academy.uz` (DNS — eskiz.uz). `app.legendary-academy.uz` — tizim (`APP_DOMAIN`); apex — markazning tashrif sayti (`SITE_DOMAIN`, T-503: Astro `apps/site`, `/srv/site`; `robots.txt`/`sitemap.xml` Caddy'da), `www` → apex 308; panel `noindex`; `legendarygroup.uzbek-talim.uz` — eski manzil (`LEGACY_DOMAIN`), yo'l saqlangan 308 redirect. `mail`/`webmail`/`ftp` va MX/SPF — eskiz hostingida, tegilmaydi (shu sababli apex'da HSTS `includeSubDomains` yo'q). Uchala qiymat SSM `/lg/prod/`da majburiy (`render-env.sh`); almashtirish tartibi — [runbook](runbooks/deploy-rollback.md#5-domenni-almashtirish).
 - Staging'dan prod'ga hech qachon haqiqiy xabar yuborilmaydi (staging bot faqat test foydalanuvchilari allowlist'iga yozadi).
 
 ## 2. AWS arxitekturasi

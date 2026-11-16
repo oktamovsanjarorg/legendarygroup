@@ -526,6 +526,7 @@
 - **AC:** Astro, kurslar (API'dan build vaqtida), lid formasi (spam himoyasi — Turnstile), SEO, Lighthouse ≥ 95.
 - **Bajarildi (2026-11-14):** `apps/web/src/screens/f3/w35-landing.tsx` va `w35-lead-form.tsx` (Hero, statistika, kurslar kartochkalari, afzalliklar, bepul darsga yozilish formasi va footer); `apps/web/src/routes/landing/index.tsx` marshruti (`POST /api/public/leads` bilan bog'langan); `apps/web/src/router.tsx` ga `/landing` qo'shildi; 3 ta unit test yashil (`pnpm --filter @lg/web test src/routes/landing/landing.test.tsx`).
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
+- **Sayt (2026-11-16):** `apps/site` — Astro 7.4.7 statik, apex `legendary-academy.uz`. Matnlar build'da HTML'ga (`@lg/i18n` `landing` + `site`), kurslar/kontaktlar/ariza — bir xil origin `/api/public/*`, `/api/settings/public` (Caddy). `robots.txt`, `sitemap.xml` (Caddy, domen bilan), schema.org `EducationalOrganization`, 404; panelga `noindex`. JS ≈ 3,5 KB, CSS ≈ 12,5 KB (inline). Qolgan: Turnstile o'rniga hozircha honeypot + IP/telefon limiti (PUBLIC_LEAD_LIMITS); markaz rasmlari, ustozlar bo'limi va xarita — egasidan kontent kelganda; Lighthouse o'lchovi prod'da.
 
 ### 🟨 T-504 · Yuklama testi va optimallashtirish
 
