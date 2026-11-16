@@ -1,8 +1,9 @@
-# Legendary Group — kirish nuqtasi (T-011, 06 §1). Bitta host, yo'llar bilan:
+# Legendary Group — kirish nuqtasi (T-011, 06 §1). Tizim bitta hostda (APP_DOMAIN), yo'llar bilan:
 #   /api/*        → api:3000        /bot/webhook → bot:3002
 #   /app/*        → Mini App statik  /, /verify/* → web panel statik (SPA)
+# SITE_DOMAIN (apex) va www — markazning tashrif sayti (T-503); LEGACY_DOMAIN — eski manzil, redirect.
 # TLS — avtomatik (Let's Encrypt). `/internal/*` (bot ↔ api) va Bull Board tashqariga CHIQMAYDI.
-# Majburiy env (yashirin standart yo'q): APP_DOMAIN. ACME email yo'q — Let's Encrypt 2025-yildan
+# Majburiy env (yashirin standart yo'q): APP_DOMAIN, SITE_DOMAIN, LEGACY_DOMAIN. ACME email yo'q — Let's Encrypt 2025-yildan
 # muddat eslatmalarini yubormaydi; hisob emailsiz ro'yxatdan o'tadi (shaxsiy ma'lumot ketmaydi).
 {
 	# Admin API o'chiq — konfiguratsiyani tarmoqdan o'zgartirib bo'lmaydi.
@@ -65,4 +66,16 @@
 		header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 		import spa
 	}
+}
+
+# Tashrif sayti (apex + www). T-503 Astro sayti (`apps/site`) tayyor bo'lguncha — panel ichidagi
+# landing'ga 302 (vaqtinchalik: brauzer keshlamaydi, sayt chiqqanda darhol almashadi).
+# HSTS bu yerda YO'Q: `includeSubDomains` apex'da eskiz'dagi webmail/ftp subdomenlarini buzadi.
+{$SITE_DOMAIN}, www.{$SITE_DOMAIN} {
+	redir https://{$APP_DOMAIN}/landing 302
+}
+
+# Eski manzil — yo'l saqlangan holda yangi hostga (eski taklif/chek havolalari ishlashda davom etadi).
+{$LEGACY_DOMAIN} {
+	redir https://{$APP_DOMAIN}{uri} 308
 }

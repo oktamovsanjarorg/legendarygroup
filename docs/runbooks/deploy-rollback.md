@@ -98,3 +98,23 @@ Agar yangi versiya chiqqandan so'ng kutilmagan biznes xatolari yoki nosozliklar 
      ```bash
      docker compose --env-file /etc/lg/prod.env -f compose.prod.yml logs --tail 100 api
      ```
+
+## 5. Domenni almashtirish
+
+Tartib muhim: S3 CORS va SSM yangilanmasdan deploy qilinsa, Mini App'dan chek yuklash (presigned POST) ishlamaydi.
+
+1. DNS: `app`, apex va `www` → server IP (`tofu output server_ip`). Tekshiruv: `dig +short app.<domen>`.
+2. S3 CORS: `prod.tfvars`da `app_domain = "app.<domen>"` → `tofu plan` (faqat `aws_s3_bucket_cors_configuration.files` o'zgaradi) → `tofu apply`.
+3. SSM (operator, `AWS_PROFILE=root`, `eu-central-1`):
+   ```bash
+   for kv in APP_DOMAIN=app.<domen> SITE_DOMAIN=<domen> LEGACY_DOMAIN=<eski-host>; do
+     aws ssm put-parameter --region eu-central-1 --name "/lg/prod/${kv%%=*}" --value "${kv#*=}" \
+       --type SecureString --key-id alias/lg-prod --overwrite >/dev/null && echo "+ ${kv%%=*}"
+   done
+   ```
+4. GitHub: `gh variable set APP_DOMAIN --env production --body app.<domen>` (smoke-test manzili).
+5. Prod deploy (`CD — Production Deploy`, workflow_dispatch). Bot ishga tushganda webhook va menyu tugmasini
+   yangi `APP_DOMAIN` bilan o'zi qayta ro'yxatdan o'tkazadi; Caddy yangi hostlar uchun sertifikat oladi.
+6. BotFather → `/myapps` → Mini App URL'ini `https://app.<domen>/app/` ga o'zgartiring (`t.me/<bot>/app?startapp=…` havolalari uchun).
+7. Tekshiruv: `curl -sI https://app.<domen>/api/health/ready` → 200; `curl -sI https://<eski-host>/x` → 308 `app.<domen>/x`;
+   `curl -sI https://<domen>` → 302 `/landing`.

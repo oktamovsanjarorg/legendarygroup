@@ -47,4 +47,4 @@ else
   echo "+ TELEGRAM_BOT_USERNAME"
 fi
 
-echo "Jami: $(aws ssm get-parameters-by-path --region "$REGION" --path "$P/" --query 'length(Parameters)' --output text) ta parametr (kerak: 18)"
+echo "Jami: $(aws ssm get-parameters-by-path --region "$REGION" --path "$P/" --query 'length(Parameters)' --output text) ta parametr (kerak: 20)"
