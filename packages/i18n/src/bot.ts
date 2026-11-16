@@ -19,6 +19,15 @@ export const botMessages = {
     notFound:
       'Bu raqam boʻyicha faol taklif topilmadi. Direktor yoki administratorga murojaat qiling.',
   },
+  /** "Telegram orqali kirish" (web, ADR 0006 §6): bot tasdiq so'raydi. */
+  staffLogin: {
+    title: '🔐 Boshqaruv paneliga kirish',
+    body: 'Hozir web panelga Telegram orqali kirish soʻraldi. Siz boʻlsangiz — «Tasdiqlash»ni bosing (5 daqiqa ichida).\n\nSiz soʻramagan boʻlsangiz — tugmani bosmang.',
+    confirmButton: '✅ Tasdiqlash',
+    confirmed: '✅ Kirish tasdiqlandi. Brauzerga qayting.',
+    expired:
+      'Soʻrov muddati oʻtgan yoki allaqachon ishlatilgan. Web sahifada qayta urinib koʻring.',
+  },
   parentOnboarding: {
     welcomeTitle: '👋 Legendary Group oʻquv markaziga xush kelibsiz!',
     welcomeBody:

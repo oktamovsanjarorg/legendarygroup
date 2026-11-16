@@ -4,6 +4,7 @@ import {
   BotTelegramStatusResult,
   type BotTelegramStatusResult as StatusResult,
   StaffInviteCheckResult,
+  TelegramLoginConfirmResult,
   type StaffInviteCheckResult as CheckResult,
   TelegramContactResult,
   type TelegramContactResult as ContactResult,
@@ -26,6 +27,8 @@ export interface InternalApi {
     fullName: string;
     username?: string;
   }): Promise<GuardianContactResult>;
+  /** "Telegram orqali kirish" tasdig'i — tugmani bosgan akkaunt xodimniki bo'lsa `true`. */
+  confirmTelegramLogin(challengeId: string, telegramId: number): Promise<boolean>;
 }
 
 type Fetch = typeof fetch;
@@ -64,5 +67,13 @@ export function createInternalApi(
         { ...input, telegramId: String(input.telegramId) },
         BotGuardianContactResult,
       ),
+    confirmTelegramLogin: async (challengeId, telegramId) =>
+      (
+        await post(
+          'auth/telegram/confirm',
+          { challengeId, telegramId: String(telegramId) },
+          TelegramLoginConfirmResult,
+        )
+      ).confirmed,
   };
 }

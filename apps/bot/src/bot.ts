@@ -4,6 +4,7 @@ import type { UserFromGetMe } from 'grammy/types';
 import { type DedupeStore, dedupeUpdates } from './dedupe.js';
 import type { BotEnv } from './env.js';
 import type { InternalApi } from './internal-api.js';
+import { registerStaffLogin } from './staff-login.js';
 import { registerStaffOnboarding } from './staff-onboarding.js';
 
 export interface BotDeps {
@@ -36,6 +37,8 @@ export function createBot(deps: BotDeps): Bot {
   bot.use(dedupeUpdates(deps.store));
   // Onboarding: `/start inv_<token>` (T-101), `/start` (T-110) va kontakt ulashish
   registerStaffOnboarding(bot, deps.api, () => openAppKeyboard(url));
+  // Web "Telegram orqali kirish" tasdig'i (ADR 0006 §6)
+  registerStaffLogin(bot, deps.api);
   bot.command('help', (ctx: Context) =>
     ctx.reply(`<b>${t.help.title}</b>\n${t.help.body}`, { parse_mode: 'HTML' }),
   );

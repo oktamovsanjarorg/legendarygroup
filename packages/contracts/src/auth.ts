@@ -81,6 +81,7 @@ export const TelegramLoginConfirmRequest = z.object({
   challengeId: z.string().uuid(),
   telegramId: z.coerce.bigint().positive(),
 });
+export const TelegramLoginConfirmResult = z.object({ confirmed: z.boolean() });
 
 export const SessionInfo = z.object({
   id: z.string(),

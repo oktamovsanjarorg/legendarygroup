@@ -56,6 +56,7 @@ function fakeApi(): InternalApi & { shared: unknown[] } {
       }
       return { status: 'not_registered' };
     },
+    confirmTelegramLogin: async () => false,
     shareGuardianContact: async (input) => {
       if (input.phone.replace(/\D/g, '') === '998901112233') {
         return {

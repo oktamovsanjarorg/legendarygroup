@@ -9,18 +9,22 @@ import { SessionsController } from './sessions.controller.js';
 import { SessionsService } from './sessions.service.js';
 import { StaffUsers } from './staff-users.js';
 import { TelegramAuthService } from './telegram-auth.service.js';
+import { TelegramModule } from '../telegram/index.js';
+import { TelegramLoginNotifier } from './telegram-login-notifier.js';
 import { TelegramLoginService } from './telegram-login.service.js';
 import { TokensService } from './tokens.service.js';
 import { TotpService } from './totp.service.js';
 
 /** Xodimlar autentifikatsiyasi (T-006). Global `AccessTokenGuard` — deny by default. */
 @Module({
+  imports: [TelegramModule],
   controllers: [AuthController, SessionsController, InternalAuthController],
   providers: [
     AuthService,
     SessionsService,
     StaffUsers,
     TelegramLoginService,
+    TelegramLoginNotifier,
     TelegramAuthService,
     TokensService,
     TotpService,

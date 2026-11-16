@@ -26,6 +26,9 @@
    `StaffTelegramLoginRequested` → bot tugmasi (T-010/T-109) → `POST /internal/auth/telegram/confirm`
    (Telegram ID xodimniki bo'lishi shart) → `telegram/poll` (bir martalik, 5 daq). Telegram
    akkauntiga egalik — ikkinchi omil, parol so'ralmaydi.
+   Xabar: `TelegramLoginNotifier` (worker) → navbat → «Tasdiqlash» (`callback_data: tgl:<id>`);
+   bot `staff-login.ts` → `/internal/auth/telegram/confirm` (2026-11-16 gacha xabar umuman
+   yuborilmasdi — iste'molchi yo'q edi).
 7. **Taklif havolasi** (`staff_invites`, 24 soat, bir marta): parol o'rnatish → TOTP sozlash.
    Havolani T-008 (`pnpm cli director:create`) va T-101 (xodim qo'shish) yaratadi.
 8. **Rate limit** (Redis): login — telefon 5/daq + IP 30/daq; TOTP — 5/daq; Telegram start — 5/daq.
