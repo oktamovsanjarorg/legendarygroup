@@ -13,7 +13,7 @@ function takeToken(): string | null {
   return token;
 }
 
-/** W-04: Mini App'dan "Boshqaruv paneli" (T-121) — bir martalik kalit → sessiya → bosh sahifa. */
+/** W-03a: Mini App'dan "Boshqaruv paneli" (T-121) — bir martalik kalit → sessiya → bosh sahifa. */
 export function HandoffPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();

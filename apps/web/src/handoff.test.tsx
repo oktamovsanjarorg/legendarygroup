@@ -57,7 +57,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('W-04 Mini App → web panel (T-121)', () => {
+describe('W-03a Mini App → web panel (T-121)', () => {
   it('kalit → sessiya → bosh sahifa; kalit manzildan olib tashlanadi, bitta soʻrov', async () => {
     const redeemed = fakeApi('k'.repeat(43));
     const router = open(`#t=${'k'.repeat(43)}`);

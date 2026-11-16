@@ -41,6 +41,14 @@
 9. **Mini App (T-007):** `initData` HMAC (`WebAppData` → bot token), `auth_date` ≤ 24 soat →
    sessiyasiz access token (`typ: tg`, 15 daq), har so'rovda foydalanuvchi faol, rol tayinlangan,
    `pv` mos. Rol tanlash/almashtirish — shu endpoint `role` bilan.
+10. **Mini App → web panel (T-121, 2026-11-16):** Director/Admin Mini App'da (MS-01 MainButton)
+    `POST auth/panel-handoff` → 256 bit kalit, Redis'da faqat SHA-256 xeshi, 60 s;
+    havola `<PUBLIC_APP_URL>/handoff#t=<kalit>` (fragment — server/proksi loglariga tushmaydi,
+    sahifa uni darhol manzildan oladi) `WebApp.openLink` bilan tizim brauzerida ochiladi →
+    `POST auth/panel-handoff/redeem` (GETDEL — bir marta; IP 10/daq) → oddiy web sessiya
+    (`auth.login`, `method: miniapp_handoff`). Ikkinchi omil — 6-banddagi kabi Telegram
+    akkauntiga egalik (`initData` HMAC); kalit berilgach bloklangan/rol olingan xodimga sessiya
+    berilmaydi. Teacher/Guardian — 403 (web paneli yo'q).
 
 ## Oqibatlar
 

@@ -8,7 +8,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 
 - **FR-AUTH-1** Ota-ona botga `/start` bosadi → "Telefon raqamni ulashish" tugmasi (Telegram contact) → raqam bazadagi ota-ona raqami bilan mos kelsa, akkaunt bog'lanadi. Mos kelmasa — "Markaz administratoriga murojaat qiling" + admin'ga so'rov tushadi.
 - **FR-AUTH-2** Mini App har ochilishda `initData` server tomonda HMAC bilan tekshiriladi (bot token), `auth_date` 24 soatdan eski bo'lsa rad etiladi.
-- **FR-AUTH-3** Web panel: login (telefon) + parol, Director/Admin uchun majburiy 2FA (TOTP). Muqobil: "Telegram orqali kirish" (bot bir martalik tasdiq yuboradi).
+- **FR-AUTH-3** Web panel: login (telefon) + parol, Director/Admin uchun majburiy 2FA (TOTP). Muqobil: "Telegram orqali kirish" (bot bir martalik tasdiq yuboradi) va Mini App'dagi "Boshqaruv panelini ochish" tugmasi (bir martalik 60 soniyalik havola, T-121).
 - **FR-AUTH-4** JWT access (15 daq) + refresh token (30 kun, rotatsiya, httpOnly cookie, qayta ishlatilsa — barcha sessiyalar bekor).
 - **FR-AUTH-5** Bir foydalanuvchi bir nechta rolga ega bo'lishi mumkin (masalan Ustoz ham Ota-ona). Mini App rol tanlash ekrani.
 - **FR-AUTH-6** Bitta ota-onada bir nechta farzand; bitta farzandda bir nechta ota-ona (ota, ona).

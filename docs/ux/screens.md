@@ -73,53 +73,54 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 
 ### 1.4 Xodim rejimi (MS) — Bugun · Navbat · So'rovlar (Director) · Qidiruv
 
-| ID    | Ekran                 | Maqsad                              | Ma'lumotlar                                         | Amallar                                                     | Ruxsat                     |
-| ----- | --------------------- | ----------------------------------- | --------------------------------------------------- | ----------------------------------------------------------- | -------------------------- |
-| MS-01 | Bugun / dashboard     | Ixcham KPI (FR-DASH-5)              | tushum, davomat %, belgilanmagan darslar, navbat    | ko'rsatkich → tegishli ro'yxat                              | stats.operational          |
-| MS-02 | Chek navbati          | Tasdiqlash (FR-PAY-4, ≤ 3 teginish) | chek rasmi (zoom), summa, o'quvchi, dublikat ogohl. | **Tasdiqlash** (summa tahriri) / Rad etish (sabab shabloni) | payment.review             |
-| MS-03 | Tasdiqlash so'rovlari | Director qarori (02 §5)             | tur, so'rovchi, sabab, payload, muddat              | **Tasdiqlash** / Rad etish (izoh)                           | approval.decide            |
-| MS-04 | Qidiruv               | O'quvchini topish                   | ism/telefon/kod natijalari                          | kartochka → MS-05                                           | student.view               |
-| MS-05 | O'quvchi kartochkasi  | Tez ma'lumot (qarz, ota-ona)        | guruhlar, qarz, ota-ona telefoni                    | qo'ng'iroq (`tel:`)                                         | student.view, billing.view |
+| ID    | Ekran                 | Maqsad                              | Ma'lumotlar                                         | Amallar                                                                        | Ruxsat                     |
+| ----- | --------------------- | ----------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------- |
+| MS-01 | Bugun / dashboard     | Ixcham KPI (FR-DASH-5)              | tushum, davomat %, belgilanmagan darslar, navbat    | ko'rsatkich → tegishli ro'yxat; MainButton «Boshqaruv panelini ochish» (T-121) | stats.operational          |
+| MS-02 | Chek navbati          | Tasdiqlash (FR-PAY-4, ≤ 3 teginish) | chek rasmi (zoom), summa, o'quvchi, dublikat ogohl. | **Tasdiqlash** (summa tahriri) / Rad etish (sabab shabloni)                    | payment.review             |
+| MS-03 | Tasdiqlash so'rovlari | Director qarori (02 §5)             | tur, so'rovchi, sabab, payload, muddat              | **Tasdiqlash** / Rad etish (izoh)                                              | approval.decide            |
+| MS-04 | Qidiruv               | O'quvchini topish                   | ism/telefon/kod natijalari                          | kartochka → MS-05                                                              | student.view               |
+| MS-05 | O'quvchi kartochkasi  | Tez ma'lumot (qarz, ota-ona)        | guruhlar, qarz, ota-ona telefoni                    | qo'ng'iroq (`tel:`)                                                            | student.view, billing.view |
 
 ## 2. Web panel (W) — Director/Admin (≥ 1280 px, `Ctrl+K`)
 
-| ID   | Ekran                     | Maqsad                                          | Asosiy ma'lumot / amallar                                                                  | Ruxsat                          |
-| ---- | ------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------- |
-| W-01 | Kirish                    | Telefon + parol (FR-AUTH-3)                     | parol → TOTP / Telegram orqali kirish                                                      | —                               |
-| W-02 | TOTP sozlash / tasdiqlash | 2FA                                             | QR, kod; zaxira kodlar (bir marta ko'rsatiladi)                                            | —                               |
-| W-03 | Taklifni qabul qilish     | Parol o'rnatish (`/invite/<token>`)             | parol → W-02                                                                               | —                               |
-| W-04 | Bosh sahifa               | KPI (FR-DASH-1)                                 | tushum, qarz, faol o'quvchilar, davomat %, oqim, navbat soni                               | stats.operational, finance.view |
-| W-05 | O'quvchilar               | Ro'yxat, qidiruv, filtr (FR-STU-5/6)            | qidiruv (`oʻ`/`o'` normalizatsiya), qarzdor/faol/arxiv; yangi o'quvchi                     | student.view, student.manage    |
-| W-06 | O'quvchi kartochkasi      | To'liq profil (FR-STU-1/2/3)                    | ma'lumot, ota-onalar, guruhlar tarixi, davomat, baho, ledger, cheklar; chegirma, muzlatish | student.view, student.manage    |
-| W-07 | Bog'lanish so'rovlari     | Bot orqali kelgan noma'lum raqamlar (FR-AUTH-1) | so'rov → ota-onani tanlab bog'lash / rad                                                   | student.manage                  |
-| W-08 | Lidlar                    | Kanban (FR-STU-4)                               | holatlar, sinov darsi, o'quvchiga aylantirish, manba statistikasi                          | lead.manage                     |
-| W-09 | Kurslar va xonalar        | CRUD (FR-ORG-1/2)                               | ro'yxat, forma, arxiv                                                                      | course.manage                   |
-| W-10 | Guruhlar                  | Guruh, ustoz, jadval (FR-ORG-3/4/6)             | holatlar, ustoz biriktirish (sana), sig'im, to'qnashuv xabari                              | group.manage, group.view        |
-| W-11 | Jadval (kalendar)         | Darslar (FR-ORG-5)                              | hafta/oy; bekor qilish (sabab), ko'chirish, qo'shimcha dars, o'rinbosar; bayramlar         | lesson.manage                   |
-| W-12 | Davomat                   | Guruh × sana jadvali (FR-ATT-4/5)               | o'tgan davomatni tahrirlash (sabab), belgilanmaganlar                                      | attendance.edit_past            |
-| W-13 | To'lov kiritish           | ≤ 30 s, sichqonchasiz (FR-PAY-2, `Alt+P`)       | o'quvchi → qarz → summa → usul → Enter; FIFO/qo'lda taqsimlash; chek                       | payment.create                  |
-| W-14 | Chek navbati              | Tasdiqlash (FR-PAY-4/5)                         | MS-02 ning keng varianti, dublikatlar                                                      | payment.review                  |
-| W-15 | Qarzdorlar                | Aging, eslatmalar (FR-PAY-7, BR-22)             | filtr, saralash, kritik belgisi, eksport                                                   | billing.view                    |
-| W-16 | Kassa                     | Kunlik yopish (FR-PAY-10)                       | kutilgan vs sanalgan, farq izohi                                                           | cash.close                      |
-| W-17 | To'lov tafsiloti          | Storno/refund (FR-PAY-6/8/9)                    | chek, QR, ledger; storno (shu kun / so'rov), refund (Director / so'rov)                    | payment.reverse, payment.refund |
-| W-18 | Chegirmalar               | Ro'yxat va berish (BR-18)                       | limitdan yuqori — so'rov (T-119)                                                           | discount.grant                  |
-| W-19 | Testlar va importlar      | Natijalar (FR-GRD-3/4/6)                        | testlar, importlar tarixi, MT-08 bilan bir xil import oqimi                                | test.manage                     |
-| W-20 | E'lonlar                  | Ommaviy xabar (FR-RPT-5)                        | auditoriya, matn+fayl, oldindan ko'rish, yetkazilish statistikasi                          | announcement.send               |
-| W-21 | Murojaatlar               | Ticket'lar (FR-RPT-7)                           | ro'yxat, javob                                                                             | ticket.handle                   |
-| W-22 | Yetib bormagan xabarlar   | Bloklangan/xato (FR-RPT-6)                      | `TelegramChatBlocked`, sabab, qayta yuborish                                               | ticket.handle                   |
-| W-23 | Xarajatlar                | CRUD (FR-FIN-1)                                 | kategoriya, summa, chek rasmi                                                              | expense.manage                  |
-| W-24 | P&L                       | Oylik foyda-zarar (FR-FIN-2/3)                  | tushum − xarajat − oylik                                                                   | finance.view                    |
-| W-25 | Oyliklar                  | Hisob (FR-SAL-1/2/3/5)                          | shartnomalar, qoralama → tasdiqlash → to'landi, avans, tafsilot                            | payroll.manage                  |
-| W-26 | Hisobotlar                | To'plam (FR-DASH-2/4)                           | daromad, aging, davomat, cohort, konversiya, ustoz samaradorligi; Excel/PDF                | stats.operational, finance.view |
-| W-27 | Prognozlar                | Tushum, churn (FR-DASH-3, BR-36)                | prognoz oralig'i, xavfli o'quvchilar ("nega")                                              | finance.view                    |
-| W-28 | Xodimlar                  | Admin/Ustoz (T-101)                             | qo'shish (taklif), bloklash, rol, override (02 §4)                                         | staff.manage, staff.permissions |
-| W-29 | Sozlamalar                | Tizim (FR-SYS-1)                                | markaz, logo, rekvizitlar, to'lov muddati, jarima, vaqtlar, bayramlar, chegirma limiti     | settings.manage                 |
-| W-30 | Audit                     | Jurnal (FR-AUD-1/2/3)                           | filtr, diff, shubhali harakatlar, xodim faolligi                                           | audit.view                      |
-| W-31 | Tasdiqlash so'rovlari     | MS-03 ning web varianti                         | ro'yxat, qaror                                                                             | approval.decide                 |
-| W-32 | Mening sessiyalarim       | FR-AUTH-7                                       | qurilmalar, chiqish, hammasidan chiqish                                                    | auth                            |
-| W-33 | Birinchi ishga tushirish  | Usta (T-117)                                    | markaz → rekvizit → kurs → xona → ustoz → guruh → o'quvchilar → taklif                     | settings.manage                 |
-| W-34 | Chek tekshirish (ommaviy) | QR → `/verify/<token>` (FR-PAY-8)               | raqam, sana, summa, holat — PII yo'q                                                       | —                               |
-| W-35 | Landing                   | Ommaviy sayt (FR-SYS-4, Faza 4)                 | kurslar, lid formasi                                                                       | —                               |
+| ID    | Ekran                     | Maqsad                                          | Asosiy ma'lumot / amallar                                                                  | Ruxsat                          |
+| ----- | ------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------- |
+| W-01  | Kirish                    | Telefon + parol (FR-AUTH-3)                     | parol → TOTP / Telegram orqali kirish                                                      | —                               |
+| W-02  | TOTP sozlash / tasdiqlash | 2FA                                             | QR, kod; zaxira kodlar (bir marta ko'rsatiladi)                                            | —                               |
+| W-03  | Taklifni qabul qilish     | Parol o'rnatish (`/invite/<token>`)             | parol → W-02                                                                               | —                               |
+| W-03a | Mini App'dan kirish       | Bir martalik kalit (`/handoff#t=`, T-121)       | yuklanmoqda → bosh sahifa; xato → «Telefon va parol bilan kirish»                          | —                               |
+| W-04  | Bosh sahifa               | KPI (FR-DASH-1)                                 | tushum, qarz, faol o'quvchilar, davomat %, oqim, navbat soni                               | stats.operational, finance.view |
+| W-05  | O'quvchilar               | Ro'yxat, qidiruv, filtr (FR-STU-5/6)            | qidiruv (`oʻ`/`o'` normalizatsiya), qarzdor/faol/arxiv; yangi o'quvchi                     | student.view, student.manage    |
+| W-06  | O'quvchi kartochkasi      | To'liq profil (FR-STU-1/2/3)                    | ma'lumot, ota-onalar, guruhlar tarixi, davomat, baho, ledger, cheklar; chegirma, muzlatish | student.view, student.manage    |
+| W-07  | Bog'lanish so'rovlari     | Bot orqali kelgan noma'lum raqamlar (FR-AUTH-1) | so'rov → ota-onani tanlab bog'lash / rad                                                   | student.manage                  |
+| W-08  | Lidlar                    | Kanban (FR-STU-4)                               | holatlar, sinov darsi, o'quvchiga aylantirish, manba statistikasi                          | lead.manage                     |
+| W-09  | Kurslar va xonalar        | CRUD (FR-ORG-1/2)                               | ro'yxat, forma, arxiv                                                                      | course.manage                   |
+| W-10  | Guruhlar                  | Guruh, ustoz, jadval (FR-ORG-3/4/6)             | holatlar, ustoz biriktirish (sana), sig'im, to'qnashuv xabari                              | group.manage, group.view        |
+| W-11  | Jadval (kalendar)         | Darslar (FR-ORG-5)                              | hafta/oy; bekor qilish (sabab), ko'chirish, qo'shimcha dars, o'rinbosar; bayramlar         | lesson.manage                   |
+| W-12  | Davomat                   | Guruh × sana jadvali (FR-ATT-4/5)               | o'tgan davomatni tahrirlash (sabab), belgilanmaganlar                                      | attendance.edit_past            |
+| W-13  | To'lov kiritish           | ≤ 30 s, sichqonchasiz (FR-PAY-2, `Alt+P`)       | o'quvchi → qarz → summa → usul → Enter; FIFO/qo'lda taqsimlash; chek                       | payment.create                  |
+| W-14  | Chek navbati              | Tasdiqlash (FR-PAY-4/5)                         | MS-02 ning keng varianti, dublikatlar                                                      | payment.review                  |
+| W-15  | Qarzdorlar                | Aging, eslatmalar (FR-PAY-7, BR-22)             | filtr, saralash, kritik belgisi, eksport                                                   | billing.view                    |
+| W-16  | Kassa                     | Kunlik yopish (FR-PAY-10)                       | kutilgan vs sanalgan, farq izohi                                                           | cash.close                      |
+| W-17  | To'lov tafsiloti          | Storno/refund (FR-PAY-6/8/9)                    | chek, QR, ledger; storno (shu kun / so'rov), refund (Director / so'rov)                    | payment.reverse, payment.refund |
+| W-18  | Chegirmalar               | Ro'yxat va berish (BR-18)                       | limitdan yuqori — so'rov (T-119)                                                           | discount.grant                  |
+| W-19  | Testlar va importlar      | Natijalar (FR-GRD-3/4/6)                        | testlar, importlar tarixi, MT-08 bilan bir xil import oqimi                                | test.manage                     |
+| W-20  | E'lonlar                  | Ommaviy xabar (FR-RPT-5)                        | auditoriya, matn+fayl, oldindan ko'rish, yetkazilish statistikasi                          | announcement.send               |
+| W-21  | Murojaatlar               | Ticket'lar (FR-RPT-7)                           | ro'yxat, javob                                                                             | ticket.handle                   |
+| W-22  | Yetib bormagan xabarlar   | Bloklangan/xato (FR-RPT-6)                      | `TelegramChatBlocked`, sabab, qayta yuborish                                               | ticket.handle                   |
+| W-23  | Xarajatlar                | CRUD (FR-FIN-1)                                 | kategoriya, summa, chek rasmi                                                              | expense.manage                  |
+| W-24  | P&L                       | Oylik foyda-zarar (FR-FIN-2/3)                  | tushum − xarajat − oylik                                                                   | finance.view                    |
+| W-25  | Oyliklar                  | Hisob (FR-SAL-1/2/3/5)                          | shartnomalar, qoralama → tasdiqlash → to'landi, avans, tafsilot                            | payroll.manage                  |
+| W-26  | Hisobotlar                | To'plam (FR-DASH-2/4)                           | daromad, aging, davomat, cohort, konversiya, ustoz samaradorligi; Excel/PDF                | stats.operational, finance.view |
+| W-27  | Prognozlar                | Tushum, churn (FR-DASH-3, BR-36)                | prognoz oralig'i, xavfli o'quvchilar ("nega")                                              | finance.view                    |
+| W-28  | Xodimlar                  | Admin/Ustoz (T-101)                             | qo'shish (taklif), bloklash, rol, override (02 §4)                                         | staff.manage, staff.permissions |
+| W-29  | Sozlamalar                | Tizim (FR-SYS-1)                                | markaz, logo, rekvizitlar, to'lov muddati, jarima, vaqtlar, bayramlar, chegirma limiti     | settings.manage                 |
+| W-30  | Audit                     | Jurnal (FR-AUD-1/2/3)                           | filtr, diff, shubhali harakatlar, xodim faolligi                                           | audit.view                      |
+| W-31  | Tasdiqlash so'rovlari     | MS-03 ning web varianti                         | ro'yxat, qaror                                                                             | approval.decide                 |
+| W-32  | Mening sessiyalarim       | FR-AUTH-7                                       | qurilmalar, chiqish, hammasidan chiqish                                                    | auth                            |
+| W-33  | Birinchi ishga tushirish  | Usta (T-117)                                    | markaz → rekvizit → kurs → xona → ustoz → guruh → o'quvchilar → taklif                     | settings.manage                 |
+| W-34  | Chek tekshirish (ommaviy) | QR → `/verify/<token>` (FR-PAY-8)               | raqam, sana, summa, holat — PII yo'q                                                       | —                               |
+| W-35  | Landing                   | Ommaviy sayt (FR-SYS-4, Faza 4)                 | kurslar, lid formasi                                                                       | —                               |
 
 ## 3. FR qamrovi
 

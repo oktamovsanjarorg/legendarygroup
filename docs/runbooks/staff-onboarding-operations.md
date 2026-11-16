@@ -24,6 +24,14 @@ Ushbu runbook o'quv markaziga yangi administratorlar va ustozlarni qo'shish, rol
 
 ---
 
+### Direktor/Admin web panelga kira olmasa
+
+Telegram'i bog'langan Direktor/Admin uchun eng oson yo'l: botda Mini App'ni ochish → **«Bugun»**
+ekranidagi **«Boshqaruv panelini ochish»** tugmasi. Panel brauzerda parol va 2FA'siz ochiladi
+(havola bir martalik, 60 soniya — T-121). Telefon raqam yoki 2FA muammosi bo'lsa ham ishlaydi.
+
+---
+
 ## 3. Yangi Ustoz qo'shish
 
 1. **Xodimlar** sahifasida **«Xodim qoʻshish»** tugmasini bosing.

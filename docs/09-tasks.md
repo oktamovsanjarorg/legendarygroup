@@ -289,6 +289,13 @@
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). UI maket qabulisiz qilingan (T-017c) — qabul va UI ko'rib chiqish qolgan.
 - **Mini App API'ga ulandi (2026-11-14):** dashboard (absentToday qo'shildi, unmarked tuzatildi), chek navbati (lock, BR-15 dublikat), tasdiqlashlar + qaror, qidiruv, o'quvchi kartasi.
 
+### ✅ T-121 · Mini App'dan web panelga bir bosishda kirish
+
+- **Bog'liq:** T-006, T-007, T-120 · **Talablar:** FR-AUTH-3 (muqobil kirish), ADR 0006 §10
+- **AC:** Director/Admin Mini App "Bugun" (MS-01) ekranida MainButton «Boshqaruv panelini ochish» → web panel tizim brauzerida, telefon/parol/2FA'siz; kalit bir martalik, 60 soniya, Redis'da faqat xesh, URL fragmentda; Teacher/Guardian — 403; bloklangan xodim — sessiya yo'q; audit (`auth.panel_handoff`, `auth.login` `miniapp_handoff`).
+- **Sabab (2026-11-16):** Director telefon raqamini web login formasida xato kiritib kira olmadi — Telegram orqali tasdiqlangan shaxs uchun raqam kiritish ortiqcha.
+- **Bajarildi (2026-11-16):** API `POST /api/auth/panel-handoff`, `POST /api/auth/panel-handoff/redeem` (`PanelHandoffService`, 6 integratsiya testi); web `/handoff` (W-03a, 3 test); Mini App MS-01 MainButton + `WebApp.openLink` (2 test). Qolgan: haqiqiy Telegram klientlarida (iOS/Android/Desktop) `openLink` tekshiruvi.
+
 ### ✅ T-122 · Parol kiritilgach Telegram'ga avtomatik tasdiq so'rovi
 
 - **Bog'liq:** T-006, T-010 · **Talablar:** FR-AUTH-3, ADR 0006 §6
