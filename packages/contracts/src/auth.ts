@@ -92,6 +92,13 @@ export const TelegramLoginConfirmRequest = z.object({
 });
 export const TelegramLoginConfirmResult = z.object({ confirmed: z.boolean() });
 
+/**
+ * Mini App → web panel (T-121): bir martalik, 60 soniyalik kalit. URL fragmentda (`#t=`) —
+ * server/proksi loglariga tushmaydi.
+ */
+export const PanelHandoffResult = z.object({ url: z.string().url(), expiresAt: z.string() });
+export const PanelHandoffRedeemRequest = z.object({ token: z.string().min(20).max(128) });
+
 export const SessionInfo = z.object({
   id: z.string(),
   device: z.string().nullable(),
@@ -105,3 +112,4 @@ export type LoginResult = z.infer<typeof LoginResult>;
 export type TelegramAuthResult = z.infer<typeof TelegramAuthResult>;
 export type AuthUser = z.infer<typeof AuthUser>;
 export type SessionInfo = z.infer<typeof SessionInfo>;
+export type PanelHandoffResult = z.infer<typeof PanelHandoffResult>;

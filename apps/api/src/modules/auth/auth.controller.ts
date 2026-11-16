@@ -38,7 +38,7 @@ const setRefresh = (reply: FastifyReply, token: string) =>
   reply.setCookie(REFRESH_COOKIE, token, { ...COOKIE, maxAge: REFRESH_TTL_MS / 1000 });
 
 /** Sessiya berilgan javob: refresh — cookie'da, access — body'da. */
-const done = (reply: FastifyReply, issued: Issued) => {
+export const done = (reply: FastifyReply, issued: Issued) => {
   setRefresh(reply, issued.refreshToken);
   return { next: 'done' as const, accessToken: issued.accessToken, user: issued.user };
 };

@@ -5,6 +5,8 @@ import { AccessTokenGuard } from './access-token.guard.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { InternalAuthController } from './internal-auth.controller.js';
+import { PanelHandoffController } from './panel-handoff.controller.js';
+import { PanelHandoffService } from './panel-handoff.service.js';
 import { SessionsController } from './sessions.controller.js';
 import { SessionsService } from './sessions.service.js';
 import { StaffUsers } from './staff-users.js';
@@ -19,7 +21,7 @@ import { TotpService } from './totp.service.js';
 /** Xodimlar autentifikatsiyasi (T-006). Global `AccessTokenGuard` — deny by default. */
 @Module({
   imports: [TelegramModule],
-  controllers: [AuthController, SessionsController, InternalAuthController],
+  controllers: [AuthController, SessionsController, InternalAuthController, PanelHandoffController],
   providers: [
     AuthService,
     SessionsService,
@@ -27,6 +29,7 @@ import { TotpService } from './totp.service.js';
     TelegramLoginService,
     TelegramChallenges,
     TelegramLoginNotifier,
+    PanelHandoffService,
     TelegramAuthService,
     TokensService,
     TotpService,

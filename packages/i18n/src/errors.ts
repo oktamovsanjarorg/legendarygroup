@@ -29,6 +29,8 @@ export const errorMessages = {
   SESSION_REVOKED: 'Xavfsizlik uchun barcha qurilmalardan chiqarildingiz. Qayta kiring.',
   INVALID_INVITE: 'Taklif havolasi yaroqsiz yoki muddati oʻtgan. Yangi havola soʻrang.',
   TELEGRAM_LOGIN_PENDING: 'Telegramdagi tasdiqlash kutilmoqda.',
+  PANEL_HANDOFF_INVALID:
+    'Kirish havolasi yaroqsiz yoki muddati oʻtgan. Mini Appʼda tugmani qayta bosing.',
   ROLE_NOT_ASSIGNED: 'Sizda bu rol yoʻq.',
   FILE_TYPE_NOT_ALLOWED:
     'Bu turdagi faylni yuklab boʻlmaydi. Rasm (JPG, PNG, WEBP) yoki PDF tanlang.',
