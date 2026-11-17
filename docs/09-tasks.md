@@ -320,10 +320,11 @@
 - **Bog'liq:** T-114, T-116, T-120 · **Bajaruvchi:** agy (A-8), review — Claude
 - **AC:** C-05; Ustoz / Ota-ona / Direktor-Admin uchun 3 kartochka, faqat MainButton/BackButton; koʻrilgani Telegram CloudStorage'da.
 
-### ⬜ T-126 · Oʻquvchi roli: shaxsiy kod → bot → oʻquvchi paneli
+### 🟨 T-126 · Oʻquvchi roli: shaxsiy kod → bot → oʻquvchi paneli
 
 - **Bog'liq:** T-105, T-110, T-116 · **Bajaruvchi:** agy (A-9), review — Claude
 - **AC va qarorlar (D1–D6):** [`docs/tasks/A-9-student-panel.md`](tasks/A-9-student-panel.md).
+- **Review (2026-11-17, `feat/t-126-student-panel`):** agy 5 commit, CI yashil edi. Tuzatildi: oʻquvchiga ichki izohlar, istalgan guruh reytingi va sinfdoshlar roʻyxati ochiq edi (`group.view`, `stats.operational` olib tashlandi; reyting ota-ona/oʻquvchiga 403); kod xeshi noyob (0036); bot — «Men oʻquvchiman» `/start`da, oʻquvchi kontakti ota-ona soʻrovi yaratmaydi; Mini App vaqti UTC edi, matnlar i18n'ga; Storybook story'lar (M-STU-01/03/04, W-06 blok) qoʻshildi. Qolgan: UI maket qabuli (T-017c).
 
 ### 🟨 T-115 · Tizim sozlamalari
 
