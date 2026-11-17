@@ -1,0 +1,24 @@
+/** Mini App — Oʻquvchi paneli (M-STU-*, docs/ux/screens.md). */
+export const studentMessages = {
+  studentPanel: {
+    todayTitle: 'Bugun',
+    noLessonsToday: 'Bugun darsingiz yoʻq',
+    noLessonsTodayHint: 'Dam oling yoki dars jadvalingizni koʻring.',
+    todayLessons: 'Bugungi darslar',
+    scheduleTitle: 'Dars jadvali',
+    noSchedule: 'Dars jadvali mavjud emas',
+    noScheduleHint: 'Siz hali biron guruhga qoʻshilmagansiz.',
+    resultsTitle: 'Natijalarim',
+    noResults: 'Natijalar hali mavjud emas',
+    noResultsHint: 'Testlar va baholar oʻtkazilgach, shu yerda koʻrinadi.',
+    profileTitle: 'Profil',
+    groupsTitle: 'Mening guruhlarim',
+    noGroups: 'Hozircha guruhlar yoʻq',
+    centerName: 'Legendary Group oʻquv markazi',
+    teacher: 'Oʻqituvchi',
+    room: 'Xona',
+    attendanceStats: 'Oylik davomat',
+    rankInGroup: 'Guruhdagi oʻrningiz: {rank}-oʻrin',
+    averageScore: 'Oʻrtacha koʻrsatkich',
+  },
+} as const;
