@@ -217,4 +217,26 @@ describe('Oʻquvchi shaxsiy kod orqali kirish (T-126)', () => {
 
     expect(calls.some((c) => String(c.payload['text']).includes('Jasur Bek'))).toBe(true);
   });
+
+  it('9. /start → «Men oʻquvchiman» → kontakt: adminga ota-ona soʻrovi ketmaydi, kod soʻraladi', async () => {
+    const api = fakeApi();
+    let guardianRequests = 0;
+    api.shareGuardianContact = async () => {
+      guardianRequests += 1;
+      return { result: 'request_created' };
+    };
+    const { bot, calls } = setup(api);
+    await bot.handleUpdate(commandUpdate('/start', 42));
+    expect(JSON.stringify(calls.at(-1)?.payload['reply_markup'])).toContain(
+      botMessages.studentLogin.enterCodeButton,
+    );
+
+    await bot.handleUpdate(textUpdate(botMessages.studentLogin.enterCodeButton, 42));
+    await bot.handleUpdate(contactUpdate('+998901112233', 42));
+    expect(guardianRequests).toBe(0);
+    expect(String(calls.at(-1)?.payload['text'])).toBe(botMessages.studentLogin.promptCode);
+
+    await bot.handleUpdate(textUpdate('123456', 42));
+    expect(String(calls.at(-1)?.payload['text'])).toContain('Anvar Aliyev');
+  });
 });

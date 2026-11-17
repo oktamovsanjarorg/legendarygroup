@@ -8,7 +8,7 @@ import {
 } from 'grammy';
 import type { BotStore } from './dedupe.js';
 import type { InternalApi } from './internal-api.js';
-import { studentCodeKey, STUDENT_CODE_TTL_S } from './student-login.js';
+import { studentCodeKey, STUDENT_CODE_TTL_S, takeStudentIntent } from './student-login.js';
 
 /** `/start inv_<token>` (T-101: API'dagi `BOT_INVITE_PREFIX` bilan bir xil). */
 export const INVITE_PREFIX = 'inv_';
@@ -93,7 +93,7 @@ async function onNormalStart(
     `<b>${t.parentOnboarding.welcomeTitle}</b>\n\n${t.parentOnboarding.welcomeBody}`,
     {
       parse_mode: 'HTML',
-      reply_markup: shareKeyboard(),
+      reply_markup: shareKeyboard().row().text(t.studentLogin.enterCodeButton),
     },
   );
 }
@@ -176,7 +176,7 @@ export function registerStaffOnboarding(
   bot: Bot,
   api: InternalApi,
   openApp: () => InlineKeyboard,
-  store?: BotStore,
+  store: BotStore,
 ): void {
   bot.command('start', async (ctx) => {
     const param = typeof ctx.match === 'string' ? ctx.match.trim() : '';
@@ -194,8 +194,11 @@ export function registerStaffOnboarding(
       return;
     }
 
-    if (store) {
-      await store.set(studentCodeKey(ctx.from.id), contact.phone_number, 'EX', STUDENT_CODE_TTL_S);
+    await store.set(studentCodeKey(ctx.from.id), contact.phone_number, 'EX', STUDENT_CODE_TTL_S);
+    if (await takeStudentIntent(store, ctx.from.id)) {
+      // Oʻquvchi kirishi: ota-ona soʻrovi yaratilmaydi (T-126 bosqich 3)
+      await ctx.reply(t.studentLogin.promptCode, { reply_markup: { remove_keyboard: true } });
+      return;
     }
 
     const staffHandled = await handleStaffContact(ctx, api, contact, openApp);

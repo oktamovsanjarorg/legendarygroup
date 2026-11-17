@@ -5,6 +5,15 @@ import type { InternalApi } from './internal-api.js';
 
 export const STUDENT_CODE_TTL_S = 10 * 60; // 10 daqiqa (D3)
 export const studentCodeKey = (tgId: number): string => `student:awaiting_code:${tgId}`;
+/** «Men oʻquvchiman» bosilgan — keyingi kontakt ota-ona/xodim sifatida emas, kod uchun. */
+export const studentIntentKey = (tgId: number): string => `student:intent:${tgId}`;
+
+/** Kontakt oʻquvchi kirishi uchun ulashilganmi (intent bor boʻlsa — bir marta). */
+export async function takeStudentIntent(store: BotStore, tgId: number): Promise<boolean> {
+  const intent = await store.get(studentIntentKey(tgId));
+  if (intent) await store.del(studentIntentKey(tgId));
+  return intent !== null;
+}
 
 const shareKeyboard = () =>
   new Keyboard().requestContact(t.parentOnboarding.shareButton).resized().oneTime();
@@ -71,27 +80,23 @@ export function registerStudentLogin(
   store: BotStore,
   openApp: () => InlineKeyboard,
 ): void {
-  // "Men oʻquvchiman" inline tugmasi bosilganda
+  const enterAsStudent = async (ctx: Context): Promise<void> => {
+    if (!ctx.from) return;
+    const phone = await store.get(studentCodeKey(ctx.from.id));
+    if (!phone) {
+      await store.set(studentIntentKey(ctx.from.id), '1', 'EX', STUDENT_CODE_TTL_S);
+      await ctx.reply(t.studentLogin.needContact, { reply_markup: shareKeyboard() });
+      return;
+    }
+    await ctx.reply(t.studentLogin.promptCode, { reply_markup: { remove_keyboard: true } });
+  };
+
+  // «Men oʻquvchiman»: /start menyusidagi tugma, inline tugma yoki /student buyrugʻi
+  bot.hears(t.studentLogin.enterCodeButton, enterAsStudent);
+  bot.command('student', enterAsStudent);
   bot.callbackQuery('student:enter_code', async (ctx) => {
     await ctx.answerCallbackQuery();
-    if (!ctx.from) return;
-    const phone = await store.get(studentCodeKey(ctx.from.id));
-    if (!phone) {
-      await ctx.reply(t.studentLogin.needContact, { reply_markup: shareKeyboard() });
-      return;
-    }
-    await ctx.reply(t.studentLogin.promptCode);
-  });
-
-  // /student buyrugʻi — toʻgʻridan-toʻgʻri oʻquvchi sifatida kirish
-  bot.command('student', async (ctx) => {
-    if (!ctx.from) return;
-    const phone = await store.get(studentCodeKey(ctx.from.id));
-    if (!phone) {
-      await ctx.reply(t.studentLogin.needContact, { reply_markup: shareKeyboard() });
-      return;
-    }
-    await ctx.reply(t.studentLogin.promptCode);
+    await enterAsStudent(ctx);
   });
 
   // Matnli xabarda 6 xonali kod kiritilganda
