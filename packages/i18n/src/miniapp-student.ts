@@ -20,5 +20,11 @@ export const studentMessages = {
     attendanceStats: 'Oylik davomat',
     rankInGroup: 'Guruhdagi oʻrningiz: {rank}-oʻrin',
     averageScore: 'Oʻrtacha koʻrsatkich',
+    rankOf: '{total} nafar oʻquvchi orasida',
+    scoreOf: '{score} / {max} ball',
+    testFallback: 'Test',
+    settingsHint: 'Til va ilova koʻrinishi',
+    notLinked: 'Oʻquvchi profili topilmadi',
+    notLinkedHint: 'Telegram akkauntingiz oʻquvchiga bogʻlanmagan. Admindan yangi kod soʻrang.',
   },
 } as const;

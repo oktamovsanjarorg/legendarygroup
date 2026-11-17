@@ -1,5 +1,5 @@
 import type { LessonDto } from '@lg/contracts';
-import { miniappMessages as t } from '@lg/i18n';
+import { formatTime, formatYmd, miniappMessages as t } from '@lg/i18n';
 import { ListItem, Section } from '@lg/ui-tg';
 import { CalendarClock, CalendarX, CheckCircle2, Clock4, FileText, XCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -50,7 +50,7 @@ function todayText(s: ChildToday): string {
     case 'excused':
       return t.childHome.todayExcused;
     case 'pending':
-      return t.childHome.todayPending.replace('{time}', s.at.toISOString().slice(11, 16));
+      return t.childHome.todayPending.replace('{time}', formatTime(s.at));
     case 'none':
       return t.childHome.todayNoLesson;
   }
@@ -101,7 +101,7 @@ export function StudentTodayView({ studentName, todayStatus, todayLessons, nextL
         <Section title={t.childHome.nextLesson}>
           <ListItem
             title={nextLesson.group.name}
-            subtitle={`${nextLesson.date}, ${nextLesson.startTime} · ${nextLesson.room?.name ?? ''}`}
+            subtitle={`${formatYmd(nextLesson.date)}, ${nextLesson.startTime} · ${nextLesson.room?.name ?? ''}`}
           />
         </Section>
       )}
