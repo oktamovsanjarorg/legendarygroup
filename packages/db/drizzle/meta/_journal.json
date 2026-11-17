@@ -246,6 +246,13 @@
       "when": 1794764487123,
       "tag": "0034_notification_approval_decided",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794936800624,
+      "tag": "0035_student_access",
+      "breakpoints": true
     }
   ]
 }

@@ -42,15 +42,24 @@ const DIRECTOR_TABS: readonly TabItem[] = [
   { screen: 'MS-04', to: '/staff/search', label: t.stabs.search, icon: Search },
 ];
 
+const STUDENT_TABS: readonly TabItem[] = [
+  { screen: 'M-STU-01', to: '/', label: t.tabs.today, icon: CalendarCheck },
+  { screen: 'M-STU-02', to: '/schedule', label: t.tabs.schedule, icon: CalendarDays },
+  { screen: 'M-STU-03', to: '/results', label: t.gtabs.results, icon: BarChart3 },
+  { screen: 'M-STU-04', to: '/profile', label: t.tabs.profile, icon: UserRound },
+];
+
 /**
  * Pastki menyu rolga qarab (11-ux §2: Ustoz — Bugun/Guruhlarim/Jadval/Profil; Ota-ona —
- * Asosiy/Natijalar/To'lovlar/Ko'proq; xodim — Bugun/Navbat/So'rovlar/Qidiruv).
+ * Asosiy/Natijalar/To'lovlar/Ko'proq; xodim — Bugun/Navbat/So'rovlar/Qidiruv; Oʻquvchi —
+ * Bugun/Jadval/Natijalar/Profil).
  */
 export const TABS: Readonly<Record<RoleCode, readonly TabItem[]>> = {
   director: DIRECTOR_TABS,
   admin: ADMIN_TABS,
   teacher: TEACHER_TABS,
   guardian: GUARDIAN_TABS,
+  student: STUDENT_TABS,
 };
 
 export const tabsFor = (

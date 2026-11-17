@@ -1,7 +1,7 @@
 import { PERMISSIONS, type Permission } from './permissions.js';
 
 /** Tizim rollari — docs/02-roles-permissions.md §2. */
-export const ROLES = ['director', 'admin', 'teacher', 'guardian'] as const;
+export const ROLES = ['director', 'admin', 'teacher', 'guardian', 'student'] as const;
 export type RoleCode = (typeof ROLES)[number];
 
 /** Foydalanuvchi holatlari — docs/05-data-model.md (`users.status`). */
@@ -89,4 +89,5 @@ export const ROLE_PERMISSIONS: Readonly<Record<RoleCode, readonly Permission[]>>
     'ticket.create',
     'stats.operational',
   ],
+  student: ['group.view', 'student.view', 'results.view', 'stats.operational'],
 };

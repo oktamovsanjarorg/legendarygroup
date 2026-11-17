@@ -17,6 +17,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   updatedSettings: many(settings),
   idempotencyKeys: many(idempotencyKeys),
   guardians: many(guardians),
+  students: many(students),
   groupAssignments: many(groupTeachers),
   approvedFreezes: many(enrollmentFreezes),
 }));
@@ -109,6 +110,7 @@ export const roomsRelations = relations(rooms, ({ one, many }) => ({
 export const studentsRelations = relations(students, ({ one, many }) => ({
   branch: one(branches, { fields: [students.branchId], references: [branches.id] }),
   photo: one(files, { fields: [students.photoFileId], references: [files.id] }),
+  user: one(users, { fields: [students.userId], references: [users.id] }),
   guardianLinks: many(studentGuardians),
   enrollments: many(enrollments),
 }));

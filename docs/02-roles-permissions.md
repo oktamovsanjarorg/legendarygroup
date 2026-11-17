@@ -24,6 +24,7 @@ Ruxsat tekshiruvi **uch qatlamli**, har so'rovda uchalasi ham o'tishi shart:
 | Admin    | `admin`    | Kundalik operatsiyalar. Director qo'shimcha ruxsat bera oladi (faqat §4 dagi "delegatsiya qilinadigan" ro'yxatdan).                                                                                                                                                                                                                                                                                 |
 | Ustoz    | `teacher`  | Guruhdagi o'rni bo'yicha: **asosiy** (`main`) yoki **yordamchi** (`assistant`). Vaqtincha **o'rinbosar** (`substitute`) — faqat o'sha dars uchun.                                                                                                                                                                                                                                                   |
 | Ota-ona  | `guardian` | Faqat o'z farzand(lar)i.                                                                                                                                                                                                                                                                                                                                                                            |
+| Oʻquvchi | `student`  | Faqat oʻz maʼlumotlari (jadval, oʻz davomati, baho, testlar).                                                                                                                                                                                                                                                                                                                                       |
 
 ## 3. Scope (obyekt darajasidagi chegaralar)
 
@@ -33,17 +34,18 @@ Ruxsat tekshiruvi **uch qatlamli**, har so'rovda uchalasi ham o'tishi shart:
 | Ustoz — asosiy/yordamchi | `group_teachers`da **hozirgi sanada faol** bo'lgan guruhlari, ularning darslari va o'sha guruhga **hozir yozilgan** o'quvchilari. Guruhdan ketgan ustoz eski ma'lumotni ko'rmaydi (Q-64).                                        |
 | Ustoz — o'rinbosar       | Faqat o'zi o'rinbosar qilib qo'yilgan **dars(lar)** va shu darsdagi o'quvchilar ro'yxati; dars kuni tugagach kirish yopiladi.                                                                                                    |
 | Ota-ona                  | `student_guardians` orqali bog'langan farzandlari. Farzand guruhdan chiqsa yoki arxivlansa ham — **uning tarixi, balansi va qarzi ko'rinadi** (qarzni to'lash uchun kerak). Ota-ona bog'lanishi uzilsa — kirish darhol yopiladi. |
+| Oʻquvchi                 | Faqat oʻzi (`students.user_id = joriy foydalanuvchi`).                                                                                                                                                                           |
 
 **Ma'lumot maydonlari darajasidagi ko'rinish (field-level):**
 
-| Maydon                      | Director | Admin |                Ustoz                |   Ota-ona    |
-| --------------------------- | :------: | :---: | :---------------------------------: | :----------: |
-| Ota-ona telefoni            |    ✅    |  ✅   | ❌ (Director yoqishi mumkin — Q-63) |   o'ziniki   |
-| Ustoz izohi `internal`      |    ✅    |  ✅   |           ✅ (o'z guruhi)           |      ❌      |
-| O'quvchi to'lov/qarz holati |    ✅    |  ✅   |                 ❌                  | o'z farzandi |
-| Ustoz oyligi                |    ✅    |  ❌   |              o'ziniki               |      ❌      |
-| Chegirma sababi             |    ✅    |  ✅   |                 ❌                  |      ❌      |
-| Audit jurnali               |    ✅    |  ❌   |                 ❌                  |      ❌      |
+| Maydon                      | Director | Admin |                Ustoz                |   Ota-ona    | Oʻquvchi |
+| --------------------------- | :------: | :---: | :---------------------------------: | :----------: | :------: |
+| Ota-ona telefoni            |    ✅    |  ✅   | ❌ (Director yoqishi mumkin — Q-63) |   o'ziniki   |    ❌    |
+| Ustoz izohi `internal`      |    ✅    |  ✅   |           ✅ (o'z guruhi)           |      ❌      |    ❌    |
+| O'quvchi to'lov/qarz holati |    ✅    |  ✅   |                 ❌                  | o'z farzandi |    ❌    |
+| Ustoz oyligi                |    ✅    |  ❌   |              o'ziniki               |      ❌      |    ❌    |
+| Chegirma sababi             |    ✅    |  ✅   |                 ❌                  |      ❌      |    ❌    |
+| Audit jurnali               |    ✅    |  ❌   |                 ❌                  |      ❌      |    ❌    |
 
 Field-level filtr API javobini shakllantirishda (serializer) qo'llanadi — UI'da yashirish yetarli emas.
 
@@ -54,51 +56,51 @@ Kanonik manba — `packages/contracts/src/permissions.ts` (katalog) va `packages
 Belgilar: ✅ ruxsat · 🔸 scope bilan · 🟡 policy bilan (shart §6) · ⬆️ so'rov orqali (Director tasdig'i) · ❌ yo'q · — tegishli emas (shaxsiy amal, rolda yo'q) · **D** — standart yo'q, Director `user_permission_overrides` orqali bera oladi.
 RBAC qatlamida ✅/🔸/🟡 = rolda **bor**; ❌/—/D/faqat ⬆️ = rolda **yo'q** (⬆️ — Admin `approval_requests` yaratadi, amalni Director bajaradi).
 
-| Ruxsat kodi              | Tavsif                                             | Director |            Admin             |               Ustoz                |                Ota-ona                 |
-| ------------------------ | -------------------------------------------------- | :------: | :--------------------------: | :--------------------------------: | :------------------------------------: |
-| **Xodimlar va tizim**    |                                                    |          |                              |                                    |
-| `staff.manage`           | Admin/Ustoz qo'shish, bloklash                     |    ✅    |              ❌              |                 ❌                 |                   ❌                   |
-| `staff.permissions`      | Ruxsat berish/olish                                |    ✅    |              ❌              |                 ❌                 |                   ❌                   |
-| `settings.manage`        | Tizim sozlamalari, karta rekvizitlari, shablonlar  |    ✅    |              ❌              |                 ❌                 |                   ❌                   |
-| `audit.view`             | Audit jurnali                                      |    ✅    |              ❌              |                 ❌                 |                   ❌                   |
-| **Tashkiliy**            |                                                    |          |                              |                                    |
-| `course.manage`          | Kurs, xona                                         |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| `group.manage`           | Guruh, jadval, ustoz biriktirish                   |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| `group.view`             | Guruhlarni ko'rish                                 |    ✅    |              ✅              |                 🔸                 |                   ❌                   |
-| `lesson.manage`          | Dars bekor qilish/ko'chirish, o'rinbosar tayinlash |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| **O'quvchilar**          |                                                    |          |                              |                                    |
-| `student.manage`         | O'quvchi, ota-ona, enrollment, muzlatish           |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| `student.view`           | O'quvchi kartochkasi                               |    ✅    |              ✅              |                 🔸                 |                   🔸                   |
-| `lead.manage`            | Lidlar                                             |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| **Davomat va natijalar** |                                                    |          |                              |                                    |
-| `attendance.mark`        | Davomat belgilash                                  |    ✅    |              ✅              |                🔸🟡                |                   ❌                   |
-| `attendance.edit_past`   | O'tgan davomatni o'zgartirish (sabab bilan)        |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| `absence.notify`         | "Kela olmaydi" oldindan xabar                      |    ✅    |              ✅              |                 ❌                 |                   🔸                   |
-| `grade.write`            | Baho, izoh                                         |    ✅    |              ✅              |                🔸🟡                |                   ❌                   |
-| `test.manage`            | Test yaratish, Excel import, e'lon qilish          |    ✅    |              ✅              |         🔸 (faqat `main`)          |                   ❌                   |
-| `results.view`           | Baho, test natijalari                              |    ✅    |              ✅              |                 🔸                 | 🔸 (faqat `guardian` ko'rinishdagilar) |
-| **To'lovlar**            |                                                    |          |                              |                                    |
-| `payment.create`         | To'lov kiritish (naqd/terminal)                    |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| `payment.submit`         | O'tkazma chekini yuborish                          |    —     |              —               |                 ❌                 |                   🔸                   |
-| `payment.review`         | Chekni tasdiqlash/rad etish                        |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| `payment.reverse`        | Storno                                             |    ✅    |    🟡 shu kun / ⬆️ keyin     |                 ❌                 |                   ❌                   |
-| `payment.refund`         | Pulni qaytarish                                    |    ✅    |              ⬆️              |                 ❌                 |                   ❌                   |
-| `discount.grant`         | Chegirma                                           |    ✅    | 🟡 ≤ limit / ⬆️ undan yuqori |                 ❌                 |                   ❌                   |
-| `penalty.waive`          | Jarimani bekor qilish                              |    ✅    |          ✅ (sabab)          |                 ❌                 |                   ❌                   |
-| `billing.view`           | Qarz, balans, to'lovlar tarixi                     |    ✅    |              ✅              |                 ❌                 |                   🔸                   |
-| `cash.close`             | Kassa kunlik yopish                                |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| **Moliya va oylik**      |                                                    |          |                              |                                    |
-| `expense.manage`         | Xarajatlar                                         |    ✅    |              D               |                 ❌                 |                   ❌                   |
-| `finance.view`           | P&L, tushum hisobotlari, prognoz                   |    ✅    |              D               |                 ❌                 |                   ❌                   |
-| `payroll.manage`         | Ustoz shartnomasi, oylik hisob, tasdiqlash         |    ✅    |              ❌              |                 ❌                 |                   ❌                   |
-| `payroll.view_own`       | O'z oyligini ko'rish                               |    —     |              —               |                 ✅                 |                   —                    |
-| **Aloqa**                |                                                    |          |                              |                                    |
-| `announcement.send`      | Ommaviy e'lon                                      |    ✅    |              ✅              | 🔸 (faqat `main`, o'z guruhlariga) |                   ❌                   |
-| `ticket.handle`          | Ota-ona murojaatlariga javob                       |    ✅    |              ✅              |                 ❌                 |                   ❌                   |
-| `ticket.create`          | Murojaat yuborish                                  |    —     |              —               |                 —                  |                   ✅                   |
-| **Statistika**           |                                                    |          |                              |                                    |
-| `stats.operational`      | Davomat/natija statistikasi                        |    ✅    |              ✅              |                 🔸                 |                   🔸                   |
-| `approval.decide`        | Tasdiqlash so'rovlarini hal qilish                 |    ✅    |              ❌              |                 ❌                 |                   ❌                   |
+| Ruxsat kodi              | Tavsif                                             | Director |            Admin             |               Ustoz                |                Ota-ona                 | Oʻquvchi |
+| ------------------------ | -------------------------------------------------- | :------: | :--------------------------: | :--------------------------------: | :------------------------------------: | :------: |
+| **Xodimlar va tizim**    |                                                    |          |                              |                                    |                                        |          |
+| `staff.manage`           | Admin/Ustoz qo'shish, bloklash                     |    ✅    |              ❌              |                 ❌                 |                   ❌                   |    ❌    |
+| `staff.permissions`      | Ruxsat berish/olish                                |    ✅    |              ❌              |                 ❌                 |                   ❌                   |    ❌    |
+| `settings.manage`        | Tizim sozlamalari, karta rekvizitlari, shablonlar  |    ✅    |              ❌              |                 ❌                 |                   ❌                   |    ❌    |
+| `audit.view`             | Audit jurnali                                      |    ✅    |              ❌              |                 ❌                 |                   ❌                   |    ❌    |
+| **Tashkiliy**            |                                                    |          |                              |                                    |                                        |          |
+| `course.manage`          | Kurs, xona                                         |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| `group.manage`           | Guruh, jadval, ustoz biriktirish                   |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| `group.view`             | Guruhlarni ko'rish                                 |    ✅    |              ✅              |                 🔸                 |                   ❌                   |    🔸    |
+| `lesson.manage`          | Dars bekor qilish/ko'chirish, o'rinbosar tayinlash |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| **O'quvchilar**          |                                                    |          |                              |                                    |                                        |          |
+| `student.manage`         | O'quvchi, ota-ona, enrollment, muzlatish           |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| `student.view`           | O'quvchi kartochkasi                               |    ✅    |              ✅              |                 🔸                 |                   🔸                   |    🔸    |
+| `lead.manage`            | Lidlar                                             |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| **Davomat va natijalar** |                                                    |          |                              |                                    |                                        |          |
+| `attendance.mark`        | Davomat belgilash                                  |    ✅    |              ✅              |                🔸🟡                |                   ❌                   |    ❌    |
+| `attendance.edit_past`   | O'tgan davomatni o'zgartirish (sabab bilan)        |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| `absence.notify`         | "Kela olmaydi" oldindan xabar                      |    ✅    |              ✅              |                 ❌                 |                   🔸                   |    ❌    |
+| `grade.write`            | Baho, izoh                                         |    ✅    |              ✅              |                🔸🟡                |                   ❌                   |    ❌    |
+| `test.manage`            | Test yaratish, Excel import, e'lon qilish          |    ✅    |              ✅              |         🔸 (faqat `main`)          |                   ❌                   |    ❌    |
+| `results.view`           | Baho, test natijalari                              |    ✅    |              ✅              |                 🔸                 | 🔸 (faqat `guardian` ko'rinishdagilar) |    🔸    |
+| **To'lovlar**            |                                                    |          |                              |                                    |                                        |          |
+| `payment.create`         | To'lov kiritish (naqd/terminal)                    |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| `payment.submit`         | O'tkazma chekini yuborish                          |    —     |              —               |                 ❌                 |                   🔸                   |    —     |
+| `payment.review`         | Chekni tasdiqlash/rad etish                        |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| `payment.reverse`        | Storno                                             |    ✅    |    🟡 shu kun / ⬆️ keyin     |                 ❌                 |                   ❌                   |    ❌    |
+| `payment.refund`         | Pulni qaytarish                                    |    ✅    |              ⬆️              |                 ❌                 |                   ❌                   |    ❌    |
+| `discount.grant`         | Chegirma                                           |    ✅    | 🟡 ≤ limit / ⬆️ undan yuqori |                 ❌                 |                   ❌                   |    ❌    |
+| `penalty.waive`          | Jarimani bekor qilish                              |    ✅    |          ✅ (sabab)          |                 ❌                 |                   ❌                   |    ❌    |
+| `billing.view`           | Qarz, balans, to'lovlar tarixi                     |    ✅    |              ✅              |                 ❌                 |                   🔸                   |    ❌    |
+| `cash.close`             | Kassa kunlik yopish                                |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| **Moliya va oylik**      |                                                    |          |                              |                                    |                                        |          |
+| `expense.manage`         | Xarajatlar                                         |    ✅    |              D               |                 ❌                 |                   ❌                   |    ❌    |
+| `finance.view`           | P&L, tushum hisobotlari, prognoz                   |    ✅    |              D               |                 ❌                 |                   ❌                   |    ❌    |
+| `payroll.manage`         | Ustoz shartnomasi, oylik hisob, tasdiqlash         |    ✅    |              ❌              |                 ❌                 |                   ❌                   |    ❌    |
+| `payroll.view_own`       | O'z oyligini ko'rish                               |    —     |              —               |                 ✅                 |                   —                    |    —     |
+| **Aloqa**                |                                                    |          |                              |                                    |                                        |          |
+| `announcement.send`      | Ommaviy e'lon                                      |    ✅    |              ✅              | 🔸 (faqat `main`, o'z guruhlariga) |                   ❌                   |    ❌    |
+| `ticket.handle`          | Ota-ona murojaatlariga javob                       |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
+| `ticket.create`          | Murojaat yuborish                                  |    —     |              —               |                 —                  |                   ✅                   |    —     |
+| **Statistika**           |                                                    |          |                              |                                    |                                        |          |
+| `stats.operational`      | Davomat/natija statistikasi                        |    ✅    |              ✅              |                 🔸                 |                   🔸                   |    🔸    |
+| `approval.decide`        | Tasdiqlash so'rovlarini hal qilish                 |    ✅    |              ❌              |                 ❌                 |                   ❌                   |    ❌    |
 
 **Delegatsiya qilinmaydi (hech qachon Admin'ga berilmaydi):** `staff.*`, `settings.manage`, `audit.view`, `payroll.manage`, `approval.decide`, `payment.refund`.
 
@@ -138,3 +140,4 @@ Policy'lar `packages/domain/policies`da — sof funksiyalar, har biri unit test 
 | Admin    | Yangi chek / murojaat xabarlari                                  | Xodim rejimi: chek navbati, bugungi darslar holati (Q-65) | **To'liq** (asosiy ish joyi) |
 | Ustoz    | Eslatmalar; Excel faylni botga yuborish → import                 | **Asosiy va yagona ish joyi** (Q-60)                      | —                            |
 | Ota-ona  | Xabarlar, ro'yxatdan o'tish, chek rasmini yuborish               | Farzand profili, baholar, to'lovlar, chek yuborish        | —                            |
+| Oʻquvchi | Kod orqali kirish (bot orqali bogʻlanish)                        | Oʻquvchi paneli: bugun, jadval, natijalar, profil         | —                            |
