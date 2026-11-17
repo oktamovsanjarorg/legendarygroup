@@ -55,7 +55,7 @@ export const students = pgTable(
   },
   (t) => [
     uniqueIndex('students_user_id_uq').on(t.userId),
-    index('students_access_code_hash_idx').on(t.accessCodeHash),
+    uniqueIndex('students_access_code_hash_uq').on(t.accessCodeHash),
     index('students_branch_id_idx').on(t.branchId),
     index('students_photo_file_id_idx').on(t.photoFileId),
     index('students_created_at_id_idx').on(t.createdAt.desc(), t.id.desc()),

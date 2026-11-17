@@ -20,6 +20,10 @@ import { AppException } from '../../common/errors/app.exception.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { RateLimiter, type RateLimit } from '../../common/rate-limit/rate-limiter.js';
 
+/** Oʻquvchi kirish kodi xeshi (D2) — yaratishda va bogʻlashda bitta funksiya. */
+export const hashAccessCode = (code: string): string =>
+  createHash('sha256').update(code).digest('hex');
+
 const STUDENT_LINK_LIMIT: RateLimit = {
   scope: 'student:link',
   limit: 5,
@@ -40,67 +44,62 @@ export class StudentLinkService {
   ) {}
 
   async linkStudent(input: BotStudentLinkRequest): Promise<BotStudentLinkResult> {
+    const tgStr = String(input.telegramId);
     try {
-      const tgStr = String(input.telegramId);
-      try {
-        await this.limiter.hit(STUDENT_LINK_LIMIT, tgStr);
-      } catch (err) {
-        if (err instanceof AppException && err.getStatus() === HttpStatus.TOO_MANY_REQUESTS) {
-          return { result: 'rate_limited' };
-        }
-        throw err;
-      }
-
-      const phone = normalizePhone(input.phone);
-      if (!phone) return { result: 'invalid' };
-
-      const hash = createHash('sha256').update(input.code).digest('hex');
-
-      return await this.db.transaction(async (tx) => {
-        const [student] = await tx
-          .select()
-          .from(students)
-          .where(eq(students.accessCodeHash, hash))
-          .for('update');
-
-        if (!student || student.archivedAt !== null) {
-          return { result: 'invalid' };
-        }
-
-        const phoneMatches = await this.checkPhoneMatch(tx, student.id, student.phone, phone);
-        if (!phoneMatches) {
-          return { result: 'invalid' };
-        }
-
-        if (student.userId !== null) {
-          return { result: 'already_linked' };
-        }
-
-        const user = await this.resolveStudentUser(tx, input.telegramId, phone, student.fullName);
-        if (!user) {
-          return { result: 'already_linked' };
-        }
-
-        await this.attachStudentRole(tx, user.id);
-        await tx.update(students).set({ userId: user.id }).where(eq(students.id, student.id));
-
-        await this.audit.record(
-          { actorId: user.id, actorRole: 'student', ip: null, userAgent: null, requestId: null },
-          { action: 'student.telegram_linked', entity: 'student', entityId: student.id },
-          tx,
-        );
-
-        await this.limiter.reset(STUDENT_LINK_LIMIT, tgStr);
-
-        return {
-          result: 'linked',
-          fullName: student.fullName,
-        };
-      });
+      await this.limiter.hit(STUDENT_LINK_LIMIT, tgStr);
     } catch (err) {
-      console.error('OUTER LINK STUDENT ERROR:', err);
+      if (err instanceof AppException && err.getStatus() === HttpStatus.TOO_MANY_REQUESTS) {
+        return { result: 'rate_limited' };
+      }
       throw err;
     }
+
+    const phone = normalizePhone(input.phone);
+    if (!phone) return { result: 'invalid' };
+
+    const hash = hashAccessCode(input.code);
+
+    return await this.db.transaction(async (tx) => {
+      const [student] = await tx
+        .select()
+        .from(students)
+        .where(eq(students.accessCodeHash, hash))
+        .for('update');
+
+      if (!student || student.archivedAt !== null) {
+        return { result: 'invalid' };
+      }
+
+      const phoneMatches = await this.checkPhoneMatch(tx, student.id, student.phone, phone);
+      if (!phoneMatches) {
+        return { result: 'invalid' };
+      }
+
+      if (student.userId !== null) {
+        return { result: 'already_linked' };
+      }
+
+      const user = await this.resolveStudentUser(tx, input.telegramId, phone, student.fullName);
+      if (!user) {
+        return { result: 'already_linked' };
+      }
+
+      await this.attachStudentRole(tx, user.id);
+      await tx.update(students).set({ userId: user.id }).where(eq(students.id, student.id));
+
+      await this.audit.record(
+        { actorId: user.id, actorRole: 'student', ip: null, userAgent: null, requestId: null },
+        { action: 'student.telegram_linked', entity: 'student', entityId: student.id },
+        tx,
+      );
+
+      await this.limiter.reset(STUDENT_LINK_LIMIT, tgStr);
+
+      return {
+        result: 'linked',
+        fullName: student.fullName,
+      };
+    });
   }
 
   private async checkPhoneMatch(

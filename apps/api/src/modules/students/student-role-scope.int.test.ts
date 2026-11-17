@@ -169,4 +169,14 @@ describe('T-126 D4: oʻquvchi roli — faqat oʻzi', () => {
     const res = await call('GET', `grades/groups/${groupId}/leaderboard`, tokens.get('guardian')!);
     expect(res.statusCode).toBe(403);
   });
+
+  it('D2: ikki oʻquvchida bir xil kod xeshi boʻlolmaydi (bot kodni aniq bitta oʻquvchiga olib boradi)', async () => {
+    const [own] = await db
+      .select({ hash: students.accessCodeHash })
+      .from(students)
+      .where(eq(students.id, ownId));
+    await expect(
+      db.update(students).set({ accessCodeHash: own!.hash }).where(eq(students.id, mateId)),
+    ).rejects.toThrow();
+  });
 });
