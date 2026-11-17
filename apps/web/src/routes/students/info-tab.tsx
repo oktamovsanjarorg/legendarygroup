@@ -5,6 +5,7 @@ import { UserPlus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { FormError } from '../../components/panel-section.js';
 import { GuardiansCard, type GuardianView, InfoCard } from '../../screens/f1/student-card.js';
+import { StudentAccessCard } from './access-card.js';
 import { useStudentCall } from './use-students.js';
 
 const c = t.studentCard;
@@ -81,6 +82,7 @@ export function InfoTab({ s, canManage, onAddGuardian }: Props) {
           rowAction={canManage ? rowAction : undefined}
         />
       </div>
+      <StudentAccessCard s={s} canManage={canManage} />
       <FormError error={act.error} />
     </div>
   );
