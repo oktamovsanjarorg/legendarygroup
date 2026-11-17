@@ -79,6 +79,25 @@ function ActionButtons({ s, loadingCode, loadingUnlink, onGenerate, onUnlink }: 
   );
 }
 
+interface ViewProps extends ActionsProps {
+  canManage: boolean;
+  newCode: string | null;
+  error: unknown;
+}
+
+/** W-06 «Mini Appʼga kirish» bloki — koʻrinish (Storybook ham shuni koʻrsatadi). */
+export function StudentAccessView({ s, canManage, newCode, error, ...actions }: ViewProps) {
+  return (
+    <Card className="flex flex-col gap-4">
+      <CardTitle>{c.miniAppAccess}</CardTitle>
+      <StatusRows s={s} />
+      {newCode && <CodeDisplay code={newCode} />}
+      {canManage && <ActionButtons s={s} {...actions} />}
+      <FormError error={error} />
+    </Card>
+  );
+}
+
 interface Props {
   s: StudentDetail;
   canManage: boolean;
@@ -118,20 +137,15 @@ export function StudentAccessCard({ s, canManage }: Props) {
   };
 
   return (
-    <Card className="flex flex-col gap-4">
-      <CardTitle>{c.miniAppAccess}</CardTitle>
-      <StatusRows s={s} />
-      {newCode && <CodeDisplay code={newCode} />}
-      {canManage && (
-        <ActionButtons
-          s={s}
-          loadingCode={codeAct.isPending}
-          loadingUnlink={unlinkAct.isPending}
-          onGenerate={() => void handleGenerateCode()}
-          onUnlink={() => void handleUnlinkTelegram()}
-        />
-      )}
-      <FormError error={codeAct.error ?? unlinkAct.error} />
-    </Card>
+    <StudentAccessView
+      s={s}
+      canManage={canManage}
+      newCode={newCode}
+      error={codeAct.error ?? unlinkAct.error}
+      loadingCode={codeAct.isPending}
+      loadingUnlink={unlinkAct.isPending}
+      onGenerate={() => void handleGenerateCode()}
+      onUnlink={() => void handleUnlinkTelegram()}
+    />
   );
 }

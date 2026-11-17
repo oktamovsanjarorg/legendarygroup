@@ -40,6 +40,13 @@ export const GUARDIAN_TABS: TabItem[] = [
   { screen: 'MG-11', to: '/more', label: t.gtabs.more, icon: Ellipsis },
 ];
 
+export const STUDENT_TABS: TabItem[] = [
+  { screen: 'M-STU-01', to: '/', label: t.tabs.today, icon: CalendarCheck },
+  { screen: 'M-STU-02', to: '/schedule', label: t.tabs.schedule, icon: CalendarDays },
+  { screen: 'M-STU-03', to: '/results', label: t.gtabs.results, icon: BarChart3 },
+  { screen: 'M-STU-04', to: '/profile', label: t.tabs.profile, icon: UserRound },
+];
+
 /** Xodim rejimi (11-ux §2): navbatda badge; "So'rovlar" — faqat Director. */
 export const STAFF_TABS: TabItem[] = [
   { screen: 'MS-01', to: '/', label: t.stabs.today, icon: CalendarCheck },
