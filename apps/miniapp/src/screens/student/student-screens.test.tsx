@@ -50,6 +50,19 @@ describe('M-STU-01 Oʻquvchi Bugun ekrani (T-126)', () => {
     expect(screen.getByText(/101-xona/)).toBeDefined();
   });
 
+  it('kutilayotgan dars vaqti Toshkent boʻyicha (UTC emas)', () => {
+    const wa = createFakeWebApp();
+    wrap(
+      wa,
+      <StudentTodayView
+        studentName="Anvar Aliyev"
+        todayStatus={{ kind: 'pending', at: new Date('2026-11-18T14:00:00+05:00') }}
+        todayLessons={[mockLesson]}
+      />,
+    );
+    expect(screen.getByText(/14:00 da/)).toBeDefined();
+  });
+
   it('bugun dars boʻlmaganda boʻsh holat va keyingi darsni koʻrsatadi', () => {
     const wa = createFakeWebApp();
     wrap(

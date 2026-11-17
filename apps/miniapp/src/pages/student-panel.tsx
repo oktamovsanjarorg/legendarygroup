@@ -14,6 +14,13 @@ import { StudentResultsView } from '../screens/student/results.js';
 import { StudentTodayView } from '../screens/student/today.js';
 import { ScheduleView } from '../screens/teacher/schedule.js';
 
+/** `/students` boʻsh — Telegram oʻquvchiga bogʻlanmagan (uzilgan) holat. */
+const NOT_LINKED = {
+  when: (s: unknown) => s === null,
+  title: t.studentPanel.notLinked,
+  hint: t.studentPanel.notLinkedHint,
+};
+
 /**
  * M-STU-01 Oʻquvchi bugungi darslar sahifasi.
  */
@@ -21,14 +28,7 @@ export function StudentTodayPage() {
   const studentQuery = useCurrentStudent();
 
   return (
-    <QueryView
-      query={studentQuery}
-      empty={{
-        when: (s) => s === null,
-        title: t.studentPanel.noLessonsToday,
-        hint: t.studentPanel.noLessonsTodayHint,
-      }}
-    >
+    <QueryView query={studentQuery} empty={NOT_LINKED}>
       {(student) => student && <StudentTodayInner student={student} />}
     </QueryView>
   );
@@ -60,14 +60,7 @@ export function StudentSchedulePage() {
   const studentQuery = useCurrentStudent();
 
   return (
-    <QueryView
-      query={studentQuery}
-      empty={{
-        when: (s) => s === null,
-        title: t.studentPanel.noSchedule,
-        hint: t.studentPanel.noScheduleHint,
-      }}
-    >
+    <QueryView query={studentQuery} empty={NOT_LINKED}>
       {(student) =>
         student && (
           <StudentScheduleInner studentId={student.id} selected={selected} onSelect={setSelected} />
@@ -110,14 +103,7 @@ export function StudentResultsPage() {
   const studentQuery = useCurrentStudent();
 
   return (
-    <QueryView
-      query={studentQuery}
-      empty={{
-        when: (s) => s === null,
-        title: t.studentPanel.noResults,
-        hint: t.studentPanel.noResultsHint,
-      }}
-    >
+    <QueryView query={studentQuery} empty={NOT_LINKED}>
       {(student) => student && <StudentResultsInner studentId={student.id} />}
     </QueryView>
   );
@@ -141,14 +127,7 @@ export function StudentProfilePage() {
   const studentQuery = useCurrentStudent();
 
   return (
-    <QueryView
-      query={studentQuery}
-      empty={{
-        when: (s) => s === null,
-        title: t.studentPanel.profileTitle,
-        hint: t.studentPanel.noScheduleHint,
-      }}
-    >
+    <QueryView query={studentQuery} empty={NOT_LINKED}>
       {(student) =>
         student && (
           <StudentProfileView

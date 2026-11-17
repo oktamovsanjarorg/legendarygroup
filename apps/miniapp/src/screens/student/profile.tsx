@@ -45,12 +45,11 @@ export function StudentProfileView({ student, onSettings }: Props) {
         <ListItem
           before={<GraduationCap className="size-5 text-text-muted" aria-hidden />}
           title={t.studentPanel.centerName}
-          subtitle="Toshkent"
         />
         <ListItem
           before={<Settings className="size-5 text-text-muted" aria-hidden />}
-          title="Sozlamalar"
-          subtitle="Til va ilova koʻrinishi"
+          title={t.settings.title}
+          subtitle={t.studentPanel.settingsHint}
           chevron
           onClick={onSettings}
         />

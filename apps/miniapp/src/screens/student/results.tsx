@@ -1,5 +1,5 @@
 import type { StudentProgressResponse, TestResultItem } from '@lg/contracts';
-import { miniappMessages as t } from '@lg/i18n';
+import { formatDateShort, formatYmd, miniappMessages as t } from '@lg/i18n';
 import { type ChartPoint, ListItem, ProgressChart, Section } from '@lg/ui-tg';
 import { Award, FileQuestion, TrendingUp } from 'lucide-react';
 
@@ -19,7 +19,9 @@ function RankCard({ rank, total }: { rank: number | null; total: number | null }
         <span className="font-semibold text-text">
           {t.studentPanel.rankInGroup.replace('{rank}', String(rank))}
         </span>
-        <span className="text-sm text-text-muted">{total} nafar oʻquvchi orasida</span>
+        <span className="text-sm text-text-muted">
+          {t.studentPanel.rankOf.replace('{total}', String(total))}
+        </span>
       </div>
     </div>
   );
@@ -32,7 +34,7 @@ function ProgressTestsList({ items }: { items: readonly ProgressTest[] }) {
         <ListItem
           key={test.testId}
           title={test.title}
-          subtitle={`${test.date} · ${test.score} / ${test.maxScore} ball`}
+          subtitle={`${formatYmd(test.date)} · ${t.studentPanel.scoreOf.replace('{score}', String(test.score)).replace('{max}', String(test.maxScore))}`}
           after={
             <span className="text-right font-semibold text-text tabular-nums">{test.percent}%</span>
           }
@@ -48,8 +50,8 @@ function FallbackTestsList({ items }: { items: readonly TestResultItem[] }) {
       {items.map((test) => (
         <ListItem
           key={test.id}
-          title={`Test #${test.testId.slice(0, 8)}`}
-          subtitle={test.createdAt.slice(0, 10)}
+          title={t.studentPanel.testFallback}
+          subtitle={formatDateShort(new Date(test.createdAt))}
           after={
             <span className="text-right font-semibold text-text tabular-nums">
               {test.percentage}%
@@ -93,7 +95,7 @@ function TestsSection({
  */
 export function StudentResultsView({ tests, progress }: Props) {
   const chartPoints: ChartPoint[] = (progress?.gradesTrend ?? []).map((g) => ({
-    label: g.date.slice(5),
+    label: formatYmd(g.date).slice(0, 5),
     value: g.value,
   }));
 
