@@ -320,6 +320,11 @@
 - **Bog'liq:** T-114, T-116, T-120 · **Bajaruvchi:** agy (A-8), review — Claude
 - **AC:** C-05; Ustoz / Ota-ona / Direktor-Admin uchun 3 kartochka, faqat MainButton/BackButton; koʻrilgani Telegram CloudStorage'da.
 
+### ⬜ T-126 · Oʻquvchi roli: shaxsiy kod → bot → oʻquvchi paneli
+
+- **Bog'liq:** T-105, T-110, T-116 · **Bajaruvchi:** agy (A-9), review — Claude
+- **AC va qarorlar (D1–D6):** [`docs/tasks/A-9-student-panel.md`](tasks/A-9-student-panel.md).
+
 ### 🟨 T-115 · Tizim sozlamalari
 
 - **Bog'liq:** T-008 · **Talablar:** FR-SYS-1
