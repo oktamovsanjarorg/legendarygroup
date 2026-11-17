@@ -132,6 +132,22 @@ Kartada **«Ota-ona qoʻshish»** — telefon raqami bilan. Ota-ona botda Start 
 raqamni ulashsa — avtomatik bogʻlanadi. Raqam mos kelmasa, soʻrov **Bogʻlanish soʻrovlari**
 boʻlimiga tushadi — u yerda tasdiqlaysiz yoki rad etasiz.
 
+### Oʻquvchiga Mini App kodi berish
+
+Oʻquvchi Telegram bot va Mini App orqali oʻz dars jadvali, davomati va natijalarini koʻrishi uchun
+shaxsiy kirish kodiga ega boʻlishi lozim:
+
+1. Oʻquvchi kartasi (W-06) da **«Mini Appʼga kirish»** blokini oching.
+2. Agar kod oʻrnatilmagan boʻlsa: **«Kod yaratish»** tugmasini bosing.
+3. Agar kod ilgari oʻrnatilgan boʻlsa, lekin oʻquvchi uni yoʻqotgan boʻlsa: **«Kodni yangilash»**
+   tugmasini bosing (tasdiqlash talab etiladi, eski kod oʻz kuchini yoʻqotadi).
+4. Generatsiya qilingan 6 xonali maxfiy kod (masalan, `849201`) ekranda faqat **1 marta** koʻrsatiladi.
+   Uni **«Nusxa olish»** orqali nusxalab, oʻquvchiga shaxsan topshiring. Tizimda kod faqat xeshlangan holda saqlanadi.
+5. Oʻquvchi botga kirib (`/student` yoki "Men oʻquvchiman") ushbu kodni kiritgach, Telegram profilingiz
+   oʻquvchi kartochkasiga birikadi va blokda status **«Bogʻlangan»** deb yangilanadi.
+6. Agar oʻquvchining akkauntini oʻzgartirish yoki uzish kerak boʻlsa, **«Telegramdan uzish»**
+   tugmasini bosing. Oʻquvchi arxivlanganda Telegram avtomatik tarzda uziladi.
+
 ### Boshqa guruhga koʻchirish, muzlatish, chiqarish
 
 Oʻquvchi kartasi → guruh qatori:

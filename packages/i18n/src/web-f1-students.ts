@@ -89,6 +89,21 @@ export const webF1StudentsMessages = {
     makePrimary: 'Asosiy qilish',
     removeGuardian: 'Uzish',
     confirmRemoveGuardian: '{name} bu oʻquvchidan uzilsinmi?',
+    miniAppAccess: 'Mini Appʼga kirish',
+    accessCode: 'Kirish kodi',
+    codeNotSet: 'Berilmagan',
+    codeSet: 'Mavjud',
+    generateCode: 'Kod yaratish',
+    resetCode: 'Kodni yangilash',
+    confirmGenerateCode:
+      'Oʻquvchi uchun yangi 6 xonali kirish kodi yaratilsinmi? Eski kod bekor qilinadi.',
+    codeGeneratedTitle: 'Yangi kirish kodi',
+    codeGeneratedHint: 'Bu kod bir marta koʻrsatiladi. Uni nusxalab oʻquvchiga bering.',
+    copyCode: 'Nusxalash',
+    copied: 'Nusxalandi',
+    unlinkTelegram: 'Telegramdan uzish',
+    confirmUnlinkTelegram:
+      'Oʻquvchi Telegram hisobidan uzilsinmi? Uning joriy barcha sessiyalari bekor qilinadi.',
     enrollments: {
       empty: 'Hali guruhga yozilmagan',
       states: {
