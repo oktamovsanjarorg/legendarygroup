@@ -66,7 +66,7 @@ RBAC qatlamida ✅/🔸/🟡 = rolda **bor**; ❌/—/D/faqat ⬆️ = rolda **y
 | **Tashkiliy**            |                                                    |          |                              |                                    |                                        |          |
 | `course.manage`          | Kurs, xona                                         |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
 | `group.manage`           | Guruh, jadval, ustoz biriktirish                   |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
-| `group.view`             | Guruhlarni ko'rish                                 |    ✅    |              ✅              |                 🔸                 |                   ❌                   |    🔸    |
+| `group.view`             | Guruhlarni ko'rish                                 |    ✅    |              ✅              |                 🔸                 |                   ❌                   |    ❌    |
 | `lesson.manage`          | Dars bekor qilish/ko'chirish, o'rinbosar tayinlash |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
 | **O'quvchilar**          |                                                    |          |                              |                                    |                                        |          |
 | `student.manage`         | O'quvchi, ota-ona, enrollment, muzlatish           |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
@@ -99,7 +99,7 @@ RBAC qatlamida ✅/🔸/🟡 = rolda **bor**; ❌/—/D/faqat ⬆️ = rolda **y
 | `ticket.handle`          | Ota-ona murojaatlariga javob                       |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
 | `ticket.create`          | Murojaat yuborish                                  |    —     |              —               |                 —                  |                   ✅                   |    —     |
 | **Statistika**           |                                                    |          |                              |                                    |                                        |          |
-| `stats.operational`      | Davomat/natija statistikasi                        |    ✅    |              ✅              |                 🔸                 |                   🔸                   |    🔸    |
+| `stats.operational`      | Davomat/natija statistikasi                        |    ✅    |              ✅              |                 🔸                 |                   🔸                   |    ❌    |
 | `approval.decide`        | Tasdiqlash so'rovlarini hal qilish                 |    ✅    |              ❌              |                 ❌                 |                   ❌                   |    ❌    |
 
 **Delegatsiya qilinmaydi (hech qachon Admin'ga berilmaydi):** `staff.*`, `settings.manage`, `audit.view`, `payroll.manage`, `approval.decide`, `payment.refund`.

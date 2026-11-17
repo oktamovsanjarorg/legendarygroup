@@ -89,5 +89,5 @@ export const ROLE_PERMISSIONS: Readonly<Record<RoleCode, readonly Permission[]>>
     'ticket.create',
     'stats.operational',
   ],
-  student: ['group.view', 'student.view', 'results.view', 'stats.operational'],
+  student: ['student.view', 'results.view'],
 };
