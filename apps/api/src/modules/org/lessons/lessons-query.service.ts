@@ -2,11 +2,13 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type { LessonCalendarQuery, LessonDto } from '@lg/contracts';
 import {
   type Database,
+  enrollments,
   groups,
   groupTeachers,
   type LessonRow,
   lessons,
   rooms,
+  students,
   type Transaction,
 } from '@lg/db';
 import { type Clock, hhmm } from '@lg/domain';
@@ -53,21 +55,38 @@ export class LessonsQueryService {
 
   scopeWhere(user: RequestUser): SQL | undefined {
     if (user.role === 'director' || user.role === 'admin') return undefined;
-    if (user.role !== 'teacher') return sql`false`;
-    const today = this.clock.today();
-    const assigned = this.db
-      .select({ one: sql`1` })
-      .from(groupTeachers)
-      .where(
-        and(
-          eq(groupTeachers.groupId, lessons.groupId),
-          eq(groupTeachers.teacherId, user.id),
-          lte(groupTeachers.fromDate, lessons.date),
-          or(isNull(groupTeachers.toDate), gte(groupTeachers.toDate, lessons.date)),
-          or(isNull(groupTeachers.toDate), gte(groupTeachers.toDate, today)),
-        ),
-      );
-    return or(exists(assigned), and(eq(lessons.teacherId, user.id), gte(lessons.date, today)));
+    if (user.role === 'teacher') {
+      const today = this.clock.today();
+      const assigned = this.db
+        .select({ one: sql`1` })
+        .from(groupTeachers)
+        .where(
+          and(
+            eq(groupTeachers.groupId, lessons.groupId),
+            eq(groupTeachers.teacherId, user.id),
+            lte(groupTeachers.fromDate, lessons.date),
+            or(isNull(groupTeachers.toDate), gte(groupTeachers.toDate, lessons.date)),
+            or(isNull(groupTeachers.toDate), gte(groupTeachers.toDate, today)),
+          ),
+        );
+      return or(exists(assigned), and(eq(lessons.teacherId, user.id), gte(lessons.date, today)));
+    }
+    if (user.role === 'student') {
+      const enrolled = this.db
+        .select({ one: sql`1` })
+        .from(enrollments)
+        .innerJoin(students, eq(students.id, enrollments.studentId))
+        .where(
+          and(
+            eq(students.userId, user.id),
+            eq(enrollments.groupId, lessons.groupId),
+            lte(enrollments.startDate, lessons.date),
+            or(isNull(enrollments.endDate), gte(enrollments.endDate, lessons.date)),
+          ),
+        );
+      return exists(enrolled);
+    }
+    return sql`false`;
   }
 
   /** Kalendar (web + Mini App): oraliq ≤ 62 kun, sana/vaqt bo'yicha. */

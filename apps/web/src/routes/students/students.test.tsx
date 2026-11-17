@@ -53,6 +53,8 @@ const detail: StudentDetail = {
       linked: false,
     },
   ],
+  accessCodeSet: false,
+  telegramLinked: false,
   createdAt: '2026-11-01T05:00:00Z',
   updatedAt: '2026-11-01T05:00:00Z',
 };

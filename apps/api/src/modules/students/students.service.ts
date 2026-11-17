@@ -1,11 +1,19 @@
+import { createHash, randomInt } from 'node:crypto';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { CreateStudentRequest, StudentDetail, UpdateStudentRequest } from '@lg/contracts';
+import type {
+  CreateStudentRequest,
+  StudentAccessCodeResult,
+  StudentDetail,
+  UpdateStudentRequest,
+} from '@lg/contracts';
 import {
   type Database,
+  roles,
   studentGuardians,
   students,
   type StudentRow,
   type Transaction,
+  userRoles,
 } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { normalizeUz } from '@lg/i18n';
@@ -16,9 +24,12 @@ import { type AuditContext, AuditService } from '../../common/audit/audit.servic
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import type { RequestUser } from '../auth/index.js';
 import { FilesService } from '../files/index.js';
 import { type ArchiveVerb, assertArchiveTransition } from '../../common/db/archive.js';
+import { bumpPermissionsVersion } from '../rbac/index.js';
 import { assertUniquePhones, findOrCreateGuardian, normalizePrimary } from './guardian-links.js';
+import { StudentScopeService } from './student-scope.service.js';
 import { StudentsQueryService } from './students-query.service.js';
 import { STUDENT_AUDIT_FIELDS, toDetail } from './students.serializer.js';
 
@@ -34,6 +45,7 @@ export class StudentsService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(FilesService) private readonly files: FilesService,
     @Inject(StudentsQueryService) private readonly query: StudentsQueryService,
+    @Inject(StudentScopeService) private readonly scope: StudentScopeService,
   ) {}
 
   /** `outer` — chaqiruvchi tranzaksiyasi ichida (savepoint), masalan lidni aylantirish (T-107). */
@@ -92,6 +104,9 @@ export class StudentsService {
     return this.db.transaction(async (tx) => {
       const current = await this.lock(tx, id);
       assertArchiveTransition(current.archivedAt, verb);
+      if (verb === 'archive' && current.userId) {
+        await this.unlinkStudentUser(tx, current.id, current.userId);
+      }
       const archivedAt = verb === 'archive' ? this.clock.now() : null;
       const [row] = await tx
         .update(students)
@@ -100,6 +115,74 @@ export class StudentsService {
         .returning();
       return this.recordChange(tx, { ctx, action: `student.${verb}`, before: current, after: row });
     });
+  }
+
+  /** Shaxsiy 6 xonali kirish kodi yaratish / yangilash (T-126, D2). */
+  async generateAccessCode(
+    ctx: AuditContext,
+    user: RequestUser,
+    id: string,
+  ): Promise<StudentAccessCodeResult> {
+    await this.scope.assertVisible(user, id);
+    const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
+    const hash = createHash('sha256').update(code).digest('hex');
+    const now = this.clock.now();
+
+    return this.db.transaction(async (tx) => {
+      const current = await this.lock(tx, id);
+      if (current.archivedAt) throw new AppException(HttpStatus.CONFLICT, 'ARCHIVED_READ_ONLY');
+
+      await tx
+        .update(students)
+        .set({ accessCodeHash: hash, accessCodeUpdatedAt: now })
+        .where(eq(students.id, id));
+
+      await this.audit.record(
+        ctx,
+        { action: 'student.access_code_reset', entity: 'student', entityId: id },
+        tx,
+      );
+
+      return { code, updatedAt: now.toISOString() };
+    });
+  }
+
+  /** Oʻquvchini Telegramdan uzish (T-126, D6). */
+  async unlinkTelegram(
+    ctx: AuditContext,
+    user: RequestUser,
+    id: string,
+  ): Promise<{ success: true }> {
+    await this.scope.assertVisible(user, id);
+    return this.db.transaction(async (tx) => {
+      const current = await this.lock(tx, id);
+      if (current.userId) {
+        await this.unlinkStudentUser(tx, current.id, current.userId);
+      }
+
+      await this.audit.record(
+        ctx,
+        { action: 'student.telegram_unlinked', entity: 'student', entityId: id },
+        tx,
+      );
+
+      return { success: true };
+    });
+  }
+
+  private async unlinkStudentUser(
+    tx: Transaction,
+    studentId: string,
+    userId: string,
+  ): Promise<void> {
+    const [studentRole] = await tx.select().from(roles).where(eq(roles.code, 'student'));
+    if (studentRole) {
+      await tx
+        .delete(userRoles)
+        .where(and(eq(userRoles.userId, userId), eq(userRoles.roleId, studentRole.id)));
+    }
+    await bumpPermissionsVersion(tx, userId);
+    await tx.update(students).set({ userId: null }).where(eq(students.id, studentId));
   }
 
   /** Dublikat ogohlantirishi: bir xil (normalizatsiyalangan) ism + tug'ilgan sana, faollar ichida. */

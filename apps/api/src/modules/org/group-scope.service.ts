@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { type Database, groups, groupTeachers } from '@lg/db';
+import { type Database, enrollments, groups, groupTeachers, students } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { and, eq, gte, inArray, isNull, lte, or, type SQL, sql } from 'drizzle-orm';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
@@ -25,8 +25,18 @@ export class GroupScopeService {
 
   scopeFor(user: RequestUser): GroupScope {
     if (user.role === 'director' || user.role === 'admin') return { kind: 'all' };
-    if (user.role !== 'teacher') return { kind: 'some', where: sql`false` };
-    return { kind: 'some', where: inArray(groups.id, this.activeAssignments(user.id)) };
+    if (user.role === 'teacher') {
+      return { kind: 'some', where: inArray(groups.id, this.activeAssignments(user.id)) };
+    }
+    if (user.role === 'student') {
+      const studentGroups = this.db
+        .select({ id: enrollments.groupId })
+        .from(enrollments)
+        .innerJoin(students, eq(students.id, enrollments.studentId))
+        .where(eq(students.userId, user.id));
+      return { kind: 'some', where: inArray(groups.id, studentGroups) };
+    }
+    return { kind: 'some', where: sql`false` };
   }
 
   /** Ustozning bugungi faol guruhlari (boshqa modullar — davomat, baholar — uchun ham). */
