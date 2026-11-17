@@ -34,7 +34,7 @@ function setup() {
   const calls: { method: string; payload: Record<string, unknown> }[] = [];
   const bot = createBot({
     env: { TELEGRAM_BOT_TOKEN: '1:T', TELEGRAM_MINIAPP_URL: 'https://app.example.uz/app' },
-    store: { set: async () => 'OK' },
+    store: { set: async () => 'OK', get: async () => null, del: async () => 1 },
     log: { error: () => undefined },
     botInfo,
     api,

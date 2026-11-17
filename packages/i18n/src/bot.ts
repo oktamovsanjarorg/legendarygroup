@@ -47,6 +47,18 @@ export const botMessages = {
     rejectedBody:
       'Sizning soʻrovingiz rad etilgan.\nSabab: {reason}\nSavollar boʻlsa, markaz administratoriga murojaat qiling.',
   },
+  studentLogin: {
+    greeting: '🎓 Assalomu alaykum, {name}!\n\nIlovani ochish uchun pastdagi tugmani bosing.',
+    enterCodeButton: '🎓 Men oʻquvchiman',
+    promptCode:
+      'Oʻquvchi profiliga kirish uchun administrator bergan 6 xonali maxfiy kodni yuboring:',
+    needContact:
+      'Oʻquvchi sifatida kirish uchun avval telefon raqamingizni ulashing (pastdagi tugma orqali).',
+    success: '✅ Xush kelibsiz, {name}!\n\nProfilingiz muvaffaqiyatli bogʻlandi.',
+    invalidCode: 'Kiritilgan kod yoki telefon mos kelmadi. Kodni Admindan soʻrang.',
+    rateLimited: 'Juda koʻp notoʻgʻri urinish. 15 daqiqadan soʻng qayta urinib koʻring.',
+    alreadyLinked: 'Siz allaqachon oʻquvchi profiliga bogʻlangansiz.',
+  },
   submission: {
     confirmed: 'Toʻlovingiz tasdiqlandi. Chek raqami: {number}',
     rejected: 'Toʻlov chekingiz rad etildi. Sabab: {reason}',

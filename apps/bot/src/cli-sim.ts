@@ -12,8 +12,16 @@ interface SimState {
 }
 
 const memoryStore = () => {
-  const keys = new Set<string>();
-  return { set: async (k: string) => (keys.has(k) ? null : (keys.add(k), 'OK')) };
+  const map = new Map<string, string>();
+  return {
+    set: async (k: string, v: string, ...opts: unknown[]) => {
+      if (opts.includes('NX') && map.has(k)) return null;
+      map.set(k, v);
+      return 'OK';
+    },
+    get: async (k: string) => map.get(k) ?? null,
+    del: async (k: string) => (map.delete(k) ? 1 : 0),
+  };
 };
 
 const botInfo = {

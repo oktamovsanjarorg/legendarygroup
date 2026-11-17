@@ -1,6 +1,14 @@
 import { botMessages as t } from '@lg/i18n';
-import { type Bot, type Context, type InlineKeyboard, Keyboard } from 'grammy';
+import {
+  type Bot,
+  type Context,
+  type InlineKeyboard,
+  Keyboard,
+  InlineKeyboard as GrammyInline,
+} from 'grammy';
+import type { BotStore } from './dedupe.js';
 import type { InternalApi } from './internal-api.js';
+import { studentCodeKey, STUDENT_CODE_TTL_S } from './student-login.js';
 
 /** `/start inv_<token>` (T-101: API'dagi `BOT_INVITE_PREFIX` bilan bir xil). */
 export const INVITE_PREFIX = 'inv_';
@@ -26,6 +34,33 @@ async function onInvite(ctx: Context, api: InternalApi, token: string): Promise<
   );
 }
 
+async function handleLinkedStatus(
+  ctx: Context,
+  status: { role?: string; fullName?: string; students?: { fullName: string }[] },
+  openApp: () => InlineKeyboard,
+): Promise<void> {
+  if (status.role === 'guardian') {
+    const children =
+      (status.students ?? []).map((s) => `• ${escapeHtml(s.fullName)}`).join('\n') ||
+      "Ro'yxatga olingan farzandlar mavjud";
+    const text = t.parentOnboarding.alreadyLinked
+      .replace('{name}', escapeHtml(status.fullName ?? ''))
+      .replace('{children}', children);
+    await ctx.reply(text, { parse_mode: 'HTML', reply_markup: openApp() });
+    return;
+  }
+  if (status.role === 'student') {
+    const text = t.studentLogin.greeting.replace('{name}', escapeHtml(status.fullName ?? ''));
+    await ctx.reply(text, { parse_mode: 'HTML', reply_markup: openApp() });
+    return;
+  }
+  const text = t.parentOnboarding.staffGreeting.replace(
+    '{name}',
+    escapeHtml(status.fullName ?? ''),
+  );
+  await ctx.reply(text, { parse_mode: 'HTML', reply_markup: openApp() });
+}
+
 async function onNormalStart(
   ctx: Context,
   api: InternalApi,
@@ -35,21 +70,7 @@ async function onNormalStart(
   const status = await api.checkStatus(ctx.from.id);
 
   if (status.status === 'linked') {
-    if (status.role === 'guardian') {
-      const children =
-        (status.students ?? []).map((s) => `• ${escapeHtml(s.fullName)}`).join('\n') ||
-        "Ro'yxatga olingan farzandlar mavjud";
-      const text = t.parentOnboarding.alreadyLinked
-        .replace('{name}', escapeHtml(status.fullName ?? ''))
-        .replace('{children}', children);
-      await ctx.reply(text, { parse_mode: 'HTML', reply_markup: openApp() });
-      return;
-    }
-    const text = t.parentOnboarding.staffGreeting.replace(
-      '{name}',
-      escapeHtml(status.fullName ?? ''),
-    );
-    await ctx.reply(text, { parse_mode: 'HTML', reply_markup: openApp() });
+    await handleLinkedStatus(ctx, status, openApp);
     return;
   }
 
@@ -141,9 +162,10 @@ async function handleGuardianContact(
     return;
   }
 
+  const keyboard = new GrammyInline().text(t.studentLogin.enterCodeButton, 'student:enter_code');
   await ctx.reply(
     `<b>${t.parentOnboarding.requestCreatedTitle}</b>\n\n${t.parentOnboarding.requestCreatedBody.replace('{phone}', contact.phone_number)}`,
-    { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } },
+    { parse_mode: 'HTML', reply_markup: keyboard },
   );
 }
 
@@ -154,6 +176,7 @@ export function registerStaffOnboarding(
   bot: Bot,
   api: InternalApi,
   openApp: () => InlineKeyboard,
+  store?: BotStore,
 ): void {
   bot.command('start', async (ctx) => {
     const param = typeof ctx.match === 'string' ? ctx.match.trim() : '';
@@ -169,6 +192,10 @@ export function registerStaffOnboarding(
     if (contact.user_id !== ctx.from.id) {
       await ctx.reply(t.staffInvite.notOwn, { reply_markup: shareKeyboard() });
       return;
+    }
+
+    if (store) {
+      await store.set(studentCodeKey(ctx.from.id), contact.phone_number, 'EX', STUDENT_CODE_TTL_S);
     }
 
     const staffHandled = await handleStaffContact(ctx, api, contact, openApp);
