@@ -8,6 +8,12 @@ import { AppLayout, ForbiddenPage } from './layout.js';
 import { HomePage } from './pages/home.js';
 import { SettingsPage } from './pages/settings.js';
 import {
+  StudentProfilePage,
+  StudentResultsPage,
+  StudentSchedulePage,
+} from './pages/student-panel.js';
+import { useMe } from './session/session.js';
+import {
   StaffApprovalPage,
   StaffApprovalsPage,
   StaffQueuePage,
@@ -53,6 +59,24 @@ const forbidden = createRoute({
   component: ForbiddenPage,
 });
 
+function ScheduleRoute() {
+  const me = useMe();
+  if (me.activeRole === 'student') return <StudentSchedulePage />;
+  return <TeacherSchedulePage />;
+}
+
+function ResultsRoute() {
+  const me = useMe();
+  if (me.activeRole === 'student') return <StudentResultsPage />;
+  return <GuardianResultsPage />;
+}
+
+function ProfileRoute() {
+  const me = useMe();
+  if (me.activeRole === 'student') return <StudentProfilePage />;
+  return <TeacherProfilePage />;
+}
+
 // Ustoz (teacher)
 const teacherGroups = createRoute({
   getParentRoute: () => root,
@@ -62,7 +86,7 @@ const teacherGroups = createRoute({
 const teacherSchedule = createRoute({
   getParentRoute: () => root,
   path: '/schedule',
-  component: TeacherSchedulePage,
+  component: ScheduleRoute,
 });
 const teacherLesson = createRoute({
   getParentRoute: () => root,
@@ -107,7 +131,7 @@ const teacherComment = createRoute({
 const teacherProfile = createRoute({
   getParentRoute: () => root,
   path: '/profile',
-  component: TeacherProfilePage,
+  component: ProfileRoute,
 });
 
 const teacherPayroll = createRoute({
@@ -120,7 +144,7 @@ const teacherPayroll = createRoute({
 const guardianResults = createRoute({
   getParentRoute: () => root,
   path: '/results',
-  component: GuardianResultsPage,
+  component: ResultsRoute,
 });
 const guardianPayments = createRoute({
   getParentRoute: () => root,

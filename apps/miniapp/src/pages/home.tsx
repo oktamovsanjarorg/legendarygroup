@@ -2,6 +2,7 @@ import { miniappMessages as t } from '@lg/i18n';
 import { useMe } from '../session/session.js';
 import { GuardianHomePage } from './guardian.js';
 import { StaffDashboardPage } from './staff.js';
+import { StudentTodayPage } from './student-panel.js';
 import { TeacherTodayPage } from './teacher.js';
 
 /** Bosh sahifa: rolga mos boshlang'ich ekran va salomlashish (T-114, T-116, T-120). */
@@ -16,6 +17,7 @@ export function HomePage() {
       {me.activeRole === 'teacher' && <TeacherTodayPage />}
       {me.activeRole === 'guardian' && <GuardianHomePage />}
       {(me.activeRole === 'admin' || me.activeRole === 'director') && <StaffDashboardPage />}
+      {me.activeRole === 'student' && <StudentTodayPage />}
     </div>
   );
 }
