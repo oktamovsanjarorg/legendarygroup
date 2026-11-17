@@ -132,8 +132,8 @@ export class ProgressService {
       await this.groupScope.assertVisible(user, groupId);
       return;
     }
-    // Guardian yoki student uchun o'z guruhimi tekshiramiz
-    if (user.role === 'guardian' || user.role === 'student') return;
+    // Reytingda boshqa oʻquvchilarning ismi va ballari bor — ota-ona va oʻquvchi faqat oʻz
+    // oʻrnini progress orqali koʻradi (T-126 D4).
     throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
   }
 

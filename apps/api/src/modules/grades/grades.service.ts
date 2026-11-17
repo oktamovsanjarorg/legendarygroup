@@ -21,6 +21,10 @@ import {
   GradesRepository,
 } from './grades.repository.js';
 
+/** Ichki izohlarni faqat xodim koʻradi; ota-ona va oʻquvchi — faqat `guardian` izohlar (T-126). */
+const isStaffRole = (role: RequestUser['role']) =>
+  role === 'director' || role === 'admin' || role === 'teacher';
+
 @Injectable()
 export class GradesService {
   private readonly logger = new Logger(GradesService.name);
@@ -44,7 +48,7 @@ export class GradesService {
     const commentsList = await this.repo.findCommentsForLesson(lessonId);
 
     // Ota-ona ko'rmaydigan internal izohlarni filtrlaymiz agar kerak bo'lsa
-    const isStaff = user.role !== 'guardian';
+    const isStaff = isStaffRole(user.role);
     const filteredComments = isStaff
       ? commentsList
       : commentsList.filter((c) => c.visibility === 'guardian');
@@ -124,7 +128,7 @@ export class GradesService {
   /** O'quvchining baholar tarixi va izohlari. */
   async getStudentGradesHistory(user: RequestUser, query: StudentGradesQueryInput) {
     await this.studentScope.assertVisible(user, query.studentId);
-    const isStaff = user.role !== 'guardian';
+    const isStaff = isStaffRole(user.role);
 
     const gradesHistory = await this.repo.findStudentGrades(
       query.studentId,
