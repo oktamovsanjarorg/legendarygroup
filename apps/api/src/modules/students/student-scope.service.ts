@@ -40,6 +40,9 @@ export class StudentScopeService {
         .where(eq(guardians.userId, user.id));
       return { kind: 'some', where: inArray(students.id, own) };
     }
+    if (user.role === 'student') {
+      return { kind: 'some', where: eq(students.userId, user.id) };
+    }
     if (user.role === 'teacher') {
       const groupIds = this.groups.activeAssignments(user.id);
       return { kind: 'some', where: inArray(students.id, this.enrolledOn(groupIds)) };
@@ -91,5 +94,15 @@ export class StudentScopeService {
       .from(guardians)
       .where(eq(guardians.userId, user.id));
     return g?.id ?? null;
+  }
+
+  /** O'quvchi sifatida kirgan foydalanuvchining `students.id`si. */
+  async studentIdOf(user: RequestUser): Promise<string | null> {
+    if (user.role !== 'student') return null;
+    const [s] = await this.db
+      .select({ id: students.id })
+      .from(students)
+      .where(eq(students.userId, user.id));
+    return s?.id ?? null;
   }
 }

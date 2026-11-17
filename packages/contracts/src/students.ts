@@ -136,8 +136,34 @@ export const StudentDetail = StudentListItem.extend({
   notes: z.string().nullable(),
   photoFileId: z.string().nullable(),
   guardians: z.array(StudentGuardianSchema),
+  accessCodeSet: z.boolean(),
+  telegramLinked: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
+});
+
+export const StudentAccessCodeResult = z.object({
+  code: z.string().regex(/^\d{6}$/),
+  updatedAt: z.string(),
+});
+
+export const STUDENT_LINK_RESULTS = [
+  'linked',
+  'invalid',
+  'already_linked',
+  'rate_limited',
+] as const;
+export type StudentLinkResultCode = (typeof STUDENT_LINK_RESULTS)[number];
+
+export const BotStudentLinkRequest = z.object({
+  telegramId: z.coerce.bigint().positive(),
+  phone: z.string().min(7).max(20),
+  code: z.string().min(6).max(6),
+});
+
+export const BotStudentLinkResult = z.object({
+  result: z.enum(STUDENT_LINK_RESULTS),
+  fullName: z.string().optional(),
 });
 
 export const StudentListResult = z.object({
@@ -166,3 +192,6 @@ export type StudentListRow = z.infer<typeof StudentListRow>;
 export type StudentDetail = z.infer<typeof StudentDetail>;
 export type StudentListResult = z.infer<typeof StudentListResult>;
 export type GuardianLookupResult = z.infer<typeof GuardianLookupResult>;
+export type StudentAccessCodeResult = z.infer<typeof StudentAccessCodeResult>;
+export type BotStudentLinkRequest = z.infer<typeof BotStudentLinkRequest>;
+export type BotStudentLinkResult = z.infer<typeof BotStudentLinkResult>;

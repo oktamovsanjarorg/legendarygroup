@@ -62,6 +62,8 @@ export function toDetail(r: StudentRow, links: readonly GuardianLink[], v: Viewe
     notes: staff ? r.notes : null,
     photoFileId: r.photoFileId,
     guardians: links.map((l) => toGuardian(l, v)),
+    accessCodeSet: r.accessCodeHash !== null,
+    telegramLinked: r.userId !== null,
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),
   };

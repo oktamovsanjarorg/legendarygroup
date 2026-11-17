@@ -13,6 +13,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CreateStudentRequest,
+  type StudentAccessCodeResult,
   type StudentDetail,
   StudentListQuery,
   type StudentListResult,
@@ -113,5 +114,30 @@ export class StudentsController {
   @ApiOperation({ summary: 'Arxivdan chiqarish' })
   restore(@Param('id', ParseUUIDPipe) id: string, @Req() req: FastifyRequest) {
     return this.students.setArchived(auditContext(req), id, 'restore');
+  }
+
+  @Post(':id/access-code')
+  @RequirePermission('student.manage')
+  @NoAudit('StudentsService.generateAccessCode ichida')
+  @ApiOperation({ summary: 'Shaxsiy 6 xonali kirish kodi yaratish / yangilash (T-126)' })
+  generateAccessCode(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: RequestUser,
+    @Req() req: FastifyRequest,
+  ): Promise<StudentAccessCodeResult> {
+    return this.students.generateAccessCode(auditContext(req), user, id);
+  }
+
+  @Post(':id/telegram-unlink')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission('student.manage')
+  @NoAudit('StudentsService.unlinkTelegram ichida')
+  @ApiOperation({ summary: 'Oʻquvchini Telegramdan uzish (T-126, D6)' })
+  unlinkTelegram(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: RequestUser,
+    @Req() req: FastifyRequest,
+  ): Promise<{ success: true }> {
+    return this.students.unlinkTelegram(auditContext(req), user, id);
   }
 }
