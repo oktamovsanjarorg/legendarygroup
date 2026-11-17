@@ -1,4 +1,4 @@
-import { createHash, randomInt } from 'node:crypto';
+import { randomInt } from 'node:crypto';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type {
   CreateStudentRequest,
@@ -27,7 +27,7 @@ import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { FilesService } from '../files/index.js';
 import { type ArchiveVerb, assertArchiveTransition } from '../../common/db/archive.js';
-import { bumpPermissionsVersion } from '../rbac/index.js';
+import { bumpPermissionsVersion, hashAccessCode } from '../rbac/index.js';
 import { assertUniquePhones, findOrCreateGuardian, normalizePrimary } from './guardian-links.js';
 import { StudentScopeService } from './student-scope.service.js';
 import { StudentsQueryService } from './students-query.service.js';
@@ -124,13 +124,12 @@ export class StudentsService {
     id: string,
   ): Promise<StudentAccessCodeResult> {
     await this.scope.assertVisible(user, id);
-    const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
-    const hash = createHash('sha256').update(code).digest('hex');
     const now = this.clock.now();
 
     return this.db.transaction(async (tx) => {
       const current = await this.lock(tx, id);
       if (current.archivedAt) throw new AppException(HttpStatus.CONFLICT, 'ARCHIVED_READ_ONLY');
+      const { code, hash } = await this.freeAccessCode(tx);
 
       await tx
         .update(students)
@@ -168,6 +167,23 @@ export class StudentsService {
 
       return { success: true };
     });
+  }
+
+  /**
+   * Boshqa oʻquvchida yoʻq kod (xesh `students_access_code_hash_uq` boʻyicha noyob): bot kod
+   * orqali aniq bitta oʻquvchini topadi. 1 mln ichida toʻqnashuv — qayta tanlanadi.
+   */
+  private async freeAccessCode(tx: Transaction): Promise<{ code: string; hash: string }> {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
+      const hash = hashAccessCode(code);
+      const [taken] = await tx
+        .select({ id: students.id })
+        .from(students)
+        .where(eq(students.accessCodeHash, hash));
+      if (!taken) return { code, hash };
+    }
+    throw new AppException(HttpStatus.CONFLICT, 'CONFLICT');
   }
 
   private async unlinkStudentUser(
