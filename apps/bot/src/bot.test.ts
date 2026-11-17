@@ -3,7 +3,7 @@ import type { Update } from 'grammy/types';
 import { describe, expect, it } from 'vitest';
 import { createBot } from './bot.js';
 import type { InternalApi } from './internal-api.js';
-import type { DedupeStore } from './dedupe.js';
+import type { BotStore } from './dedupe.js';
 import { createWebhookServer, registerWebhook, WEBHOOK_PATH } from './server.js';
 
 const TOKEN = '123456789:TEST_bot_token_for_tests_only_x';
@@ -24,9 +24,18 @@ const botInfo = {
 };
 
 /** Xotiradagi Redis o'rnini bosuvchi (SET NX EX). */
-const memoryStore = (): DedupeStore => {
-  const keys = new Set<string>();
-  return { set: async (k) => (keys.has(k) ? null : (keys.add(k), 'OK')) };
+export const memoryStore = (): BotStore => {
+  const map = new Map<string, string>();
+  return {
+    set: async (k, v, ...opts) => {
+      const isNx = opts.includes('NX');
+      if (isNx && map.has(k)) return null;
+      map.set(k, v);
+      return 'OK';
+    },
+    get: async (k) => map.get(k) ?? null,
+    del: async (k) => (map.delete(k) ? 1 : 0),
+  };
 };
 
 /** Fake API: Karimov Rustam uchun faol taklif `good-token`, raqam +998932220002. */
@@ -67,6 +76,7 @@ function fakeApi(): InternalApi & { shared: unknown[] } {
       }
       return { result: 'request_created' };
     },
+    linkStudent: async () => ({ result: 'invalid' }),
   };
 }
 
@@ -239,12 +249,12 @@ describe('Ustozni ulash (T-101) va Ota-ona onboarding (T-110)', () => {
     expect(JSON.stringify(calls[1]?.payload['reply_markup'])).toContain('web_app');
   });
 
-  it('nomaʼlum raqam — adminga soʻrov yuborildi xabari', async () => {
+  it('nomaʼlum raqam — adminga soʻrov yuborildi xabari va oʻquvchi tugmasi', async () => {
     const { bot, calls } = setup();
     await bot.handleUpdate(contact('+998990001122'));
     expect(calls).toHaveLength(1);
     expect(calls[0]?.payload['text']).toContain(botMessages.parentOnboarding.requestCreatedTitle);
-    expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('"remove_keyboard":true');
+    expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('student:enter_code');
   });
 });
 

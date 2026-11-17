@@ -1,6 +1,7 @@
 import {
   BotGuardianContactResult,
   type BotGuardianContactResult as GuardianContactResult,
+  BotStudentLinkResult,
   BotTelegramStatusResult,
   type BotTelegramStatusResult as StatusResult,
   StaffInviteCheckResult,
@@ -27,6 +28,12 @@ export interface InternalApi {
     fullName: string;
     username?: string;
   }): Promise<GuardianContactResult>;
+  /** Oʻquvchini shaxsiy kod orqali bogʻlash (T-126). */
+  linkStudent(input: {
+    telegramId: number;
+    phone: string;
+    code: string;
+  }): Promise<BotStudentLinkResult>;
   /** "Telegram orqali kirish" tasdig'i — tugmani bosgan akkaunt xodimniki bo'lsa `true`. */
   confirmTelegramLogin(challengeId: string, telegramId: number): Promise<boolean>;
 }
@@ -66,6 +73,12 @@ export function createInternalApi(
         'guardian/contact',
         { ...input, telegramId: String(input.telegramId) },
         BotGuardianContactResult,
+      ),
+    linkStudent: (input) =>
+      post(
+        'student/link',
+        { ...input, telegramId: String(input.telegramId) },
+        BotStudentLinkResult,
       ),
     confirmTelegramLogin: async (challengeId, telegramId) =>
       (

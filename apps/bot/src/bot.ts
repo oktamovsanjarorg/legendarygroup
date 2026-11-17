@@ -6,6 +6,7 @@ import type { BotEnv } from './env.js';
 import type { InternalApi } from './internal-api.js';
 import { registerStaffLogin } from './staff-login.js';
 import { registerStaffOnboarding } from './staff-onboarding.js';
+import { registerStudentLogin } from './student-login.js';
 
 export interface BotDeps {
   env: Pick<BotEnv, 'TELEGRAM_BOT_TOKEN' | 'TELEGRAM_MINIAPP_URL'>;
@@ -36,7 +37,9 @@ export function createBot(deps: BotDeps): Bot {
 
   bot.use(dedupeUpdates(deps.store));
   // Onboarding: `/start inv_<token>` (T-101), `/start` (T-110) va kontakt ulashish
-  registerStaffOnboarding(bot, deps.api, () => openAppKeyboard(url));
+  registerStaffOnboarding(bot, deps.api, () => openAppKeyboard(url), deps.store);
+  // Oʻquvchi shaxsiy kod orqali kirish (T-126)
+  registerStudentLogin(bot, deps.api, deps.store, () => openAppKeyboard(url));
   // Web "Telegram orqali kirish" tasdig'i (ADR 0006 §6)
   registerStaffLogin(bot, deps.api);
   bot.command('help', (ctx: Context) =>

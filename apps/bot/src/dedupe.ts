@@ -1,9 +1,13 @@
 import type { Context, NextFunction } from 'grammy';
 
 /** Redis'ning bizga kerakli qismi (testda soxtasi). */
-export interface DedupeStore {
-  set(key: string, value: string, mode: 'EX', ttl: number, nx: 'NX'): Promise<'OK' | null>;
+export interface BotStore {
+  set(key: string, value: string, ...opts: unknown[]): Promise<unknown>;
+  get(key: string): Promise<string | null>;
+  del(key: string): Promise<unknown>;
 }
+
+export type DedupeStore = BotStore;
 
 export const UPDATE_TTL_S = 24 * 60 * 60;
 
