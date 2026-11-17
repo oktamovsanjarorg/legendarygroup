@@ -8,6 +8,7 @@ export const ROLE_NAMES: Record<RoleCode, string> = {
   admin: 'Admin',
   teacher: 'Ustoz',
   guardian: 'Ota-ona',
+  student: 'Oʻquvchi',
 };
 
 /** docs/02-roles-permissions.md §4 "Tavsif" ustuni. */

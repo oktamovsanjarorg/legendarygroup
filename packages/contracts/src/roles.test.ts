@@ -25,10 +25,10 @@ const MATRIX = Object.fromEntries(
     .map((l) => {
       const cells = l.split('|').map((c) => c.trim());
       const code = cells[1]?.replaceAll('`', '') as Permission;
-      const has = cells.slice(3, 7).map((c) => (/[✅🔸🟡]/u.test(c) ? 1 : 0));
+      const has = cells.slice(3, 3 + ROLES.length).map((c) => (/[✅🔸🟡]/u.test(c) ? 1 : 0));
       return [code, has];
     }),
-) as Record<Permission, [0 | 1, 0 | 1, 0 | 1, 0 | 1]>;
+) as Record<Permission, number[]>;
 
 describe('ROLE_PERMISSIONS (02-roles-permissions.md §4)', () => {
   it("hujjat jadvalida katalogdagi barcha ruxsatlar bor, ortiqchasi yo'q", () => {

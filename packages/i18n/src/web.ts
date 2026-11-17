@@ -59,7 +59,13 @@ export const webMessages = {
     logout: 'Chiqish',
     role: 'Faol rol',
   },
-  roles: { director: 'Direktor', admin: 'Admin', teacher: 'Ustoz', guardian: 'Ota-ona' },
+  roles: {
+    director: 'Direktor',
+    admin: 'Admin',
+    teacher: 'Ustoz',
+    guardian: 'Ota-ona',
+    student: 'Oʻquvchi',
+  },
   home: {
     greeting: 'Xush kelibsiz, {name}!',
     intro: 'Boʻlimlar ruxsatlaringizga qarab chap menyuda koʻrinadi.',
