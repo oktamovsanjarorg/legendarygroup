@@ -151,6 +151,8 @@ export const STUDENT_LINK_RESULTS = [
   'linked',
   'invalid',
   'already_linked',
+  /** Oʻquvchi yoki telefon egasi boshqa Telegram akkauntga bogʻlangan — Admin uzadi. */
+  'in_use',
   'rate_limited',
 ] as const;
 export type StudentLinkResultCode = (typeof STUDENT_LINK_RESULTS)[number];

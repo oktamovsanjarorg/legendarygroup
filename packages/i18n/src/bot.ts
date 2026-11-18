@@ -63,6 +63,8 @@ export const botMessages = {
     invalidCode: 'Kiritilgan kod yoki telefon mos kelmadi. Kodni Admindan soʻrang.',
     rateLimited: 'Juda koʻp notoʻgʻri urinish. 15 daqiqadan soʻng qayta urinib koʻring.',
     alreadyLinked: 'Siz allaqachon oʻquvchi profiliga bogʻlangansiz.',
+    inUse:
+      'Bu oʻquvchi yoki telefon raqami boshqa Telegram akkauntga bogʻlangan. Administratorga murojaat qiling.',
   },
   submission: {
     confirmed: 'Toʻlovingiz tasdiqlandi. Chek raqami: {number}',
