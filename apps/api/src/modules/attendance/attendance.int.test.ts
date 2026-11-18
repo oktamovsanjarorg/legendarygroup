@@ -146,7 +146,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('T-111, T-112, T-113 Davomat tizimi (BR-29, BR-30, BR-31, BR-32)', () => {

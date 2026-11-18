@@ -125,7 +125,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('T-404: Audit UI va shubhali harakatlar (FR-AUD-1, 2, 3)', () => {

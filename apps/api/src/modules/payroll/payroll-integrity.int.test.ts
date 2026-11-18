@@ -156,7 +156,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('BR-23…BR-28: oylik hisobining yaxlitligi', () => {

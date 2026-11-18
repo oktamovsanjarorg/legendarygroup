@@ -122,7 +122,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('T-113: "Kelmadi/kech qoldi" xabari ota-onaga (FR-ATT-3, BR-31, BR-10)', () => {

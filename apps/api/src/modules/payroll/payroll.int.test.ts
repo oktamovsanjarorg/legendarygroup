@@ -153,7 +153,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => {

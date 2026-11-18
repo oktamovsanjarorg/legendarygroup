@@ -127,7 +127,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('T-405: Director Dashboard (FR-DASH-1, 5)', () => {
