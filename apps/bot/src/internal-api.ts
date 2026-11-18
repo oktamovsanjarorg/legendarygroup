@@ -22,11 +22,13 @@ export interface InternalApi {
     username?: string;
   }): Promise<ContactResult>;
   checkStatus(telegramId: number): Promise<StatusResult>;
+  /** `createRequest: false` — raqam topilmasa soʻrov yaratilmaydi (`not_found`). */
   shareGuardianContact(input: {
     telegramId: number;
     phone: string;
     fullName: string;
     username?: string;
+    createRequest?: boolean;
   }): Promise<GuardianContactResult>;
   /** Oʻquvchini shaxsiy kod orqali bogʻlash (T-126). */
   linkStudent(input: {

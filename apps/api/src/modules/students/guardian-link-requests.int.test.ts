@@ -1,5 +1,6 @@
 import type { RoleCode } from '@lg/contracts';
-import { closeDb, createDb, type Database, guardians, seed } from '@lg/db';
+import { closeDb, createDb, type Database, guardianLinkRequests, guardians, seed } from '@lg/db';
+import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
@@ -73,6 +74,27 @@ describe('Ota-ona onboarding va bogʻlanish soʻrovlari (T-110 / FR-AUTH-1)', ()
     });
     expect(res.statusCode).toBe(200);
     expect(res.json().status).toBe('not_registered');
+  });
+
+  it('2b. createRequest: false — nomaʼlum raqam uchun soʻrov yaratilmaydi (T-126: kim ekani soʻraladi)', async () => {
+    const res = await t.app.inject({
+      method: 'POST',
+      url: '/internal/guardian/contact',
+      headers: internalHeaders,
+      payload: {
+        telegramId: 888111001,
+        phone: '+998901119988',
+        fullName: 'Ota-ona Test',
+        createRequest: false,
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().result).toBe('not_found');
+    const [req] = await db
+      .select()
+      .from(guardianLinkRequests)
+      .where(eq(guardianLinkRequests.telegramId, 888111001n));
+    expect(req).toBeUndefined();
   });
 
   it('3. Bazada yoʻq raqam kontakt ulashganda — request_created va kutilmoqda statusi', async () => {
