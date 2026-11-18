@@ -129,7 +129,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('T-301 Baholar va ustoz izohlari (FR-GRD-1, 2, BR-33)', () => {

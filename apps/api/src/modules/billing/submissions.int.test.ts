@@ -98,7 +98,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('T-206 & T-207 Toʻlov cheki yuborish va Admin tasdiqlash oqimi (BR-13, 14, 15)', () => {

@@ -118,7 +118,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('T-302: Testlar va Excel import (Tests & Excel Import)', () => {

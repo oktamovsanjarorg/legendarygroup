@@ -113,7 +113,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await closeDb(db);
-  await t.app.close();
+  await t.close();
 });
 
 describe('T-403: Xarajatlar va P&L (Expenses & P&L)', () => {
