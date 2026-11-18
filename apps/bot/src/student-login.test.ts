@@ -60,6 +60,9 @@ function fakeApi(): InternalApi {
       if (input.code === '999999') {
         return { result: 'rate_limited' };
       }
+      if (input.code === '777777') {
+        return { result: 'in_use' };
+      }
       if (input.code === '888888') {
         return { result: 'already_linked' };
       }
@@ -168,6 +171,19 @@ describe('Oʻquvchi shaxsiy kod orqali kirish (T-126)', () => {
     expect(
       calls.some((c) => String(c.payload['text']).includes(botMessages.studentLogin.invalidCode)),
     ).toBe(true);
+  });
+
+  it('3a. Boshqa Telegramga bogʻlangan (in_use) → Adminga murojaat xabari, Mini App tugmasi yoʻq', async () => {
+    const { bot, calls } = setup();
+    await bot.handleUpdate(contactUpdate('+998901112233', 42));
+    calls.length = 0;
+
+    await bot.handleUpdate(textUpdate('777777', 42));
+    const reply = calls.find((c) =>
+      String(c.payload['text']).includes(botMessages.studentLogin.inUse),
+    );
+    expect(reply).toBeDefined();
+    expect(reply?.payload['reply_markup']).toBeUndefined();
   });
 
   it('4. 15 daqiqalik cheklov (rate_limited) → kutish xabari', async () => {

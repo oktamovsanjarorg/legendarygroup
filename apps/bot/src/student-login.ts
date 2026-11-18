@@ -63,6 +63,12 @@ async function handleCodeMessage({ ctx, api, store, openApp, text }: CodeContext
     return;
   }
 
+  if (res.result === 'in_use') {
+    await store.del(key);
+    await ctx.reply(t.studentLogin.inUse);
+    return;
+  }
+
   if (res.result === 'rate_limited') {
     await ctx.reply(t.studentLogin.rateLimited);
     return;

@@ -76,13 +76,12 @@ export class StudentLinkService {
       }
 
       if (student.userId !== null) {
-        return { result: 'already_linked' };
+        const own = await this.isOwnTelegram(tx, student.userId, input.telegramId);
+        return { result: own ? 'already_linked' : 'in_use' };
       }
 
       const user = await this.resolveStudentUser(tx, input.telegramId, phone, student.fullName);
-      if (!user) {
-        return { result: 'already_linked' };
-      }
+      if (user === 'already_linked' || user === 'in_use') return { result: user };
 
       await this.attachStudentRole(tx, user.id);
       await tx.update(students).set({ userId: user.id }).where(eq(students.id, student.id));
@@ -136,7 +135,7 @@ export class StudentLinkService {
         .from(students)
         .where(eq(students.userId, existingByTg.id))
         .limit(1);
-      if (linkedStudent) return null;
+      if (linkedStudent) return 'already_linked';
       return existingByTg;
     }
 
@@ -147,12 +146,15 @@ export class StudentLinkService {
       .for('update');
 
     if (existingByPhone) {
+      // Boshqa Telegram'ga bogʻlangan akkaunt (xodim — Telegram 2FA, T-122) oʻquvchi oqimida
+      // qayta bogʻlanmaydi: Telegram almashtirish — faqat xodim/ota-ona oqimi orqali, auditli.
+      if (existingByPhone.telegramId !== null) return 'in_use';
       const [linkedStudent] = await tx
         .select({ id: students.id })
         .from(students)
         .where(eq(students.userId, existingByPhone.id))
         .limit(1);
-      if (linkedStudent) return null;
+      if (linkedStudent) return 'in_use';
 
       await tx.update(users).set({ telegramId }).where(eq(users.id, existingByPhone.id));
       return existingByPhone;
@@ -169,6 +171,14 @@ export class StudentLinkService {
       .returning();
     if (!created) throw new Error('Foydalanuvchi yaratilmadi');
     return created;
+  }
+
+  private async isOwnTelegram(tx: Tx, userId: string, telegramId: bigint): Promise<boolean> {
+    const [u] = await tx
+      .select({ telegramId: users.telegramId })
+      .from(users)
+      .where(eq(users.id, userId));
+    return u?.telegramId === telegramId;
   }
 
   private async attachStudentRole(tx: Tx, userId: string): Promise<void> {

@@ -324,7 +324,7 @@
 
 - **Bog'liq:** T-105, T-110, T-116 · **Bajaruvchi:** agy (A-9), review — Claude
 - **AC va qarorlar (D1–D6):** [`docs/tasks/A-9-student-panel.md`](tasks/A-9-student-panel.md).
-- **Review (2026-11-17, `feat/t-126-student-panel`):** agy 5 commit, CI yashil edi. Tuzatildi: oʻquvchiga ichki izohlar, istalgan guruh reytingi va sinfdoshlar roʻyxati ochiq edi (`group.view`, `stats.operational` olib tashlandi; reyting ota-ona/oʻquvchiga 403); kod xeshi noyob (0036); bot — «Men oʻquvchiman» `/start`da, oʻquvchi kontakti ota-ona soʻrovi yaratmaydi; Mini App vaqti UTC edi, matnlar i18n'ga; Storybook story'lar (M-STU-01/03/04, W-06 blok) qoʻshildi. Bot: nomaʼlum raqamda «ota-ona / oʻquvchi» tanlovi. Lokal E2E (2026-11-18): bot + API + Mini App 36/36, web W-06 brauzerda 12/12. Qolgan: UI maket qabuli (T-017c), haqiqiy Telegram'da qoʻlda sinov.
+- **Review (2026-11-17, `feat/t-126-student-panel`):** agy 5 commit, CI yashil edi. Tuzatildi: oʻquvchiga ichki izohlar, istalgan guruh reytingi va sinfdoshlar roʻyxati ochiq edi (`group.view`, `stats.operational` olib tashlandi; reyting ota-ona/oʻquvchiga 403); kod xeshi noyob (0036); bot — «Men oʻquvchiman» `/start`da, oʻquvchi kontakti ota-ona soʻrovi yaratmaydi; Mini App vaqti UTC edi, matnlar i18n'ga; Storybook story'lar (M-STU-01/03/04, W-06 blok) qoʻshildi. Bot: nomaʼlum raqamda «ota-ona / oʻquvchi» tanlovi. Lokal E2E (2026-11-18): bot + API + Mini App 36/36, web W-06 brauzerda 12/12. Review 2 (2026-11-18): telefon boʻyicha topilgan boshqa Telegram'li akkaunt (xodim 2FA) qayta bogʻlanardi → `in_use` natijasi, bot xabari. Qolgan: UI maket qabuli (T-017c), haqiqiy Telegram'da qoʻlda sinov.
 
 ### 🟨 T-115 · Tizim sozlamalari
 
