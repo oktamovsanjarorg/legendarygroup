@@ -53,6 +53,7 @@ export const errorMessages = {
   ROOM_NAME_TAKEN: 'Bu nomdagi faol xona allaqachon bor. Boshqa nom tanlang.',
   ALREADY_ARCHIVED: 'Bu yozuv allaqachon arxivda.',
   NOT_ARCHIVED: 'Bu yozuv arxivda emas.',
+  STUDENT_CODE_TAKEN: 'Bu raqam boshqa oʻquvchiga berilgan. Boshqa raqam kiriting.',
   POSSIBLE_DUPLICATE:
     'Shu ism va tugʻilgan sanali oʻquvchi allaqachon bor. Tekshiring yoki baribir qoʻshing.',
   INVALID_FILE: 'Fayl topilmadi yoki bu maqsad uchun yaroqsiz. Qayta yuklang.',

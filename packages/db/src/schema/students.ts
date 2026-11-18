@@ -26,7 +26,8 @@ import { users } from './users.js';
 const E164 = (col: unknown) => sql`${col} ~ '^\\+[1-9][0-9]{6,14}$'`;
 
 /**
- * O'quvchilar (FR-STU-1, T-105). `code` — inson o'qiy oladigan raqam (identity, 10001 dan).
+ * O'quvchilar (FR-STU-1, T-105). `code` — inson o'qiy oladigan raqam: yaratuvchi kiritadi (titul,
+ * Excel importi — T-127) yoki bo'sh bo'lsa identity (10001 dan). Noyob.
  * `search_name` — `normalizeUz(full_name)` (ilova yozadi), ustida `pg_trgm` GIN indeks.
  * O'chirilmaydi — faqat arxivlanadi (FR-STU-6).
  */
@@ -35,7 +36,7 @@ export const students = pgTable(
   {
     id: primaryUuid(),
     branchId: branchId(),
-    code: integer('code').generatedAlwaysAsIdentity({ startWith: 10001 }).notNull().unique(),
+    code: integer('code').generatedByDefaultAsIdentity({ startWith: 10001 }).notNull().unique(),
     fullName: text('full_name').notNull(),
     searchName: text('search_name').notNull(),
     birthDate: date('birth_date', { mode: 'string' }),

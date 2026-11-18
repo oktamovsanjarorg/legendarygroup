@@ -70,6 +70,7 @@ export function toDetail(r: StudentRow, links: readonly GuardianLink[], v: Viewe
 }
 
 export const STUDENT_AUDIT_FIELDS = [
+  'code',
   'fullName',
   'birthDate',
   'gender',
