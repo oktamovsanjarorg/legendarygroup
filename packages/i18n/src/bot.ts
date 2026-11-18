@@ -41,6 +41,11 @@ export const botMessages = {
     staffGreeting: '👋 Assalomu alaykum, {name}!\n\nIlovani ochish uchun pastdagi tugmani bosing.',
     pendingTitle: '⏳ Bogʻlanish soʻrovingiz koʻrib chiqilmoqda',
     pendingBody: 'Administrator arizangizni tasdiqlashi bilanoq sizga xabar yuboriladi.',
+    unknownPhoneTitle: 'ℹ️ Raqam bazada topilmadi',
+    unknownPhoneBody:
+      'Telefon raqamingiz ({phone}) oʻquv markaz bazasida yoʻq.\n\nSiz ota-onamisiz yoki oʻquvchimisiz?',
+    requestButton: '👨‍👩‍👧 Ota-ona sifatida soʻrov yuborish',
+    childrenFallback: 'Roʻyxatga olingan farzandlar mavjud',
     requestCreatedTitle: 'ℹ️ Soʻrov qabul qilindi',
     requestCreatedBody:
       'Telefon raqamingiz ({phone}) oʻquv markaz bazasida topilmadi.\n\nAdministratorga bogʻlanish soʻrovi yuborildi. Administrator tasdiqlashi bilanoq sizga xabar beramiz yoki markaz maʼmuriyatiga murojaat qiling.',

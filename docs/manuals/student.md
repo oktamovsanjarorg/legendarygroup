@@ -7,10 +7,8 @@ Oʻquvchilar oʻz dars jadvali, bugungi darslari, davomati, baholari va test nat
 ## 1. Botga ulanish va tizimga kirish
 
 1. Telegramda rasmiy botga kiring va `/start` bosing.
-2. Bot taklif etgan **«Telefon raqamni ulashish»** tugmasini bosing:
-   - Agar telefon raqamingiz (yoki ota-onangizning raqami) markaz bazasida roʻyxatdan oʻtgan boʻlsa, tizim sizni taniydi.
-   - Bot sizdan 6 xonali maxfiy kirish kodini kiritishingizni soʻraydi.
-   - Agar birinchi marta kirayotgan boʻlsangiz yoki kontakt ulashganda tizim sizni avtomatik tanimasa, botdagi **«Men oʻquvchiman»** tugmasini bosing yoki `/student` buyrugʻini yuboring.
+2. **«🎓 Men oʻquvchiman»** tugmasini bosing, keyin **«Telefon raqamni ulashish»** tugmasi bilan raqamingizni yuboring (oʻzingizning yoki ota-onangizning raqami — markazda qaysi biri yozilgan boʻlsa).
+   - Tugmani bosmasdan raqam yuborgan boʻlsangiz va raqam bazada topilmasa, bot «Siz ota-onamisiz yoki oʻquvchimisiz?» deb soʻraydi — **«🎓 Men oʻquvchiman»** ni tanlang. `/student` buyrugʻi ham shu.
 3. Administrator yoki filial rahbaridan olgan **6 xonali maxfiy kirish kodingizni** (masalan, `849201`) xabar sifatida yuboring:
    - Kod toʻgʻri kiritilgach, Telegram profilingiz oʻquvchi kartochkasiga biriktiriladi.
    - Mini Appʼni ochish tugmasi paydo boʻladi.

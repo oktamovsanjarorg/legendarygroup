@@ -74,7 +74,10 @@ function fakeApi(): InternalApi & { shared: unknown[] } {
           students: [{ id: 's1', fullName: 'Valiyeva Laylo' }],
         };
       }
-      return { result: 'request_created' };
+      shared.push(input);
+      return input.createRequest === false
+        ? { result: 'not_found' }
+        : { result: 'request_created' };
     },
     linkStudent: async () => ({ result: 'invalid' }),
   };
@@ -198,6 +201,23 @@ describe('Bot (T-010, T-110)', () => {
   });
 });
 
+let cbId = 0;
+const callback = (data: string, userId = 42): Update => ({
+  update_id: 50_000 + (cbId += 1),
+  callback_query: {
+    id: `cb${cbId}`,
+    from: { id: userId, is_bot: false, first_name: 'Ali' },
+    chat_instance: 'i',
+    message: {
+      message_id: 900 + cbId,
+      date: 1_794_000_000,
+      chat: { id: userId, type: 'private', first_name: 'Ali' },
+      text: 'prompt',
+    },
+    data,
+  },
+});
+
 const contact = (phone: string, contactUserId = 42): Update => ({
   update_id: ++updateId,
   message: {
@@ -249,12 +269,34 @@ describe('Ustozni ulash (T-101) va Ota-ona onboarding (T-110)', () => {
     expect(JSON.stringify(calls[1]?.payload['reply_markup'])).toContain('web_app');
   });
 
-  it('nomaʼlum raqam — adminga soʻrov yuborildi xabari va oʻquvchi tugmasi', async () => {
-    const { bot, calls } = setup();
+  it('nomaʼlum raqam — soʻrov darhol yaratilmaydi, «ota-ona / oʻquvchi» tanlovi (T-126)', async () => {
+    const api = fakeApi();
+    const { bot, calls } = setup(undefined, api);
     await bot.handleUpdate(contact('+998990001122'));
     expect(calls).toHaveLength(1);
-    expect(calls[0]?.payload['text']).toContain(botMessages.parentOnboarding.requestCreatedTitle);
-    expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('student:enter_code');
+    expect(calls[0]?.payload['text']).toContain(botMessages.parentOnboarding.unknownPhoneTitle);
+    const markup = JSON.stringify(calls[0]?.payload['reply_markup']);
+    expect(markup).toContain('guardian:request');
+    expect(markup).toContain('student:enter_code');
+    expect(api.shared.at(-1)).toMatchObject({ createRequest: false });
+
+    await bot.handleUpdate(callback('guardian:request'));
+    expect(api.shared.at(-1)).toMatchObject({ phone: '+998990001122', createRequest: true });
+    expect(calls.at(-1)?.payload['text']).toContain(
+      botMessages.parentOnboarding.requestCreatedTitle,
+    );
+  });
+
+  it('farzandi roʻyxatsiz ota-ona — matn i18n dan', async () => {
+    const api = fakeApi();
+    api.shareGuardianContact = async () => ({
+      result: 'guardian_linked',
+      fullName: 'Vali',
+      students: [],
+    });
+    const { bot, calls } = setup(undefined, api);
+    await bot.handleUpdate(contact('+998901112233'));
+    expect(calls[0]?.payload['text']).toContain(botMessages.parentOnboarding.childrenFallback);
   });
 });
 

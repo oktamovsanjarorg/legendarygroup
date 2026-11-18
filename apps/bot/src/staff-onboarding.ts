@@ -42,7 +42,7 @@ async function handleLinkedStatus(
   if (status.role === 'guardian') {
     const children =
       (status.students ?? []).map((s) => `• ${escapeHtml(s.fullName)}`).join('\n') ||
-      "Ro'yxatga olingan farzandlar mavjud";
+      t.parentOnboarding.childrenFallback;
     const text = t.parentOnboarding.alreadyLinked
       .replace('{name}', escapeHtml(status.fullName ?? ''))
       .replace('{children}', children);
@@ -123,49 +123,73 @@ async function handleStaffContact(
   return true;
 }
 
-async function handleGuardianContact(
+type GuardianResult = Awaited<ReturnType<InternalApi['shareGuardianContact']>>;
+
+/** Raqam bazada yoʻq — kimligi soʻraladi: oʻquvchi kontakti soxta ota-ona soʻrovi yaratmasin (T-126). */
+async function askWhoAreYou(ctx: Context, phone: string): Promise<void> {
+  const choice = new GrammyInline()
+    .text(t.parentOnboarding.requestButton, 'guardian:request')
+    .row()
+    .text(t.studentLogin.enterCodeButton, 'student:enter_code');
+  await ctx.reply(
+    `<b>${t.parentOnboarding.unknownPhoneTitle}</b>\n\n${t.parentOnboarding.unknownPhoneBody.replace('{phone}', escapeHtml(phone))}`,
+    { parse_mode: 'HTML', reply_markup: choice },
+  );
+}
+
+async function replyGuardianLinked(
   ctx: Context,
-  api: InternalApi,
-  contact: { phone_number: string },
+  res: GuardianResult,
   openApp: () => InlineKeyboard,
 ): Promise<void> {
+  const children =
+    (res.students ?? []).map((s) => `• ${escapeHtml(s.fullName)}`).join('\n') ||
+    t.parentOnboarding.childrenFallback;
+  const name = escapeHtml(res.fullName ?? '');
+  const linked = res.result === 'guardian_linked';
+  const title = linked
+    ? t.parentOnboarding.linkedTitle.replace('{name}', name)
+    : t.parentOnboarding.alreadyLinked.replace('{name}', name).replace('{children}', children);
+  const body = linked ? t.parentOnboarding.linkedChildren.replace('{children}', children) : '';
+  await ctx.reply(`<b>${title}</b>${body ? `\n\n${body}` : ''}`, {
+    parse_mode: 'HTML',
+    reply_markup: { remove_keyboard: true },
+  });
+  await ctx.reply(t.openApp, { reply_markup: openApp() });
+}
+
+interface GuardianContactInput {
+  ctx: Context;
+  api: InternalApi;
+  phone: string;
+  openApp: () => InlineKeyboard;
+  /** `false` — topilmasa soʻrov yaratilmaydi, avval kimligi soʻraladi. */
+  createRequest: boolean;
+}
+
+async function handleGuardianContact(input: GuardianContactInput): Promise<void> {
+  const { ctx, api, phone, openApp, createRequest } = input;
   if (!ctx.from) return;
   const fullName =
     [ctx.from.first_name, ctx.from.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
-  const guardianRes = await api.shareGuardianContact({
+  const res = await api.shareGuardianContact({
     telegramId: ctx.from.id,
-    phone: contact.phone_number,
+    phone,
     fullName,
     username: ctx.from.username,
+    createRequest,
   });
-
-  if (guardianRes.result === 'guardian_linked' || guardianRes.result === 'already_linked') {
-    const children =
-      (guardianRes.students ?? []).map((s) => `• ${escapeHtml(s.fullName)}`).join('\n') ||
-      "Ro'yxatga olingan farzandlar mavjud";
-    const title =
-      guardianRes.result === 'guardian_linked'
-        ? t.parentOnboarding.linkedTitle.replace('{name}', escapeHtml(guardianRes.fullName ?? ''))
-        : t.parentOnboarding.alreadyLinked
-            .replace('{name}', escapeHtml(guardianRes.fullName ?? ''))
-            .replace('{children}', children);
-    const body =
-      guardianRes.result === 'guardian_linked'
-        ? t.parentOnboarding.linkedChildren.replace('{children}', children)
-        : '';
-
-    await ctx.reply(`<b>${title}</b>${body ? `\n\n${body}` : ''}`, {
-      parse_mode: 'HTML',
-      reply_markup: { remove_keyboard: true },
-    });
-    await ctx.reply(t.openApp, { reply_markup: openApp() });
+  if (res.result === 'not_found') {
+    await askWhoAreYou(ctx, phone);
     return;
   }
-
-  const keyboard = new GrammyInline().text(t.studentLogin.enterCodeButton, 'student:enter_code');
+  if (res.result === 'guardian_linked' || res.result === 'already_linked') {
+    await replyGuardianLinked(ctx, res, openApp);
+    return;
+  }
   await ctx.reply(
-    `<b>${t.parentOnboarding.requestCreatedTitle}</b>\n\n${t.parentOnboarding.requestCreatedBody.replace('{phone}', contact.phone_number)}`,
-    { parse_mode: 'HTML', reply_markup: keyboard },
+    `<b>${t.parentOnboarding.requestCreatedTitle}</b>\n\n${t.parentOnboarding.requestCreatedBody.replace('{phone}', escapeHtml(phone))}`,
+    { parse_mode: 'HTML', reply_markup: { remove_keyboard: true } },
   );
 }
 
@@ -203,7 +227,24 @@ export function registerStaffOnboarding(
 
     const staffHandled = await handleStaffContact(ctx, api, contact, openApp);
     if (!staffHandled) {
-      await handleGuardianContact(ctx, api, contact, openApp);
+      await handleGuardianContact({
+        ctx,
+        api,
+        phone: contact.phone_number,
+        openApp,
+        createRequest: false,
+      });
     }
+  });
+
+  // «Ota-ona sifatida soʻrov yuborish»: kontakt raqami Redis'da (10 daq) — shu bilan soʻrov
+  bot.callbackQuery('guardian:request', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const phone = await store.get(studentCodeKey(ctx.from.id));
+    if (!phone) {
+      await ctx.reply(t.parentOnboarding.welcomeBody, { reply_markup: shareKeyboard() });
+      return;
+    }
+    await handleGuardianContact({ ctx, api, phone, openApp, createRequest: true });
   });
 }

@@ -112,6 +112,7 @@ export class GuardianLinkService {
             ),
           );
         if (pendingReq) return { result: 'pending_approval' };
+        if (!input.createRequest) return { result: 'not_found' };
 
         await tx.insert(guardianLinkRequests).values({
           telegramId: input.telegramId,

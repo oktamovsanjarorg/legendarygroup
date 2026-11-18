@@ -45,8 +45,10 @@ export const BotGuardianContactRequest = z.object({
   phone: z.string().min(7).max(20),
   fullName: z.string().min(1).max(128),
   username: z.string().max(64).optional(),
+  /** `false` — raqam topilmasa soʻrov yaratilmaydi, `not_found` qaytadi (bot avval kimligini soʻraydi, T-126). */
+  createRequest: z.boolean().default(true),
 });
-export type BotGuardianContactRequest = z.infer<typeof BotGuardianContactRequest>;
+export type BotGuardianContactRequest = z.output<typeof BotGuardianContactRequest>;
 
 export const BotGuardianContactResult = z.object({
   result: z.enum([
@@ -55,6 +57,7 @@ export const BotGuardianContactResult = z.object({
     'request_created',
     'pending_approval',
     'staff_linked',
+    'not_found',
   ]),
   fullName: z.string().optional(),
   students: z.array(z.object({ id: z.string(), fullName: z.string() })).optional(),

@@ -50,7 +50,8 @@ function fakeApi(): InternalApi {
       }
       return { status: 'not_registered' };
     },
-    shareGuardianContact: async () => ({ result: 'request_created' }),
+    shareGuardianContact: async (input) =>
+      input.createRequest === false ? { result: 'not_found' } : { result: 'request_created' },
     confirmTelegramLogin: async () => false,
     linkStudent: async (input) => {
       if (input.code === '123456' && input.phone === '+998901112233') {
