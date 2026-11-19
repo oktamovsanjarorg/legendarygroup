@@ -124,6 +124,9 @@ avtomatik bekor boʻladi.
 
 1. Menyu → **Oʻquvchilar** → **«Yangi oʻquvchi»** → maʼlumotlar (ota-onani keyin ham qoʻshish
    mumkin) → **«Oʻquvchi qoʻshish»**.
+   **Oʻquvchi raqami** — oʻzingiz bergan raqam (masalan `1325`): titul varaqda va Excel bilan
+   test natijalarini yuklashda shu raqam ishlatiladi. Boʻsh qoldirsangiz, tizim oʻzi beradi.
+   Raqam band boʻlsa, tizim aytadi — boshqasini kiriting. Keyin kartadan tahrirlash mumkin.
 2. Oʻquvchi kartasi → **«Guruhga yozish»** → guruh, **Qaysi sanadan** → **«Yozish»**.
 
 ### Ota-onani botga ulash

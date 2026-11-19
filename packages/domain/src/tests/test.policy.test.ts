@@ -70,6 +70,12 @@ describe('BR-35: Excel importida oʻquvchini moslashtirish (matchStudent)', () =
     }
   });
 
+  it('1-bosqich: titul skaneri nol bilan toʻldirgan kod (`0010002`) ham mos keladi (T-127)', () => {
+    const res = matchStudent('0010002', students);
+    expect(res.type).toBe('code');
+    if (res.type === 'code') expect(res.student.code).toBe(10002);
+  });
+
   it('2-bosqich: toʻliq ism boʻyicha aniq moslik (harf registr va probellardan qatʼi nazar)', () => {
     const res = matchStudent('  aliyev valijon olimovich ', students);
     expect(res.type).toBe('exact_name');
