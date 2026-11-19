@@ -25,7 +25,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 
 ## STU — O'quvchilar
 
-- **FR-STU-1** O'quvchi kartochkasi: o'quvchi raqami (yaratuvchi kiritadi — titul varaq va Excel import uchun, 1–7 xonali, noyob, tahrirlanadi; bo'sh qoldirilsa avtomatik — T-127), F.I.Sh, tug'ilgan sana, jinsi, telefon (ixtiyoriy), maktab/sinf, manba (qayerdan eshitgan), izoh, rasm.
+- **FR-STU-1** O'quvchi kartochkasi: F.I.Sh, tug'ilgan sana, jinsi, telefon (ixtiyoriy), maktab/sinf, manba (qayerdan eshitgan), izoh, rasm.
 - **FR-STU-2** Ota-ona(lar) bog'lash: F.I.Sh, telefon (asosiy), qarindoshlik.
 - **FR-STU-3** Guruhga qo'shish (enrollment) sanasi bilan; guruhdan chiqarish sababi bilan (ketdi / ko'chirildi / tugatdi). Tarix saqlanadi.
 - **FR-STU-4** Lid (potensial o'quvchi) ro'yxati: sinov darsi, holat (yangi / qo'ng'iroq qilindi / sinovga keldi / yozildi / rad etdi). Konversiya statistikasi.
@@ -48,6 +48,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 - **FR-GRD-2** Ustoz izohi — o'quvchi bo'yicha matnli fikr (dars yoki oy bo'yicha). Ota-onaga ko'rinadigan / ichki (faqat xodimlar) belgisi.
 - **FR-GRD-3** Testlar: test yaratish (nomi, sana, guruh, maks. ball, bo'limlar).
 - **FR-GRD-4** **Excel import**: `.xlsx` yuklash → ustunlarni moslashtirish (o'quvchi ismi/ID, ball, bo'limlar) → oldindan ko'rish → xatolar (topilmagan o'quvchi, noto'g'ri ball) ko'rsatiladi → tasdiqlash. Namuna shablon yuklab olish. Moslashtirish sozlamasi keyingi importlar uchun eslab qolinadi.
+- **FR-GRD-4a** **Ustoz kodi** (titul varaq uchun): har ustozning o'z kod bazasi — o'quvchiga 3 xonali kod (1–999) ustozning o'zi beradi, tizim bo'sh kodni taklif qiladi; bir ustozda kod takrorlanmaydi, turli ustozlarda bir xil kod bo'lishi mumkin. Excel shabloni va importi testni yaratgan ustozning kodlari bilan ishlaydi (titul skaneri qo'shgan nollar — `007` — mos keladi); kod berilmagan o'quvchi — umumiy raqam (`LG-10001`) bilan (T-128, Q-92).
 - **FR-GRD-5** Guruh reytingi, o'quvchi progress grafigi.
 - **FR-GRD-6** Test natijasi e'lon qilinganda ota-onaga xabar.
 

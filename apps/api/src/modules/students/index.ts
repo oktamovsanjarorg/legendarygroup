@@ -5,3 +5,4 @@ export * from './students.service.js';
 export * from './enrollments.service.js';
 export * from './enrollments-query.service.js';
 export * from './leads/leads.service.js';
+export * from './teacher-codes/teacher-codes.service.js';

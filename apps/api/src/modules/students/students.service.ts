@@ -26,14 +26,9 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { FilesService } from '../files/index.js';
-import {
-  type ArchiveVerb,
-  assertArchiveTransition,
-  withNameConflict,
-} from '../../common/db/archive.js';
+import { type ArchiveVerb, assertArchiveTransition } from '../../common/db/archive.js';
 import { bumpPermissionsVersion, hashAccessCode } from '../rbac/index.js';
 import { assertUniquePhones, findOrCreateGuardian, normalizePrimary } from './guardian-links.js';
-import { nextFreeStudentCode, STUDENT_CODE_UQ } from './student-code.js';
 import { StudentScopeService } from './student-scope.service.js';
 import { StudentsQueryService } from './students-query.service.js';
 import { STUDENT_AUDIT_FIELDS, toDetail } from './students.serializer.js';
@@ -62,13 +57,10 @@ export class StudentsService {
     const searchName = normalizeUz(fields.fullName);
     return (outer ?? this.db).transaction(async (tx) => {
       if (!allowDuplicate) await this.assertNoDuplicate(tx, searchName, fields.birthDate ?? null);
-      const code = fields.code ?? (await nextFreeStudentCode(tx));
-      const [row] = await withNameConflict(STUDENT_CODE_UQ, 'STUDENT_CODE_TAKEN', () =>
-        tx
-          .insert(students)
-          .values({ ...fields, code, searchName })
-          .returning(),
-      );
+      const [row] = await tx
+        .insert(students)
+        .values({ ...fields, searchName })
+        .returning();
       if (!row) throw new Error('oʻquvchi yaratilmadi');
       for (const g of links) {
         const { guardian } = await findOrCreateGuardian(tx, g);
@@ -102,9 +94,7 @@ export class StudentsService {
       const current = await this.lock(tx, id);
       if (current.archivedAt) throw new AppException(HttpStatus.CONFLICT, 'ARCHIVED_READ_ONLY');
       const set = patch.fullName ? { ...patch, searchName: normalizeUz(patch.fullName) } : patch;
-      const [row] = await withNameConflict(STUDENT_CODE_UQ, 'STUDENT_CODE_TAKEN', () =>
-        tx.update(students).set(set).where(eq(students.id, id)).returning(),
-      );
+      const [row] = await tx.update(students).set(set).where(eq(students.id, id)).returning();
       return this.recordChange(tx, { ctx, action: 'student.update', before: current, after: row });
     });
   }

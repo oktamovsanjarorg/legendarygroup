@@ -31,4 +31,5 @@ Ustoz barcha amallarni faqat Telegram Mini App orqali (parol yodlamasdan) bajara
 
 - **Kundalik baho (1–5 yoki foiz):** dars oxirida o'quvchining faolligi bo'yicha baho qo'yish.
 - **Oraliq/yakuniy testlar:** test sanasi va ballarni kiritish (yoki Excel orqali birdaniga yuklash).
+- **Oʻquvchi kodlari (titul uchun):** guruh → «Oʻquvchi kodlari». Har oʻquvchiga 3 xonali kod bering (1–999) — tizim boʻsh kodni taklif qiladi, xohlasangiz oʻzgartiring → «Saqlash». Kodlar faqat sizniki: boshqa ustozda shu raqam boshqa oʻquvchida boʻlishi mumkin. Titul varaqqa shu kodni yozdiring; Excel importida titul skaneri bergan `007` ham `7` deb taniladi.
 - Ota-onalar farzandining baholari va test natijalarini o'z ilovasida real vaqtda ko'rib boradilar.

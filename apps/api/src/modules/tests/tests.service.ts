@@ -21,7 +21,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import type { RequestUser } from '../auth/index.js';
 import { GroupScopeService } from '../org/index.js';
 import { OutboxService } from '../outbox/index.js';
-import { StudentScopeService } from '../students/index.js';
+import { StudentScopeService, TeacherCodesService } from '../students/index.js';
 import { ExcelTestService } from './excel-test.service.js';
 import { TestsRepository } from './tests.repository.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
@@ -35,6 +35,7 @@ export class TestsService {
     @Inject(GroupScopeService) private readonly groupScope: GroupScopeService,
     @Inject(OutboxService) private readonly outboxService: OutboxService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(TeacherCodesService) private readonly teacherCodes: TeacherCodesService,
   ) {}
 
   async createTest(
@@ -156,7 +157,7 @@ export class TestsService {
   async getTemplate(actor: RequestUser, testId: string): Promise<Buffer> {
     const test = await this.loadTest(actor, testId, 'view');
 
-    const students = await this.repo.findGroupActiveStudents(test.groupId, test.date);
+    const students = await this.candidates(test);
     return this.excelService.generateTemplate({
       testTitle: test.title,
       maxScore: test.maxScore,
@@ -175,7 +176,7 @@ export class TestsService {
       throw new BadRequestException({ code: 'TEST_ALREADY_PUBLISHED' });
     }
 
-    const students = await this.repo.findGroupActiveStudents(test.groupId, test.date);
+    const students = await this.candidates(test);
     return this.excelService.parseExcelResults(
       buffer,
       { maxScore: test.maxScore, sections: test.sections },
@@ -244,6 +245,19 @@ export class TestsService {
    * Test + guruh scope'i (T-505, Q-62): ko'rish — guruh ustozlari (yordamchi ham);
    * o'zgartirish, ball, import, e'lon — faqat asosiy ustoz yoki Admin/Director.
    */
+  /**
+   * Shablon va import uchun oʻquvchilar (T-128): kod — testni yaratgan ustozning oʻz kodi
+   * (1–999), boʻlmasa umumiy raqam (10001+). Diapazonlar kesishmaydi.
+   */
+  private async candidates(test: { groupId: string; date: string; createdBy: string }) {
+    const list = await this.repo.findGroupActiveStudents(test.groupId, test.date);
+    const own = await this.teacherCodes.codesFor(
+      test.createdBy,
+      list.map((s) => s.id),
+    );
+    return list.map((s) => ({ ...s, code: own.get(s.id) ?? s.code }));
+  }
+
   private async loadTest(actor: RequestUser, id: string, mode: 'view' | 'manage') {
     const test = await this.repo.findTestById(id);
     if (!test) throw new NotFoundException({ code: 'TEST_NOT_FOUND' });
