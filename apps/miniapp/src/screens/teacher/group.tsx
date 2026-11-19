@@ -1,6 +1,6 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { EmptyState, ListItem, Section, StatusChip } from '@lg/ui-tg';
-import { FileSpreadsheet, Megaphone } from 'lucide-react';
+import { FileSpreadsheet, Hash, Megaphone } from 'lucide-react';
 import type { TeacherGroup } from './groups.js';
 
 export interface GroupStudent {
@@ -16,6 +16,8 @@ interface Props {
   students: readonly GroupStudent[];
   onStudent: (s: GroupStudent) => void;
   onTests: () => void;
+  /** MT-05a Oʻquvchi kodlari (T-128). */
+  onCodes?: () => void;
   /** Faqat asosiy ustozda (MT-10). */
   onAnnounce?: () => void;
 }
@@ -23,7 +25,7 @@ interface Props {
 const rateTone = (n: number) => (n >= 85 ? 'success' : n >= 70 ? 'warning' : 'danger');
 
 /** MT-05 Guruh: o'quvchilar (davomat %, oxirgi baho), testlar, e'lon (main). */
-export function GroupView({ group, students, onStudent, onTests, onAnnounce }: Props) {
+export function GroupView({ group, students, onStudent, onTests, onCodes, onAnnounce }: Props) {
   return (
     <main className="flex flex-col gap-4 p-2 pt-3">
       <header className="px-2">
@@ -37,6 +39,14 @@ export function GroupView({ group, students, onStudent, onTests, onAnnounce }: P
           chevron
           onClick={onTests}
         />
+        {onCodes && (
+          <ListItem
+            before={<Hash className="size-5" aria-hidden />}
+            title={t.groups.codes}
+            chevron
+            onClick={onCodes}
+          />
+        )}
         {group.role === 'main' && onAnnounce && (
           <ListItem
             before={<Megaphone className="size-5" aria-hidden />}

@@ -90,6 +90,7 @@ export function TeacherGroupPage() {
               })
             }
             onTests={() => void navigate({ to: '/group/$id/tests', params: { id } })}
+            onCodes={() => void navigate({ to: '/group/$id/codes', params: { id } })}
             onAnnounce={
               d.group.role === 'main'
                 ? () => void navigate({ to: '/group/$id/announce', params: { id } })
