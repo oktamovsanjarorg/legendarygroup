@@ -28,6 +28,30 @@ interface StudentProps {
   set: (patch: Partial<StudentDraft>) => void;
 }
 
+/** O'quvchi raqami (T-127, Q-91): titul va Excel uchun; bo'sh — avtomatik. */
+function CodeField({
+  value,
+  error,
+  onChange,
+}: {
+  value: string;
+  error?: string;
+  onChange: Change;
+}) {
+  return (
+    <Field
+      label={f.code}
+      inputMode="numeric"
+      autoComplete="off"
+      maxLength={7}
+      value={value}
+      onChange={onChange}
+      hint={f.codeHint}
+      error={error}
+    />
+  );
+}
+
 /** O'quvchi maydonlari (FR-STU-1) — yaratish va tahrirlash formalari uchun bitta. */
 export function StudentFields({ d, errors, set }: StudentProps) {
   const on =
@@ -44,6 +68,7 @@ export function StudentFields({ d, errors, set }: StudentProps) {
         onChange={on('fullName')}
         error={errors.fullName}
       />
+      <CodeField value={d.code} error={errors.code} onChange={on('code')} />
       <div className="grid grid-cols-2 gap-3">
         <Field
           label={f.birthDate}

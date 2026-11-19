@@ -105,8 +105,9 @@ export function matchStudent(
   }
 
   // 1) Raqam (o'quvchi kodi)
-  const numericCode = Number.parseInt(trimmed, 10);
-  if (!Number.isNaN(numericCode) && String(numericCode) === trimmed) {
+  // Titul skanerlari raqamni nol bilan toʻldiradi (`001325`) — T-127.
+  if (/^\d{1,9}$/.test(trimmed)) {
+    const numericCode = Number(trimmed);
     const byCode = students.find((s) => s.code === numericCode);
     if (byCode) {
       return { type: 'code', student: byCode };

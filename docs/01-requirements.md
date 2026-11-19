@@ -25,7 +25,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 
 ## STU — O'quvchilar
 
-- **FR-STU-1** O'quvchi kartochkasi: F.I.Sh, tug'ilgan sana, jinsi, telefon (ixtiyoriy), maktab/sinf, manba (qayerdan eshitgan), izoh, rasm.
+- **FR-STU-1** O'quvchi kartochkasi: o'quvchi raqami (yaratuvchi kiritadi — titul varaq va Excel import uchun, 1–7 xonali, noyob, tahrirlanadi; bo'sh qoldirilsa avtomatik — T-127), F.I.Sh, tug'ilgan sana, jinsi, telefon (ixtiyoriy), maktab/sinf, manba (qayerdan eshitgan), izoh, rasm.
 - **FR-STU-2** Ota-ona(lar) bog'lash: F.I.Sh, telefon (asosiy), qarindoshlik.
 - **FR-STU-3** Guruhga qo'shish (enrollment) sanasi bilan; guruhdan chiqarish sababi bilan (ketdi / ko'chirildi / tugatdi). Tarix saqlanadi.
 - **FR-STU-4** Lid (potensial o'quvchi) ro'yxati: sinov darsi, holat (yangi / qo'ng'iroq qilindi / sinovga keldi / yozildi / rad etdi). Konversiya statistikasi.
