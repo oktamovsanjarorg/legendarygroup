@@ -31,8 +31,6 @@ export const webF1StudentsMessages = {
       title: 'Yangi oʻquvchi',
       editTitle: 'Maʼlumotni tahrirlash',
       fullName: 'F.I.Sh',
-      code: 'Oʻquvchi raqami',
-      codeHint: 'Titul varaq va Excel import uchun. Boʻsh qoldirilsa — avtomatik beriladi.',
       birthDate: 'Tugʻilgan sana',
       gender: 'Jinsi',
       phone: 'Oʻquvchi telefoni',
@@ -57,7 +55,6 @@ export const webF1StudentsMessages = {
       createAnyway: 'Baribir qoʻshish',
       errors: {
         fullName: 'F.I.Sh 2–120 belgidan iborat boʻlsin.',
-        code: 'Raqam faqat sonlardan iborat boʻlsin: 1 dan 9 999 999 gacha.',
         phone: 'Telefon raqam notoʻgʻri. Namuna: +998 90 123 45 67',
         birthDate: 'Sanani toʻgʻri kiriting.',
         guardianName: 'Ota-ona F.I.Sh kamida 2 ta belgi boʻlsin.',

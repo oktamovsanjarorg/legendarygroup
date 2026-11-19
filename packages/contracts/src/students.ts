@@ -33,13 +33,6 @@ const IsoDate = z.iso.date();
 const FullName = z.string().trim().min(2).max(120);
 const ShortText = (max: number) => z.string().trim().min(1).max(max);
 
-/**
- * O'quvchi raqami (T-127): yaratuvchi kiritadi — titul varaqlari va Excel importi shu raqam bilan
- * ishlaydi. 1–7 xona (8+ xona qidiruvda telefon bilan aralashadi). Bo'sh — avtomatik (10001 dan).
- */
-export const STUDENT_CODE_MAX = 9_999_999;
-export const StudentCode = z.number().int().min(1).max(STUDENT_CODE_MAX);
-
 const StudentFields = z.object({
   fullName: FullName,
   birthDate: IsoDate.nullable(),
@@ -68,14 +61,14 @@ export const GuardianInput = z.object({
 export const CreateStudentRequest = StudentFields.partial()
   .required({ fullName: true })
   .extend({
-    code: StudentCode.optional(),
     guardians: z.array(GuardianInput).max(4).default([]),
     allowDuplicate: z.boolean().default(false),
   });
 
-export const UpdateStudentRequest = StudentFields.partial()
-  .extend({ code: StudentCode.optional() })
-  .refine((v) => Object.keys(v).length > 0, { message: 'EMPTY_PATCH' });
+export const UpdateStudentRequest = StudentFields.partial().refine(
+  (v) => Object.keys(v).length > 0,
+  { message: 'EMPTY_PATCH' },
+);
 
 export const LinkGuardianRequest = GuardianInput;
 export const RenameGuardianRequest = z.object({ fullName: FullName });

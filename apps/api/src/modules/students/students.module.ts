@@ -19,6 +19,8 @@ import { StudentScopeService } from './student-scope.service.js';
 import { StudentsQueryService } from './students-query.service.js';
 import { StudentsController } from './students.controller.js';
 import { StudentsService } from './students.service.js';
+import { TeacherCodesController } from './teacher-codes/teacher-codes.controller.js';
+import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
 
 /**
  * O'quvchilar, ota-onalar (T-105) guruhga yozish (T-106) va lidlar (T-107). Scope va enrollment o'qish —
@@ -34,6 +36,7 @@ import { StudentsService } from './students.service.js';
     RosterController,
     LeadsController,
     PublicLeadsController,
+    TeacherCodesController,
   ],
   providers: [
     EnrollmentsService,
@@ -47,7 +50,13 @@ import { StudentsService } from './students.service.js';
     LeadsQueryService,
     LeadsService,
     LeadConvertService,
+    TeacherCodesService,
   ],
-  exports: [StudentScopeService, StudentsQueryService, EnrollmentsQueryService],
+  exports: [
+    StudentScopeService,
+    StudentsQueryService,
+    EnrollmentsQueryService,
+    TeacherCodesService,
+  ],
 })
 export class StudentsModule {}

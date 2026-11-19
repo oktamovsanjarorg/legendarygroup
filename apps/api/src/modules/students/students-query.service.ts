@@ -20,7 +20,7 @@ import { studentListExtras } from './student-list-extras.js';
 import { StudentScopeService } from './student-scope.service.js';
 import { type GuardianLink, toDetail, toListItem } from './students.serializer.js';
 
-const CODE_RE = /^(?:lg-?)?(\d{1,7})$/i;
+const CODE_RE = /^(?:lg-?)?(\d{4,7})$/i;
 
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 

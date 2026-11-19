@@ -20,6 +20,7 @@ export * from './attendance.js';
 export * from './attendance-grid.js';
 export * from './grades.js';
 export * from './tests.js';
+export * from './teacher-codes.js';
 export * from './payroll.js';
 export * from './approvals.js';
 export * from './expenses.js';

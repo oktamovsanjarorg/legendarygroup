@@ -267,6 +267,13 @@
       "when": 1795026857578,
       "tag": "0037_student_code_manual",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1795105318696,
+      "tag": "0038_teacher_student_codes",
+      "breakpoints": true
     }
   ]
 }

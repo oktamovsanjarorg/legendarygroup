@@ -22,4 +22,5 @@ export * from './notifications.js';
 export * from './announcements.js';
 export * from './tickets.js';
 export * from './absence-notices.js';
+export * from './teacher-codes.js';
 export * from './relations.js';

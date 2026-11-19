@@ -9,8 +9,6 @@ import {
 import { webMessages as t } from '@lg/i18n';
 
 export interface StudentDraft {
-  /** T-127: boʻsh — avtomatik raqam. */
-  code: string;
   fullName: string;
   birthDate: string;
   gender: Gender | '';
@@ -30,7 +28,6 @@ export interface GuardianDraft {
 export type StudentErrors = Partial<Record<keyof typeof t.students.form.errors, string>>;
 
 export const EMPTY_STUDENT: StudentDraft = {
-  code: '',
   fullName: '',
   birthDate: '',
   gender: '',
@@ -43,7 +40,6 @@ export const EMPTY_STUDENT: StudentDraft = {
 export const EMPTY_GUARDIAN: GuardianDraft = { fullName: '', phone: '+998', relation: 'mother' };
 
 export const draftOf = (s: StudentDetail): StudentDraft => ({
-  code: String(s.code),
   fullName: s.fullName,
   birthDate: s.birthDate ?? '',
   gender: s.gender ?? '',
@@ -56,15 +52,7 @@ export const draftOf = (s: StudentDetail): StudentDraft => ({
 
 const orNull = (v: string) => v.trim() || null;
 
-/** Boʻsh — `undefined` (avtomatik / oʻzgarmaydi); raqam boʻlmasa — `NaN` (Zod rad etadi). */
-const codeOf = (v: string): number | undefined => {
-  const text = v.trim();
-  if (!text) return undefined;
-  return /^\d+$/.test(text) ? Number(text) : Number.NaN;
-};
-
 const fields = (d: StudentDraft) => ({
-  code: codeOf(d.code),
   fullName: d.fullName,
   birthDate: orNull(d.birthDate),
   gender: d.gender || null,
@@ -88,7 +76,7 @@ function errorsOf(issues: readonly { path: PropertyKey[] }[]): StudentErrors {
     if (head === 'guardians') {
       const key = leaf === 'phone' ? 'guardianPhone' : 'guardianName';
       out[key] = texts[key];
-    } else if (head === 'code' || head === 'fullName' || head === 'phone' || head === 'birthDate') {
+    } else if (head === 'fullName' || head === 'phone' || head === 'birthDate') {
       out[head] = texts[head];
     }
   }
