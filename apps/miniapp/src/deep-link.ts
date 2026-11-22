@@ -63,24 +63,31 @@ export function parseStartParam(
 /**
  * Ekran → yo'l. Har ekran vazifasi (T-111 MT-02, T-116 MG-01 ...) shu yerga qo'shadi;
  * hali qurilmagan ekranga link — bosh sahifa (bo'sh "tez orada" sahifa yo'q).
+ * Har yo'l router'da mavjudligi — `deep-link-routes.test.ts`.
  */
 export const SCREEN_PATHS: Readonly<Record<string, (id?: string) => string>> = {
   'MT-01': () => '/',
-  'MT-02': (id) => (id ? `/lessons/${id}/attendance` : '/'),
-  'MT-03': () => '/groups',
-  'MT-05': () => '/schedule',
-  'MT-08': () => '/profile',
+  'MT-02': (id) => (id ? `/lesson/${id}` : '/'),
+  'MT-04': () => '/groups',
+  // MT-08 (import ko'rib chiqish) yo'li guruh va test id'sini talab qiladi — link'da faqat import id.
+  'MT-08': () => '/',
+  'MT-09': () => '/schedule',
   'MG-01': () => '/',
+  'MG-02': () => '/results',
+  // MG-03 (bitta test) va MG-04 (hisobot) — natijalar ekrani ichida.
   'MG-03': () => '/results',
-  'MG-04': () => '/payments',
-  'MG-06': (id) => (id ? `/pay/${id}` : '/payments'),
-  'MG-07': (id) => (id ? `/submissions/${id}` : '/payments'),
-  'MG-08': () => '/more',
+  'MG-04': () => '/results',
+  'MG-05': () => '/payments',
+  // Farzand MG-06 ichida tanlanadi (bir nechta farzand) — id yo'lga kirmaydi.
+  'MG-06': () => '/pay',
+  'MG-07': (id) => (id ? `/submission/${id}` : '/payments'),
+  'MG-08': () => '/absence',
+  'MG-09': () => '/tickets',
   'MS-01': () => '/',
   'MS-02': () => '/staff/queue',
   'MS-03': (id) => (id ? `/staff/approvals/${id}` : '/staff/approvals'),
   'MS-04': () => '/staff/search',
-  'MS-05': (id) => (id ? `/staff/students/${id}` : '/staff/search'),
+  'MS-05': (id) => (id ? `/staff/student/${id}` : '/staff/search'),
 };
 
 export function deepLinkPath(

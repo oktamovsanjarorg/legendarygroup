@@ -41,9 +41,7 @@ describe('parseStartParam (screens.md §5)', () => {
 describe('deepLinkPath', () => {
   it("ekran qurilgan — yo'l, aks holda null", () => {
     const link = { screen: 'MT-02', roles: ['teacher'] as const, id: 'L1' };
-    expect(deepLinkPath(link, { 'MT-02': (id) => `/lessons/${id}/attendance` })).toBe(
-      '/lessons/L1/attendance',
-    );
+    expect(deepLinkPath(link, { 'MT-02': (id) => `/lesson/${id}` })).toBe('/lesson/L1');
     expect(deepLinkPath(link, {})).toBeNull();
   });
 });
