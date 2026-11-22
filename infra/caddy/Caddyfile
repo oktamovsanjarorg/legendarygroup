@@ -54,6 +54,11 @@
 			TXT 200
 	}
 
+	# Metrikalar (xotira, biznes navbatlari) — faqat Docker tarmog'idan (`api:3000`), tashqariga yopiq.
+	handle /api/health/metrics {
+		respond 404
+	}
+
 	handle /api/* {
 		reverse_proxy api:3000
 	}
