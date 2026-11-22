@@ -334,6 +334,76 @@
 - **AC:** `teacher_student_codes` (0038); `GET/PUT /api/teacher-codes` — faqat ustoz, oʻz guruhi, band kod — 409 `STUDENT_CODE_TAKEN`, bir soʻrovda almashtirish, `null` — olib tashlash, audit `student.teacher_code_set`; taklif — eng kichik boʻsh kodlar; Excel shabloni/importi testni yaratgan ustoz kodlari bilan; Mini App MT-05 → «Oʻquvchi kodlari» (MT-05a) ekrani: roʻyxat, taklif oldindan toʻldirilgan, MainButton «Saqlash», 5 holat, Storybook.
 - **Holat:** API + import — PR 1 ✅; Mini App MT-05a ekrani — PR 2 ✅ (Storybook: `miniapp/Ustoz/MT-05a`). Qolgan: haqiqiy Telegram'da qoʻlda sinov.
 
+### ⬜ T-130 · Mini App xodim: «Ko'proq» menyusi va tablar (MS-06)
+
+- **Bog'liq:** T-120 · **Talablar:** 11-ux §2 (2026-11-22 qarori)
+- **AC:** Admin tablari Bugun/Navbat/Qidiruv/Ko'proq, Director — Bugun/So'rovlar/Qidiruv/Ko'proq; MS-06 ruxsatga qarab bo'limlar; Bugun'da navbat/so'rovlar kartochkasi; qurilmagan band ko'rsatilmaydi; router fayllari ≤ 300 qator (xodim marshrutlari alohida faylda). Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-131 · Mini App: to'lov kiritish (MS-07)
+
+- **Bog'liq:** T-130, T-204 · **Talablar:** FR-PAY-1/2, BR-12
+- **AC:** MS-05 kartochkasidan va MS-06'dan; preview (taqsimot) server'dan; `Idempotency-Key` forma ochilganda; MainButton Saqlash; chek raqami + PDF; e2e ssenariy. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-132 · Mini App: qarzdorlar (MS-08)
+
+- **Bog'liq:** T-130, T-208 · **Talablar:** FR-PAY-7, BR-22
+- **AC:** ro'yxat (qarz, kun), qo'ng'iroq `tel:`, eslatma — `notifications` orqali; → MS-07. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-133 · Mini App: lidlar (MS-09)
+
+- **Bog'liq:** T-130, T-107 · **Talablar:** FR-STU-4, Q-87
+- **AC:** holat segmentlari, yangi lid, holat o'tishlari (Q-87 oqimi), qo'ng'iroq, o'quvchiga aylantirish. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-134 · Mini App: yangi o'quvchi va guruhga yozish (MS-10)
+
+- **Bog'liq:** T-130, T-105, T-106 · **Talablar:** FR-STU-1, BR-3
+- **AC:** qisqa forma, dublikat ogohlantirishi, guruh tanlash va BR-3 birinchi oy narxi. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-135 · Mini App: bog'lanish so'rovlari (MS-11)
+
+- **Bog'liq:** T-130 · **Talablar:** FR-AUTH-1
+- **AC:** ro'yxat, o'quvchiga bog'lash / rad etish (web W-07 bilan bitta API). Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-136 · Mini App: guruhlar ko'rinishi (MS-12)
+
+- **Bog'liq:** T-130, T-103 · **Talablar:** FR-ORG-3
+- **AC:** ro'yxat, tarkib, to'lganlik; o'quvchi → MS-05. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-137 · Mini App: davomat nazorati (MS-13)
+
+- **Bog'liq:** T-130, T-112 · **Talablar:** FR-ATT-4/5, BR-30
+- **AC:** bugungi darslar holati, belgilanmaganlar; darsni ochish (MT-02), o'tgan kun — sabab majburiy. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-138 · Mini App: murojaatlar (MS-14)
+
+- **Bog'liq:** T-130, T-306 · **Talablar:** FR-RPT-7
+- **AC:** ochiq murojaatlar, javob, yopish. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-139 · Mini App: e'lon yuborish (MS-15)
+
+- **Bog'liq:** T-130, T-305 · **Talablar:** FR-RPT-5
+- **AC:** auditoriya tanlash, ko'rib chiqish, MainButton Yuborish (navbat orqali). Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-140 · Mini App: kassa (MS-16)
+
+- **Bog'liq:** T-130, T-209 · **Talablar:** FR-PAY-10
+- **AC:** bugungi tushum usul bo'yicha, kunni yopish (haqiqiy naqd), qayta yopish yo'q. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-141 · Mini App: chegirma berish (MS-17)
+
+- **Bog'liq:** T-130, T-203 · **Talablar:** BR-18
+- **AC:** limit ichida — darhol, yuqori — Director'ga so'rov; MS-05'dan. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-142 · Mini App: xarajat qo'shish (MS-18)
+
+- **Bog'liq:** T-130, T-403 · **Talablar:** FR-FIN-1
+- **AC:** turkum, summa (bigint), sana, izoh. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
+### ⬜ T-143 · Mini App: moliya xulosasi (MS-19, Director)
+
+- **Bog'liq:** T-130, T-403, T-502 · **Talablar:** FR-FIN-2, FR-DASH-3
+- **AC:** oy tushumi, xarajat, foyda, prognoz, qarz jami; tafsilot — web. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+
 ### ⬜ T-125 · Mini App: birinchi ochilishda rolga qarab 3 ta kartochka
 
 - **Bog'liq:** T-114, T-116, T-120 · **Bajaruvchi:** agy (A-8), review — Claude
