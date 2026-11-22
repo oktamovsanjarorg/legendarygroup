@@ -7,3 +7,6 @@ pnpm-lock.yaml
 
 # drizzle-kit generatsiya qiladi
 packages/db/drizzle/meta
+
+# Release Please yaratadi (T-021) — qoʻlda formatlanmaydi.
+CHANGELOG.md
