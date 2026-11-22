@@ -19,6 +19,7 @@
 - Har bir `BR-*` qoidasi uchun test nomida ID: `it("BR-12: to'lov eng eski qarzga taqsimlanadi")`.
 - Testlarda vaqt muzlatiladi (`vi.useFakeTimers`), `Asia/Tashkent` zonasi.
 - Seed/fixture'lar — factory funksiyalar (`makeStudent()`), haqiqiy shaxsiy ma'lumot yo'q.
+- **E2E (T-020):** `pnpm e2e` — Postgres/Redis (`pnpm docker:dev`) kerak; Playwright API'ni (`apps/api/src/e2e/server.ts`, vaqtinchalik `lg_e2e_*` baza) va web'ni (5174) o'zi ko'taradi. Brauzer: `pnpm --filter @lg/e2e e2e:install`. Ssenariylar — `apps/e2e/tests`, login — `src/auth.ts` (`login(page, pickUser(role, info))`).
 
 ## 2. Kod standartlari
 

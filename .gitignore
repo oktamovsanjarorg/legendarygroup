@@ -55,3 +55,8 @@ temp/
 *.tfvars
 !*.tfvars.example
 .astro/
+
+# E2E (Playwright)
+apps/e2e/.fixtures.json
+apps/e2e/test-results/
+apps/e2e/playwright-report/
