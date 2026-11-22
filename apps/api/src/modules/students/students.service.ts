@@ -8,6 +8,7 @@ import type {
 } from '@lg/contracts';
 import {
   type Database,
+  enrollments,
   roles,
   studentGuardians,
   students,
@@ -17,7 +18,7 @@ import {
 } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { normalizeUz } from '@lg/i18n';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, gt, isNull, or } from 'drizzle-orm';
 import type { z } from 'zod';
 import { changedFields, maskPii } from '../../common/audit/audit-diff.js';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
@@ -104,6 +105,7 @@ export class StudentsService {
     return this.db.transaction(async (tx) => {
       const current = await this.lock(tx, id);
       assertArchiveTransition(current.archivedAt, verb);
+      if (verb === 'archive') await this.assertNoActiveGroups(tx, id);
       if (verb === 'archive' && current.userId) {
         await this.unlinkStudentUser(tx, current.id, current.userId);
       }
@@ -115,6 +117,24 @@ export class StudentsService {
         .returning();
       return this.recordChange(tx, { ctx, action: `student.${verb}`, before: current, after: row });
     });
+  }
+
+  /**
+   * Q-93: guruhda turgan (yoki kelajak sanada chiqariladigan) o'quvchi arxivlanmaydi —
+   * aks holda hisob-kitob davom etadi, qarz esa ro'yxatlarda ko'rinmaydi. Avval guruhdan chiqarish.
+   */
+  private async assertNoActiveGroups(tx: Transaction, studentId: string): Promise<void> {
+    const [active] = await tx
+      .select({ id: enrollments.id })
+      .from(enrollments)
+      .where(
+        and(
+          eq(enrollments.studentId, studentId),
+          or(isNull(enrollments.endDate), gt(enrollments.endDate, this.clock.today())),
+        ),
+      )
+      .limit(1);
+    if (active) throw new AppException(HttpStatus.CONFLICT, 'STUDENT_HAS_ACTIVE_GROUPS');
   }
 
   /** Shaxsiy 6 xonali kirish kodi yaratish / yangilash (T-126, D2). */

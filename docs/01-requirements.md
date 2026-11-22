@@ -31,6 +31,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 - **FR-STU-4** Lid (potensial o'quvchi) ro'yxati: sinov darsi, holat (yangi / qo'ng'iroq qilindi / sinovga keldi / yozildi / rad etdi). Konversiya statistikasi.
 - **FR-STU-5** Qidiruv: ism, telefon, guruh bo'yicha; filtrlar (qarzdor, faol, arxiv).
 - **FR-STU-6** O'quvchi o'chirilmaydi — faqat arxivlanadi (soft delete).
+  Guruhda turgan (chiqish sanasi bugundan keyin yoki yoʻq) oʻquvchi arxivlanmaydi — avval guruhdan chiqariladi (Q-93).
 
 ## ATT — Davomat
 
