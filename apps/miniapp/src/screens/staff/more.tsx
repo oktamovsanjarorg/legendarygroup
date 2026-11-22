@@ -1,11 +1,12 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { ListItem, Section } from '@lg/ui-tg';
-import { ClipboardCheck, type LucideIcon, Receipt } from 'lucide-react';
+import { ClipboardCheck, type LucideIcon, Receipt, Wallet } from 'lucide-react';
 import type { StaffMenuItem, StaffMenuKey, StaffSection } from '../../data/staff-menu.js';
 
 const m = t.staffMore;
 
 const ICONS: Record<StaffMenuKey, LucideIcon> = {
+  pay: Wallet,
   queue: Receipt,
   approvals: ClipboardCheck,
 };

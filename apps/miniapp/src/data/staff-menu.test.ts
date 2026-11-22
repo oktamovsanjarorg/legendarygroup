@@ -8,12 +8,15 @@ const keys = (groups: ReturnType<typeof staffMenuFor>) =>
   groups.flatMap((g) => g.items.map((i) => i.key));
 
 describe('MS-06 Koʻproq (T-130)', () => {
-  it('Admin: navbat tabda — Koʻproq’da yoʻq; soʻrovlar — ruxsat yoʻq', () => {
-    expect(keys(staffMenuFor(ROLE_PERMISSIONS.admin, tabPaths('admin')))).toEqual([]);
+  it('Admin: toʻlov kiritish bor; navbat tabda — takrorlanmaydi; soʻrovlar — ruxsat yoʻq', () => {
+    expect(keys(staffMenuFor(ROLE_PERMISSIONS.admin, tabPaths('admin')))).toEqual(['pay']);
   });
 
   it('Director: navbat Koʻproq’da (tabda yoʻq), soʻrovlar — tabda', () => {
-    expect(keys(staffMenuFor(ROLE_PERMISSIONS.director, tabPaths('director')))).toEqual(['queue']);
+    expect(keys(staffMenuFor(ROLE_PERMISSIONS.director, tabPaths('director')))).toEqual([
+      'pay',
+      'queue',
+    ]);
   });
 
   it('ruxsatsiz band koʻrsatilmaydi, boʻsh boʻlim tushib qoladi', () => {

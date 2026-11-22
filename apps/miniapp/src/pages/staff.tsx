@@ -160,10 +160,15 @@ export function StaffSearchPage() {
 
 export function StaffStudentPage() {
   const { id } = useParams({ from: '/staff/student/$id' });
+  const me = useMe();
+  const navigate = useNavigate();
   const query = useStudentCard(id);
+  const onPay = me.permissions.includes('payment.create')
+    ? () => void navigate({ to: '/staff/student/$id/pay', params: { id } })
+    : undefined;
   return (
     <QueryView query={query}>
-      {(d) => <StudentCardView s={d.hit} guardians={d.guardians} />}
+      {(d) => <StudentCardView s={d.hit} guardians={d.guardians} onPay={onPay} />}
     </QueryView>
   );
 }

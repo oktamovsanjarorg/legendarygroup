@@ -4,7 +4,7 @@
  * shu roʻyxatga qoʻshiladi — qurilmagan ekran koʻrsatilmaydi.
  */
 export type StaffSection = 'students' | 'money' | 'lessons' | 'comms' | 'director';
-export type StaffMenuKey = 'queue' | 'approvals';
+export type StaffMenuKey = 'pay' | 'queue' | 'approvals';
 
 export interface StaffMenuItem {
   key: StaffMenuKey;
@@ -22,6 +22,7 @@ export const STAFF_SECTIONS: readonly StaffSection[] = [
 ];
 
 export const STAFF_MENU: readonly StaffMenuItem[] = [
+  { key: 'pay', section: 'money', permission: 'payment.create', to: '/staff/pay' },
   { key: 'queue', section: 'money', permission: 'payment.review', to: '/staff/queue' },
   {
     key: 'approvals',
