@@ -18,6 +18,7 @@ export const staffMessages = {
       director: 'Direktor',
     },
     items: {
+      pay: 'Toʻlov kiritish',
       queue: 'Chek navbati',
       approvals: 'Tasdiqlash soʻrovlari',
     },
@@ -98,5 +99,25 @@ export const staffMessages = {
     call: 'Qoʻngʻiroq',
     noTelegram: 'Botga ulanmagan',
     relations: { father: 'Otasi', mother: 'Onasi', guardian: 'Vasiysi', other: 'Boshqa' },
+    pay: 'Toʻlov qabul qilish',
+  },
+  /** MS-07 Toʻlov kiritish (T-131, FR-PAY-1/2, BR-12). */
+  staffPay: {
+    title: 'Toʻlov qabul qilish',
+    searchTitle: 'Kimdan toʻlov?',
+    debt: 'Qarz',
+    noDebt: 'Qarz yoʻq — summa avans sifatida balansga yoziladi.',
+    amount: 'Summa',
+    payDebt: 'Qarzni toʻliq: {amount}',
+    method: 'Usul',
+    methods: { cash: 'Naqd', card: 'Terminal', bank: 'Oʻtkazma', other: 'Boshqa' },
+    allocation: 'Qaysi oylarga',
+    closes: 'yopiladi',
+    advance: 'Avans (balansga): {amount}',
+    save: 'Saqlash · {amount}',
+    done: 'Toʻlov saqlandi',
+    receipt: 'Chek {no} ota-onaga yuborildi.',
+    openReceipt: 'Chekni ochish (PDF)',
+    finish: 'Tayyor',
   },
 } as const;
