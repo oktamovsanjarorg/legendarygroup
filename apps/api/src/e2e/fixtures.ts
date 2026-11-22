@@ -17,6 +17,8 @@ export interface E2eUser {
 
 export interface E2eFixtures {
   users: Record<string, E2eUser[]>;
+  /** Guruh formasidagi ustoz tanlovi uchun (web'ga kirmaydi). */
+  teacher: { id: string; fullName: string };
 }
 
 /** Web'ga kira oladigan rollar (WEB_ROLES) — har biri uchun bir nechta foydalanuvchi. */
@@ -53,5 +55,17 @@ export async function createE2eFixtures(db: Database, totpKey: string): Promise<
       out[role].push({ id: u.id, role, fullName, phone, password: PASSWORD, totpSecret });
     }
   }
-  return { users: out };
+  return { users: out, teacher: await createTeacher(db) };
+}
+
+async function createTeacher(db: Database): Promise<E2eFixtures['teacher']> {
+  const fullName = 'E2E Ustoz';
+  const [r] = await db.select().from(roles).where(eq(roles.code, 'teacher'));
+  const [u] = await db
+    .insert(users)
+    .values({ fullName, phone: '+998919999999' })
+    .returning({ id: users.id });
+  if (!u || !r) throw new Error('e2e ustozi yaratilmadi');
+  await db.insert(userRoles).values({ userId: u.id, roleId: r.id });
+  return { id: u.id, fullName };
 }
