@@ -74,13 +74,27 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 
 ### 1.4 Xodim rejimi (MS) — Bugun · Navbat · So'rovlar (Director) · Qidiruv
 
-| ID    | Ekran                 | Maqsad                              | Ma'lumotlar                                         | Amallar                                                                        | Ruxsat                     |
-| ----- | --------------------- | ----------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------- |
-| MS-01 | Bugun / dashboard     | Ixcham KPI (FR-DASH-5)              | tushum, davomat %, belgilanmagan darslar, navbat    | ko'rsatkich → tegishli ro'yxat; MainButton «Boshqaruv panelini ochish» (T-121) | stats.operational          |
-| MS-02 | Chek navbati          | Tasdiqlash (FR-PAY-4, ≤ 3 teginish) | chek rasmi (zoom), summa, o'quvchi, dublikat ogohl. | **Tasdiqlash** (summa tahriri) / Rad etish (sabab shabloni)                    | payment.review             |
-| MS-03 | Tasdiqlash so'rovlari | Director qarori (02 §5)             | tur, so'rovchi, sabab, payload, muddat              | **Tasdiqlash** / Rad etish (izoh)                                              | approval.decide            |
-| MS-04 | Qidiruv               | O'quvchini topish                   | ism/telefon/kod natijalari                          | kartochka → MS-05                                                              | student.view               |
-| MS-05 | O'quvchi kartochkasi  | Tez ma'lumot (qarz, ota-ona)        | guruhlar, qarz, ota-ona telefoni                    | qo'ng'iroq (`tel:`)                                                            | student.view, billing.view |
+| ID    | Ekran                 | Maqsad                                | Ma'lumotlar                                         | Amallar                                                                        | Ruxsat                     |
+| ----- | --------------------- | ------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------- |
+| MS-01 | Bugun / dashboard     | Ixcham KPI (FR-DASH-5)                | tushum, davomat %, belgilanmagan darslar, navbat    | ko'rsatkich → tegishli ro'yxat; MainButton «Boshqaruv panelini ochish» (T-121) | stats.operational          |
+| MS-02 | Chek navbati          | Tasdiqlash (FR-PAY-4, ≤ 3 teginish)   | chek rasmi (zoom), summa, o'quvchi, dublikat ogohl. | **Tasdiqlash** (summa tahriri) / Rad etish (sabab shabloni)                    | payment.review             |
+| MS-03 | Tasdiqlash so'rovlari | Director qarori (02 §5)               | tur, so'rovchi, sabab, payload, muddat              | **Tasdiqlash** / Rad etish (izoh)                                              | approval.decide            |
+| MS-04 | Qidiruv               | O'quvchini topish                     | ism/telefon/kod natijalari                          | kartochka → MS-05                                                              | student.view               |
+| MS-05 | O'quvchi kartochkasi  | Tez ma'lumot (qarz, ota-ona)          | guruhlar, qarz, ota-ona telefoni                    | qo'ng'iroq (`tel:`)                                                            | student.view, billing.view |
+| MS-06 | Ko'proq (menyu)       | Ruxsatga qarab bo'limlar (11-ux §2)   | faqat ruxsat bor bandlar, sonlar (badge)            | band → ekran; «Boshqaruv panelini ochish»                                      | stats.operational          |
+| MS-07 | To'lov kiritish       | W-13 mobil (FR-PAY-2)                 | o'quvchi, qarz, taqsimot                            | summa → usul → **MainButton Saqlash** → chek (PDF, ota-onaga yuborildi)        | payment.create             |
+| MS-08 | Qarzdorlar            | W-15 mobil (FR-PAY-7, BR-22)          | qarz, muddati o'tgan kun, ota-ona                   | qo'ng'iroq, eslatma yuborish, → MS-07                                          | billing.view               |
+| MS-09 | Lidlar                | W-08 mobil (FR-STU-4)                 | holat bo'yicha ro'yxat, manba, izoh                 | yangi lid, holat, qo'ng'iroq, o'quvchiga aylantirish → MS-10                   | lead.manage                |
+| MS-10 | Yangi o'quvchi        | W-05/06 qisqa forma (FR-STU-1)        | ism, tug'ilgan sana, ota-ona telefoni, guruh        | **MainButton Saqlash** → guruhga yozish (BR-3 narx ko'rinadi)                  | student.manage             |
+| MS-11 | Bog'lanish so'rovlari | W-07 mobil (FR-AUTH-1)                | noma'lum raqam, ism, kim deb yozgan                 | o'quvchiga bog'lash / rad etish                                                | student.manage             |
+| MS-12 | Guruhlar              | W-10 ko'rish                          | guruh, ustoz, jadval, to'lganlik, o'quvchilar       | o'quvchi → MS-05                                                               | group.view                 |
+| MS-13 | Davomat nazorati      | W-12 mobil (FR-ATT-4/5, BR-30)        | bugungi darslar: belgilangan/yo'q, kelmaganlar      | darsni ochish (MT-02 ko'rinishi, o'tgan kun — sabab bilan)                     | attendance.edit_past       |
+| MS-14 | Murojaatlar           | W-21 mobil (FR-RPT-7)                 | ochiq murojaatlar, xabarlar                         | javob yozish, yopish                                                           | ticket.handle              |
+| MS-15 | E'lon yuborish        | W-20 mobil (FR-RPT-5)                 | auditoriya (hamma / guruh / qarzdorlar), matn       | ko'rib chiqish → **MainButton Yuborish**                                       | announcement.send          |
+| MS-16 | Kassa                 | W-16 mobil (FR-PAY-10)                | bugungi tushum usul bo'yicha, yopilganmi            | **MainButton Kunni yopish** (haqiqiy naqd summa)                               | cash.close                 |
+| MS-17 | Chegirma berish       | W-18 (BR-18)                          | guruh, foiz, sabab; limit                           | limit ichida — darhol; yuqori — Director'ga so'rov                             | discount.grant             |
+| MS-18 | Xarajat qo'shish      | W-23 qisqa forma (FR-FIN-1)           | turkum, summa, sana, izoh                           | **MainButton Saqlash**                                                         | expense.manage             |
+| MS-19 | Moliya xulosasi       | W-24/W-27 qisqa (FR-FIN-2, FR-DASH-3) | oy tushumi, xarajat, foyda, prognoz, qarz jami      | → «Boshqaruv panelini ochish» (tafsilot)                                       | finance.view               |
 
 ### 1.5 Oʻquvchi (M-STU) — pastki menyu: Bugun · Dars jadvali · Natijalar · Profil
 
