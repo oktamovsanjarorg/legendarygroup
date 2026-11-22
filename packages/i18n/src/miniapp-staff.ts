@@ -1,6 +1,28 @@
 /** Mini App — xodim rejimi (Director/Admin, MS-*, docs/ux/screens.md §1.4). */
 export const staffMessages = {
-  stabs: { today: 'Bugun', queue: 'Navbat', approvals: 'Soʻrovlar', search: 'Qidiruv' },
+  stabs: {
+    today: 'Bugun',
+    queue: 'Navbat',
+    approvals: 'Soʻrovlar',
+    search: 'Qidiruv',
+    more: 'Koʻproq',
+  },
+  /** MS-06 Koʻproq (11-ux §2, T-130): ruxsatga qarab boʻlimlar. */
+  staffMore: {
+    title: 'Koʻproq',
+    sections: {
+      students: 'Oʻquvchilar',
+      money: 'Pul',
+      lessons: 'Darslar',
+      comms: 'Aloqa',
+      director: 'Direktor',
+    },
+    items: {
+      queue: 'Chek navbati',
+      approvals: 'Tasdiqlash soʻrovlari',
+    },
+    panelHint: 'Hisobotlar, oyliklar, sozlamalar va audit — kompyuterda, boshqaruv panelida.',
+  },
   dashboard: {
     title: 'Bugun',
     revenue: 'Bugungi tushum',

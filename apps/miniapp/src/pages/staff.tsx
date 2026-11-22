@@ -38,7 +38,7 @@ const KPI_ROUTES: Partial<Record<KpiTarget, '/staff/queue' | '/staff/approvals'>
  * MS-01 asosiy tugmasi (T-121): web panel tizim brauzerida, parol/2FA'siz — kalit bir martalik.
  * Xodim rejimi faqat Director/Admin'da ochiladi, ya'ni web paneli bor rollarda.
  */
-function useOpenPanel() {
+export function useOpenPanel() {
   const wa = useWebApp();
   const handoff = usePanelHandoff();
   useMainButton({

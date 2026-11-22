@@ -1,10 +1,7 @@
-import {
-  createMemoryHistory,
-  createRootRoute,
-  createRoute,
-  createRouter,
-} from '@tanstack/react-router';
-import { AppLayout, ForbiddenPage } from './layout.js';
+import { createMemoryHistory, createRoute, createRouter } from '@tanstack/react-router';
+import { ForbiddenPage } from './layout.js';
+import { root } from './route-root.js';
+import { staffRoutes } from './routes-staff.js';
 import { HomePage } from './pages/home.js';
 import { SettingsPage } from './pages/settings.js';
 import {
@@ -13,13 +10,6 @@ import {
   StudentSchedulePage,
 } from './pages/student-panel.js';
 import { useMe } from './session/session.js';
-import {
-  StaffApprovalPage,
-  StaffApprovalsPage,
-  StaffQueuePage,
-  StaffSearchPage,
-  StaffStudentPage,
-} from './pages/staff.js';
 import {
   GuardianMorePage,
   GuardianPaymentsPage,
@@ -47,7 +37,6 @@ import { TeacherTestCreatePage } from './pages/teacher-test-create.js';
 import { TeacherTestImportPage } from './pages/teacher-test-import.js';
 import { TeacherTestsPage } from './pages/teacher-tests.js';
 
-const root = createRootRoute({ component: AppLayout, notFoundComponent: ForbiddenPage });
 const home = createRoute({ getParentRoute: () => root, path: '/', component: HomePage });
 const settings = createRoute({
   getParentRoute: () => root,
@@ -172,21 +161,6 @@ const guardianMore = createRoute({
 });
 
 // Xodim (staff - admin/director)
-const staffQueue = createRoute({
-  getParentRoute: () => root,
-  path: '/staff/queue',
-  component: StaffQueuePage,
-});
-const staffApprovals = createRoute({
-  getParentRoute: () => root,
-  path: '/staff/approvals',
-  component: StaffApprovalsPage,
-});
-const staffSearch = createRoute({
-  getParentRoute: () => root,
-  path: '/staff/search',
-  component: StaffSearchPage,
-});
 
 const guardianPay = createRoute({
   getParentRoute: () => root,
@@ -207,17 +181,6 @@ const guardianTickets = createRoute({
   getParentRoute: () => root,
   path: '/tickets',
   component: GuardianTicketsPage,
-});
-
-const staffApproval = createRoute({
-  getParentRoute: () => root,
-  path: '/staff/approvals/$id',
-  component: StaffApprovalPage,
-});
-const staffStudent = createRoute({
-  getParentRoute: () => root,
-  path: '/staff/student/$id',
-  component: StaffStudentPage,
 });
 
 const routeTree = root.addChildren([
@@ -245,11 +208,7 @@ const routeTree = root.addChildren([
   guardianSubmission,
   guardianAbsence,
   guardianTickets,
-  staffQueue,
-  staffApprovals,
-  staffSearch,
-  staffApproval,
-  staffStudent,
+  ...staffRoutes,
 ]);
 
 /**
