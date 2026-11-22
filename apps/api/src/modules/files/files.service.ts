@@ -58,7 +58,7 @@ export class FilesService {
 
   async createUpload(user: RequestUser, req: { purpose: FilePurpose; mime: string; size: number }) {
     const rule = FILE_PURPOSES[req.purpose];
-    await this.assertAllowed(user, rule.upload);
+    if (rule.upload !== 'any_user') await this.assertAllowed(user, rule.upload);
     if (!(rule.mimes as readonly string[]).includes(req.mime)) {
       throw new AppException(HttpStatus.UNPROCESSABLE_ENTITY, 'FILE_TYPE_NOT_ALLOWED');
     }
@@ -164,6 +164,15 @@ export class FilesService {
       .from(files)
       .where(eq(files.id, fileId));
     return row?.purpose ?? null;
+  }
+
+  /** Fayl egasi va maqsadi (boshqa modul o'z fayli biriktirilganini tekshirishi uchun). */
+  async ownership(fileId: string): Promise<{ purpose: string; uploadedBy: string | null } | null> {
+    const [row] = await this.db
+      .select({ purpose: files.purpose, uploadedBy: files.uploadedBy })
+      .from(files)
+      .where(eq(files.id, fileId));
+    return row ?? null;
   }
 
   /**
