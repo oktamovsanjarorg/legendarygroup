@@ -100,6 +100,26 @@ export const staffMessages = {
     noTelegram: 'Botga ulanmagan',
     relations: { father: 'Otasi', mother: 'Onasi', guardian: 'Vasiysi', other: 'Boshqa' },
     pay: 'Toʻlov qabul qilish',
+    leaveHint: 'Guruhdan chiqarish uchun guruhni bosing.',
+    archive: 'Arxivlash',
+    archiveBlocked: 'Avval barcha guruhlardan chiqaring.',
+    archiveTitle: 'Oʻquvchini arxivlaysizmi?',
+    archiveText:
+      'Oʻquvchi roʻyxatlardan yashiriladi, Telegram kirishi uziladi. Toʻlov va davomat tarixi saqlanadi.',
+    archived: 'Arxivda',
+    archivedHint: 'Maʼlumotlar faqat koʻrish uchun.',
+    restore: 'Arxivdan chiqarish',
+    cancel: 'Bekor qilish',
+  },
+  /** MS-05a Guruhdan chiqarish (T-144, FR-STU-3/6). */
+  staffLeave: {
+    title: 'Guruhdan chiqarish',
+    date: 'Oxirgi kun',
+    dateHint: 'Shu kundan keyingi oylar uchun hisob yozilmaydi.',
+    reason: 'Sabab',
+    reasons: { left: 'Ketdi', finished: 'Kursni tugatdi' },
+    note: 'Izoh (ixtiyoriy)',
+    save: 'Guruhdan chiqarish',
   },
   /** MS-07 Toʻlov kiritish (T-131, FR-PAY-1/2, BR-12). */
   staffPay: {
