@@ -11,8 +11,11 @@ export const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsh
 export interface FilePurposeRule {
   mimes: readonly string[];
   maxBytes: number;
-  /** Yuklash uchun ruxsat (bot ichki yo'li — xizmat tokeni bilan, foydalanuvchi nomidan). */
-  upload: Permission;
+  /**
+   * Yuklash uchun ruxsat (bot ichki yo'li — xizmat tokeni bilan, foydalanuvchi nomidan).
+   * `any_user` — har qanday kirgan foydalanuvchi (faqat o'zi uchun, masalan fikr-mulohaza).
+   */
+  upload: Permission | 'any_user';
   /** Boshqalar ko'rishi uchun ruxsat; yuklagan foydalanuvchi har doim ko'radi. Scope — modul service'ida. */
   view: Permission;
 }
@@ -63,6 +66,16 @@ export const FILE_PURPOSES = {
     maxBytes: 5 * 1024 * 1024,
     upload: 'payment.create',
     view: 'billing.view',
+  },
+  /**
+   * Fikr-mulohaza skrinshoti (FR-SYS-4, T-118): har kim o'zi uchun yuklaydi; feedback'ga faqat
+   * o'z fayli biriktiriladi (FeedbackService tekshiradi). Ko'rish — Direktor.
+   */
+  feedback_screenshot: {
+    mimes: IMAGE_MIMES,
+    maxBytes: 5 * 1024 * 1024,
+    upload: 'any_user',
+    view: 'settings.manage',
   },
 } as const satisfies Record<string, FilePurposeRule>;
 

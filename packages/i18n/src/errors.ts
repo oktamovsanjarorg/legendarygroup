@@ -32,6 +32,7 @@ export const errorMessages = {
   PANEL_HANDOFF_INVALID:
     'Kirish havolasi yaroqsiz yoki muddati oʻtgan. Mini Appʼda tugmani qayta bosing.',
   ROLE_NOT_ASSIGNED: 'Sizda bu rol yoʻq.',
+  FILE_NOT_ALLOWED: 'Bu faylni biriktirib boʻlmaydi. Rasmni qaytadan yuklang.',
   FILE_TYPE_NOT_ALLOWED:
     'Bu turdagi faylni yuklab boʻlmaydi. Rasm (JPG, PNG, WEBP) yoki PDF tanlang.',
   FILE_TOO_LARGE: 'Fayl juda katta. Hajmi 10 MB dan oshmasin.',
