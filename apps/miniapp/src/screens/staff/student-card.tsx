@@ -2,6 +2,7 @@ import { formatPhone, miniappMessages as t } from '@lg/i18n';
 import { ListItem, MoneyText, Section } from '@lg/ui-tg';
 import { Phone, Wallet } from 'lucide-react';
 import type { StudentHit } from './search.js';
+import { ArchiveSection, ManageGroups, type StudentManageProps } from './student-manage.js';
 
 export interface Guardian {
   name: string;
@@ -36,11 +37,14 @@ export function StudentCardView({
   s,
   guardians,
   onPay,
+  manage,
 }: {
   s: StudentHit;
   guardians: readonly Guardian[];
   /** `payment.create` bo'lsa — MS-07 (T-131). */
   onPay?: () => void;
+  /** `student.manage` bo'lsa — guruhdan chiqarish va arxiv (T-144). */
+  manage?: StudentManageProps;
 }) {
   return (
     <main className="flex flex-col gap-4 p-2 pt-3 pb-6">
@@ -68,16 +72,31 @@ export function StudentCardView({
           />
         </Section>
       )}
-      <Section title={t.studentCard.groups}>
-        {s.groups.map((g) => (
-          <ListItem key={g} title={g} />
-        ))}
-      </Section>
+      {manage?.m.archived && <ArchivedBanner />}
+      {manage ? (
+        <ManageGroups m={manage.m} onLeave={manage.onLeave} />
+      ) : (
+        <Section title={t.studentCard.groups}>
+          {s.groups.map((g) => (
+            <ListItem key={g} title={g} />
+          ))}
+        </Section>
+      )}
       <Section title={t.studentCard.parents}>
         {guardians.map((g) => (
           <GuardianRow key={g.phone} g={g} />
         ))}
       </Section>
+      {manage && <ArchiveSection {...manage} />}
     </main>
+  );
+}
+
+function ArchivedBanner() {
+  return (
+    <div className="flex flex-col gap-0.5 rounded-xl bg-warning-bg p-4">
+      <span className="font-semibold text-warning">{t.studentCard.archived}</span>
+      <span className="text-sm text-text-muted">{t.studentCard.archivedHint}</span>
+    </div>
   );
 }
