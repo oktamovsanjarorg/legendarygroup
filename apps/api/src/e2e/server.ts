@@ -14,6 +14,7 @@ import { closeDb, createDb, loadRootEnv, seed } from '@lg/db';
 import { createTempDb, dropStaleTempDbs } from '@lg/db/testing';
 import { createApp } from '../app.factory.js';
 import { testEnv } from '../test/env.js';
+import { createAttendanceFixtures } from './fixtures-attendance.js';
 import { createBillingFixtures } from './fixtures-billing.js';
 import { createE2eFixtures } from './fixtures.js';
 
@@ -40,9 +41,17 @@ async function main(): Promise<void> {
 
   const { app } = await createApp(env);
   const db = createDb(tmp.url, { max: 1 });
+  const staff = await createE2eFixtures(db, env.get('TOTP_ENCRYPTION_KEY'));
+  const billing = await createBillingFixtures(app, db);
   const fixtures = {
-    ...(await createE2eFixtures(db, env.get('TOTP_ENCRYPTION_KEY'))),
-    students: await createBillingFixtures(app, db),
+    ...staff,
+    students: billing.students,
+    attendance: await createAttendanceFixtures(app, db, {
+      teacherId: staff.teacher.id,
+      courseId: billing.courseId,
+    }),
+    // Faqat test tokeni (apps/api/src/test/env.ts) — e2e `initData` imzosi uchun.
+    telegramBotToken: env.get('TELEGRAM_BOT_TOKEN'),
   };
   await closeDb(db);
   await writeFile(fixturesFile, JSON.stringify(fixtures, null, 2));

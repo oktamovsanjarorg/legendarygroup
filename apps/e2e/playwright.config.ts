@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
-import { API_PORT, FIXTURES_FILE, WEB_URL } from './src/env.js';
+import { API_PORT, FIXTURES_FILE, MINIAPP_URL, WEB_URL } from './src/env.js';
 
 const CI = Boolean(process.env['CI']);
 const root = import.meta.dirname;
@@ -24,7 +24,14 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'web', testIgnore: 'miniapp/**', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'miniapp',
+      testMatch: 'miniapp/**',
+      use: { ...devices['Pixel 7'], baseURL: MINIAPP_URL },
+    },
+  ],
   webServer: [
     {
       // `pnpm exec` emas — SIGTERM to'g'ridan-to'g'ri jarayonga (vaqtinchalik DB o'chiriladi).
@@ -40,6 +47,12 @@ export default defineConfig({
       command: 'node_modules/.bin/vite --config vite.e2e.config.ts',
       cwd: resolve(root, '../web'),
       url: WEB_URL,
+      timeout: 120_000,
+    },
+    {
+      command: 'node_modules/.bin/vite --config vite.e2e.config.ts',
+      cwd: resolve(root, '../miniapp'),
+      url: MINIAPP_URL,
       timeout: 120_000,
     },
   ],
