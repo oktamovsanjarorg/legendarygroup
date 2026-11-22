@@ -404,10 +404,11 @@
 - **Bog'liq:** T-130, T-403, T-502 · **Talablar:** FR-FIN-2, FR-DASH-3
 - **AC:** oy tushumi, xarajat, foyda, prognoz, qarz jami; tafsilot — web. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
 
-### ⬜ T-125 · Mini App: birinchi ochilishda rolga qarab 3 ta kartochka
+### ✅ T-125 · Mini App: birinchi ochilishda rolga qarab 3 ta kartochka
 
 - **Bog'liq:** T-114, T-116, T-120 · **Bajaruvchi:** agy (A-8), review — Claude
-- **AC:** C-05; Ustoz / Ota-ona / Direktor-Admin uchun 3 kartochka, faqat MainButton/BackButton; koʻrilgani Telegram CloudStorage'da.
+- **AC:** C-06; Ustoz / Ota-ona / Direktor-Admin uchun 3 kartochka, faqat MainButton/BackButton; koʻrilgani Telegram CloudStorage'da.
+- **Bajarildi (2026-11-22):** `screens/common/intro.tsx` (C-06), `pages/intro.tsx` (`IntroGate` — sessiya `ready`dan keyin), `session/intro-store.ts` (`lg_intro_<toʻplam>`); oʻquvchi roli va deep link bilan kirish — tanishtiruvsiz; story, unit va e2e (`miniapp/intro.spec.ts`).
 
 ### 🟨 T-126 · Oʻquvchi roli: shaxsiy kod → bot → oʻquvchi paneli
 

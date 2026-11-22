@@ -1,6 +1,6 @@
+import { appWebApp } from './test-webapp.js';
 import type { ImportPreviewResponse, TestResultItem } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
-import { createFakeWebApp } from '@lg/ui-tg/testing';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -52,7 +52,7 @@ async function openTest() {
 describe('MT-08 import saqlangandan keyin va yordamchi ustoz (T-302, BR-35, Q-62)', () => {
   it('confirm → koʻrib chiqish yopiladi, eʼlon tasdiq bilan bir marta yuboriladi', async () => {
     const calls = setupApi({ preview, tests: [{ ...baseTest(), resultsCount: 0 }] });
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} clock={CLOCK} />);
     await openTest();
     // Natija yo'q, fayl tanlanmagan — "Import qilish" ko'rinmaydi (oldin bosilsa hech narsa qilmasdi).
@@ -81,7 +81,7 @@ describe('MT-08 import saqlangandan keyin va yordamchi ustoz (T-302, BR-35, Q-62
       results: [result],
       tests: [{ ...baseTest(), resultsCount: 1 }],
     });
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} clock={CLOCK} />);
     await openTest();
 

@@ -1,5 +1,5 @@
+import { appWebApp } from './test-webapp.js';
 import { miniappMessages as t } from '@lg/i18n';
-import { createFakeWebApp } from '@lg/ui-tg/testing';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './app.js';
@@ -39,7 +39,7 @@ afterEach(() => {
 describe('MS-01 «Boshqaruv panelini ochish» (T-121)', () => {
   it('MainButton → bir martalik havola tizim brauzerida (openLink)', async () => {
     const calls = fakeApi(json(200, { url: URL_, expiresAt: '2026-11-16T10:01:00Z' }));
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} />);
     await waitFor(() =>
       expect(wa.MainButton.params).toMatchObject({ text: t.dashboard.openPanel, is_visible: true }),
@@ -52,7 +52,7 @@ describe('MS-01 «Boshqaruv panelini ochish» (T-121)', () => {
 
   it('server rad etsa — havola ochilmaydi, xato koʻrsatiladi', async () => {
     fakeApi(json(403, { code: 'FORBIDDEN', message: 'Ruxsat yoʻq.' }));
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} />);
     await waitFor(() =>
       expect(wa.MainButton.params).toMatchObject({ text: t.dashboard.openPanel, is_visible: true }),

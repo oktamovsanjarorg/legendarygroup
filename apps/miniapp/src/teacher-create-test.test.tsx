@@ -1,5 +1,5 @@
+import { appWebApp } from './test-webapp.js';
 import { miniappMessages as t } from '@lg/i18n';
-import { createFakeWebApp } from '@lg/ui-tg/testing';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -14,7 +14,7 @@ afterEach(() => {
 describe('Ustoz MT-07 testlar ro‘yxati va yaratish (T-302)', () => {
   it('1) ro‘yxat → test yaratish oqimi', async () => {
     const calls = setupApi({ tests: [] });
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} clock={CLOCK} />);
 
     await userEvent.click(await screen.findByRole('button', { name: t.tabs.groups }));
@@ -50,7 +50,7 @@ describe('Ustoz MT-07 testlar ro‘yxati va yaratish (T-302)', () => {
 
   it('yordamchi ustozda "Test yaratish" tugmasi yoʻq (Q-62)', async () => {
     setupApi({ isAssistant: true, tests: [] });
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} clock={CLOCK} />);
     await userEvent.click(await screen.findByRole('button', { name: t.tabs.groups }));
     await userEvent.click(await screen.findByText('IELTS B2'));
