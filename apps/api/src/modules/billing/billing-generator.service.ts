@@ -53,7 +53,7 @@ export function applyAdjustments(
 }
 
 /** Ledger: o'qish — `invoice` (+brutto) va kredit bo'lsa `credit` (−kredit); jarima — `penalty`. */
-function ledgerFor(
+export function ledgerFor(
   studentId: string,
   lines: readonly PreparedLine[],
   inserted: readonly { id: string; amount: bigint; kind: string }[],
@@ -98,6 +98,21 @@ export class BillingGeneratorService {
       );
 
     return this.persistInvoices(period, dueDate, studentLinesMap);
+  }
+
+  /**
+   * T-145: bitta o'quvchiga oy hisobi (boshlang'ich sozlashdan keyin, haqiqiy kelgan sana bilan —
+   * BR-3). Bor bo'lsa — o'tkaziladi. Muddat o'tib ketgan bo'lsa — bugun.
+   */
+  async generateForStudent(studentId: string, period: string, today: string): Promise<void> {
+    const { monthStart, monthEnd, defaultDueDate } = this.calculateMonthDates(period);
+    const list = (await this.repo.findActiveEnrollmentsForMonth(monthStart, monthEnd)).filter(
+      (e) => e.studentId === studentId,
+    );
+    const map = await this.prepareLinesByStudent(list, monthStart, monthEnd, period);
+    for (const [id, lines] of map)
+      map.set(id, applyAdjustments(lines, await this.monthClose.adjustments(id, period)));
+    await this.persistInvoices(period, defaultDueDate < today ? today : defaultDueDate, map);
   }
 
   private calculateMonthDates(period: string) {
