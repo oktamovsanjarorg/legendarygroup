@@ -174,6 +174,13 @@
 
 ---
 
+### 🟨 T-020 · E2E testlar (Playwright)
+
+- **Bog'liq:** T-006, T-013 · **Talablar:** 07 §1 (E2E qatori), 06 §4 (8-bosqich)
+- **AC:** `pnpm e2e` ildizdan ishlaydi va CI'da alohida job; haqiqiy API (vaqtinchalik DB) + web (vite) + Mini App (mock `initData`); kritik 10–15 ssenariy: kirish (parol + 2FA), to'lov kiritish → chek, tasdiqlash navbati, guruh yaratish, Mini App davomat; yiqilganda trace/skrinshot artefakt.
+- **Aniqlik (2026-11-22):** `apps/e2e` (`@lg/e2e`, `@playwright/test` — storybook'dagi `playwright-core` bilan bir xil versiya). API — `apps/api/src/e2e/server.ts`: `lg_e2e_*` vaqtinchalik baza, seed, TOTP yoqilgan xodimlar hovuzi (har rolga 8 ta) → `apps/e2e/.fixtures.json`; testlar haqiqiy login qiladi (TOTP kodi `otpauth` bilan, bir oynada bir foydalanuvchi bir marta). Web — `apps/web/vite.e2e.config.ts` (5174 → API 3100). Matnlar — `@lg/i18n`dan (qattiq yozilmaydi).
+- **1-qism bajarildi (2026-11-22):** poydevor, CI job (`E2E (Playwright)`), kirish ssenariylari (muvaffaqiyatli + chiqish, noto'g'ri parol, noto'g'ri 2FA kodi). **Qolgan:** to'lov kiritish → chek, tasdiqlash navbati, guruh yaratish, Mini App davomat.
+
 ## F1 — Asosiy jarayon
 
 ### ✅ T-101 · Xodimlarni boshqarish

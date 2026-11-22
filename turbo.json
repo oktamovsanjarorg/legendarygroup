@@ -24,6 +24,11 @@
       "dependsOn": ["^build"],
       "cache": false,
       "passThroughEnv": ["DATABASE_URL", "REDIS_URL"]
+    },
+    "e2e": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "passThroughEnv": ["DATABASE_URL", "REDIS_URL", "CI"]
     }
   }
 }
