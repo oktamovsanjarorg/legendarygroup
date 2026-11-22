@@ -26,7 +26,7 @@ const POOL_SIZE = 8;
 export async function createBillingFixtures(
   app: NestFastifyApplication,
   db: Database,
-): Promise<E2eStudent[]> {
+): Promise<{ students: E2eStudent[]; courseId: string }> {
   const period = app.get<Clock>(CLOCK_TOKEN).today().slice(0, 7);
   const monthStart = `${period}-01`;
   const [c] = await db
@@ -70,5 +70,5 @@ export async function createBillingFixtures(
     });
   }
   await app.get(BillingGeneratorService).generateMonthlyInvoices(period);
-  return out;
+  return { students: out, courseId: c.id };
 }

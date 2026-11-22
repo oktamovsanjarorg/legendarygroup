@@ -24,6 +24,16 @@ interface E2eFixtures {
   users: Record<E2eUser['role'], E2eUser[]>;
   students: E2eStudent[];
   teacher: { id: string; fullName: string };
+  attendance: E2eAttendance;
+  telegramBotToken: string;
+}
+
+/** `apps/api/src/e2e/fixtures-attendance.ts` — bugungi dars, ustoz Telegram'ga bog'langan. */
+export interface E2eAttendance {
+  teacherTelegramId: string;
+  teacherFirstName: string;
+  lessonId: string;
+  students: string[];
 }
 
 let cache: E2eFixtures | undefined;
