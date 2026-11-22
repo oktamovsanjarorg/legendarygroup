@@ -117,13 +117,13 @@ afterAll(async () => {
   await t.close();
 });
 
-describe('BR-2: oyni yopish → yangi oy invoice (BR-5, BR-8, BR-9)', () => {
+describe('BR-2: oyni yopish → yangi oy invoice (BR-5, BR-7, BR-8, BR-9)', () => {
   it('oldingi davr: yil oʻtishi', () => {
     expect(prevPeriodOf('2027-01')).toBe('2026-12');
     expect(prevPeriodOf('2026-11')).toBe('2026-10');
   });
 
-  it('BR-2: kredit oʻqish qatoridan ayriladi, jarima — alohida qator; ledger brutto + kredit', async () => {
+  it('BR-2, BR-7: kredit faqat BR-5/BR-9 dan (5 ta sababsiz dars narxni kamaytirmaydi), jarima — alohida qator', async () => {
     const gen = t.app.get(BillingGeneratorService);
     await gen.generateMonthlyInvoices('2026-10');
     await gen.generateMonthlyInvoices('2026-11');
