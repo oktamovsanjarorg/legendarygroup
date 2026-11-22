@@ -10,6 +10,7 @@ import {
   useArchiveStudent,
   useEndEnrollment,
 } from '../data/staff-student.js';
+import { useBillingSetupState } from '../data/staff-setup.js';
 import { useStudentCard } from '../data/staff.js';
 import { LeaveView } from '../screens/staff/leave.js';
 import { StudentCardView } from '../screens/staff/student-card.js';
@@ -31,6 +32,8 @@ export function StaffStudentPage() {
   const archive = useArchiveStudent(id);
   const canManage = me.permissions.includes('student.manage');
   const canPay = me.permissions.includes('payment.create');
+  const setupState = useBillingSetupState(id, canManage);
+  const needsSetup = setupState.data?.done === false;
   return (
     <QueryView query={query}>
       {(d) => {
@@ -41,6 +44,11 @@ export function StaffStudentPage() {
             <StudentCardView
               s={d.hit}
               guardians={d.guardians}
+              onSetup={
+                needsSetup && !m.archived
+                  ? () => void navigate({ to: '/staff/student/$id/setup', params: { id } })
+                  : undefined
+              }
               onPay={
                 canPay && !m.archived
                   ? () => void navigate({ to: '/staff/student/$id/pay', params: { id } })

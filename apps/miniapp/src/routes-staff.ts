@@ -7,6 +7,7 @@ import {
 } from './pages/staff.js';
 import { StaffMorePage } from './pages/staff-more.js';
 import { StaffPayPage, StaffPaySearchPage } from './pages/staff-pay.js';
+import { StaffSetupPage } from './pages/staff-setup.js';
 import { StaffLeavePage, StaffStudentPage } from './pages/staff-student.js';
 import { root } from './route-root.js';
 
@@ -21,6 +22,7 @@ export const staffRoutes = [
   route('/staff/search', StaffSearchPage),
   route('/staff/student/$id', StaffStudentPage),
   route('/staff/student/$id/leave/$enrollmentId', StaffLeavePage),
+  route('/staff/student/$id/setup', StaffSetupPage),
   route('/staff/more', StaffMorePage),
   route('/staff/pay', StaffPaySearchPage),
   route('/staff/student/$id/pay', StaffPayPage),

@@ -411,7 +411,7 @@
 - **Bog'liq:** T-201, T-204, T-144 · **Talablar:** FR-PAY-1, BR-3, BR-12 · **Qaror:** Q-94
 - **Sabab (egasi, 2026-11-22):** oʻquvchilar har xil sanada kelgan, tizimga hozir oʻtilmoqda; «oldingi oyni toʻladi, bu oyni yoʻq» kabi holatlar kartochkadan hal qilinishi kerak.
 - **AC:** `POST /billing/students/:id/setup` — har aʼzolik uchun haqiqiy kelgan sana (guruh ochilishidan oldin ham), tizimdan oldingi toʻlanmagan oylar (oy + summa); keyin joriy oy hisobi (BR-3 kelgan sana boʻyicha). Bir marta: joriy oy hisobi bor boʻlsa — 409 `BILLING_ALREADY_SET`. Toʻlov — oddiy yoʻl, FIFO. UI: Mini App MS-05b va web W-06.
-- **Bajarildi (server, 2026-11-22):** `student-setup.{service,controller}.ts`, `EnrollmentsService.correctStartDate`, `BillingGeneratorService.generateForStudent`; int testlar. Qolgan: UI.
+- **Bajarildi (2026-11-22):** server — `student-setup.{service,controller}.ts`, `EnrollmentsService.correctStartDate`, `BillingGeneratorService.generateForStudent`; int testlar. Mini App MS-05b (`screens/staff/setup.tsx`, `pages/staff-setup.tsx`) — kartochkada hisob boshlanmagan boʻlsa «Toʻlov holatini sozlash». Qolgan: web W-06.
 
 ### ⬜ T-143 · Mini App: moliya xulosasi (MS-19, Director)
 
