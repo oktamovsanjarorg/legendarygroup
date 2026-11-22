@@ -33,13 +33,15 @@ const ADMIN_TABS: readonly TabItem[] = [
   { screen: 'MS-01', to: '/', label: t.stabs.today, icon: CalendarCheck },
   { screen: 'MS-02', to: '/staff/queue', label: t.stabs.queue, icon: Receipt },
   { screen: 'MS-04', to: '/staff/search', label: t.stabs.search, icon: Search },
+  { screen: 'MS-06', to: '/staff/more', label: t.stabs.more, icon: Ellipsis },
 ];
 
+/** Director: chek navbati — Bugun kartochkasi va Koʻproq'da (11-ux §2, 2026-11-22). */
 const DIRECTOR_TABS: readonly TabItem[] = [
   { screen: 'MS-01', to: '/', label: t.stabs.today, icon: CalendarCheck },
-  { screen: 'MS-02', to: '/staff/queue', label: t.stabs.queue, icon: Receipt },
   { screen: 'MS-03', to: '/staff/approvals', label: t.stabs.approvals, icon: ClipboardCheck },
   { screen: 'MS-04', to: '/staff/search', label: t.stabs.search, icon: Search },
+  { screen: 'MS-06', to: '/staff/more', label: t.stabs.more, icon: Ellipsis },
 ];
 
 const STUDENT_TABS: readonly TabItem[] = [
@@ -51,7 +53,8 @@ const STUDENT_TABS: readonly TabItem[] = [
 
 /**
  * Pastki menyu rolga qarab (11-ux §2: Ustoz — Bugun/Guruhlarim/Jadval/Profil; Ota-ona —
- * Asosiy/Natijalar/To'lovlar/Ko'proq; xodim — Bugun/Navbat/So'rovlar/Qidiruv; Oʻquvchi —
+ * Asosiy/Natijalar/To'lovlar/Ko'proq; Admin — Bugun/Navbat/Qidiruv/Ko'proq; Director —
+ * Bugun/So'rovlar/Qidiruv/Ko'proq; Oʻquvchi —
  * Bugun/Jadval/Natijalar/Profil).
  */
 export const TABS: Readonly<Record<RoleCode, readonly TabItem[]>> = {

@@ -334,7 +334,7 @@
 - **AC:** `teacher_student_codes` (0038); `GET/PUT /api/teacher-codes` — faqat ustoz, oʻz guruhi, band kod — 409 `STUDENT_CODE_TAKEN`, bir soʻrovda almashtirish, `null` — olib tashlash, audit `student.teacher_code_set`; taklif — eng kichik boʻsh kodlar; Excel shabloni/importi testni yaratgan ustoz kodlari bilan; Mini App MT-05 → «Oʻquvchi kodlari» (MT-05a) ekrani: roʻyxat, taklif oldindan toʻldirilgan, MainButton «Saqlash», 5 holat, Storybook.
 - **Holat:** API + import — PR 1 ✅; Mini App MT-05a ekrani — PR 2 ✅ (Storybook: `miniapp/Ustoz/MT-05a`). Qolgan: haqiqiy Telegram'da qoʻlda sinov.
 
-### ⬜ T-130 · Mini App xodim: «Ko'proq» menyusi va tablar (MS-06)
+### ✅ T-130 · Mini App xodim: «Ko'proq» menyusi va tablar (MS-06)
 
 - **Bog'liq:** T-120 · **Talablar:** 11-ux §2 (2026-11-22 qarori)
 - **AC:** Admin tablari Bugun/Navbat/Qidiruv/Ko'proq, Director — Bugun/So'rovlar/Qidiruv/Ko'proq; MS-06 ruxsatga qarab bo'limlar; Bugun'da navbat/so'rovlar kartochkasi; qurilmagan band ko'rsatilmaydi; router fayllari ≤ 300 qator (xodim marshrutlari alohida faylda). Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).

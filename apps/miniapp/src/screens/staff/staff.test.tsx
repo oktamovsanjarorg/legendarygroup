@@ -94,3 +94,17 @@ describe('MS-02 chek navbati (FR-PAY-4, BR-13)', () => {
     expect(wa.SecondaryButton.params.is_active).toBe(false);
   });
 });
+
+describe('MS-06 Koʻproq (T-130)', () => {
+  it('boʻlim sarlavhasi, band soni va bosish', async () => {
+    const { StaffMoreView } = await import('./more.js');
+    const { staffMenuFor } = await import('../../data/staff-menu.js');
+    const onOpen = vi.fn();
+    const groups = staffMenuFor(['payment.review', 'approval.decide'], []);
+    render(<StaffMoreView groups={groups} counts={{ queue: 3 }} onOpen={onOpen} />);
+    expect(screen.getByText('Pul')).toBeTruthy();
+    expect(screen.getByText('3')).toBeTruthy();
+    fireEvent.click(screen.getByText('Chek navbati'));
+    expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ to: '/staff/queue' }));
+  });
+});

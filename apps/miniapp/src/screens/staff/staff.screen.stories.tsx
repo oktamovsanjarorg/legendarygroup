@@ -2,13 +2,16 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { must, OfflineFrame, STAFF_TABS, stateStories, TabRoot } from '../story-kit.js';
 import { ApprovalDecisionView, ApprovalsView } from './approvals.js';
 import { StaffDashboardView } from './dashboard.js';
+import { StaffMoreView } from './more.js';
+import { ROLE_PERMISSIONS } from '@lg/contracts';
+import { staffMenuFor } from '../../data/staff-menu.js';
 import { APPROVALS, GUARDIANS, KPI, QUEUE, STUDENTS } from './mock.js';
 import { ReviewView } from './review.js';
 import { matchStudents, SearchView } from './search.js';
 import { StudentCardView } from './student-card.js';
 
 const noop = () => undefined;
-const meta: Meta = { title: 'miniapp/Xodim/MS-01–05' };
+const meta: Meta = { title: 'miniapp/Xodim/MS-01–06' };
 export default meta;
 type Story = StoryObj<typeof meta>;
 
@@ -96,6 +99,19 @@ export const MS04_NotFound: Story = {
 export const MS05_Card: Story = {
   tags: ['primary'],
   render: () => <StudentCardView s={student} guardians={GUARDIANS} />,
+};
+/** MS-06 Koʻproq — Director (navbat tabda emas). */
+export const MS06_Director: Story = {
+  tags: ['primary'],
+  render: () =>
+    root(
+      '/more',
+      <StaffMoreView
+        groups={staffMenuFor(ROLE_PERMISSIONS.director, ['/', '/staff/approvals'])}
+        counts={{ queue: 3 }}
+        onOpen={noop}
+      />,
+    ),
 };
 export const Loading: Story = stateStories.Loading;
 export const Error: Story = stateStories.Error;

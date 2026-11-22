@@ -14,7 +14,6 @@ import {
   ClipboardCheck,
   Ellipsis,
   House,
-  Receipt,
   Search,
   UserRound,
   Users,
@@ -50,9 +49,9 @@ export const STUDENT_TABS: TabItem[] = [
 /** Xodim rejimi (11-ux §2): navbatda badge; "So'rovlar" — faqat Director. */
 export const STAFF_TABS: TabItem[] = [
   { screen: 'MS-01', to: '/', label: t.stabs.today, icon: CalendarCheck },
-  { screen: 'MS-02', to: '/queue', label: t.stabs.queue, icon: Receipt, badge: 3 },
   { screen: 'MS-03', to: '/approvals', label: t.stabs.approvals, icon: ClipboardCheck, badge: 2 },
   { screen: 'MS-04', to: '/search', label: t.stabs.search, icon: Search },
+  { screen: 'MS-06', to: '/more', label: t.stabs.more, icon: Ellipsis },
 ];
 
 /** Tab ildiz ekrani: pastda rol menyusi (standart — Ustoz). */
