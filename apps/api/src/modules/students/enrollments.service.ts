@@ -58,6 +58,31 @@ export class EnrollmentsService {
     );
   }
 
+  /**
+   * T-145: tizimga o'tishda haqiqiy kelgan sana (guruh ochilgan sanadan oldin ham bo'lishi mumkin).
+   * Faqat hisob yozilmagan o'quvchi uchun — chaqiruvchi (billing setup) o'z tranzaksiyasida tekshiradi.
+   */
+  async correctStartDate(ctx: AuditContext, id: string, startDate: string, tx: Transaction) {
+    const e = await this.lock(tx, id);
+    if (startDate > this.clock.today() || (e.endDate !== null && startDate > e.endDate))
+      throw new AppException(HttpStatus.BAD_REQUEST, 'INVALID_DATE_RANGE', { endDate: e.endDate });
+    if (startDate === e.startDate) return e;
+    await tx.update(enrollments).set({ startDate }).where(eq(enrollments.id, id));
+    const before = { startDate: e.startDate };
+    await this.audit.record(
+      ctx,
+      {
+        action: 'enrollment.start_corrected',
+        entity: 'enrollment',
+        entityId: id,
+        before,
+        after: { startDate },
+      },
+      tx,
+    );
+    return { ...e, startDate };
+  }
+
   /** Chiqarish (ketdi/tugatdi); kelajakdagi sana — rejalashtirilgan chiqish. */
   async end(
     ctx: AuditContext,

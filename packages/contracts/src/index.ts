@@ -13,6 +13,7 @@ export * from './lessons.js';
 export * from './leads.js';
 export * from './settings.js';
 export * from './billing.js';
+export * from './billing-setup.js';
 export * from './payment-preview.js';
 export * from './payment-view.js';
 export * from './submissions.js';

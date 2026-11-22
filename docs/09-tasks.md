@@ -406,6 +406,13 @@
 - **AC:** MS-05 guruh qatori → MS-05a (oxirgi kun ≥ boshlangan sana, sabab, izoh, MainButton); «Arxivlash» — ActionSheet tasdiq, faol guruh boʻlsa bloklangan (server 409 `STUDENT_HAS_ACTIVE_GROUPS`); arxivda — belgi, «Arxivdan chiqarish», toʻlov tugmasi yoʻq. `student.manage`siz — amallar koʻrinmaydi.
 - **Bajarildi (2026-11-22):** `data/staff-student.ts`, `screens/staff/{student-manage,leave}.tsx`, `pages/staff-student.tsx`; story, unit testlar.
 
+### 🟨 T-145 · Boshlangʻich holat: kelgan sana va tizimdan oldingi qarz (oʻquvchi kartochkasidan)
+
+- **Bog'liq:** T-201, T-204, T-144 · **Talablar:** FR-PAY-1, BR-3, BR-12 · **Qaror:** Q-94
+- **Sabab (egasi, 2026-11-22):** oʻquvchilar har xil sanada kelgan, tizimga hozir oʻtilmoqda; «oldingi oyni toʻladi, bu oyni yoʻq» kabi holatlar kartochkadan hal qilinishi kerak.
+- **AC:** `POST /billing/students/:id/setup` — har aʼzolik uchun haqiqiy kelgan sana (guruh ochilishidan oldin ham), tizimdan oldingi toʻlanmagan oylar (oy + summa); keyin joriy oy hisobi (BR-3 kelgan sana boʻyicha). Bir marta: joriy oy hisobi bor boʻlsa — 409 `BILLING_ALREADY_SET`. Toʻlov — oddiy yoʻl, FIFO. UI: Mini App MS-05b va web W-06.
+- **Bajarildi (server, 2026-11-22):** `student-setup.{service,controller}.ts`, `EnrollmentsService.correctStartDate`, `BillingGeneratorService.generateForStudent`; int testlar. Qolgan: UI.
+
 ### ⬜ T-143 · Mini App: moliya xulosasi (MS-19, Director)
 
 - **Bog'liq:** T-130, T-403, T-502 · **Talablar:** FR-FIN-2, FR-DASH-3

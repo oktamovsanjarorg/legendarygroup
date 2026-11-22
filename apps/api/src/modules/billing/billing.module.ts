@@ -33,6 +33,8 @@ import { StornoCashService } from './storno-cash.service.js';
 import { SubmissionsController } from './submissions.controller.js';
 import { SubmissionsRepository } from './submissions.repository.js';
 import { SubmissionsService } from './submissions.service.js';
+import { StudentBillingSetupController } from './student-setup.controller.js';
+import { StudentBillingSetupService } from './student-setup.service.js';
 
 @Module({
   imports: [
@@ -51,6 +53,7 @@ import { SubmissionsService } from './submissions.service.js';
     BillingController,
     DebtorsController,
     SubmissionsController,
+    StudentBillingSetupController,
   ],
   providers: [
     MonthCloseRepository,
@@ -74,6 +77,7 @@ import { SubmissionsService } from './submissions.service.js';
     ReceiptPdfService,
     SubmissionsRepository,
     SubmissionsService,
+    StudentBillingSetupService,
   ],
   exports: [
     BillingService,

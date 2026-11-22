@@ -56,6 +56,7 @@ import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
     StudentScopeService,
     StudentsQueryService,
     EnrollmentsQueryService,
+    EnrollmentsService,
     TeacherCodesService,
   ],
 })
