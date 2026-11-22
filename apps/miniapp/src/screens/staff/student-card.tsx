@@ -1,6 +1,6 @@
 import { formatPhone, miniappMessages as t } from '@lg/i18n';
 import { ListItem, MoneyText, Section } from '@lg/ui-tg';
-import { Phone, Wallet } from 'lucide-react';
+import { CalendarCog, Phone, Wallet } from 'lucide-react';
 import type { StudentHit } from './search.js';
 import { ArchiveSection, ManageGroups, type StudentManageProps } from './student-manage.js';
 
@@ -32,12 +32,40 @@ function GuardianRow({ g }: { g: Guardian }) {
   );
 }
 
+function CardActions({ onSetup, onPay }: { onSetup?: () => void; onPay?: () => void }) {
+  return (
+    <>
+      {onSetup && (
+        <Section footer={t.staffSetup.openHint}>
+          <ListItem
+            before={<CalendarCog className="size-5 text-warning" aria-hidden />}
+            title={t.staffSetup.open}
+            chevron
+            onClick={onSetup}
+          />
+        </Section>
+      )}
+      {onPay && (
+        <Section>
+          <ListItem
+            before={<Wallet className="size-5" aria-hidden />}
+            title={t.studentCard.pay}
+            chevron
+            onClick={onPay}
+          />
+        </Section>
+      )}
+    </>
+  );
+}
+
 /** MS-05 O'quvchi kartochkasi: guruhlar, qarz, ota-ona telefoni (qo'ng'iroq — `tel:`). */
 export function StudentCardView({
   s,
   guardians,
   onPay,
   manage,
+  onSetup,
 }: {
   s: StudentHit;
   guardians: readonly Guardian[];
@@ -45,6 +73,8 @@ export function StudentCardView({
   onPay?: () => void;
   /** `student.manage` bo'lsa — guruhdan chiqarish va arxiv (T-144). */
   manage?: StudentManageProps;
+  /** T-145: hisob hali boshlanmagan — boshlang'ich holatni sozlash (MS-05b). */
+  onSetup?: () => void;
 }) {
   return (
     <main className="flex flex-col gap-4 p-2 pt-3 pb-6">
@@ -62,16 +92,7 @@ export function StudentCardView({
           <span className="text-xl font-semibold text-success">{t.childHome.settled}</span>
         )}
       </div>
-      {onPay && (
-        <Section>
-          <ListItem
-            before={<Wallet className="size-5" aria-hidden />}
-            title={t.studentCard.pay}
-            chevron
-            onClick={onPay}
-          />
-        </Section>
-      )}
+      <CardActions onSetup={onSetup} onPay={onPay} />
       {manage?.m.archived && <ArchivedBanner />}
       {manage ? (
         <ManageGroups m={manage.m} onLeave={manage.onLeave} />
