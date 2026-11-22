@@ -11,8 +11,19 @@ export interface E2eUser {
   totpSecret: string;
 }
 
+/** `apps/api/src/e2e/fixtures-billing.ts` — joriy oy invoice'i bor o'quvchi. */
+export interface E2eStudent {
+  id: string;
+  fullName: string;
+  code: number;
+  groupName: string;
+  debt: string;
+}
+
 interface E2eFixtures {
   users: Record<E2eUser['role'], E2eUser[]>;
+  students: E2eStudent[];
+  teacher: { id: string; fullName: string };
 }
 
 let cache: E2eFixtures | undefined;
@@ -21,4 +32,16 @@ let cache: E2eFixtures | undefined;
 export function fixtures(): E2eFixtures {
   cache ??= JSON.parse(readFileSync(FIXTURES_FILE, 'utf8')) as E2eFixtures;
   return cache;
+}
+
+let nextStudent = 0;
+
+/** O'quvchilar hovuzidan (worker'lar kesishmaydi) — har to'lov testi o'z o'quvchisi bilan. */
+export function pickStudent(info: { parallelIndex: number; config: { workers: number } }) {
+  const pool = fixtures().students;
+  const workers = Math.max(1, info.config.workers);
+  const s = pool[(info.parallelIndex + workers * nextStudent) % pool.length];
+  nextStudent += 1;
+  if (!s) throw new Error("e2e o'quvchilar hovuzi bo'sh");
+  return s;
 }

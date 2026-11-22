@@ -14,6 +14,7 @@ import { closeDb, createDb, loadRootEnv, seed } from '@lg/db';
 import { createTempDb, dropStaleTempDbs } from '@lg/db/testing';
 import { createApp } from '../app.factory.js';
 import { testEnv } from '../test/env.js';
+import { createBillingFixtures } from './fixtures-billing.js';
 import { createE2eFixtures } from './fixtures.js';
 
 const logger = new Logger('E2E');
@@ -37,12 +38,15 @@ async function main(): Promise<void> {
   await seed(tmp.url, { withTestDirector: false });
   const env = testEnv({ DATABASE_URL: tmp.url, REDIS_URL: redisUrl, PORT: port });
 
+  const { app } = await createApp(env);
   const db = createDb(tmp.url, { max: 1 });
-  const fixtures = await createE2eFixtures(db, env.get('TOTP_ENCRYPTION_KEY'));
+  const fixtures = {
+    ...(await createE2eFixtures(db, env.get('TOTP_ENCRYPTION_KEY'))),
+    students: await createBillingFixtures(app, db),
+  };
   await closeDb(db);
   await writeFile(fixturesFile, JSON.stringify(fixtures, null, 2));
 
-  const { app } = await createApp(env);
   await app.listen({ port: env.get('PORT'), host: '127.0.0.1' });
   logger.log(`E2E API: port ${port}, baza ${tmp.url.split('/').pop() ?? ''}`);
 }
