@@ -28,6 +28,8 @@ export function matchStudents(query: string, all: readonly StudentHit[]): Studen
 }
 
 interface Props {
+  /** Sarlavha (standart — «Qidiruv»; to'lov uchun — «Kimdan to'lov?»). */
+  title?: string;
   query: string;
   results: readonly StudentHit[];
   onQuery: (q: string) => void;
@@ -35,11 +37,11 @@ interface Props {
 }
 
 /** MS-04 Qidiruv: ism / telefon / ID. */
-export function SearchView({ query, results, onQuery, onOpen }: Props) {
+export function SearchView({ title = t.search.title, query, results, onQuery, onOpen }: Props) {
   const short = query.trim().length < 2;
   return (
     <main className="flex flex-col gap-3 p-2 pt-3">
-      <h1 className="px-2 text-2xl font-bold text-text">{t.search.title}</h1>
+      <h1 className="px-2 text-2xl font-bold text-text">{title}</h1>
       <SearchField
         value={query}
         placeholder={t.search.placeholder}

@@ -339,7 +339,7 @@
 - **Bog'liq:** T-120 · **Talablar:** 11-ux §2 (2026-11-22 qarori)
 - **AC:** Admin tablari Bugun/Navbat/Qidiruv/Ko'proq, Director — Bugun/So'rovlar/Qidiruv/Ko'proq; MS-06 ruxsatga qarab bo'limlar; Bugun'da navbat/so'rovlar kartochkasi; qurilmagan band ko'rsatilmaydi; router fayllari ≤ 300 qator (xodim marshrutlari alohida faylda). Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
 
-### ⬜ T-131 · Mini App: to'lov kiritish (MS-07)
+### ✅ T-131 · Mini App: to'lov kiritish (MS-07)
 
 - **Bog'liq:** T-130, T-204 · **Talablar:** FR-PAY-1/2, BR-12
 - **AC:** MS-05 kartochkasidan va MS-06'dan; preview (taqsimot) server'dan; `Idempotency-Key` forma ochilganda; MainButton Saqlash; chek raqami + PDF; e2e ssenariy. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
