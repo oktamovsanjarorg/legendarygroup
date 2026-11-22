@@ -111,6 +111,20 @@ export const staffMessages = {
     restore: 'Arxivdan chiqarish',
     cancel: 'Bekor qilish',
   },
+  /** MS-05b Boshlangʻich holat (T-145, Q-94): kelgan sana va tizimdan oldingi qarz. */
+  staffSetup: {
+    open: 'Toʻlov holatini sozlash',
+    openHint: 'Kelgan sanasi va oldingi oylar — bir marta, toʻlov qabul qilishdan oldin.',
+    title: 'Toʻlov holati',
+    hint: 'Oʻquvchi qachon kelgan va qaysi oylar uchun toʻlamagan? Kiritilmagan oʻtgan oylar toʻlangan hisoblanadi.',
+    startDate: 'Kelgan sana',
+    months: 'Oldingi oylar',
+    paid: 'Toʻlangan',
+    unpaid: 'Toʻlanmagan',
+    noMonths: 'Shu oyda kelgan — oldingi oy yoʻq.',
+    current: 'Joriy oy hisobi kelgan sanaga qarab avtomatik yoziladi.',
+    save: 'Saqlash',
+  },
   /** MS-05a Guruhdan chiqarish (T-144, FR-STU-3/6). */
   staffLeave: {
     title: 'Guruhdan chiqarish',
