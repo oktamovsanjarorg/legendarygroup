@@ -142,6 +142,8 @@ export function useStudentCard(id: string) {
         .map((e) => e.group);
       return {
         hit: studentHit({ ...s, groups, frozen: false, guardian: null }, debt),
+        enrollments,
+        archivedAt: s.archivedAt,
         guardians: s.guardians.map((g) => ({
           name: g.fullName,
           relation: t.studentCard.relations[g.relation],

@@ -399,6 +399,13 @@
 - **Bog'liq:** T-130, T-403 · **Talablar:** FR-FIN-1
 - **AC:** turkum, summa (bigint), sana, izoh. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
 
+### ✅ T-144 · Mini App: oʻquvchini guruhdan chiqarish va arxivlash (MS-05a)
+
+- **Bog'liq:** T-105, T-106, T-120 · **Talablar:** FR-STU-3, FR-STU-6 · **Qaror:** Q-93
+- **Sabab:** egasining savoli (2026-11-22) — «oʻquvchini qanday oʻchiramiz?». Oʻchirish yoʻq (FR-STU-6), arxivlash faqat web'da edi.
+- **AC:** MS-05 guruh qatori → MS-05a (oxirgi kun ≥ boshlangan sana, sabab, izoh, MainButton); «Arxivlash» — ActionSheet tasdiq, faol guruh boʻlsa bloklangan (server 409 `STUDENT_HAS_ACTIVE_GROUPS`); arxivda — belgi, «Arxivdan chiqarish», toʻlov tugmasi yoʻq. `student.manage`siz — amallar koʻrinmaydi.
+- **Bajarildi (2026-11-22):** `data/staff-student.ts`, `screens/staff/{student-manage,leave}.tsx`, `pages/staff-student.tsx`; story, unit testlar.
+
 ### ⬜ T-143 · Mini App: moliya xulosasi (MS-19, Director)
 
 - **Bog'liq:** T-130, T-403, T-502 · **Talablar:** FR-FIN-2, FR-DASH-3

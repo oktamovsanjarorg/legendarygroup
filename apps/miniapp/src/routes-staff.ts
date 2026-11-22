@@ -4,10 +4,10 @@ import {
   StaffApprovalsPage,
   StaffQueuePage,
   StaffSearchPage,
-  StaffStudentPage,
 } from './pages/staff.js';
 import { StaffMorePage } from './pages/staff-more.js';
 import { StaffPayPage, StaffPaySearchPage } from './pages/staff-pay.js';
+import { StaffLeavePage, StaffStudentPage } from './pages/staff-student.js';
 import { root } from './route-root.js';
 
 /** Xodim rejimi (MS-*, 11-ux §2): Director/Admin marshrutlari. */
@@ -20,6 +20,7 @@ export const staffRoutes = [
   route('/staff/approvals/$id', StaffApprovalPage),
   route('/staff/search', StaffSearchPage),
   route('/staff/student/$id', StaffStudentPage),
+  route('/staff/student/$id/leave/$enrollmentId', StaffLeavePage),
   route('/staff/more', StaffMorePage),
   route('/staff/pay', StaffPaySearchPage),
   route('/staff/student/$id/pay', StaffPayPage),

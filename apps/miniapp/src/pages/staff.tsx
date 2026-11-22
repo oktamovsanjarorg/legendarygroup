@@ -12,14 +12,12 @@ import {
   useReviewDecision,
   useReviewQueue,
   useStaffKpi,
-  useStudentCard,
   useStudentSearch,
 } from '../data/staff.js';
 import { ApprovalDecisionView, ApprovalsView } from '../screens/staff/approvals.js';
 import { type KpiTarget, StaffDashboardView } from '../screens/staff/dashboard.js';
 import { ReviewView } from '../screens/staff/review.js';
 import { SearchView } from '../screens/staff/search.js';
-import { StudentCardView } from '../screens/staff/student-card.js';
 import { useMe } from '../session/session.js';
 
 const Alert = ({ error }: { error: unknown }) => (
@@ -155,20 +153,5 @@ export function StaffSearchPage() {
       onQuery={setQ}
       onOpen={(s) => void navigate({ to: '/staff/student/$id', params: { id: s.id } })}
     />
-  );
-}
-
-export function StaffStudentPage() {
-  const { id } = useParams({ from: '/staff/student/$id' });
-  const me = useMe();
-  const navigate = useNavigate();
-  const query = useStudentCard(id);
-  const onPay = me.permissions.includes('payment.create')
-    ? () => void navigate({ to: '/staff/student/$id/pay', params: { id } })
-    : undefined;
-  return (
-    <QueryView query={query}>
-      {(d) => <StudentCardView s={d.hit} guardians={d.guardians} onPay={onPay} />}
-    </QueryView>
   );
 }
