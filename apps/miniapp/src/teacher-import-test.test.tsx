@@ -1,6 +1,6 @@
+import { appWebApp } from './test-webapp.js';
 import type { ImportPreviewResponse } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
-import { createFakeWebApp } from '@lg/ui-tg/testing';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -42,7 +42,7 @@ describe('Ustoz MT-08 Excel import, fuzzy qaror va tasdiqlash (T-302, BR-35)', (
     };
 
     const calls = setupApi({ preview, tests: [{ ...baseTest(), resultsCount: 0 }] });
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} clock={CLOCK} />);
 
     await userEvent.click(await screen.findByRole('button', { name: t.tabs.groups }));

@@ -1,6 +1,6 @@
+import { appWebApp } from './test-webapp.js';
 import type { RoleCode } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
-import { createFakeWebApp } from '@lg/ui-tg/testing';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -63,7 +63,7 @@ afterEach(() => {
 describe('Mini App qobig‘i (T-009)', () => {
   it("C-03: bog'lanmagan — MainButton «Botga qaytish» ilovani yopadi", async () => {
     fakeApi({ roles: null });
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} />);
     await screen.findByText(t.notLinked.title);
     // MainButton — passive effect'da (render'dan keyin): kutiladi.
@@ -76,7 +76,7 @@ describe('Mini App qobig‘i (T-009)', () => {
 
   it('C-02 → bosh sahifa → C-04 rol almashtirish (eslab qolinadi, BackButton)', async () => {
     const calls = fakeApi({ roles: ['teacher', 'guardian'] });
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} />);
     await userEvent.click(await screen.findByRole('button', { name: t.roles.teacher }));
     await screen.findByText(t.home.greeting.replace('{name}', 'Ali Valiyev'));
@@ -96,7 +96,7 @@ describe('Mini App qobig‘i (T-009)', () => {
 
   it('deep link begona rol uchun (apr_ — faqat Direktor) — «Ruxsat yoʻq»', async () => {
     fakeApi({ roles: ['teacher'] });
-    const wa = createFakeWebApp({ startParam: 'apr_3f1c2a9e' });
+    const wa = appWebApp({ startParam: 'apr_3f1c2a9e' });
     render(<App webApp={wa} />);
     await screen.findByText(t.states.forbiddenTitle);
     await userEvent.click(screen.getByRole('button', { name: t.states.forbiddenAction }));
@@ -105,7 +105,7 @@ describe('Mini App qobig‘i (T-009)', () => {
 
   it("token eskirdi — initData faol rol bilan qayta almashtiriladi, so'rov takrorlanadi", async () => {
     const calls = fakeApi({ roles: ['teacher', 'guardian'], expireOnce: true });
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     wa.storage.set('lg_role', 'guardian');
     render(<App webApp={wa} />);
     await screen.findByText(t.home.greeting.replace('{name}', 'Ali Valiyev'));

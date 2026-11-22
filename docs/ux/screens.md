@@ -31,13 +31,14 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 
 ### 1.1 Umumiy (C)
 
-| ID   | Ekran                | Maqsad                                       | Ma'lumotlar                      | Amallar                                       | Ruxsat |
-| ---- | -------------------- | -------------------------------------------- | -------------------------------- | --------------------------------------------- | ------ |
-| C-01 | Kirish (splash)      | `initData` → token (T-007)                   | —                                | avtomatik; xato bo'lsa "Botda /start bosing"  | —      |
-| C-02 | Rol tanlash          | Bir nechta rol (FR-AUTH-5)                   | rollar ro'yxati                  | rolni tanlash (eslab qolinadi)                | —      |
-| C-03 | Bog'lanmagan akkaunt | `TELEGRAM_NOT_LINKED`                        | —                                | "Botga qaytish" (`/start` — telefon ulashish) | —      |
-| C-04 | Sozlamalar           | Rol almashtirish, bildirishnomalar, til (uz) | joriy rol, bildirishnoma turlari | rol almashtirish, turlarni yoqish/o'chirish   | auth   |
-| C-05 | Fikr-mulohaza        | Xato/taklif (T-118)                          | avtomatik kontekst               | **Yuborish** (matn + skrinshot)               | auth   |
+| ID   | Ekran                | Maqsad                                             | Ma'lumotlar                               | Amallar                                                                                                       | Ruxsat |
+| ---- | -------------------- | -------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------ |
+| C-01 | Kirish (splash)      | `initData` → token (T-007)                         | —                                         | avtomatik; xato bo'lsa "Botda /start bosing"                                                                  | —      |
+| C-02 | Rol tanlash          | Bir nechta rol (FR-AUTH-5)                         | rollar ro'yxati                           | rolni tanlash (eslab qolinadi)                                                                                | —      |
+| C-03 | Bog'lanmagan akkaunt | `TELEGRAM_NOT_LINKED`                              | —                                         | "Botga qaytish" (`/start` — telefon ulashish)                                                                 | —      |
+| C-04 | Sozlamalar           | Rol almashtirish, bildirishnomalar, til (uz)       | joriy rol, bildirishnoma turlari          | rol almashtirish, turlarni yoqish/o'chirish                                                                   | auth   |
+| C-05 | Fikr-mulohaza        | Xato/taklif (T-118)                                | avtomatik kontekst                        | **Yuborish** (matn + skrinshot)                                                                               | auth   |
+| C-06 | Tanishtiruv          | Birinchi ochilish: rolga qarab 3 kartochka (T-125) | Ustoz / Ota-ona / Direktor-Admin toʻplami | **Keyingi** → **Boshlash**; BackButton — oldingisi; koʻrilgani CloudStorage'da; deep link bilan — oʻtkaziladi | auth   |
 
 ### 1.2 Ustoz (MT) — pastki menyu: Bugun · Guruhlarim · Jadval · Profil
 

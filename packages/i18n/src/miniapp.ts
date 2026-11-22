@@ -1,3 +1,4 @@
+import { introMessages } from './miniapp-intro.js';
 import { guardianMessages } from './miniapp-guardian.js';
 import { staffMessages } from './miniapp-staff.js';
 import { studentMessages } from './miniapp-student.js';
@@ -40,6 +41,7 @@ export const miniappMessages = {
   ...guardianMessages,
   ...staffMessages,
   ...studentMessages,
+  ...introMessages,
   feedback: {
     title: 'Taklif yoki xato haqida',
     hint: 'Nima yaxshi ishlamayapti yoki nimani yaxshilash kerak? Biz har bir xabarni oʻqiymiz.',

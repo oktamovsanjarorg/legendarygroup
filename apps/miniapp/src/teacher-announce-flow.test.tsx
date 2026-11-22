@@ -1,5 +1,5 @@
+import { appWebApp } from './test-webapp.js';
 import { miniappMessages as t } from '@lg/i18n';
-import { createFakeWebApp } from '@lg/ui-tg/testing';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -14,7 +14,7 @@ afterEach(() => {
 describe('Ustoz MT-10 e‘lon va yordamchi ustoz cheklovlari (T-305, Q-62)', () => {
   it('3) e‘lon → tasdiq → POST /announcements 1 marta', async () => {
     const calls = setupApi({});
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} clock={CLOCK} />);
 
     await userEvent.click(await screen.findByRole('button', { name: t.tabs.groups }));
@@ -48,7 +48,7 @@ describe('Ustoz MT-10 e‘lon va yordamchi ustoz cheklovlari (T-305, Q-62)', () 
 
   it('4) yordamchi ustozda tugmalar yo‘qligi testi (Q-62)', async () => {
     setupApi({ isAssistant: true });
-    const wa = createFakeWebApp();
+    const wa = appWebApp();
     render(<App webApp={wa} clock={CLOCK} />);
 
     await userEvent.click(await screen.findByRole('button', { name: t.tabs.groups }));

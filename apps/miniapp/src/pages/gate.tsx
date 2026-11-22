@@ -12,6 +12,7 @@ import {
 import { Link2Off } from 'lucide-react';
 import { useState } from 'react';
 import { useSession } from '../session/session.js';
+import { IntroGate } from './intro.js';
 import { RoleList } from './role-list.js';
 
 /** C-02: bir nechta rol — tanlash (eslab qolinadi). */
@@ -78,6 +79,6 @@ export function SessionGate({ children }: { children: React.ReactNode }) {
         />
       );
     case 'ready':
-      return <>{children}</>;
+      return <IntroGate role={state.me.activeRole}>{children}</IntroGate>;
   }
 }
