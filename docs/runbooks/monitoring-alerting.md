@@ -18,7 +18,8 @@ Ushbu runbook Legendary Group tizimining barcha qatlamlarida (API, Worker, Bot, 
 
 ## 2. Metrikalar endpointi (`/api/health/metrics`)
 
-API har qanday Prometheus/OpenMetrics qabul qiluvchi vosita uchun quyidagi asosiy ko'rsatkichlarni taqdim etadi:
+API har qanday Prometheus/OpenMetrics qabul qiluvchi vosita uchun quyidagi asosiy ko'rsatkichlarni taqdim etadi.
+**Faqat ichki tarmoqdan:** Caddy tashqaridan `/api/health/metrics` ga 404 qaytaradi; yig'uvchi (agent) Docker tarmog'ida `http://api:3000/api/health/metrics` ga murojaat qiladi.
 
 - `process_uptime_seconds` — API jarayoni ish vaqti (soniya)
 - `process_heap_used_bytes`, `process_heap_total_bytes`, `process_rss_bytes` — Node.js xotira bandligi
