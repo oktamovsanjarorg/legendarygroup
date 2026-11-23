@@ -1,15 +1,16 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type { StudentBillingSetupInput, StudentBillingSetupState } from '@lg/contracts';
-import { type Database, enrollments, type Transaction } from '@lg/db';
+import { auditLogs, type Database, enrollments, payments, type Transaction } from '@lg/db';
 import type { Clock } from '@lg/domain';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { EnrollmentsService } from '../students/index.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
-import { BillingGeneratorService, ledgerFor } from './billing-generator.service.js';
+import { ledgerFor } from './billing-generator.service.js';
+import { EnrollmentBillingService } from './enrollment-billing.service.js';
 import { BillingRepository } from './billing.repository.js';
 
 type Debt = StudentBillingSetupInput['openingDebts'][number];
@@ -27,14 +28,31 @@ export class StudentBillingSetupService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(BillingRepository) private readonly repo: BillingRepository,
     @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
-    @Inject(BillingGeneratorService) private readonly generator: BillingGeneratorService,
+    @Inject(EnrollmentBillingService) private readonly billing: EnrollmentBillingService,
     @Inject(EnrollmentsService) private readonly enrollments: EnrollmentsService,
   ) {}
 
   async state(studentId: string): Promise<StudentBillingSetupState> {
-    const period = this.clock.today().slice(0, 7);
-    const inv = await this.repo.findInvoiceByStudentAndPeriod(this.db, studentId, period);
-    return { done: inv !== undefined && inv !== null, period };
+    return { done: await this.isDone(this.db, studentId), period: this.clock.today().slice(0, 7) };
+  }
+
+  /**
+   * Q-95 dan keyin joriy oy hisobi guruhga yozilganda darhol paydo bo'ladi — shuning uchun
+   * "sozlangan" = sozlash bajarilgan (audit belgisi) yoki to'lov qilingan (tarix boshlangan).
+   */
+  private async isDone(db: Database | Transaction, studentId: string): Promise<boolean> {
+    const [mark] = await db
+      .select({ id: auditLogs.id })
+      .from(auditLogs)
+      .where(and(eq(auditLogs.action, 'billing.setup_done'), eq(auditLogs.entityId, studentId)))
+      .limit(1);
+    if (mark) return true;
+    const [paid] = await db
+      .select({ id: payments.id })
+      .from(payments)
+      .where(eq(payments.studentId, studentId))
+      .limit(1);
+    return paid !== undefined;
   }
 
   async setup(
@@ -46,7 +64,7 @@ export class StudentBillingSetupService {
     const period = today.slice(0, 7);
     await this.db.transaction(async (tx) => {
       await this.balance.lockStudent(tx, studentId);
-      if (await this.repo.findInvoiceByStudentAndPeriod(tx, studentId, period))
+      if (await this.isDone(tx, studentId))
         throw new AppException(HttpStatus.CONFLICT, 'BILLING_ALREADY_SET');
       const own = new Set(
         (
@@ -62,9 +80,15 @@ export class StudentBillingSetupService {
         throw new AppException(HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR', { field: 'period' });
       for (const e of input.enrollments)
         await this.enrollments.correctStartDate(ctx, e.enrollmentId, e.startDate, tx);
+      for (const id of own) await this.billing.rebill(tx, id);
       await this.openingInvoices(ctx, tx, studentId, input.openingDebts);
+      const after = { period, openingDebts: input.openingDebts.length };
+      await this.audit.record(
+        ctx,
+        { action: 'billing.setup_done', entity: 'student', entityId: studentId, after },
+        tx,
+      );
     });
-    await this.generator.generateForStudent(studentId, period, today);
     return this.state(studentId);
   }
 

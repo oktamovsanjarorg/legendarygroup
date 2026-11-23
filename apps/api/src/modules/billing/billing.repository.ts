@@ -149,15 +149,19 @@ export class BillingRepository {
     return row ?? null;
   }
 
-  async hasEnrollmentLine(tx: Transaction, invoiceId: string, enrollmentId: string) {
+  async findEnrollmentLine(tx: Transaction, invoiceId: string, enrollmentId: string) {
     const [row] = await tx
-      .select({ id: invoiceLines.id })
+      .select({ id: invoiceLines.id, amount: invoiceLines.amount })
       .from(invoiceLines)
       .where(
         and(eq(invoiceLines.invoiceId, invoiceId), eq(invoiceLines.enrollmentId, enrollmentId)),
       )
       .limit(1);
-    return row !== undefined;
+    return row ?? null;
+  }
+
+  async setLineAmount(tx: Transaction, id: string, amount: bigint, description: string) {
+    await tx.update(invoiceLines).set({ amount, description }).where(eq(invoiceLines.id, id));
   }
 
   async addToInvoiceTotal(tx: Transaction, invoiceId: string, amount: bigint): Promise<void> {

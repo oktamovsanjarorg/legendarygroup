@@ -1,10 +1,11 @@
-import type { RoleCode } from '@lg/contracts';
-import { closeDb, createDb, type Database, invoices, seed } from '@lg/db';
+import type { EventPayloads, RoleCode } from '@lg/contracts';
+import { closeDb, createDb, type Database, invoices, outboxEvents, seed } from '@lg/db';
 import { formatDateToYmd } from '@lg/domain';
 import { asc, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { EventHandlers } from '../outbox/index.js';
 
 let t: TestApp;
 let db: Database;
@@ -22,8 +23,29 @@ const call = (method: 'GET' | 'POST', url: string, payload?: object, role: RoleC
     method,
     url: `/api/${url}`,
     payload,
-    headers: { authorization: `Bearer ${tokens.get(role) ?? ''}` },
+    headers: {
+      authorization: `Bearer ${tokens.get(role) ?? ''}`,
+      'idempotency-key': `ss-${process.pid}-${++key}`,
+    },
   });
+let key = 0;
+/** Worker o'rniga: Q-95 birinchi oy hisobi (guruhga yozilganda). */
+const deliver = async (enrollmentId: string) => {
+  const rows = await db
+    .select()
+    .from(outboxEvents)
+    .where(eq(outboxEvents.type, 'EnrollmentCreated'));
+  const ev = rows.find(
+    (r) => (r.payload as { enrollmentId: string }).enrollmentId === enrollmentId,
+  );
+  if (!ev) throw new Error('EnrollmentCreated yoʻq');
+  await t.app.get(EventHandlers).dispatch({
+    eventId: ev.id,
+    type: 'EnrollmentCreated',
+    payload: ev.payload as EventPayloads['EnrollmentCreated'],
+    occurredAt: new Date().toISOString(),
+  });
+};
 const idOf = async (url: string, body: object) =>
   (await call('POST', url, body)).json<{ id: string }>().id;
 const student = async (name: string) => {
@@ -87,6 +109,32 @@ describe('T-145 boshlangʻich holat (BR-3, BR-12)', () => {
     const again = await call('POST', `billing/students/${s.id}/setup`, {});
     expect(again.statusCode).toBe(409);
     expect(again.json<{ code: string }>().code).toBe('BILLING_ALREADY_SET');
+  });
+
+  it('Q-95 hisobi yozilgandan keyin ham sozlanadi (qayta hisob); toʻlovdan keyin — 409', async () => {
+    const s = await student('Hisobli Testov');
+    await deliver(s.enrollmentId);
+    expect((await call('GET', `billing/students/${s.id}/setup`)).json()).toEqual({
+      done: false,
+      period,
+    });
+    const res = await call('POST', `billing/students/${s.id}/setup`, {
+      enrollments: [{ enrollmentId: s.enrollmentId, startDate: `${prev}-20` }],
+      openingDebts: [],
+    });
+    expect(res.json()).toEqual({ done: true, period });
+    const [inv] = await db.select().from(invoices).where(eq(invoices.studentId, s.id));
+    expect([inv?.period, inv?.total]).toEqual([period, 600000n]);
+
+    const late = await student('Toʻlagan Testov');
+    await deliver(late.enrollmentId);
+    await call('POST', 'billing/payments', { studentId: late.id, amount: '1000', method: 'cash' });
+    const blocked = await call('POST', `billing/students/${late.id}/setup`, {});
+    expect(blocked.json<{ code: string }>().code).toBe('BILLING_ALREADY_SET');
+    expect((await call('GET', `billing/students/${late.id}/setup`)).json()).toEqual({
+      done: true,
+      period,
+    });
   });
 
   it('kelajak sana, joriy oy qarzi yoki begona aʼzolik — rad', async () => {
