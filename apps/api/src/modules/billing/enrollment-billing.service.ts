@@ -33,6 +33,38 @@ export class EnrollmentBillingService implements OnModuleInit {
     );
   }
 
+  /**
+   * T-145 sozlash: kelgan sana tuzatilgandan keyin joriy oy qatorini qayta hisoblash (to'lov
+   * hali yo'q — chaqiruvchi tekshiradi). Qator yo'q bo'lsa — yoziladi.
+   */
+  async rebill(tx: Transaction, enrollmentId: string): Promise<void> {
+    const period = this.clock.today().slice(0, 7);
+    const e = await this.repo.findEnrollmentInfo(tx, enrollmentId);
+    const invoice = e && (await this.repo.findInvoiceByStudentAndPeriod(tx, e.studentId, period));
+    const old = invoice && (await this.repo.findEnrollmentLine(tx, invoice.id, enrollmentId));
+    if (!e || !invoice || !old) return this.billFirstMonth(tx, enrollmentId);
+    const line = await this.generator.calculateEnrollmentLine(
+      e,
+      `${period}-01`,
+      monthEndOf(period),
+      period,
+    );
+    const diff = line.amount - old.amount;
+    if (diff === 0n) return;
+    await this.repo.setLineAmount(tx, old.id, line.amount, line.description);
+    await this.repo.addToInvoiceTotal(tx, invoice.id, diff);
+    await this.repo.insertLedgerEntries(tx, [
+      {
+        studentId: e.studentId,
+        entryType: diff > 0n ? 'invoice' : 'discount',
+        amount: diff,
+        refTable: 'invoice_lines',
+        refId: old.id,
+        occurredAt: this.clock.now(),
+      },
+    ]);
+  }
+
   async billFirstMonth(tx: Transaction, enrollmentId: string): Promise<void> {
     const period = this.clock.today().slice(0, 7);
     const monthStart = `${period}-01`;
@@ -44,7 +76,7 @@ export class EnrollmentBillingService implements OnModuleInit {
     const line = await this.generator.calculateEnrollmentLine(e, monthStart, monthEnd, period);
     if (line.amount <= 0n) return;
     let invoice = await this.repo.findInvoiceByStudentAndPeriod(tx, e.studentId, period);
-    if (invoice && (await this.repo.hasEnrollmentLine(tx, invoice.id, enrollmentId))) return;
+    if (invoice && (await this.repo.findEnrollmentLine(tx, invoice.id, enrollmentId))) return;
     if (invoice) await this.repo.addToInvoiceTotal(tx, invoice.id, line.amount);
     else {
       const due = `${period}-10`;
