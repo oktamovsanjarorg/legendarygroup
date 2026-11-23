@@ -18,6 +18,7 @@ import { StudentGuardiansService } from './student-guardians.service.js';
 import { StudentScopeService } from './student-scope.service.js';
 import { StudentsQueryService } from './students-query.service.js';
 import { StudentsController } from './students.controller.js';
+import { StudentIntakeService } from './student-intake.service.js';
 import { StudentsService } from './students.service.js';
 import { TeacherCodesController } from './teacher-codes/teacher-codes.controller.js';
 import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
@@ -43,6 +44,7 @@ import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
     EnrollmentsQueryService,
     FreezesService,
     StudentsService,
+    StudentIntakeService,
     StudentsQueryService,
     StudentGuardiansService,
     GuardianLinkRequestsService,
