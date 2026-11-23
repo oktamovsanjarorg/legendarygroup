@@ -9,11 +9,15 @@ const keys = (groups: ReturnType<typeof staffMenuFor>) =>
 
 describe('MS-06 Koʻproq (T-130)', () => {
   it('Admin: toʻlov kiritish bor; navbat tabda — takrorlanmaydi; soʻrovlar — ruxsat yoʻq', () => {
-    expect(keys(staffMenuFor(ROLE_PERMISSIONS.admin, tabPaths('admin')))).toEqual(['pay']);
+    expect(keys(staffMenuFor(ROLE_PERMISSIONS.admin, tabPaths('admin')))).toEqual([
+      'newStudent',
+      'pay',
+    ]);
   });
 
   it('Director: navbat Koʻproq’da (tabda yoʻq), soʻrovlar — tabda', () => {
     expect(keys(staffMenuFor(ROLE_PERMISSIONS.director, tabPaths('director')))).toEqual([
+      'newStudent',
       'pay',
       'queue',
     ]);
