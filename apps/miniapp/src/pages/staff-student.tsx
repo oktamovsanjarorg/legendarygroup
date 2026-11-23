@@ -9,6 +9,7 @@ import {
   studentManage,
   useArchiveStudent,
   useEndEnrollment,
+  useRemoveEnrollment,
 } from '../data/staff-student.js';
 import { useBillingSetupState } from '../data/staff-setup.js';
 import { useStudentCard } from '../data/staff.js';
@@ -88,18 +89,21 @@ function LeaveForm(props: {
   const today = useClock().today();
   const [value, setValue] = useState<LeaveInput>({ endDate: today, reason: 'left', note: null });
   const end = useEndEnrollment(props.enrollmentId);
+  const remove = useRemoveEnrollment(props.enrollmentId);
   const back = () => void navigate({ to: '/staff/student/$id', params: { id: props.studentId } });
   return (
     <>
       {end.isError && <Alert error={end.error} />}
+      {remove.isError && <Alert error={remove.error} />}
       <LeaveView
         student={props.student}
         group={props.group}
         minDate={props.minDate}
         value={value}
-        saving={end.isPending}
+        saving={end.isPending || remove.isPending}
         onChange={setValue}
         onSave={() => end.mutate(value, { onSuccess: back })}
+        onRemove={() => remove.mutate(undefined, { onSuccess: back })}
       />
     </>
   );

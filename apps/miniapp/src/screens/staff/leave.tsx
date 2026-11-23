@@ -1,5 +1,15 @@
 import { miniappMessages as t } from '@lg/i18n';
-import { Segmented, TextArea, TextField, useMainButton } from '@lg/ui-tg';
+import {
+  ActionSheet,
+  ListItem,
+  Section,
+  Segmented,
+  TextArea,
+  TextField,
+  useMainButton,
+} from '@lg/ui-tg';
+import { Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import type { LeaveInput } from '../../data/staff-student.js';
 
 const l = t.staffLeave;
@@ -13,6 +23,41 @@ export interface LeaveViewProps {
   saving: boolean;
   onChange: (v: LeaveInput) => void;
   onSave: () => void;
+  /** Q-96: xato yozilganni butunlay olib tashlash. */
+  onRemove: () => void;
+}
+
+function RemoveMistake({ busy, onRemove }: { busy: boolean; onRemove: () => void }) {
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <>
+      <Section footer={l.removeHint}>
+        <ListItem
+          before={<Trash2 className="size-5 text-danger" aria-hidden />}
+          title={<span className="text-danger">{l.remove}</span>}
+          onClick={busy ? undefined : () => setConfirm(true)}
+        />
+      </Section>
+      <ActionSheet
+        open={confirm}
+        title={l.removeTitle}
+        cancelLabel={l.cancel}
+        onClose={() => setConfirm(false)}
+        actions={[
+          {
+            label: l.remove,
+            tone: 'danger',
+            onSelect: () => {
+              setConfirm(false);
+              onRemove();
+            },
+          },
+        ]}
+      >
+        <p className="px-4 pb-2 text-sm text-text-muted">{l.removeText}</p>
+      </ActionSheet>
+    </>
+  );
 }
 
 /** MS-05a Guruhdan chiqarish (T-144): oxirgi kun, sabab, izoh → MainButton. */
@@ -24,6 +69,7 @@ export function LeaveView({
   saving,
   onChange,
   onSave,
+  onRemove,
 }: LeaveViewProps) {
   const valid = value.endDate !== '' && value.endDate >= minDate;
   useMainButton({ text: l.save, onClick: onSave, loading: saving, visible: valid });
@@ -57,6 +103,7 @@ export function LeaveView({
           onChange({ ...value, note: e.target.value.trim() === '' ? null : e.target.value })
         }
       />
+      <RemoveMistake busy={saving} onRemove={onRemove} />
     </main>
   );
 }
