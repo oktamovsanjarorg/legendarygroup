@@ -22,12 +22,16 @@ const g = { a: '', b: '' };
 const today = formatDateToYmd(new Date());
 const period = today.slice(0, 7);
 
-const call = (url: string, payload: object) =>
+let key = 0;
+const call = (url: string, payload?: object, role: RoleCode = 'admin', method = 'POST') =>
   t.app.inject({
-    method: 'POST',
+    method: method as 'POST',
     url: `/api/${url}`,
-    payload,
-    headers: { authorization: `Bearer ${tokens.get('admin') ?? ''}` },
+    ...(payload ? { payload } : {}),
+    headers: {
+      authorization: `Bearer ${tokens.get(role) ?? ''}`,
+      'idempotency-key': `eb-${process.pid}-${++key}`,
+    },
   });
 const idOf = async (url: string, body: object) => (await call(url, body)).json<{ id: string }>().id;
 
@@ -108,5 +112,37 @@ describe('Q-95: guruhga yozilganda joriy oy hisobi (BR-3, BR-6)', () => {
       await idOf('enrollments', { studentId: s, groupId: g.a, startDate: `${next}-01` }),
     );
     expect(await invoiceOf(s)).toBeNull();
+  });
+});
+
+describe('Q-96: xato yozilgan aʼzolikni olib tashlash', () => {
+  const setup = async (name: string) => {
+    const s = await idOf('students', { fullName: name });
+    const e = await idOf('enrollments', { studentId: s, groupId: g.a, startDate: `${period}-01` });
+    await deliver(e);
+    return { s, e };
+  };
+  const remove = (e: string, role: RoleCode = 'admin') =>
+    call(`billing/enrollments/${e}`, undefined, role, 'DELETE');
+
+  it('toʻlovsiz — aʼzolik va hisob yoʻqoladi (void), qarz 0', async () => {
+    const { s, e } = await setup('Xato Kiritilgan');
+    expect((await remove(e)).statusCode).toBe(204);
+    const [inv] = await db.select().from(invoices).where(eq(invoices.studentId, s));
+    expect([inv?.total, inv?.status]).toEqual([0n, 'void']);
+    const res = await call(`students/${s}/enrollments`, undefined, 'admin', 'GET');
+    expect(res.json<unknown[]>()).toEqual([]);
+  });
+
+  it('toʻlov tegsa — 409 ENROLLMENT_HAS_PAYMENTS; oʻqituvchi — 403', async () => {
+    const { s, e } = await setup('Toʻlagan Bola');
+    const pay = await call('billing/payments', { studentId: s, amount: '100000', method: 'cash' });
+    expect(pay.statusCode).toBe(201);
+    const res = await remove(e);
+    expect([res.statusCode, res.json<{ code: string }>().code]).toEqual([
+      409,
+      'ENROLLMENT_HAS_PAYMENTS',
+    ]);
+    expect((await remove(e, 'teacher')).statusCode).toBe(403);
   });
 });
