@@ -34,7 +34,7 @@ import { StudentScopeService } from './student-scope.service.js';
 import { StudentsQueryService } from './students-query.service.js';
 import { STUDENT_AUDIT_FIELDS, toDetail } from './students.serializer.js';
 
-type CreateInput = z.output<typeof CreateStudentRequest>;
+type CreateInput = Omit<z.output<typeof CreateStudentRequest>, 'enrollment'>;
 const STAFF_VIEW = { role: 'admin', guardianId: null } as const;
 
 /** O'quvchi yozish amallari (T-105, FR-STU-1/2/6). Har amal — tranzaksiya + audit. */

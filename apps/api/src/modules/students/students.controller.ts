@@ -28,6 +28,7 @@ import { auditContext } from '../../common/audit/request-context.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { FilesService } from '../files/index.js';
 import { StudentsQueryService } from './students-query.service.js';
+import { StudentIntakeService } from './student-intake.service.js';
 import { StudentsService } from './students.service.js';
 
 /**
@@ -40,6 +41,7 @@ import { StudentsService } from './students.service.js';
 export class StudentsController {
   constructor(
     @Inject(StudentsService) private readonly students: StudentsService,
+    @Inject(StudentIntakeService) private readonly intake: StudentIntakeService,
     @Inject(StudentsQueryService) private readonly query: StudentsQueryService,
     @Inject(FilesService) private readonly files: FilesService,
   ) {}
@@ -78,12 +80,12 @@ export class StudentsController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission('student.manage')
   @NoAudit('StudentsService.create ichida')
-  @ApiOperation({ summary: "O'quvchi qo'shish (+ ota-onalar); dublikat — 409" })
+  @ApiOperation({ summary: "O'quvchi qo'shish (+ ota-onalar, + guruh — Q-97); dublikat — 409" })
   create(
     @ZodBody(CreateStudentRequest) body: z.output<typeof CreateStudentRequest>,
     @Req() req: FastifyRequest,
   ): Promise<StudentDetail> {
-    return this.students.create(auditContext(req), body);
+    return this.intake.create(auditContext(req), body);
   }
 
   @Patch(':id')

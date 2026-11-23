@@ -63,6 +63,8 @@ export const CreateStudentRequest = StudentFields.partial()
   .extend({
     guardians: z.array(GuardianInput).max(4).default([]),
     allowDuplicate: z.boolean().default(false),
+    /** Q-97: bitta qadamda guruhga ham yozish (Mini App «Yangi oʻquvchi»). */
+    enrollment: z.object({ groupId: z.uuid(), startDate: IsoDate }).optional(),
   });
 
 export const UpdateStudentRequest = StudentFields.partial().refine(
