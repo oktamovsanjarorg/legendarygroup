@@ -127,6 +127,46 @@ export class BillingRepository {
       );
   }
 
+  /** Q-95: bitta a'zolik (tranzaksiya ichida — yangi yozilgan qator ko'rinadi). */
+  async findEnrollmentInfo(
+    tx: Transaction,
+    enrollmentId: string,
+  ): Promise<ActiveEnrollmentInfo | null> {
+    const [row] = await tx
+      .select({
+        enrollmentId: enrollments.id,
+        studentId: enrollments.studentId,
+        groupId: enrollments.groupId,
+        startDate: enrollments.startDate,
+        endDate: enrollments.endDate,
+        discountPercent: enrollments.discountPercent,
+        monthlyPrice: groups.monthlyPrice,
+        groupName: groups.name,
+      })
+      .from(enrollments)
+      .innerJoin(groups, eq(groups.id, enrollments.groupId))
+      .where(eq(enrollments.id, enrollmentId));
+    return row ?? null;
+  }
+
+  async hasEnrollmentLine(tx: Transaction, invoiceId: string, enrollmentId: string) {
+    const [row] = await tx
+      .select({ id: invoiceLines.id })
+      .from(invoiceLines)
+      .where(
+        and(eq(invoiceLines.invoiceId, invoiceId), eq(invoiceLines.enrollmentId, enrollmentId)),
+      )
+      .limit(1);
+    return row !== undefined;
+  }
+
+  async addToInvoiceTotal(tx: Transaction, invoiceId: string, amount: bigint): Promise<void> {
+    await tx
+      .update(invoices)
+      .set({ total: sql`${invoices.total} + ${amount}` })
+      .where(eq(invoices.id, invoiceId));
+  }
+
   async countPlannedLessons(groupId: string, fromDate: string, toDate: string): Promise<number> {
     const [row] = await this.db
       .select({ count: sql<number>`count(*)::int` })

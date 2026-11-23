@@ -16,6 +16,7 @@ import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { GroupsQueryService } from '../org/index.js';
+import { OutboxService } from '../outbox/index.js';
 import { enrollmentAudit, enrollmentSpan, toEnrollment } from './enrollments.serializer.js';
 
 interface EnrollInput {
@@ -36,6 +37,7 @@ export class EnrollmentsService {
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(GroupsQueryService) private readonly groups: GroupsQueryService,
+    @Inject(OutboxService) private readonly outbox: OutboxService,
   ) {}
 
   /** `outer` — chaqiruvchi tranzaksiyasi ichida (savepoint), masalan lidni aylantirish (T-107). */
@@ -51,6 +53,11 @@ export class EnrollmentsService {
             entityId: row.id,
             after: enrollmentAudit(row),
           },
+          tx,
+        );
+        await this.outbox.publish(
+          'EnrollmentCreated',
+          { enrollmentId: row.id, studentId: row.studentId },
           tx,
         );
         return toEnrollment(row, groupName, [], this.clock.today());
@@ -159,7 +166,8 @@ export class EnrollmentsService {
     if (!group)
       throw new AppException(HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR', { field: 'groupId' });
     if (group.status === 'finished') throw new AppException(HttpStatus.CONFLICT, 'GROUP_FINISHED');
-    if (input.startDate < group.startDate || (group.endDate && input.startDate > group.endDate))
+    // Q-95: guruh tizimda ochilishidan oldin kelgan bo'lishi mumkin (tizimga o'tish) — faqat tugashdan keyin emas.
+    if (group.endDate && input.startDate > group.endDate)
       throw new AppException(HttpStatus.BAD_REQUEST, 'INVALID_DATE_RANGE', {
         startDate: group.startDate,
         endDate: group.endDate,
