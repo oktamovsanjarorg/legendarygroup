@@ -35,6 +35,7 @@ import { SubmissionsRepository } from './submissions.repository.js';
 import { SubmissionsService } from './submissions.service.js';
 import { StudentBillingSetupController } from './student-setup.controller.js';
 import { StudentBillingSetupService } from './student-setup.service.js';
+import { EnrollmentBillingService } from './enrollment-billing.service.js';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { StudentBillingSetupService } from './student-setup.service.js';
     SubmissionsRepository,
     SubmissionsService,
     StudentBillingSetupService,
+    EnrollmentBillingService,
   ],
   exports: [
     BillingService,

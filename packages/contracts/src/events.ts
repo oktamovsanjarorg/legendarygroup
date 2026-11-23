@@ -20,6 +20,8 @@ export const EVENT_TYPES = [
   'AttendanceMarked',
   // T-119: Director tasdiqlash so'rovi bo'yicha qaror qildi — so'rovchiga xabar.
   'ApprovalDecided',
+  // Q-95: guruhga yozildi — billing joriy oy qatorini darhol yozadi (BR-3, BR-6).
+  'EnrollmentCreated',
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
@@ -31,6 +33,7 @@ export interface EventPayloads {
   TelegramChatBlocked: { chatId: string; description: string };
   TelegramSendFailed: { notificationId: string; error: string };
   TestResultsPublished: { testId: string; groupId: string; title: string };
+  EnrollmentCreated: { enrollmentId: string; studentId: string };
   ApprovalDecided: {
     requestId: string;
     requestedBy: string;

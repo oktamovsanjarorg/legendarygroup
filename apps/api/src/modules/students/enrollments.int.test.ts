@@ -87,12 +87,11 @@ describe('Ruxsat (har endpoint forbidden)', () => {
 });
 
 describe('Yozish va sigʻim (FR-STU-3)', () => {
-  it('yoziladi; takroriy davr — ALREADY_ENROLLED; guruhdan oldin — 400; arxivdagi — 409', async () => {
+  it('yoziladi; takroriy davr — ALREADY_ENROLLED; arxivdagi — 409 (guruhdan oldin — mumkin, Q-95)', async () => {
     const res = await enroll('Ali', g.small);
     expect(res.statusCode).toBe(201);
     expect(res.json<Enr>().state).toBe('active');
     expect(codeOf(await enroll('Ali', g.small, today))).toBe('ALREADY_ENROLLED');
-    expect(codeOf(await enroll('Vali', g.small, addDays(start, -1)))).toBe('INVALID_DATE_RANGE');
     expect(codeOf(await enroll('Arxiv', g.big))).toBe('STUDENT_ARCHIVED');
   });
 

@@ -14,7 +14,7 @@ export interface GenerateResult {
   totalAmount: string;
 }
 
-interface PreparedLine {
+export interface PreparedLine {
   enrollmentId: string;
   /** Qator summasi (o'qishda — kreditdan keyingi net). */
   amount: bigint;
@@ -144,7 +144,8 @@ export class BillingGeneratorService {
     return studentLinesMap;
   }
 
-  private async calculateEnrollmentLine(
+  /** BR-3 (kelgan sana bo'yicha) va doimiy chegirma; Q-95 handler ham ishlatadi. */
+  async calculateEnrollmentLine(
     enrollment: ActiveEnrollmentInfo,
     monthStart: string,
     monthEnd: string,
