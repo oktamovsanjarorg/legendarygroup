@@ -48,6 +48,7 @@ function Leave() {
       saving={false}
       onChange={setV}
       onSave={noop}
+      onRemove={noop}
     />
   );
 }

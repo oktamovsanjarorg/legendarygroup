@@ -1,7 +1,7 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { TelegramProvider } from '@lg/ui-tg';
 import { createFakeWebApp, type FakeWebApp } from '@lg/ui-tg/testing';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { StudentManage } from '../../data/staff-student.js';
@@ -71,6 +71,7 @@ describe('MS-05a guruhdan chiqarish', () => {
     const wa = createFakeWebApp();
     const onChange = vi.fn();
     const onSave = vi.fn();
+    const onRemove = vi.fn();
     wrap(
       <LeaveView
         student="Karimov Aziz"
@@ -80,6 +81,7 @@ describe('MS-05a guruhdan chiqarish', () => {
         saving={false}
         onChange={onChange}
         onSave={onSave}
+        onRemove={onRemove}
       />,
       wa,
     );
@@ -88,6 +90,12 @@ describe('MS-05a guruhdan chiqarish', () => {
     expect(onSave).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('radio', { name: t.staffLeave.reasons.finished }));
     expect(onChange).toHaveBeenCalledWith({ ...base, reason: 'finished' });
+    // Q-96: xato kiritilgan — tasdiq (ActionSheet) bilan butunlay olib tashlash.
+    fireEvent.click(screen.getByRole('button', { name: t.staffLeave.remove }));
+    expect(onRemove).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog', { name: t.staffLeave.removeTitle });
+    fireEvent.click(within(dialog).getByRole('button', { name: t.staffLeave.remove }));
+    expect(onRemove).toHaveBeenCalledOnce();
   });
 
   it('boshlanishdan oldingi sana — MainButton yashirin', () => {
@@ -101,6 +109,7 @@ describe('MS-05a guruhdan chiqarish', () => {
         saving={false}
         onChange={vi.fn()}
         onSave={vi.fn()}
+        onRemove={vi.fn()}
       />,
       wa,
     );

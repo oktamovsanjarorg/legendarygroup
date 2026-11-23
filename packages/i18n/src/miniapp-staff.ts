@@ -151,6 +151,11 @@ export const staffMessages = {
     reasons: { left: 'Ketdi', finished: 'Kursni tugatdi' },
     note: 'Izoh (ixtiyoriy)',
     save: 'Guruhdan chiqarish',
+    remove: 'Xato kiritilgan — butunlay olib tashlash',
+    removeHint: 'Notoʻgʻri guruhga yoki xato yozilgan boʻlsa. Bu guruh boʻyicha hisob ham oʻchadi.',
+    removeTitle: 'Guruhdan butunlay olib tashlansinmi?',
+    removeText: 'Faqat toʻlov qilinmagan boʻlsa. Toʻlov boʻlsa — avval toʻlovni bekor qiling.',
+    cancel: 'Bekor qilish',
   },
   /** MS-07 Toʻlov kiritish (T-131, FR-PAY-1/2, BR-12). */
   staffPay: {

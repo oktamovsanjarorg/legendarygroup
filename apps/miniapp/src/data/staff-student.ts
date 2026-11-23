@@ -54,6 +54,17 @@ export function useEndEnrollment(enrollmentId: string) {
   });
 }
 
+/** Q-96: xato yozilgan a'zolik — butunlay (to'lov tegmagan bo'lsa; aks holda 409). */
+export function useRemoveEnrollment(enrollmentId: string) {
+  const api = useApi();
+  const invalidate = useInvalidateStudent();
+  return useMutation({
+    mutationFn: () =>
+      api.request<undefined>(`/billing/enrollments/${enrollmentId}`, { method: 'DELETE' }),
+    onSuccess: invalidate,
+  });
+}
+
 /** FR-STU-6: arxivlash / arxivdan chiqarish (o'chirish yo'q). */
 export function useArchiveStudent(studentId: string) {
   const api = useApi();
