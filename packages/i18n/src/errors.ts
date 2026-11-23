@@ -33,6 +33,8 @@ export const errorMessages = {
     'Kirish havolasi yaroqsiz yoki muddati oʻtgan. Mini Appʼda tugmani qayta bosing.',
   ROLE_NOT_ASSIGNED: 'Sizda bu rol yoʻq.',
   FILE_NOT_ALLOWED: 'Bu faylni biriktirib boʻlmaydi. Rasmni qaytadan yuklang.',
+  ENROLLMENT_HAS_PAYMENTS:
+    'Bu guruh hisobiga toʻlov qilingan. Avval toʻlovni bekor qiling, keyin guruhdan olib tashlang.',
   BILLING_ALREADY_SET:
     'Bu oʻquvchining hisobi allaqachon boshlangan. Tuzatish — toʻlovni bekor qilish yoki qarzni kechirish orqali.',
   FILE_TYPE_NOT_ALLOWED:
