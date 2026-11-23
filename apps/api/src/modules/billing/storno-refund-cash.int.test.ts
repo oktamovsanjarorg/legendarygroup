@@ -11,6 +11,7 @@ import {
   students,
 } from '@lg/db';
 import { eq } from 'drizzle-orm';
+import { formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
@@ -196,7 +197,7 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
   });
 
   describe('Kunlik Kassa Yopish (FR-PAY-10)', () => {
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = formatDateToYmd(new Date()); // Asia/Tashkent, UTC emas
 
     it('Kutilayotgan naqd pul summasi olinadi (200)', async () => {
       const res = await call('GET', `billing/cash/expected?date=${todayStr}`, 'admin');

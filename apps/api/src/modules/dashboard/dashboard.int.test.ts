@@ -1,5 +1,6 @@
 import type { DirectorDashboardKpi, RoleCode } from '@lg/contracts';
 import { attendance, closeDb, createDb, type Database, lessons, payments, seed } from '@lg/db';
+import { formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
@@ -44,7 +45,8 @@ beforeAll(async () => {
   const studentId = studentRes.json<{ id: string }>().id;
 
   const now = new Date();
-  const todayYmd = now.toISOString().slice(0, 10);
+  // Server «bugun»i — Asia/Tashkent (UTC 19:00–24:00 da UTC sanasi bir kun orqada).
+  const todayYmd = formatDateToYmd(now);
 
   // Bugungi to'lov
   await db.insert(payments).values({
