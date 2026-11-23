@@ -90,6 +90,22 @@ export class EnrollmentsService {
     return { ...e, startDate };
   }
 
+  /**
+   * Xato yozilgan a'zolikni o'chirish (Q-96). Faqat billing chaqiradi — o'z tranzaksiyasida
+   * to'lov tegmaganini tekshirib, hisob qatorlarini 0 qilgandan keyin.
+   */
+  async removeMistaken(ctx: AuditContext, id: string, tx: Transaction): Promise<void> {
+    const e = await this.lock(tx, id);
+    await tx.delete(enrollmentFreezes).where(eq(enrollmentFreezes.enrollmentId, id));
+    await tx.delete(enrollments).where(eq(enrollments.id, id));
+    const before = { studentId: e.studentId, groupId: e.groupId, startDate: e.startDate };
+    await this.audit.record(
+      ctx,
+      { action: 'enrollment.removed', entity: 'enrollment', entityId: id, before, after: null },
+      tx,
+    );
+  }
+
   /** Chiqarish (ketdi/tugatdi); kelajakdagi sana — rejalashtirilgan chiqish. */
   async end(
     ctx: AuditContext,

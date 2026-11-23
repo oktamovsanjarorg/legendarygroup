@@ -36,6 +36,8 @@ import { SubmissionsService } from './submissions.service.js';
 import { StudentBillingSetupController } from './student-setup.controller.js';
 import { StudentBillingSetupService } from './student-setup.service.js';
 import { EnrollmentBillingService } from './enrollment-billing.service.js';
+import { EnrollmentRemoveController } from './enrollment-remove.controller.js';
+import { EnrollmentRemoveService } from './enrollment-remove.service.js';
 
 @Module({
   imports: [
@@ -55,6 +57,7 @@ import { EnrollmentBillingService } from './enrollment-billing.service.js';
     DebtorsController,
     SubmissionsController,
     StudentBillingSetupController,
+    EnrollmentRemoveController,
   ],
   providers: [
     MonthCloseRepository,
@@ -80,6 +83,7 @@ import { EnrollmentBillingService } from './enrollment-billing.service.js';
     SubmissionsService,
     StudentBillingSetupService,
     EnrollmentBillingService,
+    EnrollmentRemoveService,
   ],
   exports: [
     BillingService,
