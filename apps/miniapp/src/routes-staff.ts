@@ -6,6 +6,7 @@ import {
   StaffSearchPage,
 } from './pages/staff.js';
 import { StaffMorePage } from './pages/staff-more.js';
+import { StaffNewPage } from './pages/staff-new.js';
 import { StaffPayPage, StaffPaySearchPage } from './pages/staff-pay.js';
 import { StaffSetupPage } from './pages/staff-setup.js';
 import { StaffLeavePage, StaffStudentPage } from './pages/staff-student.js';
@@ -24,6 +25,7 @@ export const staffRoutes = [
   route('/staff/student/$id/leave/$enrollmentId', StaffLeavePage),
   route('/staff/student/$id/setup', StaffSetupPage),
   route('/staff/more', StaffMorePage),
+  route('/staff/new', StaffNewPage),
   route('/staff/pay', StaffPaySearchPage),
   route('/staff/student/$id/pay', StaffPayPage),
 ] as const;

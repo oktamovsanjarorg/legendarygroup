@@ -18,6 +18,7 @@ export const staffMessages = {
       director: 'Direktor',
     },
     items: {
+      newStudent: 'Yangi oʻquvchi',
       pay: 'Toʻlov kiritish',
       queue: 'Chek navbati',
       approvals: 'Tasdiqlash soʻrovlari',
@@ -110,6 +111,22 @@ export const staffMessages = {
     archivedHint: 'Maʼlumotlar faqat koʻrish uchun.',
     restore: 'Arxivdan chiqarish',
     cancel: 'Bekor qilish',
+  },
+  /** MS-04a Yangi oʻquvchi (Q-97): bitta ekran — oʻquvchi, ota-ona, guruh, kelgan sana. */
+  staffNew: {
+    title: 'Yangi oʻquvchi',
+    fullName: 'Familiya va ism',
+    phone: 'Oʻquvchi telefoni (ixtiyoriy)',
+    guardianName: 'Ota-ona ismi (ixtiyoriy)',
+    guardianPhone: 'Ota-ona telefoni',
+    group: 'Guruh',
+    selected: 'Tanlangan',
+    noGroups: 'Ochiq guruh yoʻq — avval boshqaruv panelida guruh oching.',
+    startDate: 'Kelgan sana',
+    startHint: 'Oldingi oy boʻlsa — keyingi qadamda qaysi oylar toʻlanmaganini belgilaysiz.',
+    save: 'Qoʻshish',
+    duplicate: 'Bu ismli oʻquvchi allaqachon bor. Baribir qoʻshilsinmi?',
+    addAnyway: 'Baribir qoʻshish',
   },
   /** MS-05b Boshlangʻich holat (T-145, Q-94): kelgan sana va tizimdan oldingi qarz. */
   staffSetup: {
