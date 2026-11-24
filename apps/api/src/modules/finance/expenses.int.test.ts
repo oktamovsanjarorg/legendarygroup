@@ -12,6 +12,7 @@ import {
   invoiceLines,
   invoices,
   payments,
+  payrollItems,
   payrollRuns,
   seed,
 } from '@lg/db';
@@ -105,12 +106,20 @@ beforeAll(async () => {
   ]);
 
   // 2) 2026-11 davri uchun 4 000 000 so'm tasdiqlangan oylik (payroll_run)
-  await db.insert(payrollRuns).values({
-    branchId: DEFAULT_BRANCH_ID,
-    period: '2026-11',
-    status: 'approved',
-    totalAmount: 4_000_000n,
-  });
+  // (3.8M qo'lga + 200 ming oldin berilgan avans — ikkalasi ham xarajat, Q-104).
+  const [run] = await db
+    .insert(payrollRuns)
+    .values({
+      branchId: DEFAULT_BRANCH_ID,
+      period: '2026-11',
+      status: 'approved',
+      totalAmount: 3_800_000n,
+    })
+    .returning();
+  await db.insert(payrollItems).values([
+    { runId: run!.id, teacherId: teacherUserId, kind: 'fixed', amount: 4_000_000n },
+    { runId: run!.id, teacherId: teacherUserId, kind: 'advance', amount: -200_000n },
+  ]);
 });
 
 afterAll(async () => {

@@ -128,10 +128,13 @@ export class ExpensesRepository {
     return rows.map((r) => ({ method: r.method, amount: BigInt(r.total) }));
   }
 
+  /** Oylik xarajati — ishlangan summa: ushlangan avans ham (pul oldin berilgan) xarajat (Q-104). */
   async findApprovedPayrollTotal(branchId: string, period: string): Promise<bigint> {
     const [row] = await this.db
       .select({
-        total: sql<bigint>`coalesce(sum(${payrollRuns.totalAmount}), 0)`,
+        total: sql<string>`coalesce(sum(payroll_runs.total_amount + coalesce((
+          select -sum(i.amount) from payroll_items i
+          where i.run_id = payroll_runs.id and i.kind = 'advance'), 0)), 0)`,
       })
       .from(payrollRuns)
       .where(
@@ -142,6 +145,6 @@ export class ExpensesRepository {
         ),
       );
 
-    return BigInt(row?.total ?? 0n);
+    return BigInt(row?.total ?? '0');
   }
 }
