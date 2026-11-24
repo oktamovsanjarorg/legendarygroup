@@ -24,15 +24,9 @@ import {
 import QRCode from 'qrcode';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import { pdfText } from '../../common/pdf/pdf-text.js';
 import { EnvService } from '../../config/env.service.js';
 import { BillingRepository } from './billing.repository.js';
-
-function cleanText(text: string): string {
-  return text
-    .replace(/№/g, 'No.')
-    .replace(/[\u02BB\u02BC\u2018\u2019]/g, "'")
-    .replace(/\u2212/g, '-');
-}
 
 function methodLabel(method: string): string {
   if (method === 'cash') return 'Naqd pul';
@@ -148,21 +142,21 @@ export class ReceiptPdfService {
     fontBold: PDFFont,
     fontReg: PDFFont,
   ): void {
-    page.drawText(cleanText('LEGENDARY GROUP'), {
+    page.drawText(pdfText('LEGENDARY GROUP'), {
       x: 40,
       y: 510,
       size: 18,
       font: fontBold,
       color: rgb(0.08, 0.2, 0.45),
     });
-    page.drawText(cleanText("O'quv markazi rasmiy to'lov cheki"), {
+    page.drawText(pdfText("O'quv markazi rasmiy to'lov cheki"), {
       x: 40,
       y: 494,
       size: 10,
       font: fontReg,
       color: rgb(0.4, 0.45, 0.5),
     });
-    page.drawText(cleanText(`Chek №: ${number}`), {
+    page.drawText(pdfText(`Chek №: ${number}`), {
       x: 40,
       y: 472,
       size: 12,
@@ -190,14 +184,14 @@ export class ReceiptPdfService {
     let y = 440;
     for (const line of lines) {
       const [label, val] = line;
-      page.drawText(cleanText(label), {
+      page.drawText(pdfText(label), {
         x: 40,
         y,
         size: 10,
         font: fontReg,
         color: rgb(0.4, 0.45, 0.5),
       });
-      page.drawText(cleanText(val), {
+      page.drawText(pdfText(val), {
         x: 140,
         y,
         size: 10,
@@ -214,14 +208,14 @@ export class ReceiptPdfService {
       color: rgb(0.85, 0.88, 0.92),
     });
 
-    page.drawText(cleanText("To'langan summa:"), {
+    page.drawText(pdfText("To'langan summa:"), {
       x: 40,
       y: y - 10,
       size: 11,
       font: fontReg,
       color: rgb(0.4, 0.45, 0.5),
     });
-    page.drawText(cleanText(formatMoney(payment.amount)), {
+    page.drawText(pdfText(formatMoney(payment.amount)), {
       x: 140,
       y: y - 10,
       size: 14,
@@ -229,7 +223,7 @@ export class ReceiptPdfService {
       color: rgb(0.05, 0.5, 0.2),
     });
 
-    page.drawText(cleanText(`So'z bilan: ${amountInWords(payment.amount)}`), {
+    page.drawText(pdfText(`So'z bilan: ${amountInWords(payment.amount)}`), {
       x: 40,
       y: y - 30,
       size: 9,
@@ -253,14 +247,14 @@ export class ReceiptPdfService {
       borderColor: rgb(0.85, 0.2, 0.2),
       borderWidth: 1,
     });
-    page.drawText(cleanText('BEKOR QILINGAN / CANCELLED'), {
+    page.drawText(pdfText('BEKOR QILINGAN / CANCELLED'), {
       x: 100,
       y: 245,
       size: 12,
       font: fontBold,
       color: rgb(0.85, 0.1, 0.1),
     });
-    page.drawText(cleanText(`Sabab: ${reason ?? "Noto'g'ri to'lov"}`), {
+    page.drawText(pdfText(`Sabab: ${reason ?? "Noto'g'ri to'lov"}`), {
       x: 50,
       y: 228,
       size: 9,
@@ -271,7 +265,7 @@ export class ReceiptPdfService {
 
   private drawQrSection(page: PDFPage, qrImg: PDFImage, fontReg: PDFFont): void {
     page.drawImage(qrImg, { x: 145, y: 65, width: 110, height: 110 });
-    page.drawText(cleanText('Chek haqiqiyligini tekshirish uchun QR kodni skanerlang'), {
+    page.drawText(pdfText('Chek haqiqiyligini tekshirish uchun QR kodni skanerlang'), {
       x: 65,
       y: 45,
       size: 8,
