@@ -76,24 +76,25 @@ export function ChoiceSection<T extends string>(p: {
 const STEP =
   'flex size-11 items-center justify-center rounded-xl bg-bg text-link disabled:opacity-40';
 
-/** Oy almashtirgich (`YYYY-MM`); joriy oydan keyingisi yo'q. */
-export function PeriodBar(p: { period: string; current: string; onStep: (step: -1 | 1) => void }) {
+/** Oldinga/orqaga qadam (hafta, kun, yil, oy). */
+export function StepBar(p: {
+  label: ReactNode;
+  prevLabel: string;
+  nextLabel: string;
+  nextDisabled?: boolean;
+  onStep: (step: -1 | 1) => void;
+}) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <button
-        type="button"
-        aria-label={t.staffKit.prevMonth}
-        className={STEP}
-        onClick={() => p.onStep(-1)}
-      >
+      <button type="button" aria-label={p.prevLabel} className={STEP} onClick={() => p.onStep(-1)}>
         <ChevronLeft className="size-5" aria-hidden />
       </button>
-      <span className="text-base font-semibold text-text">{formatPeriod(p.period)}</span>
+      <span className="text-base font-semibold text-text">{p.label}</span>
       <button
         type="button"
-        aria-label={t.staffKit.nextMonth}
+        aria-label={p.nextLabel}
         className={STEP}
-        disabled={p.period >= p.current}
+        disabled={p.nextDisabled}
         onClick={() => p.onStep(1)}
       >
         <ChevronRight className="size-5" aria-hidden />
@@ -101,3 +102,18 @@ export function PeriodBar(p: { period: string; current: string; onStep: (step: -
     </div>
   );
 }
+
+/** Oy almashtirgich (`YYYY-MM`); joriy oydan keyingisi yo'q. */
+export const PeriodBar = (p: {
+  period: string;
+  current: string;
+  onStep: (step: -1 | 1) => void;
+}) => (
+  <StepBar
+    label={formatPeriod(p.period)}
+    prevLabel={t.staffKit.prevMonth}
+    nextLabel={t.staffKit.nextMonth}
+    nextDisabled={p.period >= p.current}
+    onStep={p.onStep}
+  />
+);
