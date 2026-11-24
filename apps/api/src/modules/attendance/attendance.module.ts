@@ -19,6 +19,7 @@ import { AttendanceNoticeProcessor } from './attendance-notice.processor.js';
 import { AttendanceNoticeService } from './attendance-notice.service.js';
 import { AttendanceCron } from './attendance.cron.js';
 import { AttendanceRepository } from './attendance.repository.js';
+import { UnmarkedLessonsService } from './unmarked-lessons.service.js';
 import { AttendanceService } from './attendance.service.js';
 
 @Module({
@@ -38,6 +39,7 @@ import { AttendanceService } from './attendance.service.js';
   providers: [
     AttendanceRepository,
     AttendanceService,
+    UnmarkedLessonsService,
     AttendanceGridService,
     AttendanceNoticeService,
     AttendanceNoticeProcessor,

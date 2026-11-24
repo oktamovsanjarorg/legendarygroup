@@ -113,6 +113,7 @@ export const errorMessages = {
   SUBMISSION_NOT_PENDING: 'Chek koʻrib chiqish kutilayotgan holatda emas.',
   LATE_MINUTES_REQUIRED: 'Kech qolgan daqiqani kiriting.',
   ATTENDANCE_LOCKED_PAST: 'Ustoz faqat dars kuni davomatni oʻzgartirishi mumkin.',
+  ATTENDANCE_FUTURE: 'Dars kuni hali kelmagan — davomat dars kuni belgilanadi.',
   CHANGE_REASON_REQUIRED: 'Oʻtgan davomatni oʻzgartirish uchun sabab koʻrsatish majburiy.',
   STUDENT_NOT_ENROLLED: 'Oʻquvchi ushbu dars sanasida guruhga yozilmagan.',
   LESSON_CANCELLED: 'Bekor qilingan dars uchun davomat kiritilmaydi.',
