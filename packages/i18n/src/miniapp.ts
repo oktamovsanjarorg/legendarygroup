@@ -3,6 +3,7 @@ import { auditActionMessages } from './miniapp-audit.js';
 import { guardianMessages } from './miniapp-guardian.js';
 import { staffMessages } from './miniapp-staff.js';
 import { staffListMessages } from './miniapp-staff-lists.js';
+import { staffOrgMessages } from './miniapp-staff-org.js';
 import { staffWorkMessages } from './miniapp-staff-work.js';
 import { studentMessages } from './miniapp-student.js';
 import { teacherMessages } from './miniapp-teacher.js';
@@ -46,6 +47,7 @@ export const miniappMessages = {
   ...staffMessages,
   ...staffWorkMessages,
   ...staffListMessages,
+  ...staffOrgMessages,
   ...auditActionMessages,
   ...studentMessages,
   ...introMessages,
