@@ -41,6 +41,7 @@ export const auditActionMessages = {
     'user.director_transferred': 'Direktorlik oʻtkazildi',
     'user.director_relinked': 'Direktor Telegrami almashtirildi',
     'staff.create': 'Xodim qoʻshildi',
+    'staff.update': 'Xodim maʼlumoti oʻzgardi',
     'staff.telegram_unlinked': 'Xodim Telegrami uzildi',
     'staff.telegram_linked': 'Xodim Telegrami ulandi',
     'rbac.override_set': 'Ruxsat oʻzgartirildi',

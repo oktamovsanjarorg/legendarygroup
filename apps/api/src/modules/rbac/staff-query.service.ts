@@ -9,6 +9,8 @@ import { EnvService } from '../../config/env.service.js';
 import { botLink } from './staff.service.js';
 import { STAFF_CODES } from './telegram-claim.js';
 
+const isStaffCode = (c: RoleCode): boolean => STAFF_CODES.some((s) => s === c);
+
 type Row = typeof users.$inferSelect;
 
 /** Xodimlar ro'yxati va tafsiloti (W-28). Xodimlar soni kichik (≤ ~100) — sahifalashsiz. */
@@ -32,7 +34,7 @@ export class StaffQueryService {
       e.codes.push(r.code);
       byUser.set(r.user.id, e);
     }
-    const staff = [...byUser.values()].filter((e) => e.codes.some((c) => STAFF_CODES.includes(c)));
+    const staff = [...byUser.values()].filter((e) => e.codes.some(isStaffCode));
     const overrides = staff.length
       ? await this.db
           .select({ userId: userPermissionOverrides.userId })
@@ -59,8 +61,7 @@ export class StaffQueryService {
         .innerJoin(roles, eq(roles.id, userRoles.roleId))
         .where(eq(userRoles.userId, userId))
     ).map((r) => r.code);
-    if (!codes.some((c) => STAFF_CODES.includes(c)))
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+    if (!codes.some(isStaffCode)) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     const overrides = await this.db
       .select({
         permission: userPermissionOverrides.permissionCode,

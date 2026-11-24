@@ -3,7 +3,8 @@ import type { RoleCode } from '@lg/contracts';
 import { and, eq, inArray } from 'drizzle-orm';
 
 /** Botda raqam ulashib kiradigan xodim rollari (Q-98). Ota-ona/o'quvchi — T-110, T-126. */
-export const STAFF_CODES: RoleCode[] = ['director', 'admin', 'teacher'];
+export const STAFF_CODES = ['director', 'admin', 'teacher'] as const satisfies RoleCode[];
+export type StaffCode = (typeof STAFF_CODES)[number];
 
 export async function hasStaffRole(tx: Transaction, userId: string): Promise<boolean> {
   const rows = await tx

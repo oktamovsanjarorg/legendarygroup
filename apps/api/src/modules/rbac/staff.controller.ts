@@ -6,6 +6,7 @@ import {
   Inject,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Req,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import {
   type CreateStaffResult,
   type StaffDetail,
   type StaffListItem,
+  UpdateStaffRequest,
 } from '@lg/contracts';
 import type { FastifyRequest } from 'fastify';
 import type { z } from 'zod';
@@ -63,6 +65,19 @@ export class StaffController {
     @Req() req: FastifyRequest,
   ): Promise<CreateStaffResult> {
     return this.staff.create(auditContext(req), body);
+  }
+
+  @Patch(':userId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermission('staff.manage')
+  @NoAudit('StaffService.update ichida')
+  @ApiOperation({ summary: 'Ism yoki raqamni tuzatish (raqam almashsa, Telegram uziladi)' })
+  async update(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @ZodBody(UpdateStaffRequest) body: z.output<typeof UpdateStaffRequest>,
+    @Req() req: FastifyRequest,
+  ): Promise<void> {
+    await this.staff.update(auditContext(req), userId, body);
   }
 
   @Post(':userId/telegram/unlink')

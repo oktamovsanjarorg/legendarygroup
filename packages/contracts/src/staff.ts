@@ -14,6 +14,12 @@ export const CreateStaffRequest = z.object({
   role: z.enum(STAFF_ROLES),
 });
 
+/** `PATCH /api/staff/:userId` — ism yoki raqamni tuzatish (raqam almashsa, Telegram uziladi). */
+export const UpdateStaffRequest = z.object({
+  fullName: z.string().trim().min(2).max(120).optional(),
+  phone: PhoneSchema.optional(),
+});
+
 export const AddStaffRoleRequest = z.object({ role: z.enum(STAFF_ROLES) });
 
 /**
@@ -64,6 +70,7 @@ export const TelegramContactResult = z.object({
 });
 
 export type CreateStaffRequest = z.infer<typeof CreateStaffRequest>;
+export type UpdateStaffRequest = z.infer<typeof UpdateStaffRequest>;
 export type CreateStaffResult = z.infer<typeof CreateStaffResult>;
 export type StaffListItem = z.infer<typeof StaffListItem>;
 export type StaffDetail = z.infer<typeof StaffDetail>;

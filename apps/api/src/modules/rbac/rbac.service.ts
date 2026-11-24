@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { Permission, RoleCode } from '@lg/contracts';
+import { isPermission, type Permission, type RoleCode } from '@lg/contracts';
 import {
   type Database,
   roles,
@@ -11,11 +11,12 @@ import {
 } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { canRemoveDirector, type OverrideError, overrideError } from '@lg/domain';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import type { StaffCode } from './telegram-claim.js';
 import { bumpPermissionsVersion } from './user-version.js';
 
 /**
@@ -36,12 +37,11 @@ export class RbacService {
     ctx: AuditContext,
     target: { userId: string; permission: Permission; granted: boolean | null },
   ): Promise<void> {
+    this.assertNotSelf(ctx, target.userId);
     if (target.granted !== null) {
-      const error = this.overrideCheck(
-        await this.rolesOf(target.userId),
-        target.permission,
-        target.granted,
-      );
+      const codes = await this.rolesOf(target.userId, this.db);
+      if (codes.length === 0) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+      const error = this.overrideCheck(codes, target.permission, target.granted);
       if (error) throw new AppException(HttpStatus.UNPROCESSABLE_ENTITY, error);
     }
     await this.db.transaction(async (tx) => {
@@ -89,6 +89,7 @@ export class RbacService {
   async blockUser(ctx: AuditContext, userId: string): Promise<void> {
     await this.db.transaction(async (tx) => {
       await this.assertNotLastDirector(tx, userId);
+      this.assertNotSelf(ctx, userId);
       const [u] = await tx
         .update(users)
         .set({ status: 'blocked' })
@@ -109,7 +110,7 @@ export class RbacService {
   }
 
   /** Rolni olish; Director bo'lsa — oxirgi faol Director himoyasi. */
-  async removeRole(ctx: AuditContext, userId: string, role: RoleCode): Promise<void> {
+  async removeRole(ctx: AuditContext, userId: string, role: StaffCode): Promise<void> {
     await this.db.transaction(async (tx) => {
       if (role === 'director') await this.assertNotLastDirector(tx, userId);
       const [r] = await tx.select({ id: roles.id }).from(roles).where(eq(roles.code, role));
@@ -120,6 +121,7 @@ export class RbacService {
             .returning({ userId: userRoles.userId })
         : [];
       if (removed.length === 0) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+      await this.dropStaleOverrides(tx, userId);
       await bumpPermissionsVersion(tx, userId);
       await this.audit.record(
         ctx,
@@ -148,13 +150,43 @@ export class RbacService {
       : 'OVERRIDE_NOT_ALLOWED';
   }
 
-  private async rolesOf(userId: string): Promise<RoleCode[]> {
-    const rows = await this.db
+  /** Qolgan rollarda ma'nosi yo'q override'lar: rol qaytarilsa, jim tiklanib qolmasin. */
+  private async dropStaleOverrides(tx: Transaction, userId: string): Promise<void> {
+    const left = await this.rolesOf(userId, tx);
+    const rows = await tx
+      .select({
+        permission: userPermissionOverrides.permissionCode,
+        granted: userPermissionOverrides.granted,
+      })
+      .from(userPermissionOverrides)
+      .where(eq(userPermissionOverrides.userId, userId));
+    const stale = rows.filter(
+      (o) =>
+        !isPermission(o.permission) || this.overrideCheck(left, o.permission, o.granted) !== null,
+    );
+    if (stale.length === 0) return;
+    await tx.delete(userPermissionOverrides).where(
+      and(
+        eq(userPermissionOverrides.userId, userId),
+        inArray(
+          userPermissionOverrides.permissionCode,
+          stale.map((o) => o.permission),
+        ),
+      ),
+    );
+  }
+
+  /** Yagona Director o'z ruxsatini cheklab, tizimni boshqaruvsiz qoldirmasin. */
+  private assertNotSelf(ctx: AuditContext, userId: string): void {
+    if (ctx.actorId === userId) throw new AppException(HttpStatus.CONFLICT, 'OWN_ACCESS');
+  }
+
+  private async rolesOf(userId: string, db: Database | Transaction): Promise<RoleCode[]> {
+    const rows = await db
       .select({ code: roles.code })
       .from(userRoles)
       .innerJoin(roles, eq(roles.id, userRoles.roleId))
       .where(eq(userRoles.userId, userId));
-    if (rows.length === 0) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     return rows.map((r) => r.code);
   }
 
