@@ -1,14 +1,16 @@
-import type {
-  AuditLogItem,
+import {
+  type AuditLogItem,
   ListAuditLogsQuery,
-  StaffActivityItem,
+  ListSuspiciousQuery,
+  type StaffActivityItem,
   StaffActivityQuery,
-  SuspiciousActivityItem,
+  type SuspiciousActivityItem,
 } from '@lg/contracts';
-import { Controller, Get, Inject, Query } from '@nestjs/common';
+import { Controller, Get, Inject } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
+import { ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { AuditLogService } from './audit-log.service.js';
 
@@ -24,7 +26,7 @@ export class AuditLogController {
   @ApiOperation({ summary: 'FR-AUD-1/2 Audit jurnali roʻyxati va filtrlar' })
   async listLogs(
     @CurrentUser() actor: RequestUser,
-    @Query() query: ListAuditLogsQuery,
+    @ZodQuery(ListAuditLogsQuery) query: ListAuditLogsQuery,
   ): Promise<AuditLogItem[]> {
     return this.service.listAuditLogs(actor, query);
   }
@@ -35,9 +37,9 @@ export class AuditLogController {
   @ApiOperation({ summary: 'FR-AUD-2 Shubhali harakatlar roʻyxati' })
   async listSuspicious(
     @CurrentUser() actor: RequestUser,
-    @Query('limit') limit?: number,
+    @ZodQuery(ListSuspiciousQuery) query: ListSuspiciousQuery,
   ): Promise<SuspiciousActivityItem[]> {
-    return this.service.listSuspiciousActivities(actor, limit ? Number(limit) : 50);
+    return this.service.listSuspiciousActivities(actor, query.limit);
   }
 
   @Get('staff-activity')
@@ -46,7 +48,7 @@ export class AuditLogController {
   @ApiOperation({ summary: 'FR-AUD-3 Xodimlar faolligi hisoboti' })
   async getStaffActivity(
     @CurrentUser() actor: RequestUser,
-    @Query() query: StaffActivityQuery,
+    @ZodQuery(StaffActivityQuery) query: StaffActivityQuery,
   ): Promise<StaffActivityItem[]> {
     return this.service.getStaffActivity(actor, query.period);
   }

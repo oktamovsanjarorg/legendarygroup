@@ -79,14 +79,8 @@ export type DebtAgingResponse = z.infer<typeof DebtAgingResponseSchema>;
 // 3. Attendance Report
 export const AttendanceReportQuerySchema = z.object({
   branchId: z.string().uuid().optional(),
-  from: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  to: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
   groupBy: z.enum(['group', 'teacher']).default('group'),
 });
 export type AttendanceReportQuery = z.infer<typeof AttendanceReportQuerySchema>;
@@ -138,14 +132,8 @@ export type CohortReportResponse = z.infer<typeof CohortReportResponseSchema>;
 // 5. Leads Conversion Report
 export const LeadsConversionReportQuerySchema = z.object({
   branchId: z.string().uuid().optional(),
-  from: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  to: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
 });
 export type LeadsConversionReportQuery = z.infer<typeof LeadsConversionReportQuerySchema>;
 
@@ -170,14 +158,8 @@ export type LeadsConversionReportResponse = z.infer<typeof LeadsConversionReport
 // 6. Teacher Performance Report
 export const TeacherPerformanceReportQuerySchema = z.object({
   branchId: z.string().uuid().optional(),
-  from: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  to: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
 });
 export type TeacherPerformanceReportQuery = z.infer<typeof TeacherPerformanceReportQuerySchema>;
 

@@ -5,6 +5,7 @@ import {
   type RoleCode,
 } from '@lg/contracts';
 import {
+  auditLogs,
   closeDb,
   createDb,
   type Database,
@@ -14,6 +15,7 @@ import {
   payrollRuns,
   seed,
 } from '@lg/db';
+import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
@@ -233,5 +235,45 @@ describe('T-403: Xarajatlar va P&L (Expenses & P&L)', () => {
 
     const getRes = await call('GET', `expenses/${tempId}`, directorToken);
     expect(getRes.statusCode).toBe(404);
+  });
+
+  it.each([
+    ['nol summa', { amount: '0' }],
+    ['mavjud boʻlmagan kun', { date: '2026-02-31' }],
+    ['kelajak sana', { date: '2099-01-01' }],
+    ['chegaradan katta summa', { amount: '9'.repeat(25) }],
+  ])('T-142: %s qabul qilinmaydi (400)', async (_n, bad) => {
+    const ok = { category: 'other', amount: '1000', date: '2026-11-10' };
+    const res = await call('POST', 'expenses', directorToken, { ...ok, ...bad });
+    expect(res.statusCode).toBe(400);
+    const patch = await call('PATCH', `expenses/${createdExpenseId}`, directorToken, bad);
+    expect(patch.statusCode).toBe(400);
+  });
+
+  it('T-156: notoʻgʻri filtr/davr — 400, sahifa hajmi amal qiladi', async () => {
+    expect((await call('GET', 'expenses?category=yoq', directorToken)).statusCode).toBe(400);
+    expect((await call('GET', 'finance/pnl?period=2026-13', directorToken)).statusCode).toBe(400);
+    expect((await call('GET', 'finance/pnl', directorToken)).statusCode).toBe(400);
+    const one = await call('GET', 'expenses?limit=1', directorToken);
+    expect(one.json<ExpenseItem[]>()).toHaveLength(1);
+    expect((await call('GET', 'expenses?limit=1000', directorToken)).statusCode).toBe(400);
+  });
+
+  it('T-142: oʻchirilgan/tahrirlangan xarajatning oldingi holati auditda qoladi', async () => {
+    const created = await call('POST', 'expenses', directorToken, {
+      category: 'other',
+      amount: '77000',
+      date: '2026-11-12',
+      note: 'Suv',
+    });
+    const id = created.json<ExpenseItem>().id;
+    await call('PATCH', `expenses/${id}`, directorToken, { amount: '88000' });
+    await call('DELETE', `expenses/${id}`, directorToken);
+    const logs = await db.select().from(auditLogs).where(eq(auditLogs.entityId, id));
+    const of = (action: string) => logs.filter((l) => l.action === action);
+    expect(of('expense.create')).toHaveLength(1);
+    expect(of('expense.update')[0]?.before).toMatchObject({ amount: '77000' });
+    expect(of('expense.update')[0]?.after).toMatchObject({ amount: '88000' });
+    expect(of('expense.delete')[0]?.before).toMatchObject({ amount: '88000', note: 'Suv' });
   });
 });

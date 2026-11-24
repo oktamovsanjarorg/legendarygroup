@@ -1,10 +1,9 @@
 import {
   CreateExpenseRequest,
-  DEFAULT_BRANCH_ID,
   type ExpenseItem,
-  type ListExpensesQuery,
+  ListExpensesQuery,
   type MonthlyPnLSummary,
-  type PnLQuery,
+  PnLQuery,
   UpdateExpenseRequest,
 } from '@lg/contracts';
 import {
@@ -16,12 +15,14 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Query,
+  Req,
 } from '@nestjs/common';
+import type { FastifyRequest } from 'fastify';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Audit, NoAudit } from '../../common/audit/audit.decorator.js';
+import { NoAudit } from '../../common/audit/audit.decorator.js';
+import { auditContext } from '../../common/audit/request-context.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
-import { ZodBody } from '../../common/decorators/zod.decorators.js';
+import { ZodBody, ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { ExpensesService } from './expenses.service.js';
 
@@ -33,13 +34,14 @@ export class ExpensesController {
 
   @Post('expenses')
   @RequirePermission('expense.manage')
-  @Audit({ action: 'expense.create', entity: 'expense' })
+  @NoAudit('ExpensesService ichida (oldin/keyin holati bilan)')
   @ApiOperation({ summary: 'FR-FIN-1 Yangi xarajat kiritish' })
   async createExpense(
     @CurrentUser() actor: RequestUser,
-    @ZodBody(CreateExpenseRequest) req: CreateExpenseRequest,
+    @ZodBody(CreateExpenseRequest) body: CreateExpenseRequest,
+    @Req() req: FastifyRequest,
   ): Promise<ExpenseItem> {
-    return this.service.createExpense(actor, DEFAULT_BRANCH_ID, req);
+    return this.service.createExpense(actor, body, auditContext(req));
   }
 
   @Get('expenses')
@@ -47,44 +49,40 @@ export class ExpensesController {
   @NoAudit('GET query')
   @ApiOperation({ summary: 'Xarajatlar roʻyxati' })
   async listExpenses(
-    @CurrentUser() actor: RequestUser,
-    @Query() query: ListExpensesQuery,
+    @ZodQuery(ListExpensesQuery) query: ListExpensesQuery,
   ): Promise<ExpenseItem[]> {
-    return this.service.listExpenses(actor, DEFAULT_BRANCH_ID, query);
+    return this.service.listExpenses(query);
   }
 
   @Get('expenses/:id')
   @RequirePermission('expense.manage')
   @NoAudit('GET query')
   @ApiOperation({ summary: 'Xarajat tafsilotlari' })
-  async getExpense(
-    @CurrentUser() actor: RequestUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<ExpenseItem> {
-    return this.service.getExpense(actor, id);
+  async getExpense(@Param('id', ParseUUIDPipe) id: string): Promise<ExpenseItem> {
+    return this.service.getExpense(id);
   }
 
   @Patch('expenses/:id')
   @RequirePermission('expense.manage')
-  @Audit({ action: 'expense.update', entity: 'expense' })
+  @NoAudit('ExpensesService ichida (oldin/keyin holati bilan)')
   @ApiOperation({ summary: 'Xarajatni tahrirlash' })
   async updateExpense(
-    @CurrentUser() actor: RequestUser,
     @Param('id', ParseUUIDPipe) id: string,
-    @ZodBody(UpdateExpenseRequest) req: UpdateExpenseRequest,
+    @ZodBody(UpdateExpenseRequest) body: UpdateExpenseRequest,
+    @Req() req: FastifyRequest,
   ): Promise<ExpenseItem> {
-    return this.service.updateExpense(actor, id, req);
+    return this.service.updateExpense(id, body, auditContext(req));
   }
 
   @Delete('expenses/:id')
   @RequirePermission('expense.manage')
-  @Audit({ action: 'expense.delete', entity: 'expense' })
+  @NoAudit('ExpensesService ichida (oldin/keyin holati bilan)')
   @ApiOperation({ summary: 'Xarajatni oʻchirish' })
   async deleteExpense(
-    @CurrentUser() actor: RequestUser,
     @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: FastifyRequest,
   ): Promise<{ success: true }> {
-    await this.service.deleteExpense(actor, id);
+    await this.service.deleteExpense(id, auditContext(req));
     return { success: true };
   }
 
@@ -92,10 +90,7 @@ export class ExpensesController {
   @RequirePermission('finance.view')
   @NoAudit('GET query')
   @ApiOperation({ summary: 'FR-FIN-2 Oylik P&L (foyda-zarar) hisoboti' })
-  async getMonthlyPnL(
-    @CurrentUser() actor: RequestUser,
-    @Query() query: PnLQuery,
-  ): Promise<MonthlyPnLSummary> {
-    return this.service.getMonthlyPnL(actor, DEFAULT_BRANCH_ID, query.period);
+  async getMonthlyPnL(@ZodQuery(PnLQuery) query: PnLQuery): Promise<MonthlyPnLSummary> {
+    return this.service.getMonthlyPnL(query.period);
   }
 }
