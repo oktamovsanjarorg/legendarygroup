@@ -6,6 +6,7 @@ import { useAnnouncementPreview, useSendAnnouncement } from '../data/announcemen
 import { QueryView } from '../data/query-view.js';
 import { useTeacherGroup } from '../data/teacher.js';
 import { AnnounceView } from '../screens/teacher/announce.js';
+import { useFilePicker } from './use-file-picker.js';
 import { useMe } from '../session/session.js';
 import { useOnline } from '../use-online.js';
 
@@ -26,12 +27,13 @@ export function TeacherAnnouncePage() {
     return <ForbiddenState onHome={() => void navigate({ to: '/' })} />;
   }
 
+  const picker = useFilePicker('announcement');
   const handleSend = (text: string) => {
     if (!online || sendMutation.isPending) return;
     const groupName = groupQuery.data?.group.name ?? '';
     const title = t.announce.groupTitle.replace('{group}', groupName);
     sendMutation.mutate(
-      { title, body: text },
+      { title, body: text, fileId: picker.fileId ?? undefined },
       {
         onSuccess: () => {
           void navigate({ to: '/group/$id', params: { id } });
@@ -44,6 +46,7 @@ export function TeacherAnnouncePage() {
     <QueryView query={previewQuery}>
       {(preview) => (
         <>
+          {picker.input}
           {sendMutation.isError && (
             <p role="alert" className="mx-4 mt-3 rounded-xl bg-danger-bg p-3 text-sm text-danger">
               {errorText(sendMutation.error)}
@@ -52,8 +55,9 @@ export function TeacherAnnouncePage() {
           <AnnounceView
             groupName={groupQuery.data?.group.name ?? ''}
             recipients={preview.recipientCount}
-            sending={sendMutation.isPending}
-            onAttach={() => undefined}
+            sending={sendMutation.isPending || picker.state.kind === 'uploading'}
+            fileName={picker.state.kind === 'ready' ? picker.state.name : undefined}
+            onAttach={picker.open}
             onSend={handleSend}
           />
         </>

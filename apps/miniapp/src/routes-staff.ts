@@ -5,6 +5,12 @@ import {
   StaffQueuePage,
   StaffSearchPage,
 } from './pages/staff.js';
+import {
+  StaffAnnouncementNewPage,
+  StaffAnnouncementPage,
+  StaffAnnouncementsPage,
+} from './pages/staff-announcements.js';
+import { StaffAuditItemPage, StaffAuditPage } from './pages/staff-audit.js';
 import { StaffCashPage } from './pages/staff-cash.js';
 import { StaffDebtorsPage } from './pages/staff-debtors.js';
 import { StaffExpenseNewPage, StaffExpensePage, StaffFinancePage } from './pages/staff-finance.js';
@@ -27,6 +33,7 @@ import { StaffPayPage, StaffPaySearchPage } from './pages/staff-pay.js';
 import { StaffSetupPage } from './pages/staff-setup.js';
 import { StaffLeavePage, StaffStudentPage } from './pages/staff-student.js';
 import { StaffTicketPage, StaffTicketsPage } from './pages/staff-tickets.js';
+import { StaffUndeliveredPage } from './pages/staff-undelivered.js';
 import { root } from './route-root.js';
 
 /** Xodim rejimi (MS-*, 11-ux §2): Director/Admin marshrutlari. */
@@ -58,6 +65,12 @@ export const staffRoutes = [
   route('/staff/link-requests/$id/reject', StaffLinkRejectPage),
   route('/staff/tickets', StaffTicketsPage),
   route('/staff/tickets/$id', StaffTicketPage),
+  route('/staff/announcements', StaffAnnouncementsPage),
+  route('/staff/announcements/new', StaffAnnouncementNewPage),
+  route('/staff/announcements/$id', StaffAnnouncementPage),
+  route('/staff/undelivered', StaffUndeliveredPage),
+  route('/staff/audit', StaffAuditPage),
+  route('/staff/audit/$id', StaffAuditItemPage),
   route('/staff/cash', StaffCashPage),
   route('/staff/finance', StaffFinancePage),
   route('/staff/expenses/new', StaffExpenseNewPage),
