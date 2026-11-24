@@ -92,10 +92,7 @@ export class BillingGeneratorService {
     );
     // BR-2 1-qadam: o'tgan oy yopiladi (kredit, jarima). Xato bo'lsa — 2-qadam (invoice) yo'q.
     for (const [studentId, lines] of studentLinesMap)
-      studentLinesMap.set(
-        studentId,
-        applyAdjustments(lines, await this.monthClose.adjustments(studentId, period)),
-      );
+      studentLinesMap.set(studentId, await this.adjusted(studentId, period, lines));
 
     return this.persistInvoices(period, dueDate, studentLinesMap);
   }
@@ -110,9 +107,14 @@ export class BillingGeneratorService {
       (e) => e.studentId === studentId,
     );
     const map = await this.prepareLinesByStudent(list, monthStart, monthEnd, period);
-    for (const [id, lines] of map)
-      map.set(id, applyAdjustments(lines, await this.monthClose.adjustments(id, period)));
+    for (const [id, lines] of map) map.set(id, await this.adjusted(id, period, lines));
     await this.persistInvoices(period, defaultDueDate < today ? today : defaultDueDate, map);
+  }
+
+  /** BR-2: o'tgan oy (yoki to'xtatishdan oldingi oxirgi oy, Q-102) tuzatishlari bilan. */
+  async adjusted(studentId: string, period: string, lines: PreparedLine[]) {
+    const ids = lines.map((l) => l.enrollmentId);
+    return applyAdjustments(lines, await this.monthClose.adjustments(studentId, period, ids));
   }
 
   private calculateMonthDates(period: string) {
