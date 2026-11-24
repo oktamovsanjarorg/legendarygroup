@@ -17,6 +17,8 @@ describe('MS-06 Koʻproq (T-130)', () => {
       'debtors',
       'cash',
       'tickets',
+      'announcements',
+      'undelivered',
     ]);
   });
 
@@ -31,7 +33,10 @@ describe('MS-06 Koʻproq (T-130)', () => {
       'cash',
       'addExpense',
       'tickets',
+      'announcements',
+      'undelivered',
       'finance',
+      'audit',
     ]);
   });
 

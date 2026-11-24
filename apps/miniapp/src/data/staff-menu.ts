@@ -14,8 +14,11 @@ export type StaffMenuKey =
   | 'cash'
   | 'addExpense'
   | 'tickets'
+  | 'announcements'
+  | 'undelivered'
   | 'approvals'
-  | 'finance';
+  | 'finance'
+  | 'audit';
 
 export interface StaffMenuItem {
   key: StaffMenuKey;
@@ -54,12 +57,25 @@ export const STAFF_MENU: readonly StaffMenuItem[] = [
   },
   { key: 'tickets', section: 'comms', permission: 'ticket.handle', to: '/staff/tickets' },
   {
+    key: 'announcements',
+    section: 'comms',
+    permission: 'announcement.send',
+    to: '/staff/announcements',
+  },
+  {
+    key: 'undelivered',
+    section: 'comms',
+    permission: 'student.manage',
+    to: '/staff/undelivered',
+  },
+  {
     key: 'approvals',
     section: 'director',
     permission: 'approval.decide',
     to: '/staff/approvals',
   },
   { key: 'finance', section: 'director', permission: 'finance.view', to: '/staff/finance' },
+  { key: 'audit', section: 'director', permission: 'audit.view', to: '/staff/audit' },
 ];
 
 /** Ruxsat bor va tabda yoʻq bandlar, boʻlimlar tartibida. */
