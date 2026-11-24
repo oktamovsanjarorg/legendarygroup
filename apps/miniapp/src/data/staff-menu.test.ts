@@ -12,6 +12,7 @@ describe('MS-06 Koʻproq (T-130)', () => {
     expect(keys(staffMenuFor(ROLE_PERMISSIONS.admin, tabPaths('admin')))).toEqual([
       'newStudent',
       'pay',
+      'debtors',
     ]);
   });
 
@@ -19,6 +20,7 @@ describe('MS-06 Koʻproq (T-130)', () => {
     expect(keys(staffMenuFor(ROLE_PERMISSIONS.director, tabPaths('director')))).toEqual([
       'newStudent',
       'pay',
+      'debtors',
       'queue',
     ]);
   });

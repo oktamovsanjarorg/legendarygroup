@@ -344,10 +344,11 @@
 - **Bog'liq:** T-130, T-204 · **Talablar:** FR-PAY-1/2, BR-12
 - **AC:** MS-05 kartochkasidan va MS-06'dan; preview (taqsimot) server'dan; `Idempotency-Key` forma ochilganda; MainButton Saqlash; chek raqami + PDF; e2e ssenariy. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
 
-### ⬜ T-132 · Mini App: qarzdorlar (MS-08)
+### ✅ T-132 · Mini App: qarzdorlar (MS-08)
 
 - **Bog'liq:** T-130, T-208 · **Talablar:** FR-PAY-7, BR-22
 - **AC:** ro'yxat (qarz, kun), qo'ng'iroq `tel:`, eslatma — `notifications` orqali; → MS-07. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-24):** `pages/staff-debtors.tsx`, `screens/staff/debtors.tsx`; API `DebtRemindersService` (Q-100). Yo'lda tuzatilgan mantiq xatolari: yetib bormagan eslatma «yuborildi» deb sanalardi; bir kunda bir nechta xabar; to'langan hisob kechikish kuniga kirardi; `criticalOnly=false`; qidiruvda apostrof; bot xabarlarida `_`/`*` (T-109). Qolgan: haqiqiy Telegram'da qo'lda sinov.
 
 ### ⬜ T-133 · Mini App: lidlar (MS-09)
 
