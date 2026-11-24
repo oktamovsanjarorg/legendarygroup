@@ -1,6 +1,7 @@
 import type {
   CreateTeacherAdvanceRequest,
   CreateTeacherContractRequest,
+  PayrollStaffOption,
   TeacherAdvance,
   TeacherContract,
 } from '@lg/contracts';
@@ -105,6 +106,10 @@ export class PayrollTermsService {
       await this.repo.invalidateDrafts(tx);
       await this.repo.deleteContract(tx, id);
     });
+  }
+
+  staffOptions(): Promise<PayrollStaffOption[]> {
+    return this.repo.staffOptions();
   }
 
   async createAdvance(

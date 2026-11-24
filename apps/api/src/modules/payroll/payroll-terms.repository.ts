@@ -1,3 +1,4 @@
+import type { RoleCode } from '@lg/contracts';
 import {
   type Database,
   groups,
@@ -18,6 +19,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { and, desc, eq, gte, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { periodDays } from './payroll-metrics.repository.js';
+
+const STAFF: RoleCode[] = ['teacher', 'admin', 'director'];
 
 export interface OutstandingAdvance extends TeacherAdvanceRow {
   /** Boshqa hisoblarda allaqachon ushlangan qismi (BR-28, Q-104). */
@@ -40,15 +43,25 @@ export class PayrollTermsRepository {
       .from(users)
       .innerJoin(userRoles, eq(userRoles.userId, users.id))
       .innerJoin(roles, eq(roles.id, userRoles.roleId))
-      .where(
-        and(
-          eq(users.id, userId),
-          eq(users.status, 'active'),
-          inArray(roles.code, ['teacher', 'admin', 'director']),
-        ),
-      )
+      .where(and(eq(users.id, userId), eq(users.status, 'active'), inArray(roles.code, STAFF)))
       .limit(1);
     return row !== undefined;
+  }
+
+  /** Oylik yozilishi mumkin bo'lgan faol xodimlar. */
+  async staffOptions() {
+    return this.db
+      .select({
+        id: users.id,
+        fullName: users.fullName,
+        roles: sql<RoleCode[]>`array_agg(${roles.code} order by ${roles.code})`,
+      })
+      .from(users)
+      .innerJoin(userRoles, eq(userRoles.userId, users.id))
+      .innerJoin(roles, eq(roles.id, userRoles.roleId))
+      .where(and(eq(users.status, 'active'), inArray(roles.code, STAFF)))
+      .groupBy(users.id)
+      .orderBy(users.fullName);
   }
 
   async contracts(teacherId?: string) {

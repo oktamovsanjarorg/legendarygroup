@@ -1,4 +1,10 @@
-import type { PayrollRunDetail, RoleCode, TeacherAdvance, TeacherContract } from '@lg/contracts';
+import type {
+  PayrollRunDetail,
+  PayrollStaffOption,
+  RoleCode,
+  TeacherAdvance,
+  TeacherContract,
+} from '@lg/contracts';
 import { closeDb, createDb, type Database, payrollRuns, seed } from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -58,11 +64,20 @@ describe('Shartnoma', () => {
         call('POST', `contracts/${id}/end`, { validTo: '2026-01-01' }, role),
         call('DELETE', `contracts/${id}`, undefined, role),
         call('GET', 'advances', undefined, role),
+        call('GET', 'staff', undefined, role),
         call('DELETE', `advances/${id}`, undefined, role),
         call('DELETE', `runs/${id}/adjustments/${id}`, undefined, role),
       ]);
-      expect(results.map((r) => r.statusCode)).toEqual([403, 403, 403, 403, 403]);
+      expect(results.map((r) => r.statusCode)).toEqual(Array(6).fill(403));
     }
+  });
+
+  it('xodimlar roʻyxati: bir odam — bir qator; ota-ona yoʻq', async () => {
+    const id = await createUserWithRole(db, 'teacher');
+    const guardian = await createUserWithRole(db, 'guardian');
+    const list = (await call('GET', 'staff')).json<PayrollStaffOption[]>();
+    expect(list.filter((s) => s.id === id).map((s) => s.roles)).toEqual([['teacher']]);
+    expect(list.some((s) => s.id === guardian)).toBe(false);
   });
 
   it('turga mos summa shart; ota-onaga shartnoma yozilmaydi', async () => {

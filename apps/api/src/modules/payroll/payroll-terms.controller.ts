@@ -3,6 +3,7 @@ import {
   CreateTeacherContractRequest,
   DEFAULT_BRANCH_ID,
   EndTeacherContractRequest,
+  type PayrollStaffOption,
   type TeacherAdvance,
   type TeacherContract,
 } from '@lg/contracts';
@@ -46,6 +47,14 @@ export class PayrollTermsController {
   @ApiOperation({ summary: 'Ustoz shartnomalari roʻyxati' })
   async listContracts(@Query('teacherId') teacherId?: string): Promise<TeacherContract[]> {
     return this.service.listContracts(teacherId);
+  }
+
+  @Get('staff')
+  @RequirePermission('payroll.manage')
+  @NoAudit('GET query')
+  @ApiOperation({ summary: 'Oylik yoziladigan faol xodimlar' })
+  async staff(): Promise<PayrollStaffOption[]> {
+    return this.service.staffOptions();
   }
 
   @Post('contracts/:id/end')
