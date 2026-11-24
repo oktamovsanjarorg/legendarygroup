@@ -1,6 +1,6 @@
 # Legendary Group — O'quv markaz boshqaruv tizimi
 
-> Holat: **F0 — Poydevor** (T-001, T-002, T-003 tayyor). Joriy holat — [09-tasks.md](09-tasks.md).
+> Holat: production'da; xodim ishi Mini App'ga ko'chirilmoqda ([ADR 0008](adr/0008-miniapp-only-staff.md)). Vazifalar — [09-tasks.md](09-tasks.md).
 > Bu papkadagi hujjatlar — loyihaning yagona haqiqat manbai (single source of truth).
 > Har qanday kod shu hujjatlarga mos yozilishi shart. Qoida o'zgarsa — avval hujjat, keyin kod.
 
@@ -30,7 +30,7 @@
 ## Qisqacha
 
 - **Repo:** `git@github.com:oktamovsanjarorg/legendarygroup.git` — **yagona monorepo** (barcha ilovalar, paketlar, infra va hujjatlar shu yerda). Asosiy branch: `main`.
-- **Mijozlar:** Telegram bot + Telegram Mini App (Ota-ona, Ustoz), Web panel (Director, Admin). Ustoz — faqat Mini App.
+- **Mijozlar:** Telegram bot + Telegram Mini App (Ota-ona, Ustoz), barcha rollar Mini App'da; web panel (Director, Admin) yopilmoqda.
 - **Til:** faqat o'zbek (lotin).
 - **Hajm:** 1 filial (lekin kod `branch_id` bilan kengaytirishga tayyor).
 - **Stek:** TypeScript end-to-end · NestJS · PostgreSQL · Redis/BullMQ · grammY · React (Vite) · Docker · AWS · GitHub Actions.
