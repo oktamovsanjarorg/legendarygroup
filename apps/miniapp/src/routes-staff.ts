@@ -61,8 +61,32 @@ import {
 import { StaffMorePage } from './pages/staff-more.js';
 import { StaffNewPage } from './pages/staff-new.js';
 import { StaffPayPage, StaffPaySearchPage } from './pages/staff-pay.js';
+import {
+  StaffDiscountPage,
+  StaffDiscountsPage,
+  StaffInvoicePage,
+  StaffPaymentPage,
+  StaffPaymentsPage,
+  StaffRefundPage,
+  StaffReversePage,
+  StaffStudentFinancePage,
+  StaffWaivePage,
+} from './pages/staff-payments.js';
 import { StaffSetupPage } from './pages/staff-setup.js';
 import { StaffLeavePage, StaffStudentPage } from './pages/staff-student.js';
+import {
+  StaffEnrollmentPage,
+  StaffEnrollPage,
+  StaffFreezePage,
+  StaffTransferPage,
+} from './pages/staff-student-enroll.js';
+import {
+  StaffGuardianEditPage,
+  StaffGuardianNewPage,
+  StaffStudentAccessPage,
+  StaffStudentAttendancePage,
+  StaffStudentEditPage,
+} from './pages/staff-student-profile.js';
 import { StaffTicketPage, StaffTicketsPage } from './pages/staff-tickets.js';
 import { StaffUndeliveredPage } from './pages/staff-undelivered.js';
 import { root } from './route-root.js';
@@ -79,6 +103,24 @@ export const staffRoutes = [
   route('/staff/student/$id', StaffStudentPage),
   route('/staff/student/$id/leave/$enrollmentId', StaffLeavePage),
   route('/staff/student/$id/setup', StaffSetupPage),
+  route('/staff/student/$id/edit', StaffStudentEditPage),
+  route('/staff/student/$id/access', StaffStudentAccessPage),
+  route('/staff/student/$id/attendance', StaffStudentAttendancePage),
+  route('/staff/student/$id/guardian-new', StaffGuardianNewPage),
+  route('/staff/student/$id/guardian/$guardianId', StaffGuardianEditPage),
+  route('/staff/student/$id/enroll', StaffEnrollPage),
+  route('/staff/student/$id/enrollment/$enrollmentId', StaffEnrollmentPage),
+  route('/staff/student/$id/transfer/$enrollmentId', StaffTransferPage),
+  route('/staff/student/$id/freeze/$enrollmentId', StaffFreezePage),
+  route('/staff/student/$id/discount/$enrollmentId', StaffDiscountPage),
+  route('/staff/student/$id/finance', StaffStudentFinancePage),
+  route('/staff/student/$id/invoice/$invoiceId', StaffInvoicePage),
+  route('/staff/student/$id/invoice/$invoiceId/waive/$lineId', StaffWaivePage),
+  route('/staff/student/$id/refund', StaffRefundPage),
+  route('/staff/payments', StaffPaymentsPage),
+  route('/staff/payments/$id', StaffPaymentPage),
+  route('/staff/payments/$id/reverse', StaffReversePage),
+  route('/staff/discounts', StaffDiscountsPage),
   route('/staff/more', StaffMorePage),
   route('/staff/new', StaffNewPage),
   route('/staff/debtors', StaffDebtorsPage),
