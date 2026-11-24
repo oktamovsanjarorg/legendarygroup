@@ -1,5 +1,11 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { FILE_PURPOSES, type FileInfo, type FilePurpose, type Permission } from '@lg/contracts';
+import {
+  FILE_PURPOSES,
+  type FileInfo,
+  type FilePurpose,
+  MAX_FILE_BYTES,
+  type Permission,
+} from '@lg/contracts';
 import { type Database, files } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { eq } from 'drizzle-orm';
@@ -167,9 +173,11 @@ export class FilesService {
   }
 
   /** Fayl egasi va maqsadi (boshqa modul o'z fayli biriktirilganini tekshirishi uchun). */
-  async ownership(fileId: string): Promise<{ purpose: string; uploadedBy: string | null } | null> {
+  async ownership(
+    fileId: string,
+  ): Promise<{ purpose: string; uploadedBy: string | null; mime: string } | null> {
     const [row] = await this.db
-      .select({ purpose: files.purpose, uploadedBy: files.uploadedBy })
+      .select({ purpose: files.purpose, uploadedBy: files.uploadedBy, mime: files.mime })
       .from(files)
       .where(eq(files.id, fileId));
     return row ?? null;
@@ -185,6 +193,13 @@ export class FilesService {
     const url = await this.storage.presignedGet(row.s3Key, VIEW_URL_TTL_S);
     const expiresAt = new Date(this.clock.now().getTime() + VIEW_URL_TTL_S * 1000).toISOString();
     return { url, expiresAt };
+  }
+
+  /** Telegram'ga yuborish uchun mazmuni (ruxsat — yuborishni boshlagan modulda tekshirilgan). */
+  async readForDelivery(fileId: string): Promise<{ body: Buffer; mime: string } | null> {
+    const [row] = await this.db.select().from(files).where(eq(files.id, fileId));
+    const body = row && (await this.storage.read(row.s3Key, MAX_FILE_BYTES));
+    return row && body ? { body, mime: row.mime } : null;
   }
 
   private async has(user: RequestUser, permission: Permission) {

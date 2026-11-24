@@ -9,8 +9,9 @@ import {
   type RoleCode,
   type UndeliveredNotificationItem,
 } from '@lg/contracts';
-import { type Database, users } from '@lg/db';
+import { type Database, type NotificationRow, users } from '@lg/db';
 import {
+  type Clock,
   isNotificationMandatory,
   NOTIFICATION_TITLES_UZ,
   renderNotificationTemplate,
@@ -18,6 +19,7 @@ import {
   validatePreferenceUpdate,
 } from '@lg/domain';
 import { eq } from 'drizzle-orm';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { StaffDirectoryService } from '../rbac/index.js';
@@ -26,6 +28,8 @@ import { NotificationsRepository } from './notifications.repository.js';
 
 /** `failedReason`: foydalanuvchida Telegram yo'q. */
 export const NO_TELEGRAM = 'NO_TELEGRAM';
+/** `failedReason`: navbatga (Redis) qo'yib bo'lmadi — W-22 dan qayta yuboriladi. */
+export const ENQUEUE_FAILED = 'ENQUEUE_FAILED';
 
 export interface NotifyParams {
   userId: string;
@@ -42,6 +46,7 @@ export class NotificationsService {
     @Inject(TelegramOutbox) private readonly telegramOutbox: TelegramOutbox,
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(StaffDirectoryService) private readonly staff: StaffDirectoryService,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
   /**
@@ -76,22 +81,47 @@ export class NotificationsService {
     if (!notif) return null;
 
     if (user.telegramId) {
-      await this.telegramOutbox.enqueue(
-        {
-          method: 'sendMessage',
-          chatId: recipient,
-          payload: telegramMessage(rendered),
-          notificationId: notif.id,
-        },
-        { dedupeKey: params.dedupeKey },
-      );
-      await this.repo.updateStatus(notif.id, 'queued', { sentAt: null });
+      await this.enqueue(notif, recipient, params.dedupeKey);
       return notif.id;
     }
 
     // Telegram bog'lanmagan — yuborib bo'lmaydi: W-22 da ko'rinadi, bog'langach qayta yuboriladi.
     await this.repo.updateStatus(notif.id, 'failed', { failedReason: NO_TELEGRAM });
     return notif.id;
+  }
+
+  /**
+   * Navbatga qo'yish: matn va (bo'lsa) fayl alohida xabar — caption 1024 belgi bilan cheklangan.
+   * Navbat ishlamasa — `failed`: aks holda `queued` qator dedupe tufayli hech qachon yuborilmasdi.
+   */
+  async enqueue(notif: NotificationRow, chatId: string, dedupeKey?: string): Promise<void> {
+    const payload = notif.payload;
+    const rendered = renderNotificationTemplate(notif.type, payload);
+    const base = { chatId, notificationId: notif.id };
+    try {
+      await this.telegramOutbox.enqueue(
+        { ...base, method: 'sendMessage', payload: telegramMessage(rendered) },
+        { dedupeKey },
+      );
+      if (typeof payload.fileId === 'string')
+        await this.telegramOutbox.enqueue(
+          {
+            ...base,
+            method: payload.fileType === 'image' ? 'sendPhoto' : 'sendDocument',
+            payload: {},
+            file: { id: payload.fileId, name: String(payload.fileName ?? 'fayl') },
+          },
+          { dedupeKey: dedupeKey && `${dedupeKey}-file` },
+        );
+    } catch (err) {
+      await this.repo.updateStatus(notif.id, 'failed', { failedReason: ENQUEUE_FAILED });
+      throw err;
+    }
+  }
+
+  /** Telegram qabul qildi (worker). */
+  async markSent(id: string): Promise<void> {
+    await this.repo.markSent(id, this.clock.now());
   }
 
   /**
@@ -167,15 +197,19 @@ export class NotificationsService {
       status: r.status as 'failed' | 'blocked',
       failedReason: r.failedReason,
       attempts: r.attempts,
-      createdAt: r.createdAt,
+      createdAt: r.createdAt.toISOString(),
     }));
   }
 
   /** Yetkazish holati (e'lon statistikasi uchun — boshqa modul jadvalga to'g'ridan-to'g'ri kirmaydi). */
   async deliveryOf(
     ids: string[],
-  ): Promise<Map<string, { status: NotificationStatus; failedReason: string | null }>> {
+  ): Promise<
+    Map<string, { status: NotificationStatus; failedReason: string | null; sentAt: Date | null }>
+  > {
     const rows = await this.repo.findStatuses(ids);
-    return new Map(rows.map((r) => [r.id, { status: r.status, failedReason: r.failedReason }]));
+    return new Map(
+      rows.map((r) => [r.id, { status: r.status, failedReason: r.failedReason, sentAt: r.sentAt }]),
+    );
   }
 }

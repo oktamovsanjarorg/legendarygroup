@@ -27,6 +27,9 @@ export interface CreateNotificationParams {
   dedupeKey?: string;
 }
 
+/** Ro'yxat chegarasi: bloklangan chatlar yig'ilib qolsa ham ekran ochiladi. */
+const UNDELIVERED_LIMIT = 500;
+
 @Injectable()
 export class NotificationsRepository {
   constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
@@ -90,14 +93,39 @@ export class NotificationsRepository {
         status: notifications.status,
         failedReason: notifications.failedReason,
         attempts: notifications.attempts,
-        createdAt: sql<string>`to_char(${notifications.createdAt}, 'YYYY-MM-DD"T"HH24:MI:SS"Z"')`,
+        createdAt: notifications.createdAt,
       })
       .from(notifications)
       .innerJoin(users, eq(users.id, notifications.userId))
       .where(
         and(eq(notifications.branchId, branchId), inArray(notifications.status, targetStatuses)),
       )
-      .orderBy(desc(notifications.createdAt));
+      .orderBy(desc(notifications.createdAt))
+      .limit(UNDELIVERED_LIMIT);
+  }
+
+  /** Qayta yuborish uchun band qiladi: ikki marta bosilsa ikkinchisi `null` oladi. */
+  async claimForRetry(id: string, recipient: string) {
+    const [row] = await this.db
+      .update(notifications)
+      .set({
+        status: 'queued',
+        attempts: sql`${notifications.attempts} + 1`,
+        failedReason: null,
+        recipient,
+        updatedAt: sql`now()`,
+      })
+      .where(and(eq(notifications.id, id), inArray(notifications.status, ['failed', 'blocked'])))
+      .returning();
+    return row ?? null;
+  }
+
+  /** Faqat navbatdagi xabar: fayl qismi yiqilgan bo'lsa, `failed` ustidan yozilmaydi. */
+  async markSent(id: string, at: Date) {
+    await this.db
+      .update(notifications)
+      .set({ status: 'sent', sentAt: at, updatedAt: at })
+      .where(and(eq(notifications.id, id), eq(notifications.status, 'queued')));
   }
 
   /** ID bo'yicha bildirishnomani topadi */
@@ -108,6 +136,7 @@ export class NotificationsRepository {
         id: notifications.id,
         status: notifications.status,
         failedReason: notifications.failedReason,
+        sentAt: notifications.sentAt,
       })
       .from(notifications)
       .where(inArray(notifications.id, ids));

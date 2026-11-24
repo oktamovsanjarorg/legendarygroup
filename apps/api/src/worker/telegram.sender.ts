@@ -4,6 +4,8 @@ import type { Redis } from 'ioredis';
 import { QUEUES, QueueService } from '../common/queue/queue.service.js';
 import { REDIS_TOKEN } from '../common/redis/redis.tokens.js';
 import { EnvService } from '../config/env.service.js';
+import { FilesService } from '../modules/files/index.js';
+import { NotificationsService } from '../modules/notifications/index.js';
 import { OutboxService } from '../modules/outbox/index.js';
 import type { TelegramMessage } from '../modules/telegram/index.js';
 import { attachDeadLetter } from './dead-letter.js';
@@ -37,6 +39,8 @@ export class TelegramSender implements OnApplicationBootstrap {
     @Inject(QueueService) private readonly queues: QueueService,
     @Inject(REDIS_TOKEN) private readonly redis: Redis,
     @Inject(OutboxService) private readonly outbox: OutboxService,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(FilesService) private readonly files: FilesService,
   ) {
     this.apiBase = `${env.get('TELEGRAM_API_URL')}/bot${env.get('TELEGRAM_BOT_TOKEN')}`;
   }
@@ -62,7 +66,7 @@ export class TelegramSender implements OnApplicationBootstrap {
   }
 
   private async process(job: Job<TelegramMessage>, token?: string): Promise<unknown> {
-    const { chatId, method, payload } = job.data;
+    const { chatId, method } = job.data;
     // Bitta chatga sekundiga bitta: band bo'lsa — 1 s ga kechiktiriladi (urinish sanalmaydi).
     const free = await this.redis.set(`tg:chat:${chatId}`, '1', 'PX', PER_CHAT_INTERVAL_MS, 'NX');
     if (free !== 'OK') {
@@ -72,13 +76,43 @@ export class TelegramSender implements OnApplicationBootstrap {
 
     const res = await fetch(`${this.apiBase}/${method}`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, ...payload }),
+      ...(await this.requestBody(job.data)),
       signal: AbortSignal.timeout(15_000),
     });
     const body = (await res.json().catch(() => ({ ok: false }))) as TelegramResponse;
-    if (body.ok) return { status: 'sent' };
+    if (body.ok) {
+      await this.markSent(job.data.notificationId);
+      return { status: 'sent' };
+    }
     return this.handleError(res.status, body, chatId);
+  }
+
+  /** JSON yoki (fayl bo'lsa) multipart: maydon nomi usuldan — `sendPhoto` → `photo`. */
+  private async requestBody({ chatId, method, payload, file }: TelegramMessage) {
+    if (!file)
+      return {
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, ...payload }),
+      };
+    const stored = await this.files.readForDelivery(file.id);
+    if (!stored) throw new UnrecoverableError('FILE_NOT_FOUND');
+    const form = new FormData();
+    form.append('chat_id', chatId);
+    for (const [key, value] of Object.entries(payload)) form.append(key, String(value));
+    form.append(
+      method === 'sendPhoto' ? 'photo' : 'document',
+      new Blob([new Uint8Array(stored.body)], { type: stored.mime }),
+      file.name,
+    );
+    return { body: form };
+  }
+
+  /** Xabar Telegram'da — holat yozilmasa ham qayta yuborilmaydi (takroriy xabar bo'lmasin). */
+  private async markSent(notificationId: string | undefined): Promise<void> {
+    if (!notificationId) return;
+    await this.notifications
+      .markSent(notificationId)
+      .catch((e: unknown) => this.logger.error({ err: e }, 'bildirishnoma `sent` qilinmadi'));
   }
 
   private async handleError(
