@@ -52,6 +52,13 @@ export class PaymentsService {
     @Optional() @Inject(TelegramOutbox) private readonly telegramOutbox?: TelegramOutbox,
   ) {}
 
+  private paidAt(value: string | undefined): Date {
+    const now = this.clock.now();
+    const at = value ? new Date(value) : now;
+    if (at > now) throw new AppException(HttpStatus.BAD_REQUEST, 'PAYMENT_IN_FUTURE');
+    return at;
+  }
+
   async createPayment(
     ctx: AuditContext,
     user: RequestUser,
@@ -73,7 +80,7 @@ export class PaymentsService {
       }
     }
     const amount = BigInt(input.amount);
-    const paidAt = input.paidAt ? new Date(input.paidAt) : this.clock.now();
+    const paidAt = this.paidAt(input.paidAt);
 
     const { payment, receiptNumber, allocs, advance, verifyToken } = await this.db.transaction(
       (tx) => this.executePaymentTx(tx, { input, userId: user.id, amount, paidAt }),

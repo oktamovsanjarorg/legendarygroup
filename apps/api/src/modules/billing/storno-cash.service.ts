@@ -62,7 +62,7 @@ export class StornoCashService {
     if (!receipt) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
 
     // 02 §5: kiritilgan kundan keyingi storno — faqat tasdiqlash huquqi bor foydalanuvchi.
-    const sameDay = formatDateToYmd(payment.paidAt) === formatDateToYmd(this.clock.now());
+    const sameDay = formatDateToYmd(payment.createdAt) === formatDateToYmd(this.clock.now());
     if (!sameDay && !(await this.can(user, 'approval.decide'))) {
       throw new AppException(HttpStatus.FORBIDDEN, 'REVERSAL_NEEDS_APPROVAL');
     }

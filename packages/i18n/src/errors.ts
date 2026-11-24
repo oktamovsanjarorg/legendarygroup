@@ -115,6 +115,8 @@ export const errorMessages = {
   ATTENDANCE_LOCKED_PAST: 'Ustoz faqat dars kuni davomatni oʻzgartirishi mumkin.',
   LESSON_MONTH_CLOSED:
     'Oʻtgan oy yopilgan — bu darsni bekor qilib yoki qoplab boʻlmaydi. Qoʻshimcha dars qoʻying.',
+  PAYMENT_IN_FUTURE: 'Toʻlov sanasi kelajakda boʻlmaydi.',
+  PERIOD_IN_FUTURE: 'Kelajak oy uchun hisob yozilmaydi — oy boshida oʻzi yoziladi.',
   ATTENDANCE_FUTURE: 'Dars kuni hali kelmagan — davomat dars kuni belgilanadi.',
   CHANGE_REASON_REQUIRED: 'Oʻtgan davomatni oʻzgartirish uchun sabab koʻrsatish majburiy.',
   STUDENT_NOT_ENROLLED: 'Oʻquvchi ushbu dars sanasida guruhga yozilmagan.',

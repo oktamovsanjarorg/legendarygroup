@@ -55,7 +55,7 @@ export class PaymentViewService {
     if (!row) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     await this.studentScope.assertVisible(user, row.p.studentId);
     const perms = await this.permissions.forUser(user.id, user.role, user.pv);
-    const sameDay = formatDateToYmd(row.p.paidAt) === formatDateToYmd(this.clock.now());
+    const sameDay = formatDateToYmd(row.p.createdAt) === formatDateToYmd(this.clock.now());
     return {
       id: row.p.id,
       studentId: row.p.studentId,

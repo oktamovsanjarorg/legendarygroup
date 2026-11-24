@@ -5,51 +5,14 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import type { ActiveEnrollmentInfo } from './billing.types.js';
-import { type MonthAdjustment, MonthCloseService } from './month-close.service.js';
+import { applyAdjustments, type PreparedLine } from './month-adjustments.js';
+import { MonthCloseService } from './month-close.service.js';
 
 export interface GenerateResult {
   period: string;
   invoicesCreated: number;
   linesCreated: number;
   totalAmount: string;
-}
-
-export interface PreparedLine {
-  enrollmentId: string;
-  /** Qator summasi (o'qishda — kreditdan keyingi net). */
-  amount: bigint;
-  description: string;
-  kind: 'tuition' | 'penalty';
-  /** BR-5/9 kredit: ledger'da `invoice` (+brutto) va `credit` (−kredit) alohida. */
-  credit?: bigint;
-}
-
-/** BR-2: o'tgan oy yopilishi tuzatishlarini yangi oy qatorlariga qo'llash (manfiy qator yo'q). */
-export function applyAdjustments(
-  lines: PreparedLine[],
-  adj: readonly MonthAdjustment[],
-): PreparedLine[] {
-  const out = lines.map((l) => {
-    const a = adj.find((x) => x.enrollmentId === l.enrollmentId);
-    if (!a || a.credit <= 0n || l.kind !== 'tuition') return l;
-    const credit = a.credit < l.amount ? a.credit : l.amount;
-    return {
-      ...l,
-      amount: l.amount - credit,
-      credit,
-      description: `${l.description}; kredit −${credit} (${a.creditNote ?? ''})`,
-    };
-  });
-  for (const a of adj) {
-    if (a.penalty > 0n)
-      out.push({
-        enrollmentId: a.enrollmentId,
-        amount: a.penalty,
-        kind: 'penalty',
-        description: `Jarima: ${a.penaltyNote ?? ''}`,
-      });
-  }
-  return out;
 }
 
 /** Ledger: o'qish — `invoice` (+brutto) va kredit bo'lsa `credit` (−kredit); jarima — `penalty`. */

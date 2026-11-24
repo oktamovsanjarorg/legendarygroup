@@ -4,14 +4,11 @@ import { applyDiscounts, calculateMidMonthEnrollmentPrice, type Clock } from '@l
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { EventHandlers } from '../outbox/index.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
-import {
-  BillingGeneratorService,
-  ledgerFor,
-  type PreparedLine,
-} from './billing-generator.service.js';
+import { BillingGeneratorService, ledgerFor } from './billing-generator.service.js';
 import { BillingRepository } from './billing.repository.js';
-import { openEnrollmentIds } from './group-billing.repository.js';
 import type { ActiveEnrollmentInfo } from './billing.types.js';
+import { openEnrollmentIds } from './group-billing.repository.js';
+import type { PreparedLine } from './month-adjustments.js';
 
 const monthEndOf = (period: string): string => {
   const [y, m] = period.split('-').map(Number) as [number, number];

@@ -9,11 +9,12 @@ import {
   seed,
 } from '@lg/db';
 import { addDays, formatDateToYmd } from '@lg/domain';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { EventHandlers } from '../outbox/index.js';
+import { BillingGeneratorService } from './billing-generator.service.js';
 
 let t: TestApp;
 let db: Database;
@@ -157,4 +158,19 @@ describe('Q-96: xato yozilgan aʼzolikni olib tashlash', () => {
     ]);
     expect((await remove(e, 'teacher')).statusCode).toBe(403);
   });
+});
+
+it('Q-103/BR-4: oy oʻrtasiga rejalangan koʻchirish — oy faqat eski guruhda hisoblanadi', async () => {
+  const s = await idOf('students', { fullName: 'Koʻchgan Testov' });
+  const e = await idOf('enrollments', { studentId: s, groupId: g.a, startDate: today });
+  const next = addDays(`${period}-28`, 7).slice(0, 7);
+  const moved = await call(`enrollments/${e}/transfer`, { toGroupId: g.b, date: `${next}-15` });
+  expect(moved.statusCode, moved.body).toBe(200);
+  await t.app.get(BillingGeneratorService).generateMonthlyInvoices(next);
+  const rows = await db
+    .select({ enrollmentId: invoiceLines.enrollmentId, amount: invoiceLines.amount })
+    .from(invoiceLines)
+    .innerJoin(invoices, eq(invoices.id, invoiceLines.invoiceId))
+    .where(and(eq(invoices.studentId, s), eq(invoices.period, next)));
+  expect(rows).toEqual([{ enrollmentId: e, amount: 600_000n }]);
 });

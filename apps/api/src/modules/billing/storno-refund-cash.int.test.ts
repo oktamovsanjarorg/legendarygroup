@@ -13,6 +13,7 @@ import {
 import { eq } from 'drizzle-orm';
 import { formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { backdatePayment } from '../../test/backdate.js';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 
@@ -120,17 +121,33 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
       expect(res.statusCode).toBe(409);
     });
 
+    it('BR-16: oʻtgan sana bilan bugun kiritilgan toʻlovni Admin storno qila oladi; kelajak sana — 400', async () => {
+      const pay = (n: number, paidAt: number) =>
+        call('POST', 'billing/payments', 'admin', {
+          studentId: testStudentId,
+          amount: '70000',
+          method: 'cash',
+          paidAt: new Date(paidAt).toISOString(),
+          idempotencyKey: `storno-date-${n}`,
+        });
+      const day = 86_400_000;
+      const { id } = (await pay(1, Date.now() - day)).json<{ id: string }>();
+      const reversed = await call('POST', `billing/payments/${id}/reverse`, 'admin', {
+        reason: 'Xato kiritilgan',
+      });
+      expect(reversed.statusCode).toBe(201);
+      expect((await pay(2, Date.now() + day)).json()).toMatchObject({ code: 'PAYMENT_IN_FUTURE' });
+    });
+
     it('Kiritilgan kundan keyingi toʻlovni Admin storno qila olmaydi (403), faqat Director (200)', async () => {
-      // Kechagi to'lov yaratamiz
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const pastPayRes = await call('POST', 'billing/payments', 'admin', {
         studentId: testStudentId,
         amount: '20000000',
         method: 'cash',
-        paidAt: yesterday.toISOString(),
         idempotencyKey: 'storno-test-pay-2',
       });
       const pastPayId = pastPayRes.json<{ id: string }>().id;
+      await backdatePayment(db, pastPayId);
 
       // Admin urinishi -> 403 (kiritilgan kundan keyingi to'lov)
       const adminRes = await call('POST', `billing/payments/${pastPayId}/reverse`, 'admin', {

@@ -8,7 +8,9 @@ import type {
   LedgerListQueryInput,
   StudentLedgerSummary,
 } from '@lg/contracts';
+import type { Clock } from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { StudentScopeService } from '../students/index.js';
@@ -27,6 +29,7 @@ export class BillingService {
     @Inject(BillingGeneratorService) private readonly generator: BillingGeneratorService,
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
   async getInvoices(user: RequestUser, query: InvoiceListQueryInput): Promise<Invoice[]> {
@@ -67,6 +70,9 @@ export class BillingService {
   }
 
   async generateInvoices(ctx: AuditContext, input: GenerateInvoicesInput): Promise<GenerateResult> {
+    // BR-2: kelajak oy — hali yopilmagan oydan oldin hisob yozilmaydi.
+    if (input.period > this.clock.today().slice(0, 7))
+      throw new AppException(HttpStatus.BAD_REQUEST, 'PERIOD_IN_FUTURE');
     const result = await this.generator.generateMonthlyInvoices(input.period, input.dueDate);
 
     await this.audit.record(ctx, {

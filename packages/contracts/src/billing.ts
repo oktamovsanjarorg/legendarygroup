@@ -105,7 +105,7 @@ export const CreatePaymentRequest = z.object({
   studentId: z.string().uuid(),
   amount: z.string().regex(/^\d+$/, 'AMOUNT_POSITIVE_DIGITS'),
   method: z.enum(PAYMENT_METHODS),
-  paidAt: z.string().optional(),
+  paidAt: z.iso.datetime({ offset: true }).optional(),
   notes: z.string().max(500).optional(),
   submissionId: z.string().uuid().optional(),
 });
