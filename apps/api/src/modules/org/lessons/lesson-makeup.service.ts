@@ -73,6 +73,9 @@ export class LessonMakeupService {
       change: async (tx, l, g) => {
         if (l.status !== 'cancelled' || l.compensation === 'makeup')
           throw new AppException(HttpStatus.CONFLICT, 'LESSON_NOT_COMPENSABLE');
+        // Yopilgan oy darsiga kredit berilgan — yana qoplovchi dars qo'yilmaydi.
+        if (l.date.slice(0, 7) < this.clock.today().slice(0, 7))
+          throw new AppException(HttpStatus.CONFLICT, 'LESSON_MONTH_CLOSED');
         await tx.update(lessons).set({ compensation: 'makeup' }).where(eq(lessons.id, l.id));
         return { makeupLessonId: await this.addMakeup(tx, { g, l, when: input }) };
       },

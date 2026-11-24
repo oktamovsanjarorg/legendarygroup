@@ -8,7 +8,7 @@ import {
   lessons,
   type Transaction,
 } from '@lg/db';
-import { type Clock, hhmm, teacherOn } from '@lg/domain';
+import { type Clock, generatesLessons, hhmm, teacherOn } from '@lg/domain';
 import { and, eq } from 'drizzle-orm';
 import { type AuditContext, AuditService } from '../../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../../common/clock/clock.tokens.js';
@@ -67,7 +67,10 @@ export class LessonsService {
       action: 'lesson.cancel',
       id,
       change: async (tx, l) => {
-        assertScheduled(l);
+        // O'tgan (`done`) dars ham bekor qilinadi (BR-5), lekin yopilgan oyniki emas — krediti yo'q.
+        if (l.status === 'cancelled') assertScheduled(l);
+        if (l.date.slice(0, 7) < this.clock.today().slice(0, 7))
+          throw new AppException(HttpStatus.CONFLICT, 'LESSON_MONTH_CLOSED');
         await this.markCancelled(tx, l.id, {
           reason: input.reason,
           compensation: input.compensation,
@@ -83,7 +86,9 @@ export class LessonsService {
       ctx,
       action: 'lesson.restore',
       id,
-      change: async (tx, l) => {
+      change: async (tx, l, g) => {
+        if (!generatesLessons(g.status))
+          throw new AppException(HttpStatus.CONFLICT, 'LESSON_NOT_RESTORABLE');
         if (l.status !== 'cancelled' || l.cancelSource !== 'manual' || l.compensation === 'makeup')
           throw new AppException(HttpStatus.CONFLICT, 'LESSON_NOT_RESTORABLE');
         if (l.date < this.clock.today())

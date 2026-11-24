@@ -295,6 +295,13 @@
       "when": 1795542446807,
       "tag": "0041_announcement_file",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1795543571450,
+      "tag": "0042_lessons_done",
+      "breakpoints": true
     }
   ]
 }

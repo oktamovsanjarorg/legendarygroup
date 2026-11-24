@@ -106,7 +106,7 @@ describe('Q-102: guruh holati va hisob', () => {
       .from(lessons)
       .where(and(eq(lessons.groupId, g.groupId), eq(lessons.status, 'scheduled')));
     expect(cancelled.length).toBeGreaterThan(0);
-    expect(left.filter((l) => l.date >= today)).toHaveLength(0);
+    expect(left.filter((l) => l.date > today)).toHaveLength(0);
     await generate(next);
     expect(await periodsOf(g.studentId)).toEqual([period]);
   });

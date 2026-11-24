@@ -142,6 +142,7 @@ export class MonthCloseRepository {
         and(
           eq(attendance.studentId, studentId),
           eq(lessons.groupId, groupId),
+          ne(lessons.status, 'cancelled'),
           gte(lessons.date, from),
           lte(lessons.date, to),
         ),

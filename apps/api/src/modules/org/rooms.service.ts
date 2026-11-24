@@ -10,7 +10,11 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { changedFields } from '../../common/audit/audit-diff.js';
 import { ROOM_AUDIT_FIELDS, toRoom } from './org.serializer.js';
-import { assertNoCurrentGroups, assertNoFutureLessons } from './group-validation.js';
+import {
+  assertNoCurrentGroups,
+  assertHoldsGroups,
+  assertNoFutureLessons,
+} from './group-validation.js';
 import {
   archivedFilter,
   type ArchiveVerb,
@@ -67,6 +71,7 @@ export class RoomsService {
       this.db.transaction(async (tx) => {
         const current = await this.lock(tx, id);
         if (current.archivedAt) throw new AppException(HttpStatus.CONFLICT, 'ARCHIVED_READ_ONLY');
+        if (patch.capacity !== undefined) await assertHoldsGroups(tx, id, patch.capacity);
         const [row] = await tx.update(rooms).set(patch).where(eq(rooms.id, id)).returning();
         return this.recordChange(tx, { ctx, action: 'room.update', before: current, after: row });
       }),

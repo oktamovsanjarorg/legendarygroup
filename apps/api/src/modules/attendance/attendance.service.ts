@@ -12,7 +12,7 @@ import { type AuditContext, AuditService } from '../../common/audit/audit.servic
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
-import { GroupScopeService } from '../org/index.js';
+import { GroupScopeService, LessonHeldService } from '../org/index.js';
 import { OutboxService } from '../outbox/index.js';
 import { PermissionsService } from '../rbac/index.js';
 import { StudentScopeService } from '../students/index.js';
@@ -36,6 +36,7 @@ export class AttendanceService {
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(LessonHeldService) private readonly held: LessonHeldService,
     @Inject(OutboxService) private readonly outbox: OutboxService,
     @Inject(AbsenceNoticesRepository) private readonly absenceRepo: AbsenceNoticesRepository,
     @Inject(PermissionsService) private readonly permissions: PermissionsService,
@@ -124,6 +125,7 @@ export class AttendanceService {
     // Yozuv, audit va event — bitta tranzaksiyada (yarmi yozilib qolmasin).
     await this.repo.transaction(async (tx) => {
       await this.repo.upsertAttendanceBatch(tx, rowsToUpsert);
+      await this.held.markHeld(tx, lessonId);
       await this.audit.record(
         ctx,
         {
