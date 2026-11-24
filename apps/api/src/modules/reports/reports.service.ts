@@ -2,8 +2,10 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import {
   DEFAULT_BRANCH_ID,
   type DebtAgingResponse,
+  PDF_MIME,
   type ReportType,
   type RevenueReportResponse,
+  XLSX_MIME,
 } from '@lg/contracts';
 import type { Clock } from '@lg/domain';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
@@ -11,20 +13,37 @@ import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { PermissionsService } from '../rbac/index.js';
 import { ReportsExporterService } from './reports-exporter.service.js';
+import { monthEnd } from './reports-retention.js';
+import { type ReportDataMap, reportTable } from './reports-table.js';
 import { ReportsRepository } from './reports.repository.js';
 
-export interface RevenueFilterParams {
+export interface ReportFilter {
   groupBy?: 'month' | 'course' | 'group' | 'teacher';
   from?: string;
   to?: string;
   branchId?: string;
 }
 
-export interface AttendanceFilterParams {
+export interface AttendanceFilterParams extends Omit<ReportFilter, 'groupBy'> {
   groupBy?: 'group' | 'teacher';
-  from?: string;
-  to?: string;
-  branchId?: string;
+}
+
+export interface ReportFile {
+  buffer: Buffer;
+  filename: string;
+  mimeType: string;
+  title: string;
+  subtitle: string;
+}
+
+const COHORT_MONTHS = 6;
+
+/** `YYYY-MM` chegara → oyning birinchi/oxirgi kuni (W-26 oy bilan so'raydi). */
+function monthBounds({ from, to }: ReportFilter): { from?: string; to?: string } {
+  return {
+    from: from?.length === 7 ? `${from}-01` : from,
+    to: to?.length === 7 ? monthEnd(to, '') : to,
+  };
 }
 
 @Injectable()
@@ -35,6 +54,27 @@ export class ReportsService {
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(PermissionsService) private readonly permissions: PermissionsService,
   ) {}
+
+  /** Hisobot turi bo'yicha ma'lumot — eksport va chatga yuborish bitta yo'ldan. */
+  private async reportData<K extends ReportType>(
+    type: K,
+    actor: RequestUser,
+    f: ReportFilter,
+  ): Promise<ReportDataMap[K]> {
+    const load: { [T in ReportType]: () => Promise<ReportDataMap[T]> } = {
+      revenue: () => this.getRevenueReport(actor, f),
+      'debt-aging': () => this.getDebtAgingReport(actor, f.branchId),
+      attendance: () =>
+        this.getAttendanceReport(actor, {
+          ...f,
+          groupBy: f.groupBy === 'teacher' ? 'teacher' : 'group',
+        }),
+      cohort: () => this.getCohortReport(actor, COHORT_MONTHS, f.branchId),
+      leads: () => this.getLeadsConversionReport(actor, f),
+      'teacher-performance': () => this.getTeacherPerformanceReport(actor, f),
+    };
+    return load[type]();
+  }
 
   /**
    * FR-FIN-3: moliyaviy hisobotlar (daromad, qarzdorlik) eksporti — endpoint'lari bilan bir xil
@@ -53,33 +93,24 @@ export class ReportsService {
   /** 1. Daromad hisoboti */
   async getRevenueReport(
     actor: RequestUser,
-    params: RevenueFilterParams = {},
+    params: ReportFilter = {},
   ): Promise<RevenueReportResponse> {
     const targetBranch = this.resolveBranchId(actor, params.branchId);
-    const rows = await this.repo.getRevenueReport(
+    const report = await this.repo.getRevenueReport(
       targetBranch,
       params.groupBy ?? 'month',
-      params.from,
-      params.to,
+      monthBounds(params),
     );
-
-    let totalRevenue = 0n;
-    let totalPayments = 0;
-    for (const r of rows) {
-      totalRevenue += r.totalRevenue;
-      totalPayments += r.paymentCount;
-    }
-
     return {
-      items: rows.map((r) => ({
+      items: report.items.map((r) => ({
         id: r.id,
         name: r.name,
         totalRevenue: r.totalRevenue.toString(),
         paymentCount: r.paymentCount,
         studentCount: r.studentCount,
       })),
-      totalRevenue: totalRevenue.toString(),
-      totalPayments,
+      totalRevenue: report.totalRevenue.toString(),
+      totalPayments: report.totalPayments,
     };
   }
 
@@ -137,8 +168,7 @@ export class ReportsService {
     const items = await this.repo.getAttendanceReport(
       targetBranch,
       params.groupBy ?? 'group',
-      params.from,
-      params.to,
+      params,
     );
     const totalPresent = items.reduce((acc, it) => acc + it.presentCount, 0);
     const totalLate = items.reduce((acc, it) => acc + it.lateCount, 0);
@@ -160,14 +190,9 @@ export class ReportsService {
   }
 
   /** 5. Lid konversiyasi hisoboti */
-  async getLeadsConversionReport(
-    actor: RequestUser,
-    from?: string,
-    to?: string,
-    branchId?: string,
-  ) {
-    const targetBranch = this.resolveBranchId(actor, branchId);
-    const bySource = await this.repo.getLeadsConversionReport(targetBranch, from, to);
+  async getLeadsConversionReport(actor: RequestUser, f: ReportFilter = {}) {
+    const targetBranch = this.resolveBranchId(actor, f.branchId);
+    const bySource = await this.repo.getLeadsConversionReport(targetBranch, f);
     const totalLeads = bySource.reduce((acc, s) => acc + s.totalLeads, 0);
     const totalWon = bySource.reduce((acc, s) => acc + s.wonCount, 0);
     const overallConversionPercentBp =
@@ -182,9 +207,9 @@ export class ReportsService {
   }
 
   /** 6. Ustoz samaradorligi hisoboti */
-  async getTeacherPerformanceReport(actor: RequestUser, branchId?: string) {
-    const targetBranch = this.resolveBranchId(actor, branchId);
-    const items = await this.repo.getTeacherPerformanceReport(targetBranch);
+  async getTeacherPerformanceReport(actor: RequestUser, f: ReportFilter = {}) {
+    const targetBranch = this.resolveBranchId(actor, f.branchId);
+    const items = await this.repo.getTeacherPerformanceReport(targetBranch, f, this.clock.today());
     return { items };
   }
 
@@ -193,46 +218,31 @@ export class ReportsService {
     await this.repo.refreshMaterializedViews();
   }
 
-  /** Eksport qilish (Excel yoki PDF) */
+  /** Hisobot fayli (Excel yoki PDF); moliyaviysi — `finance.view` (FR-FIN-3). */
   async exportReport(
     reportType: ReportType,
     format: 'excel' | 'pdf',
     actor: RequestUser,
-    branchId?: string,
-  ): Promise<{ buffer: Buffer; filename: string; mimeType: string }> {
+    filter: ReportFilter = {},
+  ): Promise<ReportFile> {
     await this.assertCanExport(actor, reportType);
-    let data: unknown;
-    if (reportType === 'revenue') {
-      data = await this.getRevenueReport(actor, { branchId });
-    } else if (reportType === 'debt-aging') {
-      data = await this.getDebtAgingReport(actor, branchId);
-    } else if (reportType === 'attendance') {
-      data = await this.getAttendanceReport(actor, { branchId });
-    } else if (reportType === 'cohort') {
-      data = await this.getCohortReport(actor, 6, branchId);
-    } else if (reportType === 'leads') {
-      data = await this.getLeadsConversionReport(actor, undefined, undefined, branchId);
-    } else if (reportType === 'teacher-performance') {
-      data = await this.getTeacherPerformanceReport(actor, branchId);
-    } else {
-      throw new AppException(HttpStatus.BAD_REQUEST, 'BAD_REQUEST');
-    }
-
-    const dateStr = this.clock.today();
-    if (format === 'excel') {
-      const buffer = await this.exporter.exportToExcel(reportType, data);
+    const data = await this.reportData(reportType, actor, filter);
+    const today = this.clock.today();
+    const table = reportTable(reportType, data, { ...filter, today });
+    const base = { title: table.title, subtitle: table.subtitle };
+    const name = `hisobot-${reportType}-${filter.to ?? today}`;
+    if (format === 'excel')
       return {
-        buffer,
-        filename: `report-${reportType}-${dateStr}.xlsx`,
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ...base,
+        buffer: await this.exporter.exportToExcel(table),
+        filename: `${name}.xlsx`,
+        mimeType: XLSX_MIME,
       };
-    }
-
-    const buffer = await this.exporter.exportToPdf(reportType, data);
     return {
-      buffer,
-      filename: `report-${reportType}-${dateStr}.pdf`,
-      mimeType: 'application/pdf',
+      ...base,
+      buffer: await this.exporter.exportToPdf(table),
+      filename: `${name}.pdf`,
+      mimeType: PDF_MIME,
     };
   }
 }
