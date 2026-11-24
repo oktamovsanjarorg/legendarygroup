@@ -87,7 +87,6 @@ function Form({
           body: d.body,
           targetType: d.target,
           targetId: d.targetId,
-          sendNow: true,
         },
       }),
     onSuccess: () => {

@@ -22,14 +22,13 @@ export function useSendAnnouncement(groupId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { title: string; body: string; sendNow?: boolean }) =>
+    mutationFn: (body: { title: string; body: string; fileId?: string }) =>
       api.request('/announcements', {
         method: 'POST',
         body: {
           ...body,
           targetType: 'group',
           targetId: groupId,
-          sendNow: body.sendNow ?? true,
         },
       }),
     onSuccess: () => {

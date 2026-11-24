@@ -15,7 +15,7 @@ const ann: AnnouncementItem = {
   body: 'Soat 15:00 da ochiq dars.',
   targetType: 'group',
   targetId: GROUP,
-  fileUrl: null,
+  fileId: null,
   fileType: null,
   status: 'completed',
   totalRecipients: 14,
@@ -83,7 +83,6 @@ describe('W-20 eʼlonlar (T-305, FR-RPT-5)', () => {
         body: 'Ertaga 15:00 da.',
         targetType: 'group',
         targetId: GROUP,
-        sendNow: true,
       }),
     );
     expect(await screen.findByText(a.form.sent)).toBeTruthy();

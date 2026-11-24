@@ -59,6 +59,11 @@ export class DebtorsService {
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
+  /** Qarzdor (ledger > 0, arxivda emas) o'quvchilar — e'lon auditoriyasi MS-08 bilan bir xil. */
+  async debtorStudentIds(branchId: string): Promise<string[]> {
+    return (await this.repo.findStudentsWithPositiveLedger(branchId)).map((s) => s.id);
+  }
+
   /** Barcha qarzdorlarni yig'adi va filtrlarni qo'llaydi. */
   private async buildDebtorItems(
     branchId: string,

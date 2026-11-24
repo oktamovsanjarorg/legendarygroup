@@ -29,6 +29,8 @@ export const EVENT_TYPES = [
   'GuardianLinkApproved',
   // BR-13: ota-ona chek yubordi — tekshiruvchi xodimga xabar.
   'PaymentSubmissionCreated',
+  // T-139: eʼlon yozildi — qabul qiluvchilarga navbat orqali.
+  'AnnouncementCreated',
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
@@ -42,6 +44,7 @@ export interface EventPayloads {
   TestResultsPublished: { testId: string; groupId: string; title: string };
   EnrollmentCreated: { enrollmentId: string; studentId: string };
   TicketMessageCreated: { ticketId: string; messageId: string };
+  AnnouncementCreated: { announcementId: string };
   PaymentSubmissionCreated: { submissionId: string };
   GuardianLinkRequested: { requestId: string };
   GuardianLinkApproved: { requestId: string; userId: string };
