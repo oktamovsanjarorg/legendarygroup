@@ -2,13 +2,13 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type { CreateStaffResult, StaffRole } from '@lg/contracts';
 import { type Database, roles, type Transaction, userRoles, users } from '@lg/db';
 import type { Clock } from '@lg/domain';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { EnvService } from '../../config/env.service.js';
-import { STAFF_CODES } from './staff-link.service.js';
+import { hasStaffRole } from './telegram-claim.js';
 import { unlinkTelegram } from './telegram-unlink.js';
 import { bumpPermissionsVersion } from './user-version.js';
 
@@ -52,7 +52,7 @@ export class StaffService {
             .returning()
         )[0];
       if (!user) throw new Error('foydalanuvchi yaratilmadi');
-      await this.grantRole(tx, user.id, input.role);
+      const linked = await this.grantStaffRole(tx, user, input.role);
       await this.audit.record(
         ctx,
         {
@@ -63,7 +63,7 @@ export class StaffService {
         },
         tx,
       );
-      return { id: user.id, botUrl: this.botUrlFor(user) };
+      return { id: user.id, botUrl: this.botUrlFor(linked) };
     });
   }
 
@@ -71,7 +71,8 @@ export class StaffService {
   async unlinkTelegram(ctx: AuditContext, userId: string): Promise<void> {
     await this.db.transaction(async (tx) => {
       const user = await this.lockUser(tx, userId);
-      await this.assertStaff(tx, userId);
+      if (!(await hasStaffRole(tx, userId)))
+        throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
       if (user.telegramId === null)
         throw new AppException(HttpStatus.CONFLICT, 'STAFF_TELEGRAM_NOT_LINKED');
       await unlinkTelegram(tx, userId, this.clock.now());
@@ -109,13 +110,13 @@ export class StaffService {
     return this.db.transaction(async (tx) => {
       const user = await this.lockUser(tx, userId);
       if (user.status === 'blocked') throw new AppException(HttpStatus.CONFLICT, 'USER_BLOCKED');
-      await this.grantRole(tx, userId, role);
+      const linked = await this.grantStaffRole(tx, user, role);
       await this.audit.record(
         ctx,
         { action: 'user.role_add', entity: 'user', entityId: userId, after: { role } },
         tx,
       );
-      return { id: userId, botUrl: this.botUrlFor(user) };
+      return { id: userId, botUrl: this.botUrlFor(linked) };
     });
   }
 
@@ -123,6 +124,19 @@ export class StaffService {
     const [u] = await tx.select().from(users).where(eq(users.id, userId)).for('update');
     if (!u) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     return u;
+  }
+
+  /**
+   * Birinchi xodim roli: avvalgi (ota-ona) Telegram bog'lanishi raqam bilan tasdiqlanmagan bo'lishi
+   * mumkin (Admin qo'lda bog'lagan) — uziladi, xodim botda raqamini ulashadi (Q-98).
+   * Qaytaradi: Telegram ulangan holicha qoldimi.
+   */
+  private async grantStaffRole(tx: Transaction, user: UserRow, role: StaffRole): Promise<boolean> {
+    const wasStaff = await hasStaffRole(tx, user.id);
+    await this.grantRole(tx, user.id, role);
+    if (user.telegramId === null) return false;
+    if (!wasStaff) await unlinkTelegram(tx, user.id, this.clock.now());
+    return wasStaff;
   }
 
   private async grantRole(tx: Transaction, userId: string, role: StaffRole): Promise<void> {
@@ -137,17 +151,7 @@ export class StaffService {
     await bumpPermissionsVersion(tx, userId);
   }
 
-  private async assertStaff(tx: Transaction, userId: string): Promise<void> {
-    const rows = await tx
-      .select({ code: roles.code })
-      .from(userRoles)
-      .innerJoin(roles, eq(roles.id, userRoles.roleId))
-      .where(and(eq(userRoles.userId, userId), inArray(roles.code, STAFF_CODES)))
-      .limit(1);
-    if (rows.length === 0) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
-  }
-
-  private botUrlFor(user: UserRow): string | null {
-    return user.telegramId === null ? botLink(this.env.get('TELEGRAM_BOT_USERNAME')) : null;
+  private botUrlFor(linked: boolean): string | null {
+    return linked ? null : botLink(this.env.get('TELEGRAM_BOT_USERNAME'));
   }
 }

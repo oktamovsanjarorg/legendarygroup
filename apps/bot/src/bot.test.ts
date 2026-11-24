@@ -293,6 +293,14 @@ describe('Ustozni ulash (T-101) va Ota-ona onboarding (T-110)', () => {
     );
   });
 
+  it('Q-98: ota-ona oqimida conflict — aniq xabar, «soʻrov qabul qilindi» emas', async () => {
+    const api = fakeApi();
+    api.shareGuardianContact = async () => ({ result: 'conflict' });
+    const { bot, calls } = setup(undefined, api);
+    await bot.handleUpdate(contact('+998901112233'));
+    expect(calls.map((c) => c.payload['text'])).toEqual([botMessages.staffInvite.conflict]);
+  });
+
   it('farzandi roʻyxatsiz ota-ona — matn i18n dan', async () => {
     const api = fakeApi();
     api.shareGuardianContact = async () => ({

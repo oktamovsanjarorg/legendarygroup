@@ -1,28 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { RoleCode, TelegramContactResult } from '@lg/contracts';
-import {
-  type Database,
-  guardianLinkRequests,
-  roles,
-  type Transaction,
-  userRoles,
-  users,
-} from '@lg/db';
+import type { TelegramContactResult } from '@lg/contracts';
+import { type Database, guardianLinkRequests, users } from '@lg/db';
 import { webMessages } from '@lg/i18n';
 import type { Clock } from '@lg/domain';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { canClaimTelegram, hasStaffRole } from './telegram-claim.js';
 
 /** Telegram kontakt raqami ba'zan `+`siz keladi: faqat raqamlar → E.164. */
 /** Admin navbatida ko'rinadi (i18n). */
 const STAFF_LINKED_REASON = webMessages.linkRequests.staffLinkedReason;
 
 export const normalizePhone = (raw: string): string => `+${raw.replace(/\D/g, '')}`;
-
-/** Botda raqam ulashib kiradigan rollar (Q-98). Ota-ona/o'quvchi — o'z oqimlari (T-110, T-126). */
-export const STAFF_CODES: RoleCode[] = ['director', 'admin', 'teacher'];
 
 /**
  * Xodimni Telegram'ga bog'lash (Q-98): botda o'z raqamini ulashish — yetarli, taklif havolasi yo'q.
@@ -53,13 +44,11 @@ export class StaffLinkService {
       if (!user || user.status !== 'active') return { result: 'not_found' };
       if (user.telegramId === input.telegramId)
         return { result: 'already_linked', fullName: user.fullName };
-      if (!(await this.isStaff(tx, user.id))) return { result: 'not_found' };
-      if (user.telegramId !== null) return { result: 'conflict' };
-      const [taken] = await tx
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.telegramId, input.telegramId));
-      if (taken) return { result: 'conflict' };
+      if (!(await hasStaffRole(tx, user.id))) return { result: 'not_found' };
+      const verifiedPhone = normalizePhone(input.phone);
+      const { telegramId } = input;
+      if (!(await canClaimTelegram(tx, { userId: user.id, telegramId, verifiedPhone })))
+        return { result: 'conflict' };
       await tx
         .update(users)
         .set({ telegramId: input.telegramId, telegramUsername: input.username ?? null })
@@ -82,15 +71,5 @@ export class StaffLinkService {
       );
       return { result: 'staff_linked', fullName: user.fullName };
     });
-  }
-
-  private async isStaff(tx: Transaction, userId: string): Promise<boolean> {
-    const rows = await tx
-      .select({ code: roles.code })
-      .from(userRoles)
-      .innerJoin(roles, eq(roles.id, userRoles.roleId))
-      .where(and(eq(userRoles.userId, userId), inArray(roles.code, STAFF_CODES)))
-      .limit(1);
-    return rows.length > 0;
   }
 }

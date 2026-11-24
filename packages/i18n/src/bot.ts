@@ -13,7 +13,7 @@ export const botMessages = {
     linked: '✅ Telegram akkauntingiz ulandi, {name}.',
     linkedBody: 'Tayyor. Ilovani pastdagi tugma bilan oching — parol kerak emas.',
     conflict:
-      'Bu raqam yoki Telegram akkaunt tizimda boshqa profilga ulangan. Direktorga ayting: Xodimlar boʻlimida «Telegramni uzish»ni bossin, soʻng raqamni qayta ulashing.',
+      'Bu raqam yoki Telegram akkaunt tizimda boshqa profilga ulangan. Markaz administratoriga murojaat qiling (xodimlar — Direktorga: «Telegramni uzish»), soʻng raqamni qayta ulashing.',
   },
   /** "Telegram orqali kirish" (web, ADR 0006 §6): bot tasdiq so'raydi. */
   staffLogin: {

@@ -5,16 +5,7 @@ import type {
   ListGuardianLinkRequestsQuery,
   RejectGuardianLinkRequest,
 } from '@lg/contracts';
-import {
-  type Database,
-  guardianLinkRequests,
-  guardians,
-  roles,
-  studentGuardians,
-  students,
-  userRoles,
-  users,
-} from '@lg/db';
+import { type Database, guardianLinkRequests, guardians, studentGuardians, students } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { and, count, desc, eq } from 'drizzle-orm';
 import type { AuditContext } from '../../common/audit/audit.service.js';
@@ -22,7 +13,7 @@ import { AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
-import { normalizePhone } from '../rbac/index.js';
+import { claimGuardianTelegram, normalizePhone } from '../rbac/index.js';
 
 type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
 
@@ -194,50 +185,13 @@ export class GuardianLinkRequestsService {
     const [guardian] = await tx.select().from(guardians).where(eq(guardians.id, guardianId));
     if (!guardian) return;
 
-    const phone = normalizePhone(guardian.phone);
-    let userId = guardian.userId;
-
-    if (userId) {
-      await tx
-        .update(users)
-        .set({ telegramId: req.telegramId, telegramUsername: req.telegramUsername ?? null })
-        .where(eq(users.id, userId));
-    } else {
-      let [existingUser] = await tx
-        .select()
-        .from(users)
-        .where(eq(users.phone, phone))
-        .for('update');
-      if (!existingUser) {
-        const [newUser] = await tx
-          .insert(users)
-          .values({
-            fullName: guardian.fullName,
-            phone,
-            telegramId: req.telegramId,
-            telegramUsername: req.telegramUsername ?? null,
-            status: 'active',
-          })
-          .returning();
-        if (!newUser) throw new Error('Foydalanuvchi yaratilmadi');
-        existingUser = newUser;
-      } else {
-        await tx
-          .update(users)
-          .set({ telegramId: req.telegramId, telegramUsername: req.telegramUsername ?? null })
-          .where(eq(users.id, existingUser.id));
-      }
-      userId = existingUser.id;
-
-      const [guardianRole] = await tx.select().from(roles).where(eq(roles.code, 'guardian'));
-      if (guardianRole) {
-        await tx
-          .insert(userRoles)
-          .values({ userId, roleId: guardianRole.id })
-          .onConflictDoNothing();
-      }
-
-      await tx.update(guardians).set({ userId }).where(eq(guardians.id, guardian.id));
-    }
+    // Admin tasdig'i xodim profilini begona Telegram'ga o'tkaza olmaydi (Q-98)
+    const userId = await claimGuardianTelegram(tx, {
+      guardian: { ...guardian, phone: normalizePhone(guardian.phone) },
+      telegramId: req.telegramId,
+      username: req.telegramUsername,
+      verifiedPhone: normalizePhone(req.phone),
+    });
+    if (!userId) throw new AppException(HttpStatus.CONFLICT, 'TELEGRAM_LINK_CONFLICT');
   }
 }

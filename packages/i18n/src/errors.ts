@@ -126,6 +126,8 @@ export const errorMessages = {
   PAYROLL_RUN_NOT_FOUND: 'Oylik hisobi topilmadi.',
   PERIOD_INVALID: 'Davr formati notoʻgʻri (YYYY-MM).',
   EXPENSE_NOT_FOUND: 'Xarajat topilmadi.',
+  TELEGRAM_LINK_CONFLICT:
+    'Bu Telegram bogʻlanmaydi: u boshqa profilga ulangan yoki raqam xodimniki. Xodim botda oʻz raqamini ulashsin.',
   REQUEST_NOT_FOUND: 'Bogʻlanish soʻrovi topilmadi.',
   STUDENT_NOT_FOUND: 'Oʻquvchi topilmadi.',
   PAYROLL_NOT_APPROVED: 'Oylik avval tasdiqlanishi kerak, keyin toʻlangan deb belgilanadi.',

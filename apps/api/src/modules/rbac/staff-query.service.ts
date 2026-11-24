@@ -6,8 +6,8 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { EnvService } from '../../config/env.service.js';
 
-import { STAFF_CODES } from './staff-link.service.js';
 import { botLink } from './staff.service.js';
+import { STAFF_CODES } from './telegram-claim.js';
 
 type Row = typeof users.$inferSelect;
 

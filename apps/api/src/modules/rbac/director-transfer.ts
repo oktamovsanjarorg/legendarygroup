@@ -1,6 +1,8 @@
 import { normalizePhone, PhoneSchema } from '@lg/contracts';
 import { auditLogs, type Database, roles, type Transaction, userRoles, users } from '@lg/db';
 import { and, eq, inArray } from 'drizzle-orm';
+import { hasStaffRole } from './telegram-claim.js';
+import { unlinkTelegram } from './telegram-unlink.js';
 import { bumpPermissionsVersion } from './user-version.js';
 
 export class DirectorTransferError extends Error {
@@ -54,6 +56,7 @@ export async function transferDirector(
     const next = await userByPhone(tx, phone.data, fullName);
     if (next === current.id) throw new DirectorTransferError('SAME_PERSON');
 
+    const wasStaff = await hasStaffRole(tx, next);
     await tx
       .delete(userRoles)
       .where(and(eq(userRoles.userId, current.id), eq(userRoles.roleId, ids.director)));
@@ -65,6 +68,8 @@ export async function transferDirector(
     await bumpPermissionsVersion(tx, current.id);
     await bumpPermissionsVersion(tx, next);
 
+    // Birinchi xodim roli — tasdiqlanmagan Telegram uziladi (StaffService.grantStaffRole kabi)
+    if (!wasStaff) await unlinkTelegram(tx, next, now);
     const [target] = await tx.select().from(users).where(eq(users.id, next));
     await tx.insert(auditLogs).values({
       action: 'user.director_transferred',

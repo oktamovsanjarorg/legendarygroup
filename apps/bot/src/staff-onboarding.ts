@@ -167,6 +167,10 @@ async function handleGuardianContact(input: GuardianContactInput): Promise<void>
     username: ctx.from.username,
     createRequest,
   });
+  if (res.result === 'conflict') {
+    await ctx.reply(t.staffInvite.conflict, { reply_markup: { remove_keyboard: true } });
+    return;
+  }
   if (res.result === 'not_found') {
     await askWhoAreYou(ctx, phone);
     return;
