@@ -203,7 +203,8 @@ describe('T-502: Prognozlar va churn risk (FR-DASH-3, BR-36)', () => {
     expect(body.period).toBe(prevMonthRange(todayTashkent()).period);
     // Qattiq '12100000' emas — o'tgan oydagi haqiqiy to'lovlar.
     expect(body.actualRevenue).toBe('700000');
-    expect(BigInt(body.predictedRevenue)).toBeGreaterThan(0n);
+    // Sentyabr hisobi umuman to'lanmagan — yig'ilish 0%, prognoz ham 0 (eski 50% pol emas).
+    expect(body.predictedRevenue).toBe('0');
     expect(body.errorPercentage).toBe(
       errorPercent(BigInt(body.predictedRevenue), BigInt(body.actualRevenue)),
     );
