@@ -90,6 +90,7 @@ export const SCREEN_PATHS: Readonly<Record<string, (id?: string) => string>> = {
   'MS-03': (id) => (id ? `/staff/approvals/${id}` : '/staff/approvals'),
   'MS-04': () => '/staff/search',
   'MS-08': () => '/staff/debtors',
+  'MS-09': () => '/staff/leads',
   'MS-11': () => '/staff/link-requests',
   'MS-14': (id) => (id ? `/staff/tickets/${id}` : '/staff/tickets'),
   'MS-16': () => '/staff/cash',

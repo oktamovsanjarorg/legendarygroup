@@ -8,6 +8,14 @@ import {
 import { StaffCashPage } from './pages/staff-cash.js';
 import { StaffDebtorsPage } from './pages/staff-debtors.js';
 import { StaffExpenseNewPage, StaffExpensePage, StaffFinancePage } from './pages/staff-finance.js';
+import { StaffLeadPage, StaffLeadsPage } from './pages/staff-leads.js';
+import {
+  StaffLeadConvertPage,
+  StaffLeadEditPage,
+  StaffLeadLostPage,
+  StaffLeadNewPage,
+  StaffLeadTrialPage,
+} from './pages/staff-lead-forms.js';
 import {
   StaffLinkApprovePage,
   StaffLinkRejectPage,
@@ -38,6 +46,13 @@ export const staffRoutes = [
   route('/staff/debtors', StaffDebtorsPage),
   route('/staff/pay', StaffPaySearchPage),
   route('/staff/student/$id/pay', StaffPayPage),
+  route('/staff/leads', StaffLeadsPage),
+  route('/staff/leads/new', StaffLeadNewPage),
+  route('/staff/leads/$id', StaffLeadPage),
+  route('/staff/leads/$id/edit', StaffLeadEditPage),
+  route('/staff/leads/$id/lost', StaffLeadLostPage),
+  route('/staff/leads/$id/trial', StaffLeadTrialPage),
+  route('/staff/leads/$id/convert', StaffLeadConvertPage),
   route('/staff/link-requests', StaffLinkRequestsPage),
   route('/staff/link-requests/$id/link', StaffLinkApprovePage),
   route('/staff/link-requests/$id/reject', StaffLinkRejectPage),
