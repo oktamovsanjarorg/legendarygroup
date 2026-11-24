@@ -1,14 +1,14 @@
-import { PhoneSchema } from '@lg/contracts';
-import { auditLogs, type Database, roles, staffInvites, userRoles, users } from '@lg/db';
-import { and, eq, isNull, ne } from 'drizzle-orm';
-import { randomToken, sha256 } from '../auth/index.js';
+import { normalizePhone, PhoneSchema } from '@lg/contracts';
+import { auditLogs, type Database, roles, userRoles, users } from '@lg/db';
+import { and, eq, ne } from 'drizzle-orm';
+import { unlinkTelegram } from './telegram-unlink.js';
 
 export const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
 
 export class FirstDirectorError extends Error {
   constructor(
     readonly code:
-      'DIRECTOR_EXISTS' | 'PHONE_TAKEN' | 'INVALID_INPUT' | 'NOT_SEEDED' | 'NO_PENDING_DIRECTOR',
+      'DIRECTOR_EXISTS' | 'PHONE_TAKEN' | 'INVALID_INPUT' | 'NOT_SEEDED' | 'NO_DIRECTOR',
   ) {
     super(code);
   }
@@ -16,13 +16,13 @@ export class FirstDirectorError extends Error {
 
 /**
  * Birinchi Director (02 §2, T-008): o'rnatishda bir marta. Faol Director bo'lsa — rad (`--force` yo'q).
- * Natija — 24 soatlik bir martalik taklif tokeni (parol + TOTP o'rnatish, ADR 0006).
+ * Parol yo'q: Director botda shu raqamni ulashib kiradi (Q-98).
  */
 export async function createFirstDirector(
   db: Database,
   input: { phone: string; fullName: string },
   now: Date,
-): Promise<{ userId: string; token: string; expiresAt: Date }> {
+): Promise<{ userId: string }> {
   const phone = PhoneSchema.safeParse(input.phone);
   const fullName = input.fullName.trim();
   if (!phone.success || fullName.length < 2) throw new FirstDirectorError('INVALID_INPUT');
@@ -55,9 +55,6 @@ export async function createFirstDirector(
     if (!user) throw new Error('foydalanuvchi yaratilmadi');
     await tx.insert(userRoles).values({ userId: user.id, roleId: directorRole.id });
 
-    const token = randomToken();
-    const expiresAt = new Date(now.getTime() + INVITE_TTL_MS);
-    await tx.insert(staffInvites).values({ userId: user.id, tokenHash: sha256(token), expiresAt });
     await tx.insert(auditLogs).values({
       action: 'user.first_director_created',
       entity: 'user',
@@ -65,62 +62,51 @@ export async function createFirstDirector(
       after: { fullName },
       at: now,
     });
-    return { userId: user.id, token, expiresAt };
+    return { userId: user.id };
   });
 }
 
+const toPhone = (raw: string): string => {
+  const phone = PhoneSchema.safeParse(normalizePhone(raw) ?? raw);
+  if (!phone.success) throw new FirstDirectorError('INVALID_INPUT');
+  return phone.data;
+};
+
 /**
- * Hali faollashmagan (paroli yo'q) Director uchun taklifni qayta berish (T-008): telefon/ism
- * tuzatiladi, eski ishlatilmagan takliflar bekor qilinadi (`used_at`), yangi 24 soatlik taklif.
- * Faollashgan Director'ga tegmaydi — u o'zi web panelda (Xodimlar) boshqaradi. Audit bilan.
+ * Favqulodda kirish (Q-98): Director Telegram akkauntini yo'qotsa yoki raqami o'zgarsa. Raqam
+ * almashadi, eski Telegram uziladi, sessiyalar yopiladi; so'ng Director botda yangi raqamini
+ * ulashadi. Faqat serverga kirishi bor odam (CLI). Audit bilan.
  */
-export async function reissueDirectorInvite(
+export async function relinkDirector(
   db: Database,
-  input: { phone: string; fullName: string },
+  input: { current: string; phone: string },
   now: Date,
-): Promise<{ userId: string; token: string; expiresAt: Date }> {
-  const phone = PhoneSchema.safeParse(input.phone);
-  const fullName = input.fullName.trim();
-  if (!phone.success || fullName.length < 2) throw new FirstDirectorError('INVALID_INPUT');
+): Promise<{ userId: string }> {
+  const [current, phone] = [toPhone(input.current), toPhone(input.phone)];
   return db.transaction(async (tx) => {
-    const [pending] = await tx
-      .select({ id: users.id, fullName: users.fullName })
-      .from(userRoles)
-      .innerJoin(users, eq(users.id, userRoles.userId))
+    const [director] = await tx
+      .select({ id: users.id })
+      .from(users)
+      .innerJoin(userRoles, eq(userRoles.userId, users.id))
       .innerJoin(roles, eq(roles.id, userRoles.roleId))
-      .where(
-        and(eq(roles.code, 'director'), eq(users.status, 'active'), isNull(users.passwordHash)),
-      )
-      .limit(1)
-      .for('update');
-    if (!pending) throw new FirstDirectorError('NO_PENDING_DIRECTOR');
+      .where(and(eq(roles.code, 'director'), eq(users.status, 'active'), eq(users.phone, current)))
+      .for('update', { of: users });
+    if (!director) throw new FirstDirectorError('NO_DIRECTOR');
     const [taken] = await tx
       .select({ id: users.id })
       .from(users)
-      .where(and(eq(users.phone, phone.data), ne(users.id, pending.id)));
+      .where(and(eq(users.phone, phone), ne(users.id, director.id)));
     if (taken) throw new FirstDirectorError('PHONE_TAKEN');
 
-    await tx
-      .update(users)
-      .set({ phone: phone.data, fullName, updatedAt: now })
-      .where(eq(users.id, pending.id));
-    await tx
-      .update(staffInvites)
-      .set({ usedAt: now })
-      .where(and(eq(staffInvites.userId, pending.id), isNull(staffInvites.usedAt)));
-    const token = randomToken();
-    const expiresAt = new Date(now.getTime() + INVITE_TTL_MS);
-    await tx
-      .insert(staffInvites)
-      .values({ userId: pending.id, tokenHash: sha256(token), expiresAt });
+    await tx.update(users).set({ phone, updatedAt: now }).where(eq(users.id, director.id));
+    await unlinkTelegram(tx, director.id, now);
     await tx.insert(auditLogs).values({
-      action: 'user.first_director_reinvited',
+      action: 'user.director_relinked',
       entity: 'user',
-      entityId: pending.id,
-      before: { fullName: pending.fullName },
-      after: { fullName, phoneChanged: true },
+      entityId: director.id,
+      after: { phoneChanged: phone !== current, via: 'cli' },
       at: now,
     });
-    return { userId: pending.id, token, expiresAt };
+    return { userId: director.id };
   });
 }

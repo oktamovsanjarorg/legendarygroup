@@ -1,7 +1,6 @@
-import { normalizePhone, PhoneSchema, type StaffInvite } from '@lg/contracts';
+import { normalizePhone, PhoneSchema } from '@lg/contracts';
 import { auditLogs, type Database, roles, type Transaction, userRoles, users } from '@lg/db';
 import { and, eq, inArray } from 'drizzle-orm';
-import { type InviteLinks, issueInvite } from './staff-invites.js';
 import { bumpPermissionsVersion } from './user-version.js';
 
 export class DirectorTransferError extends Error {
@@ -22,7 +21,7 @@ async function roleIds(tx: Transaction): Promise<{ director: string; admin: stri
   return { director, admin };
 }
 
-/** Telefon bo'yicha foydalanuvchi; yo'q bo'lsa — yangi (parolsiz, taklif bilan kiradi). */
+/** Telefon bo'yicha foydalanuvchi; yo'q bo'lsa — yangi (botda raqam ulashib kiradi). */
 async function userByPhone(tx: Transaction, phone: string, fullName: string): Promise<string> {
   const [found] = await tx.select({ id: users.id }).from(users).where(eq(users.phone, phone));
   if (found) return found.id;
@@ -35,14 +34,13 @@ async function userByPhone(tx: Transaction, phone: string, fullName: string): Pr
  * Direktorlikni o'tkazish (02 §2: tizimda bitta Director). Joriy Director Admin bo'lib qoladi
  * (panelni boshqarishda davom etadi), yangi Director — telefon bo'yicha (yangi yoki mavjud
  * foydalanuvchi). Ikkalasining ruxsat versiyasi oshadi — eski tokenlar yangi rolni oladi.
- * Paroli yo'q yangi Director'ga 24 soatlik web taklifi (parol + TOTP, ADR 0006). Audit bilan.
+ * `telegramLinked: false` — yangi Director botda raqamini ulashishi kerak (Q-98). Audit bilan.
  */
 export async function transferDirector(
   db: Database,
-  links: InviteLinks,
   input: { phone: string; fullName: string },
   now: Date,
-): Promise<{ invite: StaffInvite | null; previousId: string; directorId: string }> {
+): Promise<{ telegramLinked: boolean; previousId: string; directorId: string }> {
   const phone = PhoneSchema.safeParse(normalizePhone(input.phone) ?? input.phone);
   const fullName = input.fullName.trim();
   if (!phone.success || fullName.length < 2) throw new DirectorTransferError('INVALID_INPUT');
@@ -68,9 +66,6 @@ export async function transferDirector(
     await bumpPermissionsVersion(tx, next);
 
     const [target] = await tx.select().from(users).where(eq(users.id, next));
-    const invite = target?.passwordHash
-      ? null
-      : await issueInvite(tx, links, { userId: next, channel: 'web', now });
     await tx.insert(auditLogs).values({
       action: 'user.director_transferred',
       entity: 'user',
@@ -79,6 +74,7 @@ export async function transferDirector(
       after: { directorId: next, previousBecame: 'admin' },
       at: now,
     });
-    return { invite, previousId: current.id, directorId: next };
+    const telegramLinked = target?.telegramId != null;
+    return { telegramLinked, previousId: current.id, directorId: next };
   });
 }

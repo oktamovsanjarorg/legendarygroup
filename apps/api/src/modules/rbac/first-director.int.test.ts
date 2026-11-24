@@ -1,13 +1,17 @@
-import { auditLogs, closeDb, createDb, type Database, seed, staffInvites, users } from '@lg/db';
-import { createTempDb, type TempDb } from '@lg/db/testing';
-import { and, eq, isNull } from 'drizzle-orm';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { sha256 } from '../auth/index.js';
 import {
-  createFirstDirector,
-  FirstDirectorError,
-  reissueDirectorInvite,
-} from './first-director.js';
+  auditLogs,
+  closeDb,
+  createDb,
+  type Database,
+  seed,
+  sessions,
+  staffInvites,
+  users,
+} from '@lg/db';
+import { createTempDb, type TempDb } from '@lg/db/testing';
+import { eq } from 'drizzle-orm';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { createFirstDirector, FirstDirectorError, relinkDirector } from './first-director.js';
 
 let tmp: TempDb;
 let db: Database;
@@ -39,16 +43,15 @@ describe('pnpm cli director:create (T-008)', () => {
     ).toBe('INVALID_INPUT');
   });
 
-  it('birinchi Director + 24 soatlik bir martalik taklif (faqat hash saqlanadi)', async () => {
-    const { userId, token, expiresAt } = await createFirstDirector(
+  it('Q-98: birinchi Director — parolsiz va taklifsiz (botda raqam ulashadi)', async () => {
+    const { userId } = await createFirstDirector(
       db,
       { phone: '+998901112233', fullName: 'Bosh Direktor' },
       now,
     );
-    expect(expiresAt.toISOString()).toBe('2026-11-12T10:00:00.000Z');
-    const [invite] = await db.select().from(staffInvites).where(eq(staffInvites.userId, userId));
-    expect(invite?.tokenHash).toBe(sha256(token));
-    expect(JSON.stringify(invite)).not.toContain(token);
+    const [u] = await db.select().from(users).where(eq(users.id, userId));
+    expect([u?.phone, u?.passwordHash, u?.telegramId]).toEqual(['+998901112233', null, null]);
+    expect(await db.select().from(staffInvites)).toHaveLength(0);
   });
 
   it("faol Director bo'lsa — qayta ishlatib bo'lmaydi (--force yo'q)", async () => {
@@ -58,37 +61,46 @@ describe('pnpm cli director:create (T-008)', () => {
   });
 });
 
-describe('pnpm cli director:reinvite (T-008: faollashmagan Director)', () => {
+describe('pnpm cli director:relink (Q-98: Telegram yoki raqam yoʻqolgan)', () => {
   const later = new Date('2026-11-11T12:00:00.000Z');
 
-  it('raqam/ism tuzatiladi, eski taklif bekor, yangisi 24 soat; audit yoziladi', async () => {
-    const { userId, token } = await reissueDirectorInvite(
+  it('raqam almashadi, Telegram uziladi, sessiyalar yopiladi, pv oshadi; audit', async () => {
+    const [before] = await db
+      .update(users)
+      .set({ telegramId: 5001n, telegramUsername: 'eski' })
+      .where(eq(users.phone, '+998901112233'))
+      .returning();
+    await db.insert(sessions).values({
+      userId: before!.id,
+      familyId: before!.id,
+      refreshTokenHash: 'h',
+      activeRole: 'director',
+      expiresAt: new Date('2026-12-11T00:00:00.000Z'),
+    });
+    const { userId } = await relinkDirector(
       db,
-      { phone: '+998944758090', fullName: 'Sanjar Oʻktamov' },
+      { current: '90 111 22 33', phone: '+998944758090' },
       later,
     );
+    expect(userId).toBe(before!.id);
     const [u] = await db.select().from(users).where(eq(users.id, userId));
-    expect([u?.phone, u?.fullName]).toEqual(['+998944758090', 'Sanjar Oʻktamov']);
-    const open = await db
-      .select()
-      .from(staffInvites)
-      .where(and(eq(staffInvites.userId, userId), isNull(staffInvites.usedAt)));
-    expect(open.map((i) => i.tokenHash)).toEqual([sha256(token)]);
-    expect(open[0]?.expiresAt.toISOString()).toBe('2026-11-12T12:00:00.000Z');
+    expect([u?.phone, u?.telegramId, u?.telegramUsername]).toEqual(['+998944758090', null, null]);
+    expect(u?.permissionsVersion).toBe(before!.permissionsVersion + 1);
+    const [s] = await db.select().from(sessions).where(eq(sessions.userId, userId));
+    expect(s?.revokedAt).toEqual(later);
     const audit = await db
       .select()
       .from(auditLogs)
-      .where(eq(auditLogs.action, 'user.first_director_reinvited'));
+      .where(eq(auditLogs.action, 'user.director_relinked'));
     expect(audit).toHaveLength(1);
   });
 
-  it('noto‘g‘ri raqam — rad; faollashgan Director — tegilmaydi', async () => {
-    expect(
-      await codeOf(reissueDirectorInvite(db, { phone: '944758090', fullName: 'A B' }, later)),
-    ).toBe('INVALID_INPUT');
-    await db.update(users).set({ passwordHash: 'x' }).where(eq(users.phone, '+998944758090'));
-    expect(
-      await codeOf(reissueDirectorInvite(db, { phone: '+998901234567', fullName: 'Yangi' }, later)),
-    ).toBe('NO_PENDING_DIRECTOR');
+  it('notoʻgʻri raqam, direktor emas, band raqam — rad', async () => {
+    const relink = (current: string, phone: string) =>
+      codeOf(relinkDirector(db, { current, phone }, later));
+    expect(await relink('123', '+998944758090')).toBe('INVALID_INPUT');
+    expect(await relink('+998900000000', '+998944758091')).toBe('NO_DIRECTOR');
+    await db.insert(users).values({ fullName: 'Boshqa', phone: '+998944758099' });
+    expect(await relink('+998944758090', '+998944758099')).toBe('PHONE_TAKEN');
   });
 });

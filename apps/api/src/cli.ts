@@ -6,17 +6,17 @@ import { DirectorTransferError, transferDirector } from './modules/rbac/director
 import {
   createFirstDirector,
   FirstDirectorError,
-  reissueDirectorInvite,
+  relinkDirector,
 } from './modules/rbac/first-director.js';
 
 /**
  * Ma'muriy CLI (`pnpm cli <buyruq>`).
  *   director:create --phone +998901234567 --name "Ism Familiya"
- * Taklif havolasini chiqaradi (24 soat): `<PUBLIC_APP_URL>/invite/<token>`.
+ * Parol yo'q (Q-98): Director botda shu raqamni ulashib kiradi.
  */
 const HELP = `Foydalanish:
   pnpm cli director:create --phone +998901234567 --name "Ism Familiya"
-  pnpm cli director:reinvite --phone +998901234567 --name "Ism Familiya"  (faollashmagan Director)
+  pnpm cli director:relink --current +998901234567 --phone +998907654321  (Telegram/raqam yo'qolgan)
   pnpm cli director:transfer --phone +998901234567 --name "Ism Familiya"  (joriy Director → Admin)
   node dist/cli.js db:migrate     (konteynerda: migratsiya + rollar seed'i + APP_DB_LOGIN login'i va lg_app)`;
 
@@ -47,30 +47,51 @@ const MESSAGES: Record<FirstDirectorError['code'], string> = {
   PHONE_TAKEN: 'Bu telefon raqam bilan foydalanuvchi bor.',
   INVALID_INPUT: "Telefon E.164 formatida (+998...) va ism kamida 2 belgi bo'lishi kerak.",
   NOT_SEEDED: "Rollar yo'q — avval: pnpm --filter @lg/db db:migrate && db:seed",
-  NO_PENDING_DIRECTOR: "Faollashmagan Direktor yo'q (parol o'rnatilgan). Boshqaruv — web panelda.",
+  NO_DIRECTOR: "Bu raqam (--current) bilan faol Direktor yo'q.",
 };
 
-type DirectorAction = typeof createFirstDirector;
+/** Keyingi qadam: bot havolasi (yashirin standart yo'q — CLAUDE.md). */
+function botUrl(): string {
+  const username = process.env['TELEGRAM_BOT_USERNAME'];
+  if (!username) throw new Error("TELEGRAM_BOT_USERNAME yo'q — bot havolasini yasab bo'lmaydi");
+  return `https://t.me/${username}`;
+}
 
-/** `director:create` va `director:reinvite` — bir xil kiritma, natija: bir martalik havola. */
-async function directorInvite(args: string[], action: DirectorAction, done: string): Promise<void> {
+const nextStep = (url: string) =>
+  console.info(`Keyingi qadam: ${url} → «Start» → «Telefon raqamni ulashish».`);
+
+async function directorCreate(args: string[]): Promise<void> {
   const { values } = parseArgs({
     args,
     options: { phone: { type: 'string' }, name: { type: 'string' } },
   });
   if (!values.phone || !values.name) throw new Error(HELP);
-  // Yashirin standart yo'q (CLAUDE.md): manzil berilmasa — havola yaroqsiz, shuning uchun xato.
-  const base = process.env['PUBLIC_APP_URL'];
-  if (!base) throw new Error("PUBLIC_APP_URL yo'q — taklif havolasini yasab bo'lmaydi");
+  const url = botUrl();
   const db = createDb(requireDatabaseUrl(), { max: 1, appName: 'lg-cli' });
   try {
-    const { token, expiresAt } = await action(
-      db,
-      { phone: values.phone, fullName: values.name },
-      new SystemClock().now(),
-    );
-    console.info(`${done}. Sozlash havolasi (${expiresAt.toISOString()} gacha, bir marta):`);
-    console.info(`${base}/invite/${token}`);
+    const input = { phone: values.phone, fullName: values.name };
+    await createFirstDirector(db, input, new SystemClock().now());
+    console.info('Direktor yaratildi.');
+    nextStep(url);
+  } finally {
+    await closeDb(db);
+  }
+}
+
+/** `director:relink`: raqamni almashtirish va eski Telegram'ni uzish (favqulodda kirish). */
+async function directorRelink(args: string[]): Promise<void> {
+  const { values } = parseArgs({
+    args,
+    options: { current: { type: 'string' }, phone: { type: 'string' } },
+  });
+  if (!values.current || !values.phone) throw new Error(HELP);
+  const url = botUrl();
+  const db = createDb(requireDatabaseUrl(), { max: 1, appName: 'lg-cli' });
+  try {
+    const input = { current: values.current, phone: values.phone };
+    await relinkDirector(db, input, new SystemClock().now());
+    console.info('Direktor raqami yangilandi, eski Telegram uzildi, sessiyalar yopildi.');
+    nextStep(url);
   } finally {
     await closeDb(db);
   }
@@ -83,28 +104,23 @@ const TRANSFER_MESSAGES: Record<DirectorTransferError['code'], string> = {
   SAME_PERSON: 'Bu raqam — joriy Direktorniki.',
 };
 
-/** `director:transfer`: yangi Director (taklif bilan), joriy Director — Admin bo'lib qoladi. */
+/** `director:transfer`: yangi Director, joriy Director — Admin bo'lib qoladi. */
 async function directorTransfer(args: string[]): Promise<void> {
   const { values } = parseArgs({
     args,
     options: { phone: { type: 'string' }, name: { type: 'string' } },
   });
   if (!values.phone || !values.name) throw new Error(HELP);
-  const appUrl = process.env['PUBLIC_APP_URL'];
-  const botUsername = process.env['TELEGRAM_BOT_USERNAME'];
-  if (!appUrl || !botUsername) throw new Error('PUBLIC_APP_URL va TELEGRAM_BOT_USERNAME majburiy');
+  const url = botUrl();
   const db = createDb(requireDatabaseUrl(), { max: 1, appName: 'lg-cli' });
   try {
     const r = await transferDirector(
       db,
-      { appUrl, botUsername },
       { phone: values.phone, fullName: values.name },
       new SystemClock().now(),
     );
     console.info("Direktorlik o'tkazildi; avvalgi Direktor — Admin.");
-    if (r.invite)
-      console.info(`Sozlash havolasi (${r.invite.expiresAt} gacha, bir marta):\n${r.invite.url}`);
-    else console.info("Yangi Direktor allaqachon parol o'rnatgan — web panelga kiradi.");
+    if (!r.telegramLinked) nextStep(url);
   } finally {
     await closeDb(db);
   }
@@ -113,10 +129,8 @@ async function directorTransfer(args: string[]): Promise<void> {
 async function main(): Promise<void> {
   loadRootEnv();
   const [command, ...rest] = process.argv.slice(2);
-  if (command === 'director:create')
-    return directorInvite(rest, createFirstDirector, 'Direktor yaratildi');
-  if (command === 'director:reinvite')
-    return directorInvite(rest, reissueDirectorInvite, 'Direktor taklifi yangilandi');
+  if (command === 'director:create') return directorCreate(rest);
+  if (command === 'director:relink') return directorRelink(rest);
   if (command === 'director:transfer') return directorTransfer(rest);
   if (command === 'db:migrate') return dbMigrate();
   throw new Error(HELP);
