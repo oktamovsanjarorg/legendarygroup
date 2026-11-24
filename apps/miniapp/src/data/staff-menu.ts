@@ -4,7 +4,17 @@
  * shu roʻyxatga qoʻshiladi — qurilmagan ekran koʻrsatilmaydi.
  */
 export type StaffSection = 'students' | 'money' | 'lessons' | 'comms' | 'director';
-export type StaffMenuKey = 'newStudent' | 'pay' | 'debtors' | 'queue' | 'approvals';
+export type StaffMenuKey =
+  | 'newStudent'
+  | 'linkRequests'
+  | 'pay'
+  | 'debtors'
+  | 'queue'
+  | 'cash'
+  | 'addExpense'
+  | 'tickets'
+  | 'approvals'
+  | 'finance';
 
 export interface StaffMenuItem {
   key: StaffMenuKey;
@@ -23,16 +33,31 @@ export const STAFF_SECTIONS: readonly StaffSection[] = [
 
 export const STAFF_MENU: readonly StaffMenuItem[] = [
   { key: 'newStudent', section: 'students', permission: 'student.manage', to: '/staff/new' },
+  {
+    key: 'linkRequests',
+    section: 'students',
+    permission: 'student.manage',
+    to: '/staff/link-requests',
+  },
   { key: 'pay', section: 'money', permission: 'payment.create', to: '/staff/pay' },
   // `billing.view` ota-onada ham bor — markaz ro'yxati faqat xodimga (web W-15 bilan bir xil)
   { key: 'debtors', section: 'money', permission: 'payment.review', to: '/staff/debtors' },
   { key: 'queue', section: 'money', permission: 'payment.review', to: '/staff/queue' },
+  { key: 'cash', section: 'money', permission: 'cash.close', to: '/staff/cash' },
+  {
+    key: 'addExpense',
+    section: 'money',
+    permission: 'expense.manage',
+    to: '/staff/expenses/new',
+  },
+  { key: 'tickets', section: 'comms', permission: 'ticket.handle', to: '/staff/tickets' },
   {
     key: 'approvals',
     section: 'director',
     permission: 'approval.decide',
     to: '/staff/approvals',
   },
+  { key: 'finance', section: 'director', permission: 'finance.view', to: '/staff/finance' },
 ];
 
 /** Ruxsat bor va tabda yoʻq bandlar, boʻlimlar tartibida. */

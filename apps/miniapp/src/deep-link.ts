@@ -24,6 +24,8 @@ const STAFF: readonly RoleCode[] = ['admin', 'director'];
 /** Tartib muhim: aniq kalitlar prefikslardan oldin (`pay_q` ≠ `pay_<id>`). */
 export const DEEP_LINK_RULES: readonly Rule[] = [
   { key: 'pay_q', screen: 'MS-02', roles: STAFF, exact: true },
+  { key: 'lnk', screen: 'MS-11', roles: STAFF, exact: true },
+  { key: 'stk', screen: 'MS-14', roles: STAFF },
   { key: 'att', screen: 'MT-02', roles: ['teacher'] },
   { key: 'imp', screen: 'MT-08', roles: ['teacher'] },
   { key: 'les', screen: 'MG-01', roles: ['guardian'] },
@@ -88,6 +90,11 @@ export const SCREEN_PATHS: Readonly<Record<string, (id?: string) => string>> = {
   'MS-03': (id) => (id ? `/staff/approvals/${id}` : '/staff/approvals'),
   'MS-04': () => '/staff/search',
   'MS-08': () => '/staff/debtors',
+  'MS-11': () => '/staff/link-requests',
+  'MS-14': (id) => (id ? `/staff/tickets/${id}` : '/staff/tickets'),
+  'MS-16': () => '/staff/cash',
+  'MS-18': () => '/staff/expenses/new',
+  'MS-27': () => '/staff/finance',
   'MS-05': (id) => (id ? `/staff/student/${id}` : '/staff/search'),
 };
 

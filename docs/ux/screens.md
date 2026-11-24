@@ -224,6 +224,8 @@ o'sha rol bor — avtomatik shu rolga o'tiladi (tanlov ekranisiz) va rol eslab q
 | `pay_q` | MS-02 | Admin/Director | yangi chek navbatda             |
 | `apr_`  | MS-03 | Director       | tasdiqlash so'rovi              |
 | `stu_`  | MS-05 | Admin/Director | o'quvchi bo'yicha xabar         |
+| `lnk`   | MS-11 | Admin/Director | yangi bog'lanish so'rovi        |
+| `stk_`  | MS-14 | Admin/Director | ota-ona murojaati               |
 
 ## 6. Asosiy oqimlar
 

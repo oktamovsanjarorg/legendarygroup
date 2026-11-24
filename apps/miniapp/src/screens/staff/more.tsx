@@ -1,10 +1,15 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { ListItem, Section } from '@lg/ui-tg';
 import {
+  Banknote,
+  ChartLine,
   CircleAlert,
   ClipboardCheck,
   type LucideIcon,
+  Link2,
+  MessageCircleQuestion,
   Receipt,
+  ShoppingCart,
   UserPlus,
   Wallet,
 } from 'lucide-react';
@@ -18,6 +23,11 @@ const ICONS: Record<StaffMenuKey, LucideIcon> = {
   debtors: CircleAlert,
   queue: Receipt,
   approvals: ClipboardCheck,
+  linkRequests: Link2,
+  tickets: MessageCircleQuestion,
+  cash: Banknote,
+  addExpense: ShoppingCart,
+  finance: ChartLine,
 };
 
 export interface StaffMoreViewProps {
