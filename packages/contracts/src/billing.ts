@@ -222,13 +222,20 @@ export const DebtorItemSchema = z.object({
   lastPayment: z.string().nullable(),
   reminders: z.number().int().min(0),
   critical: z.boolean(),
+  /** Qo'ng'iroq uchun asosiy ota-ona. */
+  guardian: z.object({ name: z.string(), phone: z.string() }).nullable(),
+  /** Telegram'ga ulangan ota-ona bor (Q-100). */
+  canRemind: z.boolean(),
+  /** Bugun qo'lda eslatma yuborilgan (kuniga bitta). */
+  remindedToday: z.boolean(),
 });
 export type DebtorItem = z.infer<typeof DebtorItemSchema>;
 
 export const DebtorListQuery = z.object({
   bucket: z.enum(DEBTOR_BUCKETS).optional().default('all'),
   groupId: z.string().uuid().optional(),
-  criticalOnly: z.coerce.boolean().optional(),
+  // `z.coerce.boolean()` emas: u "false" satrini ham rost deb o'qiydi
+  criticalOnly: z.stringbool().optional(),
   search: z.string().trim().max(100).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   cursor: z.string().optional(),

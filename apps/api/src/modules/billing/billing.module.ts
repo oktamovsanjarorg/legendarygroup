@@ -16,6 +16,7 @@ import { BillingCron } from './billing.cron.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import { BillingService } from './billing.service.js';
+import { DebtRemindersService } from './debt-reminders.service.js';
 import { DebtorsController } from './debtors.controller.js';
 import { DebtorsRepository } from './debtors.repository.js';
 import { DebtorsService } from './debtors.service.js';
@@ -78,6 +79,7 @@ import { EnrollmentRemoveService } from './enrollment-remove.service.js';
     StornoCashService,
     DebtorsRepository,
     DebtorsService,
+    DebtRemindersService,
     ReceiptPdfService,
     SubmissionsRepository,
     SubmissionsService,

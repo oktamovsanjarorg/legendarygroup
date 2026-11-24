@@ -139,6 +139,9 @@ export const errorMessages = {
   REFUND_EXCEEDS_ADVANCE: 'Qaytariladigan summa oʻquvchining avansidan koʻp.',
   PENALTY_ALREADY_PAID: 'Toʻlangan jarimani bekor qilib boʻlmaydi — avval toʻlovni storno qiling.',
   NOT_RETRYABLE: 'Bu xabar yetkazilgan yoki navbatda — qayta yuborib boʻlmaydi.',
+  GUARDIAN_TELEGRAM_NOT_LINKED:
+    'Ota-ona Telegram botga ulanmagan — eslatma yetib bormaydi. Qoʻngʻiroq qiling.',
+  REMINDER_ALREADY_SENT: 'Bugun bu oʻquvchi boʻyicha eslatma yuborilgan.',
   NO_TELEGRAM: 'Foydalanuvchi Telegram botga ulanmagan — avval botga ulanishi kerak.',
 } as const;
 

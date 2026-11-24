@@ -46,7 +46,7 @@
 ## D. Qarzdorlik
 
 - **BR-20** Qarz = ledger yig'indisi musbat bo'lsa (ishora qoidasi — [05-data-model.md](05-data-model.md) `ledger_entries`). "Muddati o'tgan qarz" — to'lov muddati o'tgan invoice qatorlarining to'lanmagan qismi.
-- **BR-21** Eslatmalar: muddatdan 3 kun oldin, muddat kuni, +3 kun, +7 kun. Keyin — haftada 1 marta. Ota-ona bildirishnomani o'chira olmaydi.
+- **BR-21** Eslatmalar: muddatdan 3 kun oldin, muddat kuni, +3 kun, +7 kun. Keyin — haftada 1 marta. Bir o'quvchiga kuniga bitta xabar (jami to'lanmagan summa), faqat Telegram ulangan ota-onaga (Q-100). Ota-ona bildirishnomani o'chira olmaydi.
 - **BR-22** Qarz `≥ 1 oylik narx` va muddatdan `≥ 14 kun` o'tsa ⚠️ — Admin dashboard'ida "kritik" belgisi (avtomatik guruhdan chiqarilmaydi — qaror inson tomonidan).
 
 ## E. Ustoz oyligi

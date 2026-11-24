@@ -3,7 +3,7 @@ import { type Clock } from '@lg/domain';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { CronJobs } from '../../common/scheduler/cron-jobs.js';
 import { BillingGeneratorService } from './billing-generator.service.js';
-import { DebtorsService } from './debtors.service.js';
+import { DebtRemindersService } from './debt-reminders.service.js';
 
 @Injectable()
 export class BillingCron implements OnModuleInit {
@@ -12,7 +12,7 @@ export class BillingCron implements OnModuleInit {
   constructor(
     @Inject(CronJobs) private readonly cron: CronJobs,
     @Inject(BillingGeneratorService) private readonly generator: BillingGeneratorService,
-    @Inject(DebtorsService) private readonly debtors: DebtorsService,
+    @Inject(DebtRemindersService) private readonly reminders: DebtRemindersService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
@@ -34,7 +34,7 @@ export class BillingCron implements OnModuleInit {
       pattern: '0 9 * * *', // Har kuni 09:00 da (BR-21)
       run: async () => {
         this.logger.log('BR-21 Eslatmalar yuborish boshlandi');
-        await this.debtors.processScheduledReminders();
+        await this.reminders.processScheduledReminders();
         this.logger.log('BR-21 Eslatmalar yuborish yakunlandi');
       },
     });

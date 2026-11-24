@@ -1,26 +1,24 @@
-import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
-import { formatDateShort, formatMoney } from '@lg/i18n';
+import { Inject, Injectable } from '@nestjs/common';
+import { normalizeUz } from '@lg/i18n';
 import type {
   DebtorBucket,
   DebtorItem,
   DebtorListQueryInput,
   DebtorListResponse,
-  SendReminderResponse,
 } from '@lg/contracts';
-import { type Clock, isDebtCritical } from '@lg/domain';
+import { type Clock, isDebtCritical, tashkentDayRange } from '@lg/domain';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
-import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { StudentScopeService } from '../students/index.js';
-import { NotificationsService } from '../notifications/index.js';
 import {
   type DebtorGroupInfo,
+  type DebtorGuardian,
   type DebtorInvoiceInfo,
   DebtorsRepository,
   type RawDebtorStudent,
 } from './debtors.repository.js';
 
-function diffInDays(dateA: string, dateB: string): number {
+export function diffInDays(dateA: string, dateB: string): number {
   const msA = Date.parse(`${dateA}T00:00:00Z`);
   const msB = Date.parse(`${dateB}T00:00:00Z`);
   return Math.round((msA - msB) / 86400000);
@@ -34,6 +32,14 @@ function matchBucket(bucket: DebtorBucket, days: number): boolean {
   return true;
 }
 
+/** Ism, kod (apostrof yozuvi farqsiz) yoki ota-ona telefoni (kamida 4 raqam). */
+function matchesSearch(item: DebtorItem, search: string): boolean {
+  const q = normalizeUz(search);
+  const digits = q.replace(/\D/g, '');
+  if (normalizeUz(item.name).includes(q) || normalizeUz(item.code).includes(q)) return true;
+  return digits.length >= 4 && (item.guardian?.phone.includes(digits) ?? false);
+}
+
 function matchesFilters(
   item: DebtorItem,
   query: DebtorListQueryInput,
@@ -42,24 +48,15 @@ function matchesFilters(
   if (!matchBucket(query.bucket, item.overdueDays)) return false;
   if (query.criticalOnly && !item.critical) return false;
   if (query.groupId && !studentGroups.some((g) => g.groupId === query.groupId)) return false;
-  if (query.search) {
-    const q = query.search.toLowerCase();
-    if (!item.name.toLowerCase().includes(q) && !item.code.toLowerCase().includes(q)) {
-      return false;
-    }
-  }
-  return true;
+  return !query.search || matchesSearch(item, query.search);
 }
 
 @Injectable()
 export class DebtorsService {
-  private readonly logger = new Logger(DebtorsService.name);
-
   constructor(
     @Inject(DebtorsRepository) private readonly repo: DebtorsRepository,
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
-    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   /** Barcha qarzdorlarni yig'adi va filtrlarni qo'llaydi. */
@@ -72,12 +69,15 @@ export class DebtorsService {
     if (students.length === 0) return [];
 
     const studentIds = students.map((s) => s.id);
-    const [groups, invoices, lastPayments, reminderCounts] = await Promise.all([
-      this.repo.findActiveGroupsForStudents(studentIds, today),
-      this.repo.findOpenInvoicesForStudents(studentIds),
-      this.repo.findLastPaymentsForStudents(studentIds),
-      this.repo.countRemindersForStudents(studentIds),
-    ]);
+    const [groups, invoices, lastPayments, reminderCounts, guardians, remindedToday] =
+      await Promise.all([
+        this.repo.findActiveGroupsForStudents(studentIds, today),
+        this.repo.findOpenInvoicesForStudents(studentIds),
+        this.repo.findLastPaymentsForStudents(studentIds),
+        this.repo.countRemindersForStudents(studentIds),
+        this.repo.findGuardians(studentIds),
+        this.repo.findManuallyReminded(studentIds, tashkentDayRange(today).start),
+      ]);
 
     const groupMap = this.groupByStudent(groups);
     const invoiceMap = this.invoicesByStudent(invoices);
@@ -92,6 +92,8 @@ export class DebtorsService {
         invoices: invoiceMap.get(s.id) ?? [],
         lastPayment: lastPayments.get(s.id),
         reminders: reminderCounts.get(s.id) ?? 0,
+        guardians: guardians.get(s.id) ?? [],
+        remindedToday: remindedToday.has(s.id),
       });
 
       if (matchesFilters(item, query, studentGroups)) {
@@ -131,8 +133,11 @@ export class DebtorsService {
     invoices: DebtorInvoiceInfo[];
     lastPayment?: Date;
     reminders: number;
+    guardians: DebtorGuardian[];
+    remindedToday: boolean;
   }): DebtorItem {
-    const { student, today, groups, invoices, lastPayment, reminders } = params;
+    const { student, today, groups, invoices, lastPayment, reminders, guardians } = params;
+    const primary = guardians[0];
 
     let overdueDays = 0;
     const firstInvoice = invoices[0];
@@ -163,6 +168,9 @@ export class DebtorsService {
       lastPayment: lastPayment ? lastPayment.toISOString() : null,
       reminders,
       critical,
+      guardian: primary ? { name: primary.fullName, phone: primary.phone } : null,
+      canRemind: guardians.some((g) => g.linked),
+      remindedToday: params.remindedToday,
     };
   }
 
@@ -210,113 +218,5 @@ export class DebtorsService {
     ]);
 
     return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-  }
-
-  /** Admin orqali o'quvchiga qo'lda eslatma yuborish. */
-  async sendManualReminder(user: RequestUser, studentId: string): Promise<SendReminderResponse> {
-    this.studentScope.assertUnrestricted(user);
-    await this.studentScope.assertVisible(user, studentId);
-
-    const branchId = '01900000-0000-7000-8000-000000000001';
-    const students = await this.repo.findStudentsWithPositiveLedger(branchId);
-    const st = students.find((s) => s.id === studentId);
-    if (!st) throw new AppException(HttpStatus.BAD_REQUEST, 'BAD_REQUEST');
-
-    const guardian = await this.repo.findPrimaryGuardian(studentId);
-    const reminder = await this.repo.createReminder({
-      branchId,
-      studentId,
-      guardianId: guardian?.guardianId ?? null,
-      invoiceId: null,
-      type: 'manual',
-      debtAmount: st.debt,
-      overdueDays: 0,
-      channel: 'telegram',
-    });
-
-    if (guardian?.userId) {
-      await this.notifications.notify({
-        userId: guardian.userId,
-        type: 'billing_reminder',
-        payload: { studentName: st.fullName, amount: formatMoney(st.debt) },
-        dedupeKey: `remind:manual:${studentId}:${reminder.id}`,
-        branchId,
-      });
-    }
-
-    const map = await this.repo.countRemindersForStudents([studentId]);
-    return {
-      success: true,
-      reminderCount: map.get(studentId) ?? 1,
-      sentAt: reminder.sentAt.toISOString(),
-    };
-  }
-
-  /** BR-21: Eslatmalar jadvali (-3 kun, 0 kun, +3 kun, +7 kun, haftalik). */
-  async processScheduledReminders(): Promise<{ sentCount: number }> {
-    const today = this.clock.today();
-    const invoices = await this.repo.findAllOpenInvoicesWithDetails();
-    let sentCount = 0;
-
-    for (const inv of invoices) {
-      const type = this.determineMilestoneType(inv.dueDate, today);
-      if (!type) continue;
-
-      const alreadySent = await this.repo.hasReminderForInvoiceAndType(inv.invoiceId, type);
-      if (alreadySent) continue;
-
-      const guardian = await this.repo.findPrimaryGuardian(inv.studentId);
-      await this.repo.createReminder({
-        branchId: inv.branchId,
-        studentId: inv.studentId,
-        guardianId: guardian?.guardianId ?? null,
-        invoiceId: inv.invoiceId,
-        type,
-        debtAmount: inv.outstanding,
-        overdueDays: Math.max(0, diffInDays(today, inv.dueDate)),
-        channel: 'telegram',
-      });
-
-      if (guardian?.userId) {
-        await this.notifications.notify({
-          userId: guardian.userId,
-          type: 'billing_reminder',
-          payload: {
-            studentName: inv.studentName,
-            amount: formatMoney(inv.outstanding),
-            dueDate: formatDateShort(new Date(`${inv.dueDate}T00:00:00+05:00`)),
-          },
-          dedupeKey: `remind:sched:${inv.invoiceId}:${type}`,
-          branchId: inv.branchId,
-        });
-      }
-      sentCount++;
-    }
-
-    this.logger.log(`BR-21 Eslatmalar yuborildi: ${sentCount} ta`);
-    return { sentCount };
-  }
-
-  determineMilestoneType(dueDate: string, today: string): string | null {
-    // overdueDays: today - dueDate (musbat = kechikkan kunlar soni)
-    const overdueDays = diffInDays(today, dueDate);
-
-    if (overdueDays >= 14) {
-      const weekNum = Math.floor((overdueDays - 7) / 7);
-      return `weekly_${weekNum}`;
-    }
-    if (overdueDays >= 7) {
-      return 'overdue_7';
-    }
-    if (overdueDays >= 3) {
-      return 'overdue_3';
-    }
-    if (overdueDays >= 0) {
-      return 'due_day';
-    }
-    if (overdueDays >= -3) {
-      return 'due_minus_3';
-    }
-    return null;
   }
 }
