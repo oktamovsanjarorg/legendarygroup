@@ -26,6 +26,7 @@ export type StaffMenuKey =
   | 'undelivered'
   | 'approvals'
   | 'finance'
+  | 'payroll'
   | 'audit';
 
 export interface StaffMenuItem {
@@ -97,6 +98,7 @@ export const STAFF_MENU: readonly StaffMenuItem[] = [
     to: '/staff/approvals',
   },
   { key: 'finance', section: 'director', permission: 'finance.view', to: '/staff/finance' },
+  { key: 'payroll', section: 'director', permission: 'payroll.manage', to: '/staff/payroll' },
   { key: 'audit', section: 'director', permission: 'audit.view', to: '/staff/audit' },
 ];
 

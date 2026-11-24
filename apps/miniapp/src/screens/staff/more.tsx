@@ -8,6 +8,7 @@ import {
   CircleAlert,
   ClipboardCheck,
   DoorOpen,
+  HandCoins,
   type LucideIcon,
   Link2,
   MailWarning,
@@ -52,6 +53,7 @@ const ICONS: Record<StaffMenuKey, LucideIcon> = {
   cash: Banknote,
   addExpense: ShoppingCart,
   finance: ChartLine,
+  payroll: HandCoins,
 };
 
 export interface StaffMoreViewProps {

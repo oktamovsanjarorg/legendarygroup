@@ -35,6 +35,18 @@ import {
   StaffRoomPage,
   StaffRoomsPage,
 } from './pages/staff-catalog.js';
+import {
+  StaffAdvanceNewPage,
+  StaffAdvancesPage,
+  StaffContractNewPage,
+  StaffContractPage,
+  StaffContractsPage,
+  StaffPayrollBonusPage,
+  StaffPayrollPage,
+  StaffPayrollRunPage,
+  StaffPayrollTeacherBonusPage,
+  StaffPayrollTeacherPage,
+} from './pages/staff-payroll.js';
 import { StaffDebtorsPage } from './pages/staff-debtors.js';
 import { StaffExpenseNewPage, StaffExpensePage, StaffFinancePage } from './pages/staff-finance.js';
 import {
@@ -121,6 +133,16 @@ export const staffRoutes = [
   route('/staff/payments/$id', StaffPaymentPage),
   route('/staff/payments/$id/reverse', StaffReversePage),
   route('/staff/discounts', StaffDiscountsPage),
+  route('/staff/payroll', StaffPayrollPage),
+  route('/staff/payroll/run/$period', StaffPayrollRunPage),
+  route('/staff/payroll/run/$period/bonus', StaffPayrollBonusPage),
+  route('/staff/payroll/run/$period/$teacherId', StaffPayrollTeacherPage),
+  route('/staff/payroll/run/$period/$teacherId/bonus', StaffPayrollTeacherBonusPage),
+  route('/staff/payroll/contracts', StaffContractsPage),
+  route('/staff/payroll/contracts/new', StaffContractNewPage),
+  route('/staff/payroll/contracts/$id', StaffContractPage),
+  route('/staff/payroll/advances', StaffAdvancesPage),
+  route('/staff/payroll/advances/new', StaffAdvanceNewPage),
   route('/staff/more', StaffMorePage),
   route('/staff/new', StaffNewPage),
   route('/staff/debtors', StaffDebtorsPage),
