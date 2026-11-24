@@ -72,11 +72,9 @@ export const webMessages = {
   },
   telegramLink: {
     title: 'Telegramni ulash',
-    hint: 'Mini App va bot sizni taniydi: jadval, chek navbati va tasdiqlashlar telefonda.',
-    get: 'Ulash havolasini olish',
+    hint: 'Panelga endi faqat Telegram orqali kiriladi. Hozir ulab qoʻying — aks holda chiqib ketsangiz, qayta kira olmaysiz.',
     open: 'Botni ochish va ulash',
-    steps: 'Botda «Start» bosing va raqamingizni ulashing. Havola 24 soat, bir marta ishlaydi.',
-    linked: 'Telegram akkauntingiz ulangan.',
+    steps: 'Botda «Start» bosing va telefon raqamingizni ulashing.',
   },
   sessions: {
     title: 'Mening sessiyalarim',

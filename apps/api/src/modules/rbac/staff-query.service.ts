@@ -1,22 +1,13 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { isPermission, type RoleCode, type StaffDetail, type StaffListItem } from '@lg/contracts';
-import {
-  type Database,
-  roles,
-  staffInvites,
-  userPermissionOverrides,
-  userRoles,
-  users,
-} from '@lg/db';
-import type { Clock } from '@lg/domain';
-import { and, asc, eq, gt, inArray, isNull } from 'drizzle-orm';
-import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
+import { type Database, roles, userPermissionOverrides, userRoles, users } from '@lg/db';
+import { asc, eq, inArray } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
-import { neededChannel } from './staff.service.js';
+import { EnvService } from '../../config/env.service.js';
 
-/** Xodim rollari (ota-ona — xodim emas). */
-const STAFF_CODES: RoleCode[] = ['director', 'admin', 'teacher'];
+import { STAFF_CODES } from './staff-link.service.js';
+import { botLink } from './staff.service.js';
 
 type Row = typeof users.$inferSelect;
 
@@ -25,7 +16,7 @@ type Row = typeof users.$inferSelect;
 export class StaffQueryService {
   constructor(
     @Inject(DB_TOKEN) private readonly db: Database,
-    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(EnvService) private readonly env: EnvService,
   ) {}
 
   async list(): Promise<StaffListItem[]> {
@@ -77,30 +68,19 @@ export class StaffQueryService {
       })
       .from(userPermissionOverrides)
       .where(eq(userPermissionOverrides.userId, userId));
-    const [invite] = await this.db
-      .select({ expiresAt: staffInvites.expiresAt })
-      .from(staffInvites)
-      .where(
-        and(
-          eq(staffInvites.userId, userId),
-          isNull(staffInvites.usedAt),
-          gt(staffInvites.expiresAt, this.clock.now()),
-        ),
-      )
-      .limit(1);
     return {
       ...this.toItem(user, codes, overrides.length),
       // FK `permissions.code` kafolati; begona qiymat bo'lsa — tashlanadi (as yo'q).
       overrides: overrides.flatMap((o) =>
         isPermission(o.permission) ? [{ permission: o.permission, granted: o.granted }] : [],
       ),
-      inviteExpiresAt: invite?.expiresAt.toISOString() ?? null,
+      botUrl: user.telegramId === null ? botLink(this.env.get('TELEGRAM_BOT_USERNAME')) : null,
     };
   }
 
   private toItem(user: Row, codes: RoleCode[], overridesCount: number): StaffListItem {
     const status =
-      user.status === 'blocked' ? 'blocked' : neededChannel(user, codes) ? 'invited' : 'active';
+      user.status === 'blocked' ? 'blocked' : user.telegramId === null ? 'invited' : 'active';
     return {
       id: user.id,
       fullName: user.fullName,

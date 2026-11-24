@@ -17,21 +17,15 @@ export const CreateStaffRequest = z.object({
 export const AddStaffRoleRequest = z.object({ role: z.enum(STAFF_ROLES) });
 
 /**
- * Taklif: Admin — web (`/invite/<token>`: parol + TOTP); Ustoz — bot (`t.me/<bot>?start=inv_<token>`:
- * telefon ulashadi). `null` — taklif shart emas (foydalanuvchi allaqachon kira oladi).
+ * Xodim qo'shildi (Q-98): `botUrl` — xodim botda o'z raqamini ulashadi va kiradi. `null` —
+ * Telegram allaqachon ulangan. Parol, 2FA va bir martalik havola yo'q.
  */
-export const StaffInvite = z.object({
-  channel: z.enum(['web', 'bot']),
-  url: z.string(),
-  expiresAt: z.string(),
-});
-
 export const CreateStaffResult = z.object({
   id: z.string(),
-  invite: StaffInvite.nullable(),
+  botUrl: z.string().nullable(),
 });
 
-/** Ko'rinadigan holat: `invited` — hali sozlanmagan, taklifi amalda. */
+/** Ko'rinadigan holat: `invited` — Telegram hali ulanmagan. */
 export const STAFF_STATUSES = ['active', 'invited', 'blocked'] as const;
 
 export const StaffListItem = z.object({
@@ -47,19 +41,12 @@ export const StaffListItem = z.object({
 
 export const StaffDetail = StaffListItem.extend({
   overrides: z.array(z.object({ permission: z.enum(PERMISSIONS), granted: z.boolean() })),
-  /** Amaldagi taklif (bo'lsa) — havolani qayta ko'rsatish mumkin emas (token xeshlangan). */
-  inviteExpiresAt: z.string().nullable(),
+  /** Telegram ulanmagan bo'lsa — bot havolasi (doim bir xil, maxfiy emas). */
+  botUrl: z.string().nullable(),
 });
 
 /** `GET /api/teachers` — faol ustozlar (guruh/dars formalarida tanlash uchun; faqat ism). */
 export const TeacherOption = z.object({ id: z.string(), fullName: z.string() });
-
-/** Bot → API (ichki): `/start inv_<token>` tekshiruvi. */
-export const StaffInviteCheckRequest = z.object({ token: z.string().min(20).max(64) });
-export const StaffInviteCheckResult = z.discriminatedUnion('valid', [
-  z.object({ valid: z.literal(true), fullName: z.string() }),
-  z.object({ valid: z.literal(false) }),
-]);
 
 /** Bot → API (ichki): foydalanuvchi o'z kontaktini ulashdi (Telegram — `contact.user_id === from.id`). */
 export const TelegramContactRequest = z.object({
@@ -78,9 +65,7 @@ export const TelegramContactResult = z.object({
 
 export type CreateStaffRequest = z.infer<typeof CreateStaffRequest>;
 export type CreateStaffResult = z.infer<typeof CreateStaffResult>;
-export type StaffInvite = z.infer<typeof StaffInvite>;
 export type StaffListItem = z.infer<typeof StaffListItem>;
 export type StaffDetail = z.infer<typeof StaffDetail>;
 export type TeacherOption = z.infer<typeof TeacherOption>;
-export type StaffInviteCheckResult = z.infer<typeof StaffInviteCheckResult>;
 export type TelegramContactResult = z.infer<typeof TelegramContactResult>;

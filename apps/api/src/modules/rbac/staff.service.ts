@@ -1,53 +1,31 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { CreateStaffResult, StaffInvite, StaffRole } from '@lg/contracts';
-import {
-  type Database,
-  type InviteChannel,
-  roles,
-  type Transaction,
-  userRoles,
-  users,
-} from '@lg/db';
+import type { CreateStaffResult, StaffRole } from '@lg/contracts';
+import { type Database, roles, type Transaction, userRoles, users } from '@lg/db';
 import type { Clock } from '@lg/domain';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { EnvService } from '../../config/env.service.js';
-import { type InviteLinks, issueInvite } from './staff-invites.js';
+import { STAFF_CODES } from './staff-link.service.js';
+import { unlinkTelegram } from './telegram-unlink.js';
 import { bumpPermissionsVersion } from './user-version.js';
 
-type UserRow = Pick<typeof users.$inferSelect, 'id' | 'status' | 'passwordHash' | 'telegramId'>;
+type UserRow = Pick<typeof users.$inferSelect, 'id' | 'status' | 'telegramId'>;
 
-const WEB_STAFF: readonly string[] = ['director', 'admin'];
+/** Bot havolasi (Q-98): xodim «Start» bosib, o'z raqamini ulashadi. */
+export const botLink = (username: string): string => `https://t.me/${username}`;
 
-/**
- * Qaysi kanal orqali taklif kerak (T-101): web roli bor va paroli yo'q — `web`;
- * ustoz va Telegram bog'lanmagan — `bot`; aks holda — kerak emas.
- */
-export function neededChannel(u: UserRow, roleCodes: readonly string[]): InviteChannel | null {
-  if (roleCodes.some((r) => WEB_STAFF.includes(r)) && !u.passwordHash) return 'web';
-  if (roleCodes.includes('teacher') && u.telegramId === null) return 'bot';
-  return null;
-}
-
-/** Xodimlarni boshqarish (T-101, FR-AUTH-5): yaratish, taklif, blokdan chiqarish, rol qo'shish. */
+/** Xodimlarni boshqarish (T-101, FR-AUTH-5): yaratish, blokdan chiqarish, rol, Telegram'ni uzish. */
 @Injectable()
 export class StaffService {
-  private readonly links: InviteLinks;
-
   constructor(
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
-    @Inject(EnvService) env: EnvService,
-  ) {
-    this.links = {
-      appUrl: env.get('PUBLIC_APP_URL'),
-      botUsername: env.get('TELEGRAM_BOT_USERNAME'),
-    };
-  }
+    @Inject(EnvService) private readonly env: EnvService,
+  ) {}
 
   /**
    * Yangi xodim yoki mavjud foydalanuvchiga (masalan, ota-ona ham ustoz) rol qo'shish.
@@ -75,7 +53,6 @@ export class StaffService {
         )[0];
       if (!user) throw new Error('foydalanuvchi yaratilmadi');
       await this.grantRole(tx, user.id, input.role);
-      const invite = await this.inviteIfNeeded(tx, user);
       await this.audit.record(
         ctx,
         {
@@ -86,52 +63,23 @@ export class StaffService {
         },
         tx,
       );
-      return { id: user.id, invite };
+      return { id: user.id, botUrl: this.botUrlFor(user) };
     });
   }
 
-  /** Taklifni qayta yuborish: eski havola darhol yaroqsiz (`issueInvite`). */
-  async reissueInvite(ctx: AuditContext, userId: string): Promise<StaffInvite> {
-    return this.db.transaction(async (tx) => {
+  /** Telegram'ni uzish (Q-98): xodim yangi Telegram'dan raqamini qayta ulashadi. */
+  async unlinkTelegram(ctx: AuditContext, userId: string): Promise<void> {
+    await this.db.transaction(async (tx) => {
       const user = await this.lockUser(tx, userId);
-      if (user.status === 'blocked') throw new AppException(HttpStatus.CONFLICT, 'USER_BLOCKED');
-      const invite = await this.inviteIfNeeded(tx, user);
-      if (!invite) throw new AppException(HttpStatus.CONFLICT, 'INVITE_NOT_NEEDED');
+      await this.assertStaff(tx, userId);
+      if (user.telegramId === null)
+        throw new AppException(HttpStatus.CONFLICT, 'STAFF_TELEGRAM_NOT_LINKED');
+      await unlinkTelegram(tx, userId, this.clock.now());
       await this.audit.record(
         ctx,
-        {
-          action: 'staff.invite',
-          entity: 'user',
-          entityId: userId,
-          after: { channel: invite.channel },
-        },
+        { action: 'staff.telegram_unlinked', entity: 'user', entityId: userId },
         tx,
       );
-      return invite;
-    });
-  }
-
-  /**
-   * O'z Telegram'ini bog'lash (T-120): web'da parol + 2FA bilan kirgan xodim (Director/Admin
-   * ham — ularga bot taklifi avtomatik berilmaydi) o'zi uchun bot havolasini oladi. Havola —
-   * bir martalik, 24 soat; bot raqamni ulashganda telefon mosligi ham tekshiriladi.
-   */
-  async telegramInviteForSelf(ctx: AuditContext, userId: string): Promise<StaffInvite> {
-    return this.db.transaction(async (tx) => {
-      const user = await this.lockUser(tx, userId);
-      if (user.telegramId !== null)
-        throw new AppException(HttpStatus.CONFLICT, 'TELEGRAM_ALREADY_LINKED');
-      const invite = await issueInvite(tx, this.links, {
-        userId,
-        channel: 'bot',
-        now: this.clock.now(),
-      });
-      await this.audit.record(
-        ctx,
-        { action: 'staff.telegram_invite_self', entity: 'user', entityId: userId },
-        tx,
-      );
-      return invite;
     });
   }
 
@@ -156,19 +104,18 @@ export class StaffService {
     });
   }
 
-  /** Rol qo'shish (FR-AUTH-5): kerak bo'lsa — yangi kanal uchun taklif. */
+  /** Rol qo'shish (FR-AUTH-5). */
   async addRole(ctx: AuditContext, userId: string, role: StaffRole): Promise<CreateStaffResult> {
     return this.db.transaction(async (tx) => {
       const user = await this.lockUser(tx, userId);
       if (user.status === 'blocked') throw new AppException(HttpStatus.CONFLICT, 'USER_BLOCKED');
       await this.grantRole(tx, userId, role);
-      const invite = await this.inviteIfNeeded(tx, user);
       await this.audit.record(
         ctx,
         { action: 'user.role_add', entity: 'user', entityId: userId, after: { role } },
         tx,
       );
-      return { id: userId, invite };
+      return { id: userId, botUrl: this.botUrlFor(user) };
     });
   }
 
@@ -190,18 +137,17 @@ export class StaffService {
     await bumpPermissionsVersion(tx, userId);
   }
 
-  private async inviteIfNeeded(tx: Transaction, user: UserRow): Promise<StaffInvite | null> {
-    const codes = await tx
+  private async assertStaff(tx: Transaction, userId: string): Promise<void> {
+    const rows = await tx
       .select({ code: roles.code })
       .from(userRoles)
       .innerJoin(roles, eq(roles.id, userRoles.roleId))
-      .where(eq(userRoles.userId, user.id));
-    const channel = neededChannel(
-      user,
-      codes.map((c) => c.code),
-    );
-    return channel
-      ? issueInvite(tx, this.links, { userId: user.id, channel, now: this.clock.now() })
-      : null;
+      .where(and(eq(userRoles.userId, userId), inArray(roles.code, STAFF_CODES)))
+      .limit(1);
+    if (rows.length === 0) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+  }
+
+  private botUrlFor(user: UserRow): string | null {
+    return user.telegramId === null ? botLink(this.env.get('TELEGRAM_BOT_USERNAME')) : null;
   }
 }

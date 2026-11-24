@@ -3,8 +3,6 @@ import { auditLogs, type Database, roles, userRoles, users } from '@lg/db';
 import { and, eq, ne } from 'drizzle-orm';
 import { unlinkTelegram } from './telegram-unlink.js';
 
-export const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
-
 export class FirstDirectorError extends Error {
   constructor(
     readonly code:

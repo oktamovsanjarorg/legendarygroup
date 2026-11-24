@@ -16,18 +16,15 @@ const admin: StaffDetail = {
   lastLoginAt: null,
   overridesCount: 1,
   overrides: [{ permission: 'payment.reverse', granted: false }],
-  inviteExpiresAt: null,
+  botUrl: null,
 };
-const invite = {
-  channel: 'bot',
-  url: 'https://t.me/lg_bot?start=inv_abc',
-  expiresAt: '2026-11-20T10:00:00Z',
-};
+const botUrl = 'https://t.me/lg_bot';
 
 const handler = (c: Call) => {
   if (c.method === 'GET' && c.path === '/staff') return json(200, [admin]);
   if (c.method === 'GET' && c.path === `/staff/${admin.id}`) return json(200, admin);
-  if (c.method === 'POST' && c.path === '/staff') return json(201, { id: 'new', invite });
+  if (c.method === 'POST' && c.path === '/staff') return json(201, { id: 'new', botUrl });
+  if (c.path === `/staff/${admin.id}/telegram/unlink`) return noContent();
   if (c.path.startsWith(`/rbac/users/${admin.id}/`)) return noContent();
   return undefined;
 };
@@ -65,7 +62,7 @@ describe('W-28 Xodimlar (T-101)', () => {
     expect(screen.getByRole('button', { name: t.states.retry })).toBeTruthy();
   });
 
-  it("qo'shish: telefon normalizatsiya qilinadi (FR-AUTH-5), taklif havolasi ko'rsatiladi", async () => {
+  it("qo'shish: telefon normalizatsiya qilinadi (FR-AUTH-5), bot havolasi ko'rsatiladi (Q-98)", async () => {
     const calls = fakeApi(FULL, handler);
     renderApp('/staff');
     const user = userEvent.setup();
@@ -78,7 +75,7 @@ describe('W-28 Xodimlar (T-101)', () => {
     await user.clear(phone);
     await user.type(phone, '90 100 00 04');
     await user.click(screen.getByRole('button', { name: t.staff.form.submit }));
-    expect(await screen.findByText(invite.url)).toBeTruthy();
+    expect(await screen.findByText(botUrl)).toBeTruthy();
     expect(calls.find((c) => c.method === 'POST')?.body).toEqual({
       fullName: 'Saidova Lola',
       phone: '+998901000004',
@@ -129,6 +126,35 @@ describe('W-28 Xodimlar (T-101)', () => {
     await waitFor(() =>
       expect(calls.map((c) => `${c.method} ${c.path}`)).toContain(
         `POST /rbac/users/${admin.id}/block`,
+      ),
+    );
+  });
+});
+
+describe('Q-98: Telegram ulanishi', () => {
+  const open = async (detail: StaffDetail) => {
+    const calls = fakeApi(FULL, (c) =>
+      c.method === 'GET' && c.path === `/staff/${admin.id}` ? json(200, detail) : handler(c),
+    );
+    vi.stubGlobal('confirm', () => true);
+    renderApp('/staff');
+    const user = userEvent.setup();
+    await user.click(await screen.findByText(admin.fullName));
+    return { calls, user };
+  };
+
+  it('ulanmagan — bot havolasi doim koʻrinadi, uzish tugmasi yoʻq', async () => {
+    await open({ ...admin, status: 'invited', botUrl });
+    expect(await screen.findByText(botUrl)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: t.staff.detail.unlinkTelegram })).toBeNull();
+  });
+
+  it('ulangan — «Telegramni uzish» tasdiqdan keyin POST', async () => {
+    const { calls, user } = await open({ ...admin, telegramLinked: true });
+    await user.click(await screen.findByRole('button', { name: t.staff.detail.unlinkTelegram }));
+    await waitFor(() =>
+      expect(calls.map((c) => `${c.method} ${c.path}`)).toContain(
+        `POST /staff/${admin.id}/telegram/unlink`,
       ),
     );
   });

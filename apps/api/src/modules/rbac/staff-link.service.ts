@@ -1,21 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { RoleCode, StaffInviteCheckResult, TelegramContactResult } from '@lg/contracts';
+import type { RoleCode, TelegramContactResult } from '@lg/contracts';
 import {
   type Database,
   guardianLinkRequests,
   roles,
-  staffInvites,
   type Transaction,
   userRoles,
   users,
 } from '@lg/db';
 import { webMessages } from '@lg/i18n';
 import type { Clock } from '@lg/domain';
-import { and, eq, gt, inArray, isNull } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
-import { sha256 } from '../auth/index.js';
 
 /** Telegram kontakt raqami ba'zan `+`siz keladi: faqat raqamlar → E.164. */
 /** Admin navbatida ko'rinadi (i18n). */
@@ -24,7 +22,7 @@ const STAFF_LINKED_REASON = webMessages.linkRequests.staffLinkedReason;
 export const normalizePhone = (raw: string): string => `+${raw.replace(/\D/g, '')}`;
 
 /** Botda raqam ulashib kiradigan rollar (Q-98). Ota-ona/o'quvchi — o'z oqimlari (T-110, T-126). */
-const STAFF_CODES: RoleCode[] = ['director', 'admin', 'teacher'];
+export const STAFF_CODES: RoleCode[] = ['director', 'admin', 'teacher'];
 
 /**
  * Xodimni Telegram'ga bog'lash (Q-98): botda o'z raqamini ulashish — yetarli, taklif havolasi yo'q.
@@ -39,27 +37,6 @@ export class StaffLinkService {
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
   ) {}
-
-  private activeBotInvite(now: Date) {
-    return and(
-      eq(staffInvites.channel, 'bot'),
-      isNull(staffInvites.usedAt),
-      gt(staffInvites.expiresAt, now),
-    );
-  }
-
-  async check(token: string): Promise<StaffInviteCheckResult> {
-    const [row] = await this.db
-      .select({ fullName: users.fullName, status: users.status })
-      .from(staffInvites)
-      .innerJoin(users, eq(users.id, staffInvites.userId))
-      .where(
-        and(eq(staffInvites.tokenHash, sha256(token)), this.activeBotInvite(this.clock.now())),
-      );
-    return row && row.status === 'active'
-      ? { valid: true, fullName: row.fullName }
-      : { valid: false };
-  }
 
   async linkByContact(input: {
     telegramId: bigint;
