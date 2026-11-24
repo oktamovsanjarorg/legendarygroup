@@ -1,13 +1,15 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type {
-  CashClosing,
-  CashClosingListQueryInput,
-  CloseCashInput,
-  RefundPaymentInput,
-  ReversePaymentInput,
-} from '@lg/contracts';
-import type { Permission } from '@lg/contracts';
 import {
+  type CashClosing,
+  type CashClosingListQueryInput,
+  type CloseCashInput,
+  DEFAULT_BRANCH_ID,
+  type Permission,
+  type RefundPaymentInput,
+  type ReversePaymentInput,
+} from '@lg/contracts';
+import {
+  type CashClosingRow,
   type Database,
   isUniqueViolation,
   type PaymentRow,
@@ -187,67 +189,64 @@ export class StornoCashService {
     user: RequestUser,
     ctx: AuditContext,
   ): Promise<CashClosing> {
-    const branchId = '01900000-0000-7000-8000-000000000001';
-    const existing = await this.repo.findCashClosingByDate(input.date, branchId);
-    if (existing) {
-      throw new AppException(
-        HttpStatus.CONFLICT,
-        'CONFLICT',
-        'Bu sana uchun kassa allaqachon yopilgan',
-      );
-    }
-
-    const expectedCash = await this.repo.sumCashPaymentsForDate(input.date, branchId);
-    const countedCash = BigInt(input.countedCash);
-    const diff = countedCash - expectedCash;
-
-    if (diff !== 0n && !input.note) {
-      throw new AppException(
-        HttpStatus.BAD_REQUEST,
-        'BAD_REQUEST',
-        'Farq mavjud boʻlganda izoh majburiy',
-      );
-    }
-
-    const row = await this.db.transaction(async (tx: Transaction) => {
-      const inserted = await this.repo.insertCashClosing(
-        {
-          branchId,
-          date: input.date,
-          expectedCash,
-          countedCash,
-          diff,
-          closedBy: user.id,
-          note: input.note ?? null,
-        },
-        tx,
-      );
-
-      await this.audit.record(
-        ctx,
-        {
-          action: 'billing.cash.close',
-          entity: 'cash_closings',
-          entityId: inserted.id,
-          after: { date: input.date, expectedCash: expectedCash.toString(), diff: diff.toString() },
-        },
-        tx,
-      );
-
-      return inserted;
-    });
-
+    if (input.date > this.clock.today())
+      throw new AppException(HttpStatus.BAD_REQUEST, 'CASH_DATE_IN_FUTURE');
+    const row = await this.db
+      .transaction((tx) => this.insertClosing(tx, input, user, ctx))
+      .catch((err: unknown) => {
+        if (isUniqueViolation(err, 'cash_closings_branch_date_uq'))
+          throw new AppException(HttpStatus.CONFLICT, 'CASH_ALREADY_CLOSED');
+        throw err;
+      });
     return serializeCashClosing({ ...row, closedByName: null });
   }
 
+  private async insertClosing(
+    tx: Transaction,
+    input: CloseCashInput,
+    user: RequestUser,
+    ctx: AuditContext,
+  ): Promise<CashClosingRow> {
+    if (await this.repo.findCashClosingByDate(input.date, DEFAULT_BRANCH_ID, tx))
+      throw new AppException(HttpStatus.CONFLICT, 'CASH_ALREADY_CLOSED');
+    const expectedCash = await this.repo.sumCashPaymentsForDate(input.date, DEFAULT_BRANCH_ID, tx);
+    const countedCash = BigInt(input.countedCash);
+    const diff = countedCash - expectedCash;
+    if (diff !== 0n && !input.note)
+      throw new AppException(HttpStatus.BAD_REQUEST, 'CASH_DIFF_NOTE_REQUIRED');
+    const inserted = await this.repo.insertCashClosing(
+      {
+        branchId: DEFAULT_BRANCH_ID,
+        date: input.date,
+        expectedCash,
+        countedCash,
+        diff,
+        closedBy: user.id,
+        note: input.note || null,
+      },
+      tx,
+    );
+    await this.audit.record(
+      ctx,
+      {
+        action: 'billing.cash.close',
+        entity: 'cash_closings',
+        entityId: inserted.id,
+        after: { date: input.date, expectedCash: expectedCash.toString(), diff: diff.toString() },
+      },
+      tx,
+    );
+    return inserted;
+  }
+
   async getExpectedCash(dateStr: string): Promise<{ date: string; expectedCash: string }> {
-    const branchId = '01900000-0000-7000-8000-000000000001';
+    const branchId = DEFAULT_BRANCH_ID;
     const total = await this.repo.sumCashPaymentsForDate(dateStr, branchId);
     return { date: dateStr, expectedCash: total.toString() };
   }
 
   async getCashClosings(query: CashClosingListQueryInput): Promise<CashClosing[]> {
-    const branchId = '01900000-0000-7000-8000-000000000001';
+    const branchId = DEFAULT_BRANCH_ID;
     const rows = await this.repo.findCashClosings(query, branchId);
     return rows.map(serializeCashClosing);
   }

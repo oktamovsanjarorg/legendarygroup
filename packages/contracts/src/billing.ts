@@ -175,8 +175,8 @@ export const RefundPaymentRequest = z.object({
 export type RefundPaymentInput = z.infer<typeof RefundPaymentRequest>;
 
 export const CloseCashRequest = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'INVALID_DATE'),
-  countedCash: z.string().regex(/^\d+$/, 'COUNTED_CASH_MUST_BE_DIGITS'),
+  date: z.iso.date('INVALID_DATE'),
+  countedCash: z.string().regex(/^\d{1,12}$/, 'COUNTED_CASH_MUST_BE_DIGITS'),
   note: z.string().trim().max(500).optional(),
 });
 export type CloseCashInput = z.infer<typeof CloseCashRequest>;
@@ -196,16 +196,11 @@ export const CashClosingSchema = z.object({
 export type CashClosing = z.infer<typeof CashClosingSchema>;
 
 export const CashClosingListQuery = z.object({
-  from: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  to: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
-  cursor: z.string().optional(),
+  /** Oldingi sahifadagi oxirgi sana (shu kundan eskilar qaytadi). */
+  cursor: z.iso.date().optional(),
 });
 export type CashClosingListQueryInput = z.infer<typeof CashClosingListQuery>;
 

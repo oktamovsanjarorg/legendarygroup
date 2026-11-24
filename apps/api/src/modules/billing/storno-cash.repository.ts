@@ -17,7 +17,7 @@ import {
   type Transaction,
   users,
 } from '@lg/db';
-import { and, desc, eq, gte, lt, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lt, lte } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface CashClosingWithUser extends CashClosingRow {
@@ -81,10 +81,14 @@ export class StornoCashRepository {
     await client.insert(ledgerEntries).values(entry);
   }
 
-  async sumCashPaymentsForDate(dateStr: string, branchId: string): Promise<bigint> {
+  async sumCashPaymentsForDate(
+    dateStr: string,
+    branchId: string,
+    db: Database | Transaction = this.db,
+  ): Promise<bigint> {
     const { start, end } = tashkentDayRange(dateStr);
 
-    const rows = await this.db
+    const rows = await db
       .select({ amount: payments.amount })
       .from(payments)
       .where(
@@ -103,8 +107,12 @@ export class StornoCashRepository {
     return total;
   }
 
-  async findCashClosingByDate(dateStr: string, branchId: string): Promise<CashClosingRow | null> {
-    const [row] = await this.db
+  async findCashClosingByDate(
+    dateStr: string,
+    branchId: string,
+    db: Database | Transaction = this.db,
+  ): Promise<CashClosingRow | null> {
+    const [row] = await db
       .select()
       .from(cashClosings)
       .where(and(eq(cashClosings.branchId, branchId), eq(cashClosings.date, dateStr)))
@@ -126,7 +134,7 @@ export class StornoCashRepository {
     const conditions = [eq(cashClosings.branchId, branchId)];
     if (filter.from) conditions.push(gte(cashClosings.date, filter.from));
     if (filter.to) conditions.push(lte(cashClosings.date, filter.to));
-    if (filter.cursor) conditions.push(sql`${cashClosings.createdAt} < ${filter.cursor}`);
+    if (filter.cursor) conditions.push(lt(cashClosings.date, filter.cursor));
 
     const rows = await this.db
       .select({

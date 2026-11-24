@@ -55,6 +55,15 @@ export const CashDaySchema = z.object({
       receiptNumber: z.string().nullable(),
     }),
   ),
-  closed: z.object({ at: z.string(), by: z.string().nullable() }).nullable(),
+  closed: z
+    .object({
+      at: z.string(),
+      by: z.string().nullable(),
+      /** Yopilgan paytdagi kutilgan summa — keyin toʻlov qoʻshilgan boʻlsa `expectedCash`dan farq qiladi. */
+      expectedCash: z.string(),
+      countedCash: z.string(),
+      note: z.string().nullable(),
+    })
+    .nullable(),
 });
 export type CashDay = z.infer<typeof CashDaySchema>;

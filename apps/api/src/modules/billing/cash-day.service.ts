@@ -42,7 +42,7 @@ export class CashDayService {
       )
       .orderBy(asc(payments.paidAt));
     const [closed] = await this.db
-      .select({ at: cashClosings.createdAt, by: users.fullName })
+      .select({ closing: cashClosings, by: users.fullName })
       .from(cashClosings)
       .leftJoin(users, eq(users.id, cashClosings.closedBy))
       .where(and(eq(cashClosings.branchId, BRANCH), eq(cashClosings.date, date)));
@@ -57,7 +57,15 @@ export class CashDayService {
         amount: r.amount.toString(),
         receiptNumber: r.receiptNumber,
       })),
-      closed: closed ? { at: closed.at.toISOString(), by: closed.by } : null,
+      closed: closed
+        ? {
+            at: closed.closing.createdAt.toISOString(),
+            by: closed.by,
+            expectedCash: closed.closing.expectedCash.toString(),
+            countedCash: closed.closing.countedCash.toString(),
+            note: closed.closing.note,
+          }
+        : null,
     };
   }
 }

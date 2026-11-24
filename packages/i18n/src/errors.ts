@@ -144,6 +144,10 @@ export const errorMessages = {
   GUARDIAN_TELEGRAM_NOT_LINKED:
     'Ota-ona Telegram botga ulanmagan — eslatma yetib bormaydi. Qoʻngʻiroq qiling.',
   REMINDER_ALREADY_SENT: 'Bugun bu oʻquvchi boʻyicha eslatma yuborilgan.',
+  CASH_ALREADY_CLOSED: 'Bu kun kassasi allaqachon yopilgan.',
+  CASH_DATE_IN_FUTURE: 'Kelajak kun kassasini yopib boʻlmaydi.',
+  CASH_DIFF_NOTE_REQUIRED: 'Sanalgan summa farq qiladi — sababini izohda yozing.',
+  EXPENSE_DATE_IN_FUTURE: 'Xarajat sanasi bugundan keyin boʻlishi mumkin emas.',
   TICKET_CLOSED: 'Murojaat yopilgan. Javob yozish uchun avval qayta oching.',
   NO_TELEGRAM: 'Foydalanuvchi Telegram botga ulanmagan — avval botga ulanishi kerak.',
 } as const;

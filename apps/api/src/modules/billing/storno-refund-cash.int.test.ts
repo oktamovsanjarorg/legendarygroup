@@ -211,6 +211,31 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
         countedCash: '999999999',
       });
       expect(res.statusCode).toBe(400);
+      expect(res.json<{ code: string }>().code).toBe('CASH_DIFF_NOTE_REQUIRED');
+    });
+
+    it('T-140: kelajak kun kassasi yopilmaydi (400), mavjud boʻlmagan kun — 400', async () => {
+      const future = await call('POST', 'billing/cash/close', 'admin', {
+        date: '2099-01-01',
+        countedCash: '0',
+      });
+      expect(future.json<{ code: string }>().code).toBe('CASH_DATE_IN_FUTURE');
+      const wrong = await call('POST', 'billing/cash/close', 'admin', {
+        date: '2026-02-31',
+        countedCash: '0',
+      });
+      expect(wrong.statusCode).toBe(400);
+    });
+
+    it('T-140: bir vaqtda ikki marta yopish — bittasi oʻtadi, ikkinchisi 409 (500 emas)', async () => {
+      const body = { date: '2026-01-05', countedCash: '0' };
+      const both = await Promise.all([
+        call('POST', 'billing/cash/close', 'admin', body),
+        call('POST', 'billing/cash/close', 'director', body),
+      ]);
+      expect(both.map((r) => r.statusCode).sort()).toEqual([201, 409]);
+      const lost = both.find((r) => r.statusCode === 409);
+      expect(lost?.json<{ code: string }>().code).toBe('CASH_ALREADY_CLOSED');
     });
 
     it('Admin yoki Director izoh bilan kassani yopadi (201)', async () => {
@@ -235,6 +260,23 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
         countedCash: '50000000',
       });
       expect(res.statusCode).toBe(409);
+    });
+
+    it('T-140: kun yopilgach sanalgan summa, farq va izoh koʻrinadi', async () => {
+      const res = await call('GET', `billing/cash/day?date=${todayStr}`, 'admin');
+      expect(res.json<{ closed: object }>().closed).toMatchObject({
+        countedCash: '50000000',
+        note: 'Kassa sanaldi, farq kassa qoldigʻi bilan mos',
+      });
+    });
+
+    it('T-140: tarix sana boʻyicha kursor bilan sahifalanadi', async () => {
+      const first = await call('GET', 'billing/cash/closings?limit=1', 'admin');
+      const [last] = first.json<{ date: string }[]>();
+      const next = await call('GET', `billing/cash/closings?limit=5&cursor=${last!.date}`, 'admin');
+      const rest = next.json<{ date: string }[]>();
+      expect(rest.length).toBeGreaterThan(0);
+      expect(rest.every((r) => r.date < last!.date)).toBe(true);
     });
 
     it('Kassalar tarixi roʻyxatini olish mumkin (200)', async () => {
