@@ -1,7 +1,7 @@
 import { HttpStatus, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
 import type { NotificationType } from '@lg/contracts';
 import { type Database, notifications, users } from '@lg/db';
-import { renderNotificationTemplate } from '@lg/domain';
+import { renderNotificationTemplate, telegramMessage } from '@lg/domain';
 import { eq } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
@@ -53,11 +53,10 @@ export class NotificationDeliveryService implements OnModuleInit {
       notif.type as NotificationType,
       notif.payload as Record<string, unknown>,
     );
-    const text = rendered.title ? `*${rendered.title}*\n\n${rendered.body}` : rendered.body;
     await this.telegramOutbox.enqueue({
       method: 'sendMessage',
       chatId,
-      payload: { text, parse_mode: 'Markdown' },
+      payload: telegramMessage(rendered),
       notificationId: notif.id,
     });
     await this.repo.updateStatus(notif.id, 'queued', {
