@@ -15,7 +15,7 @@ export const staffMessages = {
       money: 'Pul',
       lessons: 'Darslar',
       comms: 'Aloqa',
-      director: 'Direktor',
+      director: 'Boshqaruv',
     },
     items: {
       newStudent: 'Yangi oʻquvchi',
