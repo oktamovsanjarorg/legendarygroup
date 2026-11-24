@@ -25,7 +25,9 @@ function service(getdel: (string | null)[]) {
   const issue = vi.fn(async () => ({ accessToken: 'acc' }));
   const s = new TelegramLoginService(
     redis as unknown as Redis,
-    { byId: async (id: string) => ({ id, status: 'active' }) } as unknown as StaffUsers,
+    {
+      byId: async (id: string) => ({ id, status: 'active', telegramId: 7n }),
+    } as unknown as StaffUsers,
     {} as TelegramChallenges,
     { issue } as unknown as AuthService,
     {} as RateLimiter,
@@ -35,7 +37,7 @@ function service(getdel: (string | null)[]) {
 
 describe('Telegram kirish: poll (Q-98)', () => {
   it('REGRESSIYA: tasdiq getdel va exists orasida kelsa — sessiya beriladi, 401 emas', async () => {
-    const { s, issue } = service([null, 'u1']);
+    const { s, issue } = service([null, JSON.stringify({ userId: 'u1', telegramId: '7' })]);
     await expect(s.poll('c1', META, CTX)).resolves.toEqual({ accessToken: 'acc' });
     expect(issue).toHaveBeenCalledTimes(1);
   });

@@ -49,16 +49,19 @@ export class TelegramLoginService {
     const user = await this.staff.byId(userId);
     if (!user || user.telegramId !== telegramId) return false;
     const ttl = await this.redis.ttl(pendingKey(challengeId));
-    await this.redis.set(confirmedKey(challengeId), userId, 'EX', Math.max(ttl, 1));
+    const value = JSON.stringify({ userId, telegramId: telegramId.toString() });
+    await this.redis.set(confirmedKey(challengeId), value, 'EX', Math.max(ttl, 1));
     await this.redis.del(pendingKey(challengeId));
     return true;
   }
 
   /** Tasdiqlangan bo'lsa — sessiya (bir marta: GETDEL). Aks holda 202 "kutilmoqda". */
   async poll(challengeId: string, meta: ClientMeta, ctx: AuditContext): Promise<Issued> {
-    const userId = await this.takeConfirmed(challengeId);
+    const raw = await this.takeConfirmed(challengeId);
+    const { userId, telegramId } = JSON.parse(raw) as { userId: string; telegramId: string };
     const user = await this.staff.byId(userId);
-    if (!user || user.status !== 'active') {
+    // Tasdiqdan keyin bloklangan yoki Telegram'i uzilgan/almashgan bo'lsa — sessiya yo'q (Q-98)
+    if (!user || user.status !== 'active' || user.telegramId?.toString() !== telegramId) {
       throw new AppException(HttpStatus.UNAUTHORIZED, 'INVALID_MFA_TOKEN');
     }
     return this.auth.issue(user, { meta, ctx, method: 'telegram' });

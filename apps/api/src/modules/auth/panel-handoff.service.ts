@@ -45,8 +45,11 @@ export class PanelHandoffService {
 
   async issue(user: RequestUser, ctx: AuditContext): Promise<PanelHandoffResult> {
     if (!WEB_ROLES.includes(user.role)) throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN');
+    const current = await this.staff.byId(user.id);
+    if (!current) throw invalid();
     const token = randomToken();
-    const value = JSON.stringify({ userId: user.id, role: user.role });
+    const pv = current.permissionsVersion;
+    const value = JSON.stringify({ userId: user.id, role: user.role, pv });
     await this.redis.set(key(token), value, 'EX', HANDOFF_TTL_S);
     await this.audit.record(
       { ...ctx, actorId: user.id, actorRole: user.role },
@@ -60,10 +63,11 @@ export class PanelHandoffService {
     await this.limiter.hit(REDEEM_LIMIT, ctx.ip ?? 'unknown');
     const raw = await this.redis.getdel(key(token));
     if (!raw) throw invalid();
-    const { userId, role } = JSON.parse(raw) as { userId: string; role: RoleCode };
+    const { userId, role, pv } = JSON.parse(raw) as { userId: string; role: RoleCode; pv: number };
     const user = await this.staff.byId(userId);
-    // Kalit berilgandan keyin bloklangan yoki rol olingan bo'lsa — sessiya yo'q.
+    // Kalit berilgandan keyin bloklangan, rol olingan yoki Telegram uzilgan (pv) — sessiya yo'q.
     if (!user || user.status !== 'active' || !user.roles.includes(role)) throw invalid();
+    if (user.permissionsVersion !== pv) throw invalid();
     return this.auth.issue(user, { meta, ctx, method: 'miniapp_handoff', role });
   }
 }

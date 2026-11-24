@@ -1,5 +1,5 @@
 import { auditLogs, closeDb, createDb, type Database, roles, seed, userRoles, users } from '@lg/db';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { TEST_ENV } from '../../test/env.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
@@ -101,6 +101,16 @@ describe('Mini App → web panel (T-121)', () => {
     const bad = await redeem('x'.repeat(43));
     expect(bad.statusCode).toBe(401);
     expect(code(bad)).toBe('PANEL_HANDOFF_INVALID');
+  });
+
+  it('Q-98: kalit berilgach Telegram uzilsa (pv oshsa) — sessiya berilmaydi', async () => {
+    const u = await miniAppUser('admin');
+    const token = tokenOf((await issue(u.token)).json<{ url: string }>().url);
+    await db
+      .update(users)
+      .set({ permissionsVersion: sql`${users.permissionsVersion} + 1` })
+      .where(eq(users.id, u.id));
+    expect((await redeem(token)).statusCode).toBe(401);
   });
 
   it('kalit berilgach bloklangan xodim — sessiya berilmaydi', async () => {
