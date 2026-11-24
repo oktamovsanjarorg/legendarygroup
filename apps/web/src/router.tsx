@@ -6,6 +6,7 @@ import {
   createRouter,
   Outlet,
   type RouterHistory,
+  redirect,
 } from '@tanstack/react-router';
 import { AppLayout } from './layout/app-layout.js';
 import { HandoffPage } from './pages/handoff.js';
@@ -54,6 +55,14 @@ const login = createRoute({
   getParentRoute: () => root,
   path: '/login',
   component: () => <LoginPage />,
+});
+/** Eski taklif havolalari (Q-98 gacha) — endi kirish faqat Telegram orqali. */
+const invite = createRoute({
+  getParentRoute: () => root,
+  path: '/invite/$token',
+  beforeLoad: () => {
+    throw redirect({ to: '/login' });
+  },
 });
 const verify = createRoute({
   getParentRoute: () => root,
@@ -201,6 +210,7 @@ const helpRoute = createRoute({ getParentRoute: () => app, path: '/help', compon
 
 const routeTree = root.addChildren([
   login,
+  invite,
   verify,
   handoff,
   landing,

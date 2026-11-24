@@ -57,6 +57,11 @@
     - Boshqa Telegram'ga ulangan raqam **avtomatik ko'chmaydi** (`conflict`; SIM qayta sotilishi):
       Direktor `POST /staff/:id/telegram/unlink` (sessiyalar + `pv`), Direktorning o'zi — CLI
       `director:relink`.
+    - **Xodim profilini faqat uning o'z raqami oladi** (`rbac/telegram-claim.ts` — Telegram yozadigan
+      ota-ona oqimlari ham shu qoida orqali): bot kontakti yoki Admin tasdig'i (W-07) xodimning
+      Telegram'ini almashtira olmaydi → `conflict` / 409 `TELEGRAM_LINK_CONFLICT`. Ota-ona birinchi
+      marta xodim bo'lsa, avvalgi Telegram uziladi va raqam qayta ulashiladi.
+    - Tasdiqdan (§6) yoki kalitdan (§10) keyin Telegram uzilsa/almashsa — sessiya berilmaydi.
     - `telegram/start`: telefon 5/daq + IP 30/daq (xodimga xabar yog'dirilmasin).
     - **Expand/contract:** API'dagi `auth/login`, `totp/*`, `invite/accept` va `password_hash`,
       `totp_secret`, `user_backup_codes`, `staff_invites` hozircha turadi — production'da

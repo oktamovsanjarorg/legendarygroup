@@ -117,6 +117,12 @@ describe('W-01 kirish: faqat Telegram (Q-98)', () => {
     expect(await screen.findByLabelText(t.login.phone)).toBeTruthy();
   });
 
+  it('eski taklif havolasi /invite/<token> — kirish sahifasiga', async () => {
+    fakeApi();
+    const router = renderApp('/invite/abc');
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
+  });
+
   it("kirmagan foydalanuvchi himoyalangan sahifadan /login'ga", async () => {
     fakeApi();
     const router = renderApp('/sessions');

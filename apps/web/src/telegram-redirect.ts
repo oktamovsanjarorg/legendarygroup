@@ -2,7 +2,7 @@
  * Web panel Telegram ichida ochilsa (BotFather "Main Mini App" yoki havola saytning ildiziga
  * qaraganda) — Mini App'ga yo'naltiramiz. Telegram launch parametrlarini URL hash'ida beradi
  * (`#tgWebAppData=...`); ular saqlanadi, aks holda Mini App foydalanuvchini taniy olmaydi.
- * Web panel login'i (telefon + parol) xodimlar uchun brauzerda — Telegram ichida kerak emas.
+ * Web panel login'i xodimlar uchun brauzerda — Telegram ichida kerak emas.
  */
 export const MINIAPP_PATH = '/app/';
 
