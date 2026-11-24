@@ -4,6 +4,7 @@ import {
   type AttendanceMark,
   EmptyState,
   Section,
+  TextArea,
   useClosingConfirmation,
   useHaptic,
   useMainButton,
@@ -33,6 +34,11 @@ export interface AttendanceViewProps {
   quietUntil?: Date | null;
   /** Internet yo'q — lokal navbatga yozildi (FR-ATT-6). */
   queuedOffline?: boolean;
+  /** O'zgartirib bo'lmaydi (BR-30): belgilar ko'rinadi, sababi yuqorida. */
+  readOnly?: boolean;
+  readOnlyText?: string;
+  /** Xodim, o'tgan kun (BR-30): sabab majburiy. */
+  reason?: { value: string; onChange: (v: string) => void };
   onSave: (marks: Marks) => void;
 }
 
@@ -56,12 +62,32 @@ function SaveNotice({
   );
 }
 
+/** O'tgan kun: sabab maydoni yoki "o'zgartirib bo'lmaydi" izohi. */
+function ReasonBlock(p: { reason: AttendanceViewProps['reason']; lockedText?: string }) {
+  if (p.lockedText)
+    return <p className="mx-4 rounded-xl bg-surface-alt p-3 text-sm text-text">{p.lockedText}</p>;
+  if (!p.reason) return null;
+  const { value, onChange } = p.reason;
+  return (
+    <div className="px-2">
+      <TextArea
+        label={t.staffAttendance.reason}
+        rows={2}
+        maxLength={500}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <p className="px-4 pt-1 text-sm text-text-muted">{t.staffAttendance.reasonHint}</p>
+    </div>
+  );
+}
+
 /**
  * MT-02 Davomat (FR-ATT-1/2/7, BR-30/31). Mezon: 20 kishi, 2 kelmagan — ≤ 4 teginish
  * (darsni ochish + 2 qator + MainButton), 11-ux §5. Baho ustuni — T-301 maketida.
  */
 export function AttendanceView(props: AttendanceViewProps) {
-  const { lesson, students, saved, saving, onSave } = props;
+  const { lesson, students, saved, saving, onSave, readOnly = false, reason } = props;
   const base = useMemo(() => initialMarks(students, saved), [students, saved]);
   const [marks, setMarks] = useState<Marks>(() => ({ ...base, ...props.draft }));
   const [sheetFor, setSheetFor] = useState<RosterStudent | null>(null);
@@ -78,7 +104,8 @@ export function AttendanceView(props: AttendanceViewProps) {
       .replace('{total}', String(students.length)),
     onClick: () => onSave(marks),
     loading: saving,
-    visible: students.length > 0 && (dirty || !saved),
+    disabled: reason !== undefined && reason.value.trim().length < 3,
+    visible: !readOnly && students.length > 0 && (dirty || !saved),
   });
   if (students.length === 0)
     return (
@@ -91,15 +118,16 @@ export function AttendanceView(props: AttendanceViewProps) {
     <main className="flex flex-col gap-3 pb-6">
       <LessonHeader lesson={lesson} />
       <SaveNotice quietUntil={props.quietUntil} queuedOffline={props.queuedOffline} />
+      <ReasonBlock reason={reason} lockedText={readOnly ? props.readOnlyText : undefined} />
       <div className="px-2">
-        <Section footer={t.attendance.hint}>
+        <Section footer={readOnly ? undefined : t.attendance.hint}>
           {students.map((s) => (
             <AttendanceRow
               key={s.id}
               name={s.name}
               mark={marks[s.id] ?? { kind: 'present' }}
               preExcused={s.preExcused}
-              disabled={saving}
+              disabled={saving || readOnly}
               onToggle={() => set(s.id, toggled(marks[s.id] ?? { kind: 'present' }))}
               onMore={() => setSheetFor(s)}
             />
