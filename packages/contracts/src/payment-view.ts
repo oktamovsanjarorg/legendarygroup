@@ -67,3 +67,40 @@ export const CashDaySchema = z.object({
     .nullable(),
 });
 export type CashDay = z.infer<typeof CashDaySchema>;
+
+/** MS-24 (T-153): markaz to'lovlari tarixi — to'lov, storno va qaytarish bitta ro'yxatda. */
+export const PAYMENT_KINDS = ['payment', 'reversal', 'refund'] as const;
+
+export const PaymentHistoryQuery = z
+  .object({
+    from: z.iso.date(),
+    to: z.iso.date(),
+    method: z.enum(PAYMENT_METHODS).optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+    /** Oldingi sahifaning oxirgi to'lovi. */
+    cursor: z.uuid().optional(),
+  })
+  .refine((v) => v.to >= v.from, { message: 'DATE_RANGE', path: ['to'] });
+export type PaymentHistoryQueryInput = z.infer<typeof PaymentHistoryQuery>;
+
+export const PaymentHistoryItemSchema = z.object({
+  id: z.string().uuid(),
+  studentId: z.string().uuid(),
+  student: z.string(),
+  kind: z.enum(PAYMENT_KINDS),
+  amount: z.string(),
+  method: z.enum(PAYMENT_METHODS),
+  paidAt: z.string(),
+  receiptNumber: z.string().nullable(),
+  /** Chek bekor qilingan (BR-16). */
+  cancelled: z.boolean(),
+});
+export type PaymentHistoryItem = z.infer<typeof PaymentHistoryItemSchema>;
+
+export const PaymentHistorySchema = z.object({
+  items: z.array(PaymentHistoryItemSchema),
+  /** Davrdagi sof tushum (storno va qaytarishlar ayirilgan), filtr bilan. */
+  total: z.string(),
+  nextCursor: z.string().nullable(),
+});
+export type PaymentHistory = z.infer<typeof PaymentHistorySchema>;

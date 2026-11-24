@@ -4,6 +4,9 @@ import {
   type CashDay,
   CloseCashRequest,
   type DiscountListResponse,
+  type PaymentHistory,
+  PaymentHistoryQuery,
+  type PaymentHistoryQueryInput,
   type PaymentPreview,
   PaymentPreviewQuery,
   type PaymentPreviewQueryInput,
@@ -15,6 +18,7 @@ import { ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { CashDayService } from './cash-day.service.js';
 import { DiscountListService } from './discount-list.service.js';
+import { PaymentHistoryService } from './payment-history.service.js';
 import { PaymentPreviewService } from './payment-preview.service.js';
 import { PaymentViewService } from './payment-view.service.js';
 
@@ -27,6 +31,7 @@ export class PaymentPreviewController {
     @Inject(PaymentViewService) private readonly views: PaymentViewService,
     @Inject(DiscountListService) private readonly discounts: DiscountListService,
     @Inject(CashDayService) private readonly cash: CashDayService,
+    @Inject(PaymentHistoryService) private readonly history: PaymentHistoryService,
   ) {}
 
   @Get('cash/day')
@@ -45,6 +50,17 @@ export class PaymentPreviewController {
   @ApiOperation({ summary: 'W-18: amaldagi chegirmalar (BR-18)' })
   async listDiscounts(@CurrentUser() user: RequestUser): Promise<DiscountListResponse> {
     return this.discounts.list(user);
+  }
+
+  @Get('payments/history')
+  @RequirePermission('billing.view')
+  @NoAudit('GET — yozuv yoʻq')
+  @ApiOperation({ summary: 'MS-24: markaz toʻlovlari tarixi (T-153)' })
+  async paymentHistory(
+    @CurrentUser() user: RequestUser,
+    @ZodQuery(PaymentHistoryQuery) query: PaymentHistoryQueryInput,
+  ): Promise<PaymentHistory> {
+    return this.history.list(user, query);
   }
 
   @Get('payments/preview')

@@ -26,6 +26,7 @@ import { PaymentPreviewController } from './payment-preview.controller.js';
 import { CashDayService } from './cash-day.service.js';
 import { DiscountListService } from './discount-list.service.js';
 import { PaymentPreviewService } from './payment-preview.service.js';
+import { PaymentHistoryService } from './payment-history.service.js';
 import { PaymentViewService } from './payment-view.service.js';
 import { PaymentsService } from './payments.service.js';
 import { ReceiptPdfService } from './receipt-pdf.service.js';
@@ -73,6 +74,7 @@ import { EnrollmentRemoveService } from './enrollment-remove.service.js';
     PaymentPreviewService,
     DiscountListService,
     CashDayService,
+    PaymentHistoryService,
     PaymentViewService,
     DiscountsRepository,
     DiscountsService,

@@ -74,7 +74,11 @@ export class PaymentViewService {
         row.cancelReason && row.cancelledAt
           ? { reason: row.cancelReason, at: row.cancelledAt.toISOString() }
           : null,
-      canReverseNow: perms.has('payment.reverse') && (sameDay || perms.has('approval.decide')),
+      canReverseNow:
+        row.p.amount > 0n &&
+        row.cancelledAt === null &&
+        perms.has('payment.reverse') &&
+        (sameDay || perms.has('approval.decide')),
     };
   }
 
