@@ -22,27 +22,28 @@ const S = {
 };
 
 const card = (m: StudentManage, over = {}) => {
-  const fns = { onLeave: vi.fn(), onArchive: vi.fn(), onRestore: vi.fn() };
+  const fns = { onOpen: vi.fn(), onEnroll: vi.fn(), onArchive: vi.fn(), onRestore: vi.fn() };
   wrap(<StudentCardView s={S} guardians={[]} manage={{ m, busy: false, ...fns, ...over }} />);
   return fns;
 };
 
 describe('MS-05 boshqaruv: guruhdan chiqarish va arxiv (T-144, FR-STU-6, Q-93)', () => {
-  it('guruhda — guruh bosilsa chiqarish ochiladi; arxivlash bloklangan, izoh bor', () => {
+  it('guruhda — guruh bosilsa aʼzolik ekrani ochiladi; arxivlash bloklangan, izoh bor', () => {
     const fns = card({
-      groups: [{ enrollmentId: 'e1', name: 'IELTS-1', startDate: '2026-09-01' }],
+      groups: [{ enrollmentId: 'e1', name: 'IELTS-1', text: '01.09.2026 dan' }],
+      past: [],
       canArchive: false,
       archived: false,
     });
     fireEvent.click(screen.getByText('IELTS-1'));
-    expect(fns.onLeave).toHaveBeenCalledWith('e1');
+    expect(fns.onOpen).toHaveBeenCalledWith('e1');
     expect(screen.getByText(c.archiveBlocked)).toBeTruthy();
     fireEvent.click(screen.getByText(c.archive));
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('guruhsiz — «Arxivlash» → tasdiq oynasi → bir marta arxivlaydi', () => {
-    const fns = card({ groups: [], canArchive: true, archived: false });
+    const fns = card({ groups: [], past: [], canArchive: true, archived: false });
     fireEvent.click(screen.getByText(c.archive));
     const dialog = screen.getByRole('dialog', { name: c.archiveTitle });
     expect(dialog.textContent).toContain(c.archiveText);
@@ -52,7 +53,7 @@ describe('MS-05 boshqaruv: guruhdan chiqarish va arxiv (T-144, FR-STU-6, Q-93)',
   });
 
   it('arxivda — belgisi va «Arxivdan chiqarish»', () => {
-    const fns = card({ groups: [], canArchive: true, archived: true });
+    const fns = card({ groups: [], past: [], canArchive: true, archived: true });
     expect(screen.getByText(c.archived)).toBeTruthy();
     fireEvent.click(screen.getByText(c.restore));
     expect(fns.onRestore).toHaveBeenCalledOnce();
