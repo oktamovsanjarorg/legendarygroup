@@ -302,6 +302,13 @@
       "when": 1795543571450,
       "tag": "0042_lessons_done",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1795545168767,
+      "tag": "0043_payroll_generated_at",
+      "breakpoints": true
     }
   ]
 }
