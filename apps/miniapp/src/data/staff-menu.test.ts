@@ -27,6 +27,8 @@ describe('MS-06 Koʻproq (T-130)', () => {
       'tickets',
       'announcements',
       'undelivered',
+      'reports',
+      'forecasts',
     ]);
   });
 
@@ -53,6 +55,8 @@ describe('MS-06 Koʻproq (T-130)', () => {
       'undelivered',
       'finance',
       'payroll',
+      'reports',
+      'forecasts',
       'audit',
     ]);
   });

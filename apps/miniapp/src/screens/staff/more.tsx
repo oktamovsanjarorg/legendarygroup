@@ -8,6 +8,7 @@ import {
   CircleAlert,
   ClipboardCheck,
   DoorOpen,
+  FileChartColumn,
   HandCoins,
   type LucideIcon,
   Link2,
@@ -20,6 +21,7 @@ import {
   ReceiptText,
   ScrollText,
   ShoppingCart,
+  TrendingUp,
   UserCheck,
   UserPlus,
   Users,
@@ -54,6 +56,8 @@ const ICONS: Record<StaffMenuKey, LucideIcon> = {
   addExpense: ShoppingCart,
   finance: ChartLine,
   payroll: HandCoins,
+  reports: FileChartColumn,
+  forecasts: TrendingUp,
 };
 
 export interface StaffMoreViewProps {

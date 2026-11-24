@@ -27,6 +27,8 @@ export type StaffMenuKey =
   | 'approvals'
   | 'finance'
   | 'payroll'
+  | 'reports'
+  | 'forecasts'
   | 'audit';
 
 export interface StaffMenuItem {
@@ -99,6 +101,14 @@ export const STAFF_MENU: readonly StaffMenuItem[] = [
   },
   { key: 'finance', section: 'director', permission: 'finance.view', to: '/staff/finance' },
   { key: 'payroll', section: 'director', permission: 'payroll.manage', to: '/staff/payroll' },
+  // `stats.operational` ustozda ham bor (scope bilan) — markaz hisobotlari faqat xodim menyusida
+  { key: 'reports', section: 'director', permission: 'stats.operational', to: '/staff/reports' },
+  {
+    key: 'forecasts',
+    section: 'director',
+    permission: 'stats.operational',
+    to: '/staff/forecasts',
+  },
   { key: 'audit', section: 'director', permission: 'audit.view', to: '/staff/audit' },
 ];
 
