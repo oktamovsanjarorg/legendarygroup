@@ -20,6 +20,8 @@ export const NOTIFICATION_TYPES = [
   'ticket_reply',
   // Q-99: xodimga yangi ish (murojaat, bogʻlanish soʻrovi) — panel oʻrniga bot xabari.
   'staff_task',
+  // T-158: xodim soʻragan hisobot fayli.
+  'report_file',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -31,6 +33,7 @@ export const MANDATORY_NOTIFICATION_TYPES = [
   'approval_decided',
   'link_approved',
   'ticket_reply',
+  'report_file',
 ] as const;
 export type MandatoryNotificationType = (typeof MANDATORY_NOTIFICATION_TYPES)[number];
 
@@ -38,6 +41,7 @@ export type MandatoryNotificationType = (typeof MANDATORY_NOTIFICATION_TYPES)[nu
 export const STAFF_NOTIFICATION_TYPES = [
   'approval_decided',
   'staff_task',
+  'report_file',
 ] as const satisfies readonly NotificationType[];
 
 export const NOTIFICATION_STATUSES = ['queued', 'sent', 'failed', 'blocked'] as const;

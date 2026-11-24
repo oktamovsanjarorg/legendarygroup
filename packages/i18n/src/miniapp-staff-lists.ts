@@ -112,6 +112,7 @@ export const staffListMessages = {
       link_approved: 'Profil bogʻlandi',
       ticket_reply: 'Murojaatga javob',
       staff_task: 'Xodimga yangi ish',
+      report_file: 'Hisobot fayli',
     },
     retry: 'Qayta yuborish',
     retryAll: 'Hammasini qayta yuborish ({n})',

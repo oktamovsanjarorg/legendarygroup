@@ -67,6 +67,13 @@ export const FILE_PURPOSES = {
     upload: 'payment.create',
     view: 'billing.view',
   },
+  /** Hisobot fayli: server yaratadi, so'ragan xodim chatiga yuboriladi (T-158). */
+  report_export: {
+    mimes: [PDF_MIME, XLSX_MIME],
+    maxBytes: MAX_FILE_BYTES,
+    upload: 'stats.operational',
+    view: 'finance.view',
+  },
   /**
    * Fikr-mulohaza skrinshoti (FR-SYS-4, T-118): har kim o'zi uchun yuklaydi; feedback'ga faqat
    * o'z fayli biriktiriladi (FeedbackService tekshiradi). Ko'rish — Direktor.

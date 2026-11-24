@@ -16,6 +16,7 @@ export const NOTIFICATION_TITLES_UZ: Record<NotificationType, string> = {
   link_approved: 'Profil bogʻlandi',
   ticket_reply: 'Murojaatga javob',
   staff_task: 'Yangi ish (xodim)',
+  report_file: 'Hisobot fayli',
 };
 
 /**
@@ -101,6 +102,7 @@ const TEMPLATE_RENDERERS: Record<NotificationType, TemplateRenderer> = {
     title: `Murojaatingizga javob: ${String(p.subject ?? '')}`,
     body: String(p.text ?? ''),
   }),
+  report_file: (p) => ({ title: String(p.title ?? ''), body: String(p.body ?? '') }),
   staff_task: (p) => ({ title: String(p.title ?? ''), body: String(p.body ?? '') }),
 };
 
