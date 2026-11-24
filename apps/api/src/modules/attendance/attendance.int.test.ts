@@ -1,4 +1,4 @@
-import type { GroupAttendance, LessonAttendance, RoleCode } from '@lg/contracts';
+import type { DayAttendance, GroupAttendance, LessonAttendance, RoleCode } from '@lg/contracts';
 import {
   attendance,
   closeDb,
@@ -341,5 +341,34 @@ describe('GET attendance/groups (W-12, T-112, FR-ATT-4)', () => {
     expect((await call('GET', url(), parentToken)).statusCode).toBe(403);
     const wide = `attendance/groups?groupId=${groupId}&from=${addDays(TODAY, -100)}&to=${TODAY}`;
     expect((await call('GET', wide, tokens.get('admin')!)).statusCode).toBe(400);
+  });
+});
+
+describe('GET attendance/day (MS-13, T-137, FR-ATT-5)', () => {
+  it('kun darslari: kutilgan, belgilangan, kelgan; kelmaganlar roʻyxati', async () => {
+    await call('POST', `attendance/lessons/${todayLessonId}`, teacherToken, {
+      items: [
+        { studentId: student1Id, status: 'present' },
+        { studentId: student2Id, status: 'absent' },
+      ],
+    });
+    const res = await call('GET', `attendance/day?date=${TODAY}`, tokens.get('admin')!);
+    expect(res.statusCode).toBe(200);
+    const d = res.json<DayAttendance>();
+    expect(d.lessons.find((l) => l.lessonId === todayLessonId)).toMatchObject({
+      startTime: '14:00',
+      expected: 2,
+      marked: 2,
+      came: 1,
+      cancelled: false,
+    });
+    expect(d.absentees).toEqual([
+      expect.objectContaining({ studentId: student2Id, status: 'absent', groupName: 'IELTS-A1' }),
+    ]);
+  });
+
+  it('forbidden: ustoz va ota-ona — 403', async () => {
+    for (const token of [teacherToken, parentToken])
+      expect((await call('GET', `attendance/day?date=${TODAY}`, token)).statusCode).toBe(403);
   });
 });

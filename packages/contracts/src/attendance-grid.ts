@@ -22,4 +22,36 @@ export const GroupAttendanceSchema = z.object({
     }),
   ),
 });
+/** MS-13 (T-137, FR-ATT-5): kunning darslari va kelmaganlar. */
+export const DayAttendanceQuery = z.object({ date: z.iso.date() });
+export const DayAttendanceLesson = z.object({
+  lessonId: z.string(),
+  groupId: z.string(),
+  groupName: z.string(),
+  teacherName: z.string().nullable(),
+  startTime: z.string(),
+  endTime: z.string(),
+  cancelled: z.boolean(),
+  /** Shu kuni guruhda bo'lishi kerak bo'lganlar (BR-32). */
+  expected: z.number().int(),
+  marked: z.number().int(),
+  /** Keldi (kech qolgan ham). */
+  came: z.number().int(),
+});
+export const DayAbsentee = z.object({
+  lessonId: z.string(),
+  studentId: z.string(),
+  studentName: z.string(),
+  groupName: z.string(),
+  status: z.enum(['absent', 'late', 'excused']),
+  lateMinutes: z.number().int().nullable(),
+});
+export const DayAttendanceSchema = z.object({
+  date: z.string(),
+  lessons: z.array(DayAttendanceLesson),
+  absentees: z.array(DayAbsentee),
+});
+export type DayAttendance = z.infer<typeof DayAttendanceSchema>;
+export type DayAttendanceLesson = z.infer<typeof DayAttendanceLesson>;
+export type DayAbsentee = z.infer<typeof DayAbsentee>;
 export type GroupAttendance = z.infer<typeof GroupAttendanceSchema>;

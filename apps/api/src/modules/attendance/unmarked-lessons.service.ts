@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { UnmarkedLessonItem, UnmarkedLessonsQuery } from '@lg/contracts';
-import { addDays, type Clock, tashkentInstant } from '@lg/domain';
+import { addDays, type Clock, hhmm, tashkentInstant } from '@lg/domain';
 import { botMessages } from '@lg/i18n';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import type { RequestUser } from '../auth/index.js';
@@ -51,8 +51,8 @@ export class UnmarkedLessonsService {
           teacherId: r.teacherId ?? '',
           teacherName: r.teacherName ?? '',
           date: r.date,
-          startTime: r.startTime,
-          endTime: r.endTime,
+          startTime: hhmm(r.startTime),
+          endTime: hhmm(r.endTime),
           minutesPassed,
         });
       }
