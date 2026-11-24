@@ -86,6 +86,11 @@ export const UndeliveredNotificationItemSchema = z.object({
   userId: z.string().uuid(),
   userName: z.string(),
   recipient: z.string(),
+  /** Qo'ng'iroq uchun (`recipient` — Telegram ID bo'lishi mumkin). */
+  phone: z.string().nullable(),
+  /** Telegram bog'langan: qayta yuborish mumkin. */
+  retryable: z.boolean(),
+  body: z.string(),
   type: z.enum(NOTIFICATION_TYPES),
   status: z.enum(['failed', 'blocked']),
   failedReason: z.string().nullable(),

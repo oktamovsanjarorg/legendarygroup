@@ -169,7 +169,7 @@ export const NAV: readonly NavItem[] = [
     to: '/failed-messages',
     label: t.failedMessages.title,
     icon: MailWarning,
-    permission: 'settings.manage',
+    permission: 'student.manage',
   },
   {
     screen: 'W-20',

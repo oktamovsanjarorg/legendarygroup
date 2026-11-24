@@ -7,11 +7,11 @@ import {
 
 describe('Suspicious Detector & Staff Activity (FR-AUD-2, FR-AUD-3)', () => {
   it('shubhali amallarni toʻgʻri aniqlaydi', () => {
-    const rev = evaluateActionSuspicion('payment.reverse');
+    const rev = evaluateActionSuspicion('billing.payment.reverse');
     expect(rev.suspicious).toBe(true);
     expect(rev.riskLevel).toBe('high');
 
-    const disc = evaluateActionSuspicion('discount.grant');
+    const disc = evaluateActionSuspicion('billing.discount.set');
     expect(disc.suspicious).toBe(true);
     expect(disc.riskLevel).toBe('medium');
 

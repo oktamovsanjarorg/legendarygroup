@@ -49,7 +49,7 @@ export class NotificationsController {
   }
 
   @Get('undelivered')
-  @RequirePermission('settings.manage')
+  @RequirePermission('student.manage')
   @NoAudit('Yetib bormagan xabarlar')
   @ApiOperation({ summary: 'FR-RPT-6: Yetib bormagan (xatolik yoki bloklangan) xabarlar roʻyxati' })
   async getUndelivered(
@@ -61,7 +61,7 @@ export class NotificationsController {
   }
 
   @Post('undelivered/:id/retry')
-  @RequirePermission('settings.manage')
+  @RequirePermission('student.manage')
   @Audit({ action: 'notification.retry', entity: 'notification' })
   @ApiOperation({ summary: 'Yetib bormagan xabarni qayta yuborish' })
   async retry(@Param('id', ParseUUIDPipe) id: string): Promise<{ success: boolean }> {
