@@ -11,6 +11,7 @@ import {
   roles,
   studentGuardians,
   students,
+  type Transaction,
   userRoles,
   users,
 } from '@lg/db';
@@ -20,6 +21,7 @@ import { AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { normalizePhone } from './staff-link.service.js';
+import { claimGuardianTelegram } from './telegram-claim.js';
 
 /**
  * Ota-onalarni bot orqali bog'lash servisi (T-110, FR-AUTH-1).
@@ -101,30 +103,15 @@ export class GuardianLinkService {
         .where(eq(guardians.phone, phone))
         .for('update');
 
-      if (!existingGuardian) {
-        const [pendingReq] = await tx
-          .select()
-          .from(guardianLinkRequests)
-          .where(
-            and(
-              eq(guardianLinkRequests.telegramId, input.telegramId),
-              eq(guardianLinkRequests.status, 'pending'),
-            ),
-          );
-        if (pendingReq) return { result: 'pending_approval' };
-        if (!input.createRequest) return { result: 'not_found' };
+      if (!existingGuardian) return this.unknownPhone(tx, input, phone);
 
-        await tx.insert(guardianLinkRequests).values({
-          telegramId: input.telegramId,
-          phone,
-          fullName: input.fullName,
-          telegramUsername: input.username ?? null,
-          status: 'pending',
-        });
-        return { result: 'request_created' };
-      }
-
-      const userId = await this.resolveGuardianUserId(tx, existingGuardian, input, phone);
+      const userId = await claimGuardianTelegram(tx, {
+        guardian: { ...existingGuardian, phone },
+        telegramId: input.telegramId,
+        username: input.username ?? null,
+        verifiedPhone: phone,
+      });
+      if (!userId) return { result: 'conflict' };
 
       await tx
         .update(guardianLinkRequests)
@@ -160,60 +147,31 @@ export class GuardianLinkService {
     });
   }
 
-  private async resolveGuardianUserId(
-    tx: Parameters<Parameters<Database['transaction']>[0]>[0],
-    existingGuardian: typeof guardians.$inferSelect,
+  /** Raqam bazada yo'q: so'rov (so'ralgan bo'lsa) — admin navbatiga, T-110/T-126. */
+  private async unknownPhone(
+    tx: Transaction,
     input: BotGuardianContactRequest,
     phone: string,
-  ): Promise<string> {
-    if (existingGuardian.userId) {
-      await tx
-        .update(users)
-        .set({
-          telegramId: input.telegramId,
-          telegramUsername: input.username ?? null,
-        })
-        .where(eq(users.id, existingGuardian.userId));
-      return existingGuardian.userId;
-    }
+  ): Promise<BotGuardianContactResult> {
+    const [pendingReq] = await tx
+      .select()
+      .from(guardianLinkRequests)
+      .where(
+        and(
+          eq(guardianLinkRequests.telegramId, input.telegramId),
+          eq(guardianLinkRequests.status, 'pending'),
+        ),
+      );
+    if (pendingReq) return { result: 'pending_approval' };
+    if (!input.createRequest) return { result: 'not_found' };
 
-    let [existingUser] = await tx.select().from(users).where(eq(users.phone, phone)).for('update');
-    if (!existingUser) {
-      const [newUser] = await tx
-        .insert(users)
-        .values({
-          fullName: existingGuardian.fullName,
-          phone,
-          telegramId: input.telegramId,
-          telegramUsername: input.username ?? null,
-          status: 'active',
-        })
-        .returning();
-      if (!newUser) throw new Error('Foydalanuvchi yaratilmadi');
-      existingUser = newUser;
-    } else {
-      await tx
-        .update(users)
-        .set({
-          telegramId: input.telegramId,
-          telegramUsername: input.username ?? null,
-        })
-        .where(eq(users.id, existingUser.id));
-    }
-
-    const [guardianRole] = await tx.select().from(roles).where(eq(roles.code, 'guardian'));
-    if (guardianRole) {
-      await tx
-        .insert(userRoles)
-        .values({ userId: existingUser.id, roleId: guardianRole.id })
-        .onConflictDoNothing();
-    }
-
-    await tx
-      .update(guardians)
-      .set({ userId: existingUser.id })
-      .where(eq(guardians.id, existingGuardian.id));
-
-    return existingUser.id;
+    await tx.insert(guardianLinkRequests).values({
+      telegramId: input.telegramId,
+      phone,
+      fullName: input.fullName,
+      telegramUsername: input.username ?? null,
+      status: 'pending',
+    });
+    return { result: 'request_created' };
   }
 }

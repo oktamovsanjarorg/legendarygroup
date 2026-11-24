@@ -1,8 +1,8 @@
-import { normalizePhone, STAFF_ROLES, type StaffInvite, type StaffRole } from '@lg/contracts';
+import { normalizePhone, STAFF_ROLES, type StaffRole } from '@lg/contracts';
 import { webMessages as t } from '@lg/i18n';
 import { Button, Drawer, Field, SelectField } from '@lg/ui-web';
 import { type FormEvent, useState } from 'react';
-import { InviteLink } from './invite-link.js';
+import { BotLink } from './bot-link.js';
 import { errorText } from '../../api/errors.js';
 import { useCreateStaff } from './use-staff.js';
 
@@ -61,12 +61,12 @@ function InviteForm({ error, onSubmit }: FormProps) {
   );
 }
 
-/** W-28: xodim qo'shish (telefon, ism, rol — FR-AUTH-5) → taklif havolasi. */
+/** W-28: xodim qo'shish (telefon, ism, rol — FR-AUTH-5) → botda qanday ulanishi (Q-98). */
 export function InviteDrawer({ onClose }: { onClose: () => void }) {
   const create = useCreateStaff();
-  const [result, setResult] = useState<{ invite: StaffInvite | null } | null>(null);
+  const [result, setResult] = useState<{ botUrl: string | null } | null>(null);
   const footer = result ? (
-    <Button onClick={onClose}>{t.staff.inviteLink.done}</Button>
+    <Button onClick={onClose}>{t.staff.botLink.done}</Button>
   ) : (
     <>
       <Button variant="secondary" onClick={onClose}>
@@ -80,11 +80,11 @@ export function InviteDrawer({ onClose }: { onClose: () => void }) {
   return (
     <Drawer open title={f.title} closeLabel={t.common.close} onClose={onClose} footer={footer}>
       {result ? (
-        <InviteLink invite={result.invite} />
+        <BotLink url={result.botUrl} />
       ) : (
         <InviteForm
           error={create.isError ? errorText(create.error) : null}
-          onSubmit={(v) => create.mutate(v, { onSuccess: (r) => setResult({ invite: r.invite }) })}
+          onSubmit={(v) => create.mutate(v, { onSuccess: (r) => setResult({ botUrl: r.botUrl }) })}
         />
       )}
     </Drawer>

@@ -7,8 +7,7 @@ export interface E2eUser {
   role: 'director' | 'admin';
   fullName: string;
   phone: string;
-  password: string;
-  totpSecret: string;
+  telegramId: string;
 }
 
 /** `apps/api/src/e2e/fixtures-billing.ts` — joriy oy invoice'i bor o'quvchi. */
@@ -26,6 +25,7 @@ interface E2eFixtures {
   teacher: { id: string; fullName: string };
   attendance: E2eAttendance;
   telegramBotToken: string;
+  internalToken: string;
 }
 
 /** `apps/api/src/e2e/fixtures-attendance.ts` — bugungi dars, ustoz Telegram'ga bog'langan. */

@@ -281,6 +281,29 @@ describe('Telegram orqali kirish', () => {
     const { challengeId } = res.json<{ challengeId: string }>();
     expect((await internal({ challengeId, telegramId: '1' })).json()).toEqual({ confirmed: false });
   });
+
+  it('Q-98: tasdiqdan keyin Telegram uzilsa yoki almashsa — sessiya berilmaydi', async () => {
+    for (const [tg, next] of [
+      [777000222n, null],
+      [777000333n, 777000334n],
+    ] as const) {
+      const s = await createStaff({ telegramId: tg });
+      const { challengeId } = (await post('telegram/start', { phone: s.phone })).json<{
+        challengeId: string;
+      }>();
+      await internal({ challengeId, telegramId: String(tg) });
+      await db.update(users).set({ telegramId: next }).where(eq(users.phone, s.phone));
+      expect(code(await post('telegram/poll', { challengeId }))).toBe('INVALID_MFA_TOKEN');
+    }
+  });
+
+  it('Q-98: bitta raqamga daqiqada 5 tadan ortiq soʻrov — 429 (xodimga xabar yogʻdirilmasin)', async () => {
+    const p = phone();
+    for (let i = 0; i < 5; i += 1)
+      expect((await post('telegram/start', { phone: p })).statusCode).toBe(200);
+    expect((await post('telegram/start', { phone: p })).statusCode).toBe(429);
+    expect((await post('telegram/start', { phone: phone() })).statusCode).toBe(200);
+  });
 });
 
 describe('Audit (FR-AUD-1)', () => {

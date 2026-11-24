@@ -57,6 +57,7 @@ export const BotGuardianContactResult = z.object({
     'request_created',
     'pending_approval',
     'staff_linked',
+    'conflict',
     'not_found',
   ]),
   fullName: z.string().optional(),

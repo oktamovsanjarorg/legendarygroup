@@ -19,7 +19,9 @@ Web panel manzili: **https://app.legendary-academy.uz**
 
 ### Web panelga qanday kiraman?
 
-Eng oson yoʻl — **Mini App orqali** (telefon raqam, parol, kod kerak emas):
+Parol ham, kod ham yoʻq — tasdiq Telegramdagi telefon raqamingiz orqali.
+
+**Mini App orqali (eng oson):**
 
 1. Telegramda markaz botini oching → pastdagi **menyu tugmasi** bilan Mini App'ni oching.
 2. **«Bugun»** ekrani pastidagi koʻk **«Boshqaruv panelini ochish»** tugmasini bosing.
@@ -28,31 +30,21 @@ Eng oson yoʻl — **Mini App orqali** (telefon raqam, parol, kod kerak emas):
 Havola bir martalik va 60 soniya amal qiladi: har safar tugmani qayta bosing, havolani
 birovga yubormang.
 
-**Kompyuterda parol bilan:**
-
-1. https://app.legendary-academy.uz → **Telefon raqam** maydonida `+998` yozilgan — faqat qolgan
-   9 raqamni kiriting (masalan `500090450`).
-2. **Parol** → **«Kirish»**.
-3. Shu zahoti botdan **«🔐 Boshqaruv paneliga kirish»** xabari keladi → **«✅ Tasdiqlash»** ni
-   bosing. Panel oʻzi ochiladi.
-   - Yoki Google Authenticator'dagi 6 xonali kodni kiriting — qaysi biri qulay.
-
-**Parolsiz, faqat Telegram bilan:** kirish sahifasida telefon raqamni kiriting →
-**«Telegram orqali kirish»** → botdagi **«✅ Tasdiqlash»**.
+**Kompyuterda:** https://app.legendary-academy.uz → telefon raqam → **«Telegram orqali kirish»** →
+botdagi **«✅ Tasdiqlash»**.
 
 ### Kira olmayapman — nima qilay?
 
-| Xabar                                | Sabab va yechim                                                                                                                             |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| «Telefon raqam yoki parol notoʻgʻri» | Raqamni tekshiring: `+998` dan keyin 9 ta raqam, boʻshliqsiz. Raqam toʻgʻri boʻlsa — parol xato.                                            |
-| «Tasdiqlash kodi notoʻgʻri»          | Authenticator'da **eski** "Legendary Group" yozuvi qolgan. Hammasini oʻchirib, QR'ni qayta skanerlang. Yoki botdagi «Tasdiqlash» ni bosing. |
-| Botdan xabar kelmadi                 | Telegram akkauntingiz ulanmagan boʻlishi mumkin — pastdagi "Telegramni ulash" ga qarang.                                                    |
-| Parolni unutdim                      | Mini App → «Boshqaruv panelini ochish» bilan kiring. Yangi parol uchun texnik masʼulga murojaat.                                            |
+| Holat                         | Yechim                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------- |
+| Botdan xabar kelmadi          | Botni oching → **Start** → **«Telefon raqamni ulashish»** → kirish sahifasida qayta urining. |
+| «Boshqa profilga ulangan»     | Xodim kartasi → **«Telegramni uzish»**, soʻng raqamni botda qayta ulashing.                  |
+| Bot raqamni tanimadi          | Telegramdagi raqam **Xodimlar**dagi raqam bilan bir xil boʻlishi kerak.                      |
+| Direktor Telegramini yoʻqotdi | Texnik masʼul serverda `director:relink` buyrugʻini bajaradi (runbook: xodimlar).            |
 
 ### Telegramni qanday ulayman?
 
-Web panel → **Bosh sahifa** → **«Telegramni ulash»** → **«Ulash havolasini olish»** →
-**«Botni ochish va ulash»** → botda **Start** → raqamingizni ulashing. Havola 24 soat, bir marta.
+Markaz botini oching → **Start** → **«Telefon raqamni ulashish»**.
 
 ### Boshqa qurilmalardan chiqish
 
@@ -66,19 +58,18 @@ Menyu → **Mening sessiyalarim** → kerakli qurilmada **«Chiqish»** yoki
 ### Administrator yoki ustoz qanday qoʻshaman?
 
 1. Menyu → **Xodimlar** → **«Xodim qoʻshish»**.
-2. **F.I.Sh**, **Telefon raqam**, **Rol** (Admin yoki Ustoz) → **«Qoʻshish va taklif qilish»**.
-3. **Taklif havolasi** chiqadi — **«Nusxalash»** bosing va xodimga yuboring. Havola faqat hozir
-   koʻrsatiladi.
-   - **Admin**: havola orqali parol oʻrnatadi va kompyuterdan kiradi.
-   - **Ustoz**: havolani Telegramda ochadi, raqamini ulashadi — Mini App'da darslari chiqadi.
+2. **F.I.Sh**, **Telefon raqam** (Telegramdagi raqami), **Rol** (Admin yoki Ustoz) → **«Qoʻshish»**.
+3. Xodim Telegramda markaz botini ochadi → **Start** → **«Telefon raqamni ulashish»**. Shu bilan
+   kirdi: parol, kod va taklif havolasi yoʻq.
 
-Havola yoʻqolsa yoki muddati oʻtsa: xodim kartasi → **«Taklifni qayta yuborish»**.
+Xodim telefonini yoki Telegramini almashtirsa: xodim kartasi → **«Telegramni uzish»**.
 
 ### Oʻzim ham dars bersam?
 
 Menyu → **Xodimlar** → oʻzingizni tanlang → **«Ustoz rolini qoʻshish»**. Keyin oʻzingizni
 guruhga ustoz qilib biriktiring (4-boʻlim). Mini App ochilganda **Direktor** yoki **Ustoz**
-rejimini tanlaysiz; rejimlar aralashmaydi, almashtirish — bir tegish.
+rejimini tanlaysiz; rejimlar aralashmaydi. Almashtirish: Mini App yuqorisidagi **⋮ → Sozlamalar →
+Faol rol**.
 
 ### Xodim ishdan ketsa?
 

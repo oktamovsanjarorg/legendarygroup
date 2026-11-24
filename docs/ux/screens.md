@@ -111,10 +111,8 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 
 | ID    | Ekran                     | Maqsad                                          | Asosiy ma'lumot / amallar                                                                     | Ruxsat                          |
 | ----- | ------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------- |
-| W-01  | Kirish                    | Telefon + parol (FR-AUTH-3)                     | parol → TOTP / Telegram orqali kirish                                                         | —                               |
-| W-02  | TOTP sozlash / tasdiqlash | 2FA                                             | QR, kod; zaxira kodlar (bir marta ko'rsatiladi)                                               | —                               |
-| W-03  | Taklifni qabul qilish     | Parol o'rnatish (`/invite/<token>`)             | parol → W-02                                                                                  | —                               |
-| W-03a | Mini App'dan kirish       | Bir martalik kalit (`/handoff#t=`, T-121)       | yuklanmoqda → bosh sahifa; xato → «Telefon va parol bilan kirish»                             | —                               |
+| W-01  | Kirish                    | Telefon → botda tasdiq (FR-AUTH-3, Q-98)        | telefon → kutish («xabar kelmadimi?», bot havolasi) → bosh sahifa                             | —                               |
+| W-03a | Mini App'dan kirish       | Bir martalik kalit (`/handoff#t=`, T-121)       | yuklanmoqda → bosh sahifa; xato → «Telefon raqam bilan kirish»                                | —                               |
 | W-04  | Bosh sahifa               | KPI (FR-DASH-1)                                 | tushum, qarz, faol o'quvchilar, davomat %, oqim, navbat soni                                  | stats.operational, finance.view |
 | W-05  | O'quvchilar               | Ro'yxat, qidiruv, filtr (FR-STU-5/6)            | qidiruv (`oʻ`/`o'` normalizatsiya), qarzdor/faol/arxiv; yangi o'quvchi                        | student.view, student.manage    |
 | W-06  | O'quvchi kartochkasi      | To'liq profil (FR-STU-1/2/3, T-126)             | ma'lumot, ota-onalar, guruhlar, davomat, baho, ledger; kod yaratish/yangilash, Telegram uzish | student.view, student.manage    |
@@ -139,7 +137,7 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 | W-25  | Oyliklar                  | Hisob (FR-SAL-1/2/3/5)                          | shartnomalar, qoralama → tasdiqlash → to'landi, avans, tafsilot                               | payroll.manage                  |
 | W-26  | Hisobotlar                | To'plam (FR-DASH-2/4)                           | daromad, aging, davomat, cohort, konversiya, ustoz samaradorligi; Excel/PDF                   | stats.operational, finance.view |
 | W-27  | Prognozlar                | Tushum, churn (FR-DASH-3, BR-36)                | prognoz oralig'i, xavfli o'quvchilar ("nega")                                                 | finance.view                    |
-| W-28  | Xodimlar                  | Admin/Ustoz (T-101)                             | qo'shish (taklif), bloklash, rol, override (02 §4)                                            | staff.manage, staff.permissions |
+| W-28  | Xodimlar                  | Admin/Ustoz (T-101)                             | qo'shish (bot havolasi), Telegramni uzish, bloklash, rol, override (02 §4)                    | staff.manage, staff.permissions |
 | W-29  | Sozlamalar                | Tizim (FR-SYS-1)                                | markaz, logo, rekvizitlar, to'lov muddati, jarima, vaqtlar, bayramlar, chegirma limiti        | settings.manage                 |
 | W-30  | Audit                     | Jurnal (FR-AUD-1/2/3)                           | filtr, diff, shubhali harakatlar, xodim faolligi                                              | audit.view                      |
 | W-31  | Tasdiqlash so'rovlari     | MS-03 ning web varianti                         | ro'yxat, qaror                                                                                | approval.decide                 |
@@ -154,7 +152,7 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 | --------- | ---------------- | --------- | ------------------ | --------- | ---------------------- |
 | FR-AUTH-1 | B-01, C-03, W-07 | FR-GRD-1  | MT-02, MT-06       | FR-RPT-1  | B-02, C-04             |
 | FR-AUTH-2 | C-01             | FR-GRD-2  | MT-06, MG-02       | FR-RPT-2  | B-02, MG-04            |
-| FR-AUTH-3 | W-01, W-02, W-03 | FR-GRD-3  | MT-07, W-19        | FR-RPT-3  | MG-04                  |
+| FR-AUTH-3 | W-01, W-03a      | FR-GRD-3  | MT-07, W-19        | FR-RPT-3  | MG-04                  |
 | FR-AUTH-4 | W-01, W-32       | FR-GRD-4  | MT-08, W-19, B-04  | FR-RPT-4  | C-04                   |
 | FR-AUTH-5 | C-02, C-04       | FR-GRD-5  | MG-02, MT-06       | FR-RPT-5  | W-20, MT-10            |
 | FR-AUTH-6 | MG-01, W-06      | FR-GRD-6  | MT-08, B-02        | FR-RPT-6  | W-22                   |

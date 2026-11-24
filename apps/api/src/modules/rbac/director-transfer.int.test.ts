@@ -1,13 +1,4 @@
-import {
-  closeDb,
-  createDb,
-  type Database,
-  roles,
-  seed,
-  staffInvites,
-  userRoles,
-  users,
-} from '@lg/db';
+import { closeDb, createDb, type Database, roles, seed, userRoles, users } from '@lg/db';
 import { createTempDb, type TempDb } from '@lg/db/testing';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -15,7 +6,6 @@ import { DirectorTransferError, transferDirector } from './director-transfer.js'
 
 let tmp: TempDb;
 let db: Database;
-const links = { appUrl: 'https://lg.test', botUsername: 'lg_bot' };
 const now = new Date('2026-11-14T12:00:00Z');
 
 const rolesOf = async (userId: string) =>
@@ -44,14 +34,14 @@ afterAll(async () => {
 describe('director:transfer (02 §2: bitta Director)', () => {
   it('direktor yo‘q — xato; noto‘g‘ri raqam — xato', async () => {
     await expect(
-      transferDirector(db, links, { phone: '+998901234567', fullName: 'Yangi' }, now),
+      transferDirector(db, { phone: '+998901234567', fullName: 'Yangi' }, now),
     ).rejects.toMatchObject({ code: 'NO_DIRECTOR' });
     await expect(
-      transferDirector(db, links, { phone: '123', fullName: 'Yangi' }, now),
+      transferDirector(db, { phone: '123', fullName: 'Yangi' }, now),
     ).rejects.toBeInstanceOf(DirectorTransferError);
   });
 
-  it('yangi Director + web taklif; avvalgisi Admin, ikkalasining pv oshadi; o‘ziga — xato', async () => {
+  it('yangi Director (botda ulanadi); avvalgisi Admin, ikkalasining pv oshadi; o‘ziga — xato', async () => {
     const [cur] = await db
       .insert(users)
       .values({ fullName: 'Sanjar', phone: '+998944758090', passwordHash: 'x' })
@@ -62,7 +52,6 @@ describe('director:transfer (02 §2: bitta Director)', () => {
 
     const r = await transferDirector(
       db,
-      links,
       { phone: '90 123 45 67', fullName: 'Haqiqiy Direktor' },
       now,
     );
@@ -70,12 +59,10 @@ describe('director:transfer (02 §2: bitta Director)', () => {
     expect(await rolesOf(cur!.id)).toEqual(['admin']);
     expect(await rolesOf(r.directorId)).toEqual(['director']);
     expect(await pvOf(cur!.id)).toBe((pvBefore ?? 0) + 1);
-    expect(r.invite?.url).toMatch(/^https:\/\/lg\.test\/invite\//);
-    const inv = await db.select().from(staffInvites).where(eq(staffInvites.userId, r.directorId));
-    expect(inv.map((i) => i.channel)).toEqual(['web']);
+    expect(r.telegramLinked).toBe(false);
 
     await expect(
-      transferDirector(db, links, { phone: '+998901234567', fullName: 'Yana' }, now),
+      transferDirector(db, { phone: '+998901234567', fullName: 'Yana' }, now),
     ).rejects.toMatchObject({ code: 'SAME_PERSON' });
   });
 });

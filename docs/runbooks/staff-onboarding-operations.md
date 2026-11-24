@@ -4,41 +4,30 @@ Ushbu runbook o'quv markaziga yangi administratorlar va ustozlarni qo'shish, rol
 
 ---
 
-## 1. Xodim turlari va taklif mexanizmi
+## 1. Kirish (Q-98, ADR 0006 §11)
 
-| Rol                 | Kirish kanali        | Taklif mexanizmi                                    | Autentifikatsiya                  |
-| ------------------- | -------------------- | --------------------------------------------------- | --------------------------------- |
-| **Administrator**   | Web boshqaruv paneli | Bir martalik maxfiy havola (`/invite/<token>`)      | Login + Parol + 2FA TOTP          |
-| **Ustoz (Teacher)** | Telegram Mini App    | Telegram bot taklif havolasi (`/start inv_<token>`) | Faqat Telegram akkaunt (parolsiz) |
+Parol, 2FA va taklif havolasi yo'q. Hamma xodim bir xil ulanadi: Direktor raqamni kiritadi, xodim
+botda **shu raqamni** ulashadi (Telegram raqamga egalikni tasdiqlaydi).
 
----
+| Rol               | Kundalik ish | Web panel                                                            |
+| ----------------- | ------------ | -------------------------------------------------------------------- |
+| **Direktor**      | Mini App     | Mini App tugmasi yoki telefon + botda «Tasdiqlash»                   |
+| **Administrator** | Mini App     | Vaqtincha bor (T-132…T-142 ekranlari Mini App'ga ko'chguncha, T-148) |
+| **Ustoz**         | Mini App     | Yo'q                                                                 |
 
-## 2. Yangi Administrator qo'shish (Director tomonidan)
+## 2. Xodim qo'shish
 
-1. Web boshqaruv panelida **Xodimlar** (`/staff`) sahifasiga kiring.
-2. **«Xodim qoʻshish»** tugmasini bosing.
-3. Ism-sharif, telefon raqami (`+998XXXXXXXXX`) va **Admin** rolini tanlang.
-4. Generatsiya qilingan taklif havolasidan nusxa oling (xavfsizlik sababli u faqat bir marta ko'rsatiladi).
-5. Havolani yangi administratorga shaxsan yetkazing.
-6. Administrator havola orqali kirib, o'z parolini o'rnatadi va Google Authenticator (TOTP) orqali 2FA ni ulaydi.
+1. Web panel → **Xodimlar** → **«Xodim qoʻshish»** → F.I.Sh, telefon, rol → **«Qoʻshish»**.
+2. Xodim botni ochadi → **Start** → **«Telefon raqamni ulashish»** → **«Ilovani ochish»**.
 
----
+## 3. Kira olmasa
 
-### Direktor/Admin web panelga kira olmasa
-
-Telegram'i bog'langan Direktor/Admin uchun eng oson yo'l: botda Mini App'ni ochish → **«Bugun»**
-ekranidagi **«Boshqaruv panelini ochish»** tugmasi. Panel brauzerda parol va 2FA'siz ochiladi
-(havola bir martalik, 60 soniya — T-121). Telefon raqam yoki 2FA muammosi bo'lsa ham ishlaydi.
-
----
-
-## 3. Yangi Ustoz qo'shish
-
-1. **Xodimlar** sahifasida **«Xodim qoʻshish»** tugmasini bosing.
-2. Ism-sharif, telefon raqami va **Ustoz** rolini tanlang.
-3. Bot taklif havolasi paydo bo'ladi: `https://t.me/legendary_group_bot?start=inv_<token>`.
-4. Havola ustozga yuboriladi. Ustoz Telegramda ushbu havolani bosganda, bot uning ismini aytib kutib oladi va **«Telefon raqamni ulashish»** tugmasini chiqaradi.
-5. Ustoz tugmani bosgach, uning `telegram_id` raqami bazaga bog'lanadi va u Mini App'da o'z darslari hamda guruhlarini ko'ra boshlaydi.
+- **Bot raqamni tanimadi** — «Xodimlar»dagi raqam Telegramdagi raqamdan farq qiladi yoki xodim bloklangan.
+- **«Boshqa profilga ulangan»** — eski Telegram ulangan: xodim kartasi → **«Telegramni uzish»**
+  (sessiyalari ham yopiladi), so'ng raqamni qayta ulashadi.
+- **Direktor Telegram/raqamini yo'qotdi** — serverda (bir martalik, audit bilan):
+  `node dist/cli.js director:relink --current +998XXXXXXXXX --phone +998YYYYYYYYY`
+  (raqam o'sha bo'lsa — ikkalasiga bir xil raqam). Keyin Direktor botda yangi raqamini ulashadi.
 
 ---
 

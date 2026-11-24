@@ -94,7 +94,7 @@ export const webF1Messages = {
   },
   staff: {
     title: 'Xodimlar',
-    invite: 'Taklif qilish',
+    invite: 'Xodim qoʻshish',
     cols: {
       name: 'F.I.Sh',
       phone: 'Telefon',
@@ -102,7 +102,7 @@ export const webF1Messages = {
       status: 'Holat',
       lastLogin: 'Oxirgi kirish',
     },
-    status: { active: 'Faol', invited: 'Taklif yuborilgan', blocked: 'Bloklangan' },
+    status: { active: 'Faol', invited: 'Telegram ulanmagan', blocked: 'Bloklangan' },
     overrides: 'Qoʻshimcha ruxsatlar: {n}',
     empty: 'Hali xodim qoʻshilmagan',
     form: {
@@ -112,25 +112,27 @@ export const webF1Messages = {
       phoneInvalid: 'Telefon raqam notoʻgʻri. Namuna: +998 90 123 45 67',
       nameInvalid: 'Kamida 2 ta harf kiriting.',
       role: 'Rol',
-      submit: 'Qoʻshish va taklif qilish',
+      submit: 'Qoʻshish',
     },
-    inviteLink: {
-      title: 'Taklif havolasi',
-      web: 'Havolani Adminga yuboring: u parol oʻrnatadi va ikki bosqichli himoyani yoqadi.',
-      bot: 'Havolani Ustozga yuboring: u botni ochib, telefon raqamini ulashadi.',
-      expires: 'Amal qilish muddati: {date}',
-      once: 'Havola faqat hozir koʻrsatiladi. Yopishdan oldin nusxalab oling.',
-      copy: 'Nusxalash',
+    botLink: {
+      title: 'Xodim qanday kiradi',
+      steps: [
+        'Xodim Telegramda markaz botini ochib, «Start» bosadi.',
+        '«📱 Telefon raqamni ulashish» tugmasini bosadi — tayyor, parol kerak emas.',
+      ],
+      phone: 'Telegramdagi raqami siz kiritgan raqam bilan bir xil boʻlishi shart.',
+      copy: 'Bot havolasini nusxalash',
       copied: 'Nusxalandi',
-      notNeeded: 'Taklif kerak emas: xodim tizimga allaqachon kira oladi.',
+      linked: 'Telegrami allaqachon ulangan: xodim botdan ilovani ochsa boʻldi.',
       done: 'Tayyor',
     },
     detail: {
       telegram: 'Telegram',
       linked: 'Bogʻlangan',
       notLinked: 'Bogʻlanmagan',
-      inviteUntil: 'Taklif {date} gacha amal qiladi',
-      reinvite: 'Taklifni qayta yuborish',
+      unlinkTelegram: 'Telegramni uzish',
+      confirmUnlink:
+        '{name}ning Telegrami uzilsinmi? Barcha sessiyalari yopiladi, u botda raqamini qayta ulashadi.',
       block: 'Bloklash',
       unblock: 'Blokdan chiqarish',
       confirmBlock: '{name} bloklansinmi? Barcha qurilmalardagi sessiyalari darhol yopiladi.',

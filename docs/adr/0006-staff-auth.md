@@ -50,8 +50,27 @@
     akkauntiga egalik (`initData` HMAC); kalit berilgach bloklangan/rol olingan xodimga sessiya
     berilmaydi. Teacher/Guardian — 403 (web paneli yo'q).
 
+11. **Faqat Telegram (Q-98, 2026-11-24, egasining qarori):** parol, TOTP va taklif havolasi oqimlari
+    ekrandan olindi (§1, §2, §7 — eskirgan). Xodim botda o'z raqamini ulashadi → raqam **faol
+    xodimniki** bo'lsa darhol ulanadi (`POST /internal/staff/contact`). Web: §6 (telefon → botda
+    «Tasdiqlash») va §10. Telegram akkauntiga egalik — yagona omil.
+    - Boshqa Telegram'ga ulangan raqam **avtomatik ko'chmaydi** (`conflict`; SIM qayta sotilishi):
+      Direktor `POST /staff/:id/telegram/unlink` (sessiyalar + `pv`), Direktorning o'zi — CLI
+      `director:relink`.
+    - **Xodim profilini faqat uning o'z raqami oladi** (`rbac/telegram-claim.ts` — Telegram yozadigan
+      ota-ona oqimlari ham shu qoida orqali): bot kontakti yoki Admin tasdig'i (W-07) xodimning
+      Telegram'ini almashtira olmaydi → `conflict` / 409 `TELEGRAM_LINK_CONFLICT`. Ota-ona birinchi
+      marta xodim bo'lsa, avvalgi Telegram uziladi va raqam qayta ulashiladi.
+    - Tasdiqdan (§6) yoki kalitdan (§10) keyin Telegram uzilsa/almashsa — sessiya berilmaydi.
+    - `telegram/start`: telefon 5/daq + IP 30/daq (xodimga xabar yog'dirilmasin).
+    - **Expand/contract:** API'dagi `auth/login`, `totp/*`, `invite/accept` va `password_hash`,
+      `totp_secret`, `user_backup_codes`, `staff_invites` hozircha turadi — production'da
+      Direktor/Admin Telegram'i ulangani tasdiqlangach T-147 bilan o'chiriladi.
+
 ## Oqibatlar
+
+- (−) Telegram ishlamasa, yangi web kirish bo'lmaydi (ochiq sessiyalar 30 kun ishlaydi).
 
 - (+) Parol/2FA/sessiya bitta joyda, barcha amallar audit'da (`auth.*`).
 - (−) Har so'rovda bitta DB so'rovi (sessiya + foydalanuvchi) — T-008 da kesh.
-- Lokal kirish: test Direktorda parol yo'q — T-008 CLI taklif havolasi bilan o'rnatiladi.
+- Lokal kirish: `pnpm --filter @lg/bot` simulyatorida (`cli-sim`) test Direktor raqami bilan `contact`.

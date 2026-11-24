@@ -418,6 +418,21 @@
 - **Bog'liq:** T-130, T-403, T-502 · **Talablar:** FR-FIN-2, FR-DASH-3
 - **AC:** oy tushumi, xarajat, foyda, prognoz, qarz jami; tafsilot — web. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
 
+### ✅ T-146 · Kirish faqat Telegram orqali (parolsiz)
+
+- **Bog'liq:** T-006, T-101, T-120, T-121 · **Talablar:** FR-AUTH-3 · **Qaror:** Q-98, ADR 0006 §11
+- **Bajarildi (2026-11-24):** botda raqam ulashish → xodim taklifsiz ulanadi; web'da parol/TOTP/taklif ekranlari yo'q; «Telegramni uzish»; CLI `director:relink`; poll poygasi tuzatildi (regressiya testlari); e2e Telegram tasdig'i bilan.
+
+### ⬜ T-147 · API'dan parol, TOTP va taklif kodini o'chirish (contract)
+
+- **Bog'liq:** T-146 production'da · **Qaror:** Q-98
+- **AC:** shart — production'da barcha faol Direktor/Admin Telegram'i ulangan. `auth/login`, `totp/*`, `invite/accept`, `staff_invites`, `user_backup_codes`, `password_hash`, `totp_secret`, `TOTP_ENCRYPTION_KEY`, seed taklif tokeni olinadi.
+
+### ⬜ T-148 · Web panel faqat Direktorga
+
+- **Bog'liq:** T-132…T-142 · **Qaror:** Q-98
+- **AC:** Admin ekranlari Mini App'da tayyor bo'lgach `WEB_ROLES` va panel-handoff'dan `admin` olinadi; xodim qo'shish Mini App'da ham (Direktor).
+
 ### ✅ T-125 · Mini App: birinchi ochilishda rolga qarab 3 ta kartochka
 
 - **Bog'liq:** T-114, T-116, T-120 · **Bajaruvchi:** agy (A-8), review — Claude

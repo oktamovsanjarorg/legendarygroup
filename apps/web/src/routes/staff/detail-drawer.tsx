@@ -1,8 +1,7 @@
-import { STAFF_ROLES, type StaffDetail, type StaffInvite } from '@lg/contracts';
-import { formatDateShort, formatDateTime, formatPhone, webMessages as t } from '@lg/i18n';
+import { STAFF_ROLES, type StaffDetail } from '@lg/contracts';
+import { formatDateShort, formatPhone, webMessages as t } from '@lg/i18n';
 import { Badge, Button, Drawer, ErrorState, LoadingState } from '@lg/ui-web';
-import { useState } from 'react';
-import { InviteLink } from './invite-link.js';
+import { BotLink } from './bot-link.js';
 import { PermissionsSection } from './permissions.js';
 import { errorText, errorView } from '../../api/errors.js';
 import { type StaffAction, useStaffAction, useStaffDetail } from './use-staff.js';
@@ -25,11 +24,6 @@ function Summary({ s }: { s: StaffDetail }) {
       <dt className="text-text-muted">{t.staff.cols.status}</dt>
       <dd>
         <Badge tone={TONE[s.status]}>{t.staff.status[s.status]}</Badge>
-        {s.inviteExpiresAt && (
-          <span className="ml-2 text-xs text-text-muted">
-            {d.inviteUntil.replace('{date}', formatDateTime(new Date(s.inviteExpiresAt)))}
-          </span>
-        )}
       </dd>
       <dt className="text-text-muted">{d.telegram}</dt>
       <dd className="text-text">{s.telegramLinked ? d.linked : d.notLinked}</dd>
@@ -82,16 +76,14 @@ function Roles({ s, busy, run }: Omit<BodyProps, 'canPermissions'>) {
 function Access({ s, busy, run }: Omit<BodyProps, 'canPermissions'>) {
   const block = () =>
     window.confirm(d.confirmBlock.replace('{name}', s.fullName)) && run({ kind: 'block' });
+  const unlink = () =>
+    window.confirm(d.confirmUnlink.replace('{name}', s.fullName)) &&
+    run({ kind: 'unlinkTelegram' });
   return (
     <div className="flex flex-wrap gap-2">
-      {s.status === 'invited' && (
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={busy}
-          onClick={() => run({ kind: 'reinvite' })}
-        >
-          {d.reinvite}
+      {s.telegramLinked && (
+        <Button variant="secondary" size="sm" disabled={busy} onClick={unlink}>
+          {d.unlinkTelegram}
         </Button>
       )}
       {s.status === 'blocked' ? (
@@ -120,13 +112,11 @@ interface Props {
   onClose: () => void;
 }
 
-/** W-28 tafsilot: holat, taklif, bloklash, rollar, ruxsat override (02 §4). */
+/** W-28 tafsilot: holat, Telegram, bloklash, rollar, ruxsat override (02 §4). */
 export function DetailDrawer({ id, name, canPermissions, onClose }: Props) {
   const detail = useStaffDetail(id);
   const action = useStaffAction(id);
-  const [invite, setInvite] = useState<StaffInvite | null>(null);
-  const run = (a: StaffAction) =>
-    action.mutate(a, { onSuccess: (issued) => issued && setInvite(issued) });
+  const run = (a: StaffAction) => action.mutate(a);
   const part = { busy: action.isPending, run };
   return (
     <Drawer open title={name} closeLabel={t.common.close} onClose={onClose}>
@@ -142,7 +132,7 @@ export function DetailDrawer({ id, name, canPermissions, onClose }: Props) {
               {errorText(action.error)}
             </p>
           )}
-          {invite && <InviteLink invite={invite} />}
+          {detail.data.botUrl && <BotLink url={detail.data.botUrl} />}
           <Access s={detail.data} {...part} />
           <Roles s={detail.data} {...part} />
           <PermissionsSection

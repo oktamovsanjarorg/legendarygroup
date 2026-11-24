@@ -14,44 +14,21 @@ export const webMessages = {
   permissions: permissionLabels,
   appTitle: 'Legendary Group — boshqaruv paneli',
   login: {
-    title: 'Tizimga kirish',
+    title: 'Boshqaruv paneliga kirish',
+    hint: 'Telefon raqamingizni kiriting — Telegramda tasdiqlash tugmasi keladi. Parol kerak emas.',
     phone: 'Telefon raqam',
-    password: 'Parol',
-    submit: 'Kirish',
     viaTelegram: 'Telegram orqali kirish',
-    telegramWaiting: 'Telegramdagi xabarni oching va «Tasdiqlash» tugmasini bosing.',
-    telegramCancel: 'Bekor qilish',
-  },
-  totp: {
-    setupTitle: 'Ikki bosqichli himoyani yoqing',
-    setupHint:
-      'Google Authenticator yoki shunga oʻxshash ilovada QR kodni skanerlang, soʻng 6 xonali kodni kiriting.',
-    secretLabel: 'Qoʻlda kiritish uchun kalit',
-    verifyTitle: 'Tasdiqlash kodi',
-    verifyHint: 'Autentifikator ilovasidagi 6 xonali kodni kiriting.',
-    telegramSent:
-      'Telegramga tasdiqlash soʻrovi yuborildi: botdagi «Tasdiqlash»ni bossangiz, kodsiz kirasiz. Yoki quyida kodni kiriting.',
-    code: 'Kod',
-    useBackup: 'Zaxira kod bilan kirish',
-    backupCode: 'Zaxira kod',
-    submit: 'Tasdiqlash',
-    backupTitle: 'Zaxira kodlarni saqlang',
-    backupHint:
-      'Telefoningiz yoʻqolsa, shu kodlar bilan kirasiz. Har biri bir marta ishlaydi. Ular boshqa koʻrsatilmaydi.',
-    backupDone: 'Saqladim, davom etish',
-  },
-  invite: {
-    title: 'Parol oʻrnating',
-    hint: 'Kamida 10 belgi. Uzun va eslab qolinadigan iborani tanlang.',
-    password: 'Yangi parol',
-    confirm: 'Parolni takrorlang',
-    mismatch: 'Parollar mos emas.',
-    submit: 'Davom etish',
+    waitingTitle: 'Telegramda tasdiqlang',
+    telegramWaiting: 'Markaz botidagi xabarni oching va «Tasdiqlash» tugmasini bosing.',
+    noMessage:
+      'Xabar kelmadimi? Botni oching, «Start» bosing va telefon raqamingizni ulashing, soʻng shu yerda qayta urinib koʻring.',
+    openBot: 'Botni ochish',
+    telegramCancel: 'Orqaga',
   },
   handoff: {
     loading: 'Boshqaruv paneliga kirilmoqda…',
     missing: 'Kirish havolasi toʻliq emas. Mini Appʼda tugmani qayta bosing.',
-    toLogin: 'Telefon va parol bilan kirish',
+    toLogin: 'Telefon raqam bilan kirish',
   },
   nav: {
     home: 'Bosh sahifa',
@@ -72,11 +49,9 @@ export const webMessages = {
   },
   telegramLink: {
     title: 'Telegramni ulash',
-    hint: 'Mini App va bot sizni taniydi: jadval, chek navbati va tasdiqlashlar telefonda.',
-    get: 'Ulash havolasini olish',
+    hint: 'Panelga endi faqat Telegram orqali kiriladi. Hozir ulab qoʻying — aks holda chiqib ketsangiz, qayta kira olmaysiz.',
     open: 'Botni ochish va ulash',
-    steps: 'Botda «Start» bosing va raqamingizni ulashing. Havola 24 soat, bir marta ishlaydi.',
-    linked: 'Telegram akkauntingiz ulangan.',
+    steps: 'Botda «Start» bosing va telefon raqamingizni ulashing.',
   },
   sessions: {
     title: 'Mening sessiyalarim',

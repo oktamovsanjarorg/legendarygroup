@@ -5,4 +5,5 @@ export * from './staff-directory.service.js';
 export * from './staff-link.service.js';
 export * from './guardian-link.service.js';
 export * from './student-link.service.js';
+export * from './telegram-claim.js';
 export * from './user-version.js';

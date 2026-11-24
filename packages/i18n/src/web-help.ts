@@ -61,7 +61,7 @@ export const webHelpMessages = {
       {
         to: '/staff',
         title: 'Xodimlar',
-        body: 'Admin va ustoz qoʻshish (taklif havolasi bilan), rol berish, ishdan ketganni bloklash.',
+        body: 'Admin va ustoz qoʻshish (ular botda raqamini ulashib kiradi), rol berish, ishdan ketganni bloklash.',
       },
       {
         to: '/help',

@@ -24,8 +24,7 @@ export const helpSectionsOrg: readonly HelpSection[] = [
         q: 'Web panelga qanday kiraman?',
         steps: [
           'Mini App orqali (eng oson): Telegramda markaz botini oching → menyu tugmasi bilan Mini Appʼni oching → «Bugun» ekrani pastidagi «Boshqaruv panelini ochish» tugmasini bosing.',
-          'Kompyuterda parol bilan: https://app.legendary-academy.uz → «Telefon raqam» maydonida 9 ta raqamni kiriting → «Parol» → «Kirish» → botdagi «✅ Tasdiqlash» yoki Authenticatorʼdagi 6 xonali kod.',
-          'Faqat Telegram bilan: telefon raqamni kiriting → «Telegram orqali kirish» → botdagi «✅ Tasdiqlash».',
+          'Kompyuterda: https://app.legendary-academy.uz → telefon raqamni kiriting → «Telegram orqali kirish» → botdagi «✅ Tasdiqlash». Parol va kod yoʻq.',
         ],
         note: 'Havola bir martalik va 60 soniya amal qiladi: har safar tugmani qayta bosing, havolani birovga yubormang.',
       },
@@ -33,20 +32,18 @@ export const helpSectionsOrg: readonly HelpSection[] = [
         id: 'kirish-muammolar',
         q: 'Kira olmayapman — nima qilay?',
         steps: [
-          '«Telefon raqam yoki parol notoʻgʻri»: raqamni tekshiring (+998 dan keyin 9 ta raqam, boʻshliqsiz). Raqam toʻgʻri boʻlsa — parol xato.',
-          '«Tasdiqlash kodi notoʻgʻri»: Authenticatorʼda eski «Legendary Group» yozuvi qolgan. Hammasini oʻchirib, QRʼni qayta skanerlang yoki botdagi «Tasdiqlash»ni bosing.',
-          'Botdan xabar kelmadi: Telegram akkauntingiz ulanmagan boʻlishi mumkin — «Telegramni ulash»ga qarang.',
-          'Parolni unutdim: Mini App → «Boshqaruv panelini ochish» bilan kiring yoki texnik masʼulga murojaat qiling.',
+          'Botdan xabar kelmadi: botni oching → «Start» → «Telefon raqamni ulashish» → kirish sahifasida qayta urinib koʻring.',
+          'Bot «boshqa profilga ulangan» desa: Direktor «Xodimlar» → xodim → «Telegramni uzish»ni bossin, soʻng raqamni qayta ulashing.',
+          'Bot raqamni tanimasa: Telegramdagi raqamingiz «Xodimlar»da yozilgan raqam bilan bir xilmi — Direktordan soʻrang.',
         ],
       },
       {
         id: 'telegram-ulash',
         q: 'Telegramni qanday ulayman?',
         steps: [
-          'Web panel → Bosh sahifa → «Telegramni ulash» → «Ulash havolasini olish» → «Botni ochish va ulash».',
-          'Botda «Start» bosing va telefon raqamingizni ulashing.',
+          'Markaz botini oching → «Start» → «Telefon raqamni ulashish».',
+          'Raqam «Xodimlar»dagi raqam bilan bir xil boʻlsa — darhol ulanadi.',
         ],
-        note: 'Havola 24 soat, bir marta amal qiladi.',
       },
       {
         id: 'sessiyalar',
@@ -67,10 +64,10 @@ export const helpSectionsOrg: readonly HelpSection[] = [
         q: 'Administrator yoki oʻqituvchi (ustoz) qanday qoʻshaman?',
         steps: [
           'Menyu → «Xodimlar» → «Xodim qoʻshish».',
-          'F.I.Sh, telefon raqam, rolni tanlang → «Qoʻshish va taklif qilish».',
-          'Taklif havolasini nusxalab xodimga yuboring (Admin havola orqali parol oʻrnatadi, oʻqituvchi / ustoz Telegramda ochadi).',
+          'F.I.Sh, telefon raqam (Telegramdagi raqami), rolni tanlang → «Qoʻshish».',
+          'Xodim markaz botini ochib, «Start» → «Telefon raqamni ulashish»ni bosadi — kirdi. Parol yoʻq.',
         ],
-        note: 'Havola yoʻqolsa yoki muddati oʻtsa: xodim kartasi → «Taklifni qayta yuborish».',
+        note: 'Xodim telefonini yoki Telegramini almashtirsa: xodim kartasi → «Telegramni uzish», soʻng raqamini botda qayta ulashadi.',
       },
       {
         id: 'ustoz-roli',
@@ -79,7 +76,7 @@ export const helpSectionsOrg: readonly HelpSection[] = [
           'Menyu → «Xodimlar» → oʻzingizni tanlang → «Ustoz rolini qoʻshish».',
           'Guruhga oʻzingizni ustoz qilib biriktiring.',
         ],
-        note: 'Mini App ochilganda «Direktor» yoki «Ustoz» rejimini tanlaysiz, almashtirish — bir tegish.',
+        note: 'Mini App ochilganda «Direktor» yoki «Ustoz» rejimini tanlaysiz. Keyin almashtirish: Mini App yuqorisidagi ⋮ → Sozlamalar → «Faol rol».',
       },
       {
         id: 'xodim-bloklash',

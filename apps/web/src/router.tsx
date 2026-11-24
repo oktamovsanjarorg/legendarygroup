@@ -6,11 +6,11 @@ import {
   createRouter,
   Outlet,
   type RouterHistory,
+  redirect,
 } from '@tanstack/react-router';
 import { AppLayout } from './layout/app-layout.js';
 import { HandoffPage } from './pages/handoff.js';
 import { HomePage } from './pages/home.js';
-import { InvitePage } from './pages/invite.js';
 import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
 import { VerifyPage } from './pages/verify.js';
@@ -56,11 +56,12 @@ const login = createRoute({
   path: '/login',
   component: () => <LoginPage />,
 });
+/** Eski taklif havolalari (Q-98 gacha) — endi kirish faqat Telegram orqali. */
 const invite = createRoute({
   getParentRoute: () => root,
   path: '/invite/$token',
-  component: function Invite() {
-    return <InvitePage token={invite.useParams().token} />;
+  beforeLoad: () => {
+    throw redirect({ to: '/login' });
   },
 });
 const verify = createRoute({

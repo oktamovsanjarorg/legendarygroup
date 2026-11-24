@@ -4,7 +4,6 @@ import type {
   Permission,
   RoleCode,
   StaffDetail,
-  StaffInvite,
   StaffListItem,
   StaffRole,
 } from '@lg/contracts';
@@ -32,7 +31,7 @@ export const useCreateStaff = () => {
 export type StaffAction =
   | { kind: 'block' }
   | { kind: 'unblock' }
-  | { kind: 'reinvite' }
+  | { kind: 'unlinkTelegram' }
   | { kind: 'addRole'; role: StaffRole }
   | { kind: 'removeRole'; role: RoleCode }
   /** `granted: null` — override olib tashlanadi (rol standarti qaytadi). */
@@ -47,8 +46,8 @@ const call = (id: string, a: StaffAction): Call => {
       return { path: `${rbac}/block`, method: 'POST' };
     case 'unblock':
       return { path: `/staff/${id}/unblock`, method: 'POST' };
-    case 'reinvite':
-      return { path: `/staff/${id}/invite`, method: 'POST' };
+    case 'unlinkTelegram':
+      return { path: `/staff/${id}/telegram/unlink`, method: 'POST' };
     case 'addRole':
       return { path: `/staff/${id}/roles`, method: 'POST', body: { role: a.role } };
     case 'removeRole':
@@ -64,20 +63,13 @@ const call = (id: string, a: StaffAction): Call => {
   }
 };
 
-/** Javobdagi taklif havolasi (qayta taklif yoki yangi rol uchun kanal) — bo'lsa. */
-const inviteOf = (res: unknown): StaffInvite | null => {
-  if (!res || typeof res !== 'object') return null;
-  if ('invite' in res) return (res as CreateStaffResult).invite;
-  return 'url' in res ? (res as StaffInvite) : null;
-};
-
 /** Xodim ustidagi amallar (T-101): har biri ro'yxat va tafsilotni yangilaydi. */
 export const useStaffAction = (id: string) => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (a: StaffAction) => {
       const { path, ...init } = call(id, a);
-      return inviteOf(await api.request<unknown>(path, init));
+      await api.request<unknown>(path, init);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: LIST }),
   });

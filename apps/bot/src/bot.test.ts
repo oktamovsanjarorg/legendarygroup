@@ -38,15 +38,14 @@ export const memoryStore = (): BotStore => {
   };
 };
 
-/** Fake API: Karimov Rustam uchun faol taklif `good-token`, raqam +998932220002. */
+/** Fake API: xodim Karimov Rustam +998932220002; +998932220009 — boshqa Telegram'da. */
 function fakeApi(): InternalApi & { shared: unknown[] } {
   const shared: unknown[] = [];
   return {
     shared,
-    checkStaffInvite: async (token) =>
-      token === 'good-token' ? { valid: true, fullName: 'Karimov <Rustam>' } : { valid: false },
     shareContact: async (input) => {
       shared.push(input);
+      if (input.phone.replace(/\D/g, '') === '998932220009') return { result: 'conflict' };
       return input.phone.replace(/\D/g, '') === '998932220002'
         ? { result: 'staff_linked', fullName: 'Karimov Rustam' }
         : { result: 'not_found' };
@@ -230,21 +229,28 @@ const contact = (phone: string, contactUserId = 42): Update => ({
 });
 
 describe('Ustozni ulash (T-101) va Ota-ona onboarding (T-110)', () => {
-  it('/start inv_<token> — ism (HTML escape) va "telefon ulashish" tugmasi', async () => {
+  it('Q-98: eski /start inv_<token> havolasi ham oddiy /start kabi — raqam tugmasi', async () => {
     const { bot, calls } = setup();
-    await bot.handleUpdate(command('/start inv_good-token'));
-    expect(calls).toHaveLength(1);
-    expect(calls[0]?.payload['text']).toContain('Karimov &lt;Rustam&gt;');
+    await bot.handleUpdate(command('/start inv_old', 99));
+    expect(calls[0]?.payload['text']).toContain(botMessages.parentOnboarding.welcomeTitle);
     expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('"request_contact":true');
   });
 
-  it('eskirgan taklif — tushunarli xabar', async () => {
+  it('Q-98: ota-ona soʻrovi kutilayotgan odam ham raqamini qayta ulasha oladi', async () => {
     const { bot, calls } = setup();
-    await bot.handleUpdate(command('/start inv_old'));
-    expect(calls[0]?.payload['text']).toBe(botMessages.staffInvite.invalid);
+    await bot.handleUpdate(command('/start', 102));
+    expect(JSON.stringify(calls[0]?.payload['reply_markup'])).toContain('"request_contact":true');
   });
 
-  it("o'z kontakti xodim taklifi bilan — ulandi (klaviatura olinadi, ilova tugmasi)", async () => {
+  it('Q-98: raqam boshqa Telegramga ulangan — aniq xabar, ota-ona oqimiga oʻtmaydi', async () => {
+    const { bot, calls, api } = setup();
+    await bot.handleUpdate(contact('998932220009'));
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.payload['text']).toBe(botMessages.staffInvite.conflict);
+    expect(api.shared).toHaveLength(1);
+  });
+
+  it("o'z kontakti xodimniki — taklifsiz ulandi (klaviatura olinadi, ilova tugmasi)", async () => {
     const { bot, calls, api } = setup();
     await bot.handleUpdate(contact('998932220002'));
     expect(api.shared).toEqual([{ telegramId: 42, phone: '998932220002', username: 'rustam_k' }]);
@@ -285,6 +291,14 @@ describe('Ustozni ulash (T-101) va Ota-ona onboarding (T-110)', () => {
     expect(calls.at(-1)?.payload['text']).toContain(
       botMessages.parentOnboarding.requestCreatedTitle,
     );
+  });
+
+  it('Q-98: ota-ona oqimida conflict — aniq xabar, «soʻrov qabul qilindi» emas', async () => {
+    const api = fakeApi();
+    api.shareGuardianContact = async () => ({ result: 'conflict' });
+    const { bot, calls } = setup(undefined, api);
+    await bot.handleUpdate(contact('+998901112233'));
+    expect(calls.map((c) => c.payload['text'])).toEqual([botMessages.staffInvite.conflict]);
   });
 
   it('farzandi roʻyxatsiz ota-ona — matn i18n dan', async () => {

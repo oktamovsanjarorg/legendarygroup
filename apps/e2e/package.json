@@ -12,7 +12,6 @@
   "devDependencies": {
     "@lg/config": "workspace:*",
     "@playwright/test": "1.64.1",
-    "@lg/i18n": "workspace:*",
-    "otpauth": "9.6.0"
+    "@lg/i18n": "workspace:*"
   }
 }

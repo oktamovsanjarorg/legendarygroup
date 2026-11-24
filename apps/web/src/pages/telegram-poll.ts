@@ -33,7 +33,8 @@ export function useTelegramPoll(
         if (!stop) fail.current?.(e);
       }
     };
-    void tick();
+    // Darhol emas: ikki marta mount'da (StrictMode) bekor bo'lgan so'rov bir martalik natijani yemasin.
+    timer = setTimeout(() => void tick(), 0);
     return () => {
       stop = true;
       clearTimeout(timer);
