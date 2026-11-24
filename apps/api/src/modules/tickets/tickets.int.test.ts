@@ -9,10 +9,12 @@ import {
   notifications,
   seed,
   studentGuardians,
+  users,
 } from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
+import { dispatchEvents } from '../../test/dispatch-event.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 
 describe('Murojaatlar va sababli xabarnoma (T-306 / FR-RPT-7, FR-ATT-7)', () => {
@@ -220,6 +222,7 @@ describe('Murojaatlar va sababli xabarnoma (T-306 / FR-RPT-7, FR-ATT-7)', () => 
       });
 
       expect(res.statusCode).toBe(201);
+      await dispatchEvents(t, db, 'TicketMessageCreated');
 
       // Bildirishnoma bazaga tushganini tekshiramiz
       const notifs = await db
@@ -228,6 +231,35 @@ describe('Murojaatlar va sababli xabarnoma (T-306 / FR-RPT-7, FR-ATT-7)', () => 
         .where(eq(notifications.userId, guardian1UserId));
       expect(notifs.length).toBeGreaterThan(0);
       expect(notifs.some((n) => n.title?.includes('Murojaatingizga javob'))).toBe(true);
+    });
+
+    it('T-138: javob — alohida tur (eʼlon emas), takror yetkazilsa ham bitta', async () => {
+      await dispatchEvents(t, db, 'TicketMessageCreated');
+      const notifs = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, guardian1UserId));
+      expect(notifs.map((n) => n.type)).toEqual(['ticket_reply']);
+    });
+
+    it('T-138: javob beruvchi ismi qaytadi, tomoni belgilanadi, holat → in_progress', async () => {
+      const get = await t.app.inject({
+        method: 'GET',
+        url: `/api/tickets/${createdTicketId}`,
+        headers: { authorization: `Bearer ${tokens.get('admin')}` },
+      });
+      const d = get.json<{ status: string; messages: { authorRole: string }[] }>();
+      expect(d.status).toBe('in_progress');
+      expect(d.messages.map((m) => m.authorRole)).toEqual(['author', 'staff']);
+      const reply = await t.app.inject({
+        method: 'POST',
+        url: `/api/tickets/${createdTicketId}/messages`,
+        headers: { authorization: `Bearer ${tokens.get('admin')}` },
+        payload: { text: 'Yana savol boʻlsa yozing.' },
+      });
+      const m = reply.json<{ authorId: string; authorName: string }>();
+      expect(m.authorName).not.toBe(m.authorId);
+      expect(m.authorName.length).toBeGreaterThan(0);
     });
 
     it('Admin ticket holatini "resolved" ga oʻzgartiradi', async () => {
@@ -242,6 +274,53 @@ describe('Murojaatlar va sababli xabarnoma (T-306 / FR-RPT-7, FR-ATT-7)', () => 
 
       expect(res.statusCode).toBe(200);
       expect(res.json<{ status: string }>().status).toBe('resolved');
+    });
+
+    it('T-138: ota-ona hal boʻlgan murojaatga yozsa — qayta ochiladi, xodimga xabar boradi', async () => {
+      const managerId = await createUserWithRole(db, 'admin', '+998905559900');
+      await db.update(users).set({ telegramId: 990002n }).where(eq(users.id, managerId));
+      const res = await t.app.inject({
+        method: 'POST',
+        url: `/api/tickets/${createdTicketId}/messages`,
+        headers: { authorization: `Bearer ${guardian1Token}` },
+        payload: { text: 'Hali hal boʻlmadi' },
+      });
+      expect(res.statusCode).toBe(201);
+      const get = await t.app.inject({
+        method: 'GET',
+        url: `/api/tickets/${createdTicketId}`,
+        headers: { authorization: `Bearer ${tokens.get('admin')}` },
+      });
+      expect(get.json<{ status: string }>().status).toBe('open');
+      await dispatchEvents(t, db, 'TicketMessageCreated');
+      const tasks = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, managerId));
+      expect(tasks.some((n) => n.type === 'staff_task' && n.body === 'Hali hal boʻlmadi')).toBe(
+        true,
+      );
+    });
+
+    it('T-138: yopilgan murojaatga xodim javob yozolmaydi (409); masʼul — faqat faol xodim (400)', async () => {
+      const admin = { authorization: `Bearer ${tokens.get('admin')}` };
+      const url = `/api/tickets/${createdTicketId}`;
+      const bad = await t.app.inject({
+        method: 'PATCH',
+        url,
+        headers: admin,
+        payload: { assignedTo: guardian1UserId },
+      });
+      expect(bad.statusCode).toBe(400);
+      await t.app.inject({ method: 'PATCH', url, headers: admin, payload: { status: 'closed' } });
+      const res = await t.app.inject({
+        method: 'POST',
+        url: `${url}/messages`,
+        headers: admin,
+        payload: { text: 'Kech javob' },
+      });
+      expect(res.statusCode).toBe(409);
+      expect(res.json<{ code: string }>().code).toBe('TICKET_CLOSED');
     });
   });
 

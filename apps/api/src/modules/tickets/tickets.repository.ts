@@ -5,7 +5,9 @@ import {
   students,
   ticketMessages,
   type TicketMessageRow,
+  type TicketRow,
   tickets,
+  type Transaction,
   users,
 } from '@lg/db';
 import { and, desc, eq } from 'drizzle-orm';
@@ -39,8 +41,8 @@ export class TicketsRepository {
   ) {}
 
   /** Yangi ticket yaratish */
-  async createTicket(input: CreateTicketRepoInput) {
-    const [row] = await this.db
+  async createTicket(tx: Transaction, input: CreateTicketRepoInput) {
+    const [row] = await tx
       .insert(tickets)
       .values({
         branchId: input.branchId,
@@ -56,8 +58,12 @@ export class TicketsRepository {
   }
 
   /** Ticketga yangi xabar qo'shish */
-  async createMessage(input: CreateMessageRepoInput): Promise<TicketMessageRow> {
-    const [row] = await this.db
+  async createMessage(
+    tx: Transaction,
+    input: CreateMessageRepoInput,
+    status?: TicketStatus,
+  ): Promise<TicketMessageRow> {
+    const [row] = await tx
       .insert(ticketMessages)
       .values({
         ticketId: input.ticketId,
@@ -68,15 +74,37 @@ export class TicketsRepository {
       .returning();
     if (!row) throw new Error('Message not created');
 
-    await this.db
+    await tx
       .update(tickets)
       .set({
+        ...(status ? { status } : {}),
         lastMessageAt: this.clock.now(),
         updatedAt: this.clock.now(),
       })
       .where(eq(tickets.id, input.ticketId));
 
     return row;
+  }
+
+  transaction<T>(run: (tx: Transaction) => Promise<T>): Promise<T> {
+    return this.db.transaction(run);
+  }
+
+  /** Xabar yozish vaqtida holat o'zgarib ketmasin (yopish bilan poyga). */
+  async lockTicket(tx: Transaction, id: string): Promise<TicketRow | null> {
+    const [row] = await tx.select().from(tickets).where(eq(tickets.id, id)).for('update');
+    return row ?? null;
+  }
+
+  /** Event uchun: xabar va uning murojaati. */
+  async messageWithTicket(messageId: string) {
+    const [row] = await this.db
+      .select({ message: ticketMessages, ticket: tickets, authorName: users.fullName })
+      .from(ticketMessages)
+      .innerJoin(tickets, eq(tickets.id, ticketMessages.ticketId))
+      .innerJoin(users, eq(users.id, ticketMessages.authorId))
+      .where(eq(ticketMessages.id, messageId));
+    return row ?? null;
   }
 
   /** ID bo'yicha ticketni topish */

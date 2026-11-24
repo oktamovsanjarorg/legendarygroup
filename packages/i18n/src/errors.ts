@@ -144,6 +144,7 @@ export const errorMessages = {
   GUARDIAN_TELEGRAM_NOT_LINKED:
     'Ota-ona Telegram botga ulanmagan — eslatma yetib bormaydi. Qoʻngʻiroq qiling.',
   REMINDER_ALREADY_SENT: 'Bugun bu oʻquvchi boʻyicha eslatma yuborilgan.',
+  TICKET_CLOSED: 'Murojaat yopilgan. Javob yozish uchun avval qayta oching.',
   NO_TELEGRAM: 'Foydalanuvchi Telegram botga ulanmagan — avval botga ulanishi kerak.',
 } as const;
 

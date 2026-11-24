@@ -1,26 +1,19 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Inject,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Inject, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   DEFAULT_BRANCH_ID,
   type ListUndeliveredQuery,
+  ListUndeliveredQuerySchema,
   type NotificationPreference,
   type UndeliveredNotificationItem,
   type UpdateNotificationPreferencesRequest,
+  UpdateNotificationPreferencesRequestSchema,
 } from '@lg/contracts';
 import { Audit } from '../../common/audit/audit.decorator.js';
 import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
 import { Authenticated } from '../../common/decorators/access.decorators.js';
+import { ZodBody, ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { NotificationDeliveryService } from './notification-delivery.service.js';
 import { NotificationsService } from './notifications.service.js';
@@ -39,7 +32,7 @@ export class NotificationsController {
   @NoAudit('Bildirishnoma sozlamalari')
   @ApiOperation({ summary: 'FR-RPT-4: Foydalanuvchining bildirishnoma sozlamalarini olish' })
   async getPreferences(@CurrentUser() actor: RequestUser): Promise<NotificationPreference[]> {
-    return this.service.getUserPreferences(actor.id);
+    return this.service.getUserPreferences(actor.id, actor.role);
   }
 
   @Patch('preferences')
@@ -50,9 +43,9 @@ export class NotificationsController {
   })
   async updatePreferences(
     @CurrentUser() actor: RequestUser,
-    @Body() body: UpdateNotificationPreferencesRequest,
+    @ZodBody(UpdateNotificationPreferencesRequestSchema) body: UpdateNotificationPreferencesRequest,
   ): Promise<NotificationPreference[]> {
-    return this.service.updateUserPreferences(actor.id, body.preferences);
+    return this.service.updateUserPreferences(actor.id, body.preferences, actor.role);
   }
 
   @Get('undelivered')
@@ -61,7 +54,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'FR-RPT-6: Yetib bormagan (xatolik yoki bloklangan) xabarlar roʻyxati' })
   async getUndelivered(
     @CurrentUser() actor: RequestUser,
-    @Query() query: ListUndeliveredQuery,
+    @ZodQuery(ListUndeliveredQuerySchema) query: ListUndeliveredQuery,
   ): Promise<UndeliveredNotificationItem[]> {
     const branchId = query.branchId ?? DEFAULT_BRANCH_ID;
     return this.service.getUndelivered(branchId, query.status);

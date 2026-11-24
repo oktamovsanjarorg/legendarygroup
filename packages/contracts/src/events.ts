@@ -22,6 +22,13 @@ export const EVENT_TYPES = [
   'ApprovalDecided',
   // Q-95: guruhga yozildi — billing joriy oy qatorini darhol yozadi (BR-3, BR-6).
   'EnrollmentCreated',
+  // T-138: murojaatga xabar yozildi — xodim javobi ota-onaga, ota-ona xabari xodimlarga.
+  'TicketMessageCreated',
+  // T-135: nomaʼlum raqam soʻrov qoldirdi / soʻrov tasdiqlandi.
+  'GuardianLinkRequested',
+  'GuardianLinkApproved',
+  // BR-13: ota-ona chek yubordi — tekshiruvchi xodimga xabar.
+  'PaymentSubmissionCreated',
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
@@ -34,6 +41,10 @@ export interface EventPayloads {
   TelegramSendFailed: { notificationId: string; error: string };
   TestResultsPublished: { testId: string; groupId: string; title: string };
   EnrollmentCreated: { enrollmentId: string; studentId: string };
+  TicketMessageCreated: { ticketId: string; messageId: string };
+  PaymentSubmissionCreated: { submissionId: string };
+  GuardianLinkRequested: { requestId: string };
+  GuardianLinkApproved: { requestId: string; userId: string };
   ApprovalDecided: {
     requestId: string;
     requestedBy: string;

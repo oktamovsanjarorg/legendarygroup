@@ -28,15 +28,21 @@ export const ListGuardianLinkRequestsQuerySchema = z.object({
 });
 export type ListGuardianLinkRequestsQuery = z.infer<typeof ListGuardianLinkRequestsQuerySchema>;
 
-export const ApproveGuardianLinkRequestSchema = z.object({
-  guardianId: z.string().uuid().optional(),
-  studentId: z.string().uuid().optional(),
-  relation: z.enum(GUARDIAN_RELATIONS).optional(),
-});
+/** Aynan bittasi: farzand (yangi bogʻlanish) yoki bazadagi ota-ona kartasi. */
+export const ApproveGuardianLinkRequestSchema = z
+  .object({
+    guardianId: z.string().uuid().optional(),
+    studentId: z.string().uuid().optional(),
+    relation: z.enum(GUARDIAN_RELATIONS).optional(),
+  })
+  .refine((v) => (v.guardianId === undefined) !== (v.studentId === undefined), {
+    message: 'LINK_TARGET_REQUIRED',
+    path: ['studentId'],
+  });
 export type ApproveGuardianLinkRequest = z.infer<typeof ApproveGuardianLinkRequestSchema>;
 
 export const RejectGuardianLinkRequestSchema = z.object({
-  reason: z.string().min(2).max(500),
+  reason: z.string().trim().min(2).max(500),
 });
 export type RejectGuardianLinkRequest = z.infer<typeof RejectGuardianLinkRequestSchema>;
 

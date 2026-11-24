@@ -6,16 +6,18 @@ export type TicketStatus = (typeof TICKET_STATUSES)[number];
 export const TICKET_PRIORITIES = ['low', 'normal', 'high'] as const;
 export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
 
+export const TICKET_SIDES = ['author', 'staff'] as const;
+
 export const CreateTicketSchema = z.object({
   studentId: z.string().uuid().optional().nullable(),
-  subject: z.string().min(3).max(200),
-  message: z.string().min(5).max(3000),
+  subject: z.string().trim().min(3).max(200),
+  message: z.string().trim().min(5).max(3000),
   priority: z.enum(TICKET_PRIORITIES).default('normal'),
 });
 export type CreateTicketRequest = z.infer<typeof CreateTicketSchema>;
 
 export const CreateTicketMessageSchema = z.object({
-  text: z.string().min(1).max(3000),
+  text: z.string().trim().min(1).max(3000),
   fileUrl: z.string().url().optional().nullable(),
 });
 export type CreateTicketMessageRequest = z.infer<typeof CreateTicketMessageSchema>;
@@ -32,7 +34,8 @@ export const TicketMessageItemSchema = z.object({
   ticketId: z.string().uuid(),
   authorId: z.string().uuid(),
   authorName: z.string(),
-  authorRole: z.string(),
+  /** Murojaat egasi yoki javob bergan xodim (UI xabar tomonini shundan biladi). */
+  authorRole: z.enum(TICKET_SIDES),
   text: z.string(),
   fileUrl: z.string().nullable(),
   createdAt: z.string(),

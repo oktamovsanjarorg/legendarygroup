@@ -14,6 +14,12 @@ export const NOTIFICATION_TYPES = [
   'announcement',
   // T-119: tasdiqlash so'rovi natijasi so'rovchi xodimga.
   'approval_decided',
+  // T-135: bogʻlanish soʻrovi tasdiqlandi — ota-onaga.
+  'link_approved',
+  // T-138: murojaatga javob — ota-onaga (eʼlonni oʻchirgan boʻlsa ham keladi).
+  'ticket_reply',
+  // Q-99: xodimga yangi ish (murojaat, bogʻlanish soʻrovi) — panel oʻrniga bot xabari.
+  'staff_task',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -23,8 +29,16 @@ export const MANDATORY_NOTIFICATION_TYPES = [
   'billing_invoice_created',
   'billing_payment_confirmed',
   'approval_decided',
+  'link_approved',
+  'ticket_reply',
 ] as const;
 export type MandatoryNotificationType = (typeof MANDATORY_NOTIFICATION_TYPES)[number];
+
+/** Faqat xodimga tegishli turlar — ota-ona sozlamalarida koʻrsatilmaydi. */
+export const STAFF_NOTIFICATION_TYPES = [
+  'approval_decided',
+  'staff_task',
+] as const satisfies readonly NotificationType[];
 
 export const NOTIFICATION_STATUSES = ['queued', 'sent', 'failed', 'blocked'] as const;
 export type NotificationStatus = (typeof NOTIFICATION_STATUSES)[number];
@@ -42,7 +56,7 @@ export const NotificationPreferenceSchema = z.object({
 export type NotificationPreference = z.infer<typeof NotificationPreferenceSchema>;
 
 export const UpdateNotificationPreferencesRequestSchema = z.object({
-  preferences: z.record(z.enum(NOTIFICATION_TYPES), z.boolean()),
+  preferences: z.partialRecord(z.enum(NOTIFICATION_TYPES), z.boolean()),
 });
 export type UpdateNotificationPreferencesRequest = z.infer<
   typeof UpdateNotificationPreferencesRequestSchema

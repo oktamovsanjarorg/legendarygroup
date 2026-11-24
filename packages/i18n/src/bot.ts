@@ -62,6 +62,14 @@ export const botMessages = {
     inUse:
       'Bu oʻquvchi yoki telefon raqami boshqa Telegram akkauntga bogʻlangan. Administratorga murojaat qiling.',
   },
+  /** Q-99: xodimga yangi ish (bildirishnoma; matnda shaxsiy maʼlumot — ism xolos). */
+  staffTask: {
+    submissionTitle: 'Yangi toʻlov cheki',
+    submissionBody: 'Chek navbatga tushdi. Ilovada «Chek navbati»ni oching.',
+    ticketTitle: 'Murojaat: {name}',
+    linkTitle: 'Yangi bogʻlanish soʻrovi',
+    linkBody: '{name} botga ulanmoqchi. Ilovada «Bogʻlanish soʻrovlari»ni oching.',
+  },
   submission: {
     confirmed: 'Toʻlovingiz tasdiqlandi. Chek raqami: {number}',
     rejected: 'Toʻlov chekingiz rad etildi. Sabab: {reason}',

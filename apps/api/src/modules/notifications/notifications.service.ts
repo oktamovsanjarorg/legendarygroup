@@ -2,9 +2,11 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import {
   DEFAULT_BRANCH_ID,
   NOTIFICATION_TYPES,
+  STAFF_NOTIFICATION_TYPES,
   type NotificationPreference,
   type NotificationStatus,
   type NotificationType,
+  type RoleCode,
   type UndeliveredNotificationItem,
 } from '@lg/contracts';
 import { type Database, users } from '@lg/db';
@@ -18,6 +20,7 @@ import {
 import { eq } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import { StaffDirectoryService } from '../rbac/index.js';
 import { TelegramOutbox } from '../telegram/index.js';
 import { NotificationsRepository } from './notifications.repository.js';
 
@@ -38,6 +41,7 @@ export class NotificationsService {
     @Inject(NotificationsRepository) private readonly repo: NotificationsRepository,
     @Inject(TelegramOutbox) private readonly telegramOutbox: TelegramOutbox,
     @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(StaffDirectoryService) private readonly staff: StaffDirectoryService,
   ) {}
 
   /**
@@ -90,6 +94,20 @@ export class NotificationsService {
     return notif.id;
   }
 
+  /**
+   * Q-99: yangi ish haqida botga ulangan faol Admin/Director'larga. `dedupeKey` — hodisa ID'si
+   * (event qayta yetkazilsa ham har xodimga bir marta).
+   */
+  async notifyStaff(task: { title: string; body: string; dedupeKey: string }): Promise<void> {
+    for (const userId of await this.staff.linkedManagerIds())
+      await this.notify({
+        userId,
+        type: 'staff_task',
+        dedupeKey: `${task.dedupeKey}-${userId}`,
+        payload: { title: task.title, body: task.body },
+      });
+  }
+
   private async isTypeEnabled(userId: string, type: NotificationType): Promise<boolean> {
     if (isNotificationMandatory(type)) return true;
     const prefs = await this.repo.getUserPreferences(userId);
@@ -98,11 +116,13 @@ export class NotificationsService {
   }
 
   /** Foydalanuvchi bildirishnoma sozlamalarini oladi */
-  async getUserPreferences(userId: string): Promise<NotificationPreference[]> {
+  async getUserPreferences(userId: string, role?: RoleCode): Promise<NotificationPreference[]> {
     const stored = await this.repo.getUserPreferences(userId);
     const storedMap = new Map(stored.map((s) => [s.type, s.enabled]));
 
-    return NOTIFICATION_TYPES.map((type) => {
+    const staffOnly: readonly NotificationType[] = STAFF_NOTIFICATION_TYPES;
+    const shown = NOTIFICATION_TYPES.filter((x) => role !== 'guardian' || !staffOnly.includes(x));
+    return shown.map((type) => {
       const isMandatory = isNotificationMandatory(type);
       const enabled = isMandatory ? true : (storedMap.get(type) ?? true);
       return {
@@ -117,17 +137,19 @@ export class NotificationsService {
   /** Foydalanuvchi sozlamalarini yangilaydi (FR-RPT-4) */
   async updateUserPreferences(
     userId: string,
-    updates: Record<NotificationType, boolean>,
+    updates: Partial<Record<NotificationType, boolean>>,
+    role?: RoleCode,
   ): Promise<NotificationPreference[]> {
-    for (const [key, enabled] of Object.entries(updates)) {
-      const type = key as NotificationType;
+    for (const type of NOTIFICATION_TYPES) {
+      const enabled = updates[type];
+      if (enabled === undefined) continue;
       const validation = validatePreferenceUpdate(type, enabled);
       if (!validation.valid) {
         throw new AppException(HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR', validation.reason);
       }
       await this.repo.upsertUserPreference(userId, type, enabled);
     }
-    return this.getUserPreferences(userId);
+    return this.getUserPreferences(userId, role);
   }
 
   /** Admin uchun "yetib bormagan xabarlar" ro'yxati */

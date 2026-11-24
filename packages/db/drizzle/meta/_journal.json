@@ -281,6 +281,13 @@
       "when": 1795537642404,
       "tag": "0039_reopen_void_invoices",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1795539343701,
+      "tag": "0040_notification_types_staff",
+      "breakpoints": true
     }
   ]
 }

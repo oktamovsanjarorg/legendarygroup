@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { RoleCode } from '@lg/contracts';
 import { type Database, roles, type Transaction, userRoles, users } from '@lg/db';
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 /**
@@ -40,6 +40,23 @@ export class StaffDirectoryService {
   /** Faol Admin yoki Director (masalan, lidga mas'ul — T-107). */
   isActiveManager(userId: string, tx: Database | Transaction = this.db): Promise<boolean> {
     return this.hasActiveRole(userId, ['admin', 'director'], tx);
+  }
+
+  /** Botga ulangan faol Admin/Director'lar — xodim xabarnomalari uchun (Q-99). */
+  async linkedManagerIds(): Promise<string[]> {
+    const rows = await this.db
+      .selectDistinct({ id: users.id })
+      .from(users)
+      .innerJoin(userRoles, eq(userRoles.userId, users.id))
+      .innerJoin(roles, eq(roles.id, userRoles.roleId))
+      .where(
+        and(
+          eq(users.status, 'active'),
+          isNotNull(users.telegramId),
+          inArray(roles.code, ['admin', 'director']),
+        ),
+      );
+    return rows.map((r) => r.id);
   }
 
   private async hasActiveRole(
