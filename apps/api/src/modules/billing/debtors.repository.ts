@@ -12,8 +12,9 @@ import {
   payments,
   studentGuardians,
   students,
+  users,
 } from '@lg/db';
-import { and, desc, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface RawDebtorStudent {
@@ -29,6 +30,14 @@ export interface DebtorGroupInfo {
   groupId: string;
   groupName: string;
   monthlyPrice: bigint;
+}
+
+export interface DebtorGuardian {
+  guardianId: string;
+  userId: string | null;
+  phone: string;
+  fullName: string;
+  linked: boolean;
 }
 
 export interface DebtorInvoiceInfo {
@@ -115,6 +124,8 @@ export class DebtorsRepository {
         and(
           inArray(invoices.studentId, studentIds),
           inArray(invoices.status, ['open', 'partially_paid']),
+          // BR-20: faqat haqiqatan to'lanmagan qoldiq kechikish sanaladi
+          sql`${invoiceOutstandingSql(invoices.id, invoices.total)} > 0`,
         ),
       );
 
@@ -154,7 +165,8 @@ export class DebtorsRepository {
     const rows = await this.db
       .select({
         studentId: paymentReminders.studentId,
-        cnt: sql<number>`count(${paymentReminders.id})::int`,
+        // Bir xabar bir nechta oyni qamrasa — bir yuborish (bir xil sent_at)
+        cnt: sql<number>`count(distinct ${paymentReminders.sentAt})::int`,
       })
       .from(paymentReminders)
       .where(inArray(paymentReminders.studentId, studentIds))
@@ -166,27 +178,47 @@ export class DebtorsRepository {
     return map;
   }
 
-  /** O'quvchining asosiy ota-onasini topadi. */
-  async findPrimaryGuardian(studentId: string) {
-    const [row] = await this.db
+  /** O'quvchilarning ota-onalari: avval asosiysi; `linked` — Telegram ulangan. */
+  async findGuardians(studentIds: string[]): Promise<Map<string, DebtorGuardian[]>> {
+    const map = new Map<string, DebtorGuardian[]>();
+    if (studentIds.length === 0) return map;
+    const rows = await this.db
       .select({
+        studentId: studentGuardians.studentId,
         guardianId: guardians.id,
         userId: guardians.userId,
         phone: guardians.phone,
         fullName: guardians.fullName,
+        linked: sql<boolean>`${users.telegramId} is not null`,
       })
       .from(studentGuardians)
       .innerJoin(guardians, eq(guardians.id, studentGuardians.guardianId))
-      .where(and(eq(studentGuardians.studentId, studentId), eq(studentGuardians.isPrimary, true)));
+      .leftJoin(users, eq(users.id, guardians.userId))
+      .where(inArray(studentGuardians.studentId, studentIds))
+      .orderBy(desc(studentGuardians.isPrimary), guardians.id);
+    for (const r of rows) map.set(r.studentId, [...(map.get(r.studentId) ?? []), r]);
+    return map;
+  }
 
-    return row ?? null;
+  /** Shu paytdan beri qo'lda eslatma yuborilgan o'quvchilar. */
+  async findManuallyReminded(studentIds: string[], since: Date): Promise<Set<string>> {
+    if (studentIds.length === 0) return new Set();
+    const rows = await this.db
+      .select({ studentId: paymentReminders.studentId })
+      .from(paymentReminders)
+      .where(
+        and(
+          inArray(paymentReminders.studentId, studentIds),
+          eq(paymentReminders.type, 'manual'),
+          gte(paymentReminders.sentAt, since),
+        ),
+      );
+    return new Set(rows.map((r) => r.studentId));
   }
 
   /** Eslatma yozuvini saqlaydi. */
-  async createReminder(data: NewPaymentReminderRow) {
-    const [row] = await this.db.insert(paymentReminders).values(data).returning();
-    if (!row) throw new Error('FAILED_TO_CREATE_REMINDER');
-    return row;
+  async createReminders(rows: NewPaymentReminderRow[]): Promise<void> {
+    if (rows.length > 0) await this.db.insert(paymentReminders).values(rows);
   }
 
   /** Invoice va tur bo'yicha eslatma yuborilganligini tekshiradi. */

@@ -102,7 +102,10 @@ export class StudentBillingSetupService {
     const byPeriod = new Map<string, Debt[]>();
     for (const d of debts) byPeriod.set(d.period, [...(byPeriod.get(d.period) ?? []), d]);
     for (const [period, items] of byPeriod) {
-      if (await this.repo.findInvoiceByStudentAndPeriod(tx, studentId, period)) continue;
+      const existing = await this.repo.findInvoiceByStudentAndPeriod(tx, studentId, period);
+      // Jim o'tkazilmaydi: kiritilgan qarz yo'qolib, sozlash «bajarilgan» bo'lib qolardi
+      if (existing && existing.status !== 'void')
+        throw new AppException(HttpStatus.CONFLICT, 'OPENING_DEBT_PERIOD_EXISTS', { period });
       const lines = items.map((d) => ({
         enrollmentId: d.enrollmentId,
         amount: BigInt(d.amount),
@@ -110,13 +113,16 @@ export class StudentBillingSetupService {
         description: `Tizimdan oldingi qarz (${period})`,
       }));
       const total = lines.reduce((a, l) => a + l.amount, 0n);
-      const invoice = await this.repo.insertInvoice(tx, {
-        studentId,
-        period,
-        dueDate: `${period}-10`,
-        total,
-        status: 'open',
-      });
+      if (existing) await this.repo.addToInvoiceTotal(tx, existing.id, total);
+      const invoice =
+        existing ??
+        (await this.repo.insertInvoice(tx, {
+          studentId,
+          period,
+          dueDate: `${period}-10`,
+          total,
+          status: 'open',
+        }));
       const inserted = await this.repo.insertInvoiceLines(
         tx,
         lines.map((l) => ({ ...l, invoiceId: invoice.id })),

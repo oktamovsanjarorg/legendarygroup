@@ -102,3 +102,19 @@ export function renderNotificationTemplate(
   const renderer = TEMPLATE_RENDERERS[type] ?? TEMPLATE_RENDERERS.announcement;
   return renderer(payload);
 }
+
+const escapeHtml = (s: string): string =>
+  s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+
+/**
+ * Telegram `sendMessage` matni. HTML + escape: avvalgi `Markdown` da ism, e'lon yoki havoladagi juftsiz
+ * `_`/`*`/`[` xabarni butunlay rad ettirardi ("can't parse entities").
+ */
+export function telegramMessage(rendered: { title: string; body: string }): {
+  text: string;
+  parse_mode: 'HTML';
+} {
+  const body = escapeHtml(rendered.body);
+  const text = rendered.title ? `<b>${escapeHtml(rendered.title)}</b>\n\n${body}` : body;
+  return { text, parse_mode: 'HTML' };
+}

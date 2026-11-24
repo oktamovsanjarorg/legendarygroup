@@ -37,6 +37,8 @@ export const errorMessages = {
     'Bu guruh hisobiga toʻlov qilingan. Avval toʻlovni bekor qiling, keyin guruhdan olib tashlang.',
   BILLING_ALREADY_SET:
     'Bu oʻquvchining hisobi allaqachon boshlangan. Tuzatish — toʻlovni bekor qilish yoki qarzni kechirish orqali.',
+  OPENING_DEBT_PERIOD_EXISTS:
+    'Bu oy uchun hisob allaqachon bor. Shu oyni belgilamang — qarzi kartochkada koʻrinadi.',
   FILE_TYPE_NOT_ALLOWED:
     'Bu turdagi faylni yuklab boʻlmaydi. Rasm (JPG, PNG, WEBP) yoki PDF tanlang.',
   FILE_TOO_LARGE: 'Fayl juda katta. Hajmi 10 MB dan oshmasin.',
@@ -139,6 +141,9 @@ export const errorMessages = {
   REFUND_EXCEEDS_ADVANCE: 'Qaytariladigan summa oʻquvchining avansidan koʻp.',
   PENALTY_ALREADY_PAID: 'Toʻlangan jarimani bekor qilib boʻlmaydi — avval toʻlovni storno qiling.',
   NOT_RETRYABLE: 'Bu xabar yetkazilgan yoki navbatda — qayta yuborib boʻlmaydi.',
+  GUARDIAN_TELEGRAM_NOT_LINKED:
+    'Ota-ona Telegram botga ulanmagan — eslatma yetib bormaydi. Qoʻngʻiroq qiling.',
+  REMINDER_ALREADY_SENT: 'Bugun bu oʻquvchi boʻyicha eslatma yuborilgan.',
   NO_TELEGRAM: 'Foydalanuvchi Telegram botga ulanmagan — avval botga ulanishi kerak.',
 } as const;
 

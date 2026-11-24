@@ -3,6 +3,7 @@ import {
   isNotificationMandatory,
   renderNotificationTemplate,
   validatePreferenceUpdate,
+  telegramMessage,
 } from './notification.policy.js';
 
 describe('Notification Domain Policy (FR-RPT-4)', () => {
@@ -51,5 +52,19 @@ describe('Notification Domain Policy (FR-RPT-4)', () => {
       expect(rendered.title).toBe('Toʻlov tasdiqlandi');
       expect(rendered.body).toContain('800 000 soʻm toʻlov muvaffaqiyatli qabul qilindi');
     });
+  });
+});
+
+describe('Telegram matni: foydalanuvchi matni formatlashni buzmaydi (T-109)', () => {
+  it('`_ * [` va `< & >` — xabar rad etilmaydi (HTML, escape)', () => {
+    const msg = telegramMessage({ title: 'A_B <test>', body: 'a_b *c [d & https://t.me/x_bot' });
+    expect(msg).toEqual({
+      text: '<b>A_B &lt;test&gt;</b>\n\na_b *c [d &amp; https://t.me/x_bot',
+      parse_mode: 'HTML',
+    });
+  });
+
+  it('sarlavhasiz — faqat matn', () => {
+    expect(telegramMessage({ title: '', body: 'x' }).text).toBe('x');
   });
 });

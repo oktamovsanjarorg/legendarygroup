@@ -164,10 +164,15 @@ export class BillingRepository {
     await tx.update(invoiceLines).set({ amount, description }).where(eq(invoiceLines.id, id));
   }
 
+  /** Bo'shab bekor qilingan (Q-96) hisobga qator qo'shilsa — qayta ochiladi: `void`ga to'lov tegmaydi. */
   async addToInvoiceTotal(tx: Transaction, invoiceId: string, amount: bigint): Promise<void> {
     await tx
       .update(invoices)
-      .set({ total: sql`${invoices.total} + ${amount}` })
+      .set({
+        total: sql`${invoices.total} + ${amount}`,
+        status: sql`CASE WHEN ${invoices.status} = 'void' AND ${invoices.total} + ${amount} > 0
+          THEN 'open' ELSE ${invoices.status} END`,
+      })
       .where(eq(invoices.id, invoiceId));
   }
 

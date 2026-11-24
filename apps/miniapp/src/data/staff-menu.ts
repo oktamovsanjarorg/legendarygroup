@@ -4,7 +4,7 @@
  * shu roʻyxatga qoʻshiladi — qurilmagan ekran koʻrsatilmaydi.
  */
 export type StaffSection = 'students' | 'money' | 'lessons' | 'comms' | 'director';
-export type StaffMenuKey = 'newStudent' | 'pay' | 'queue' | 'approvals';
+export type StaffMenuKey = 'newStudent' | 'pay' | 'debtors' | 'queue' | 'approvals';
 
 export interface StaffMenuItem {
   key: StaffMenuKey;
@@ -24,6 +24,8 @@ export const STAFF_SECTIONS: readonly StaffSection[] = [
 export const STAFF_MENU: readonly StaffMenuItem[] = [
   { key: 'newStudent', section: 'students', permission: 'student.manage', to: '/staff/new' },
   { key: 'pay', section: 'money', permission: 'payment.create', to: '/staff/pay' },
+  // `billing.view` ota-onada ham bor — markaz ro'yxati faqat xodimga (web W-15 bilan bir xil)
+  { key: 'debtors', section: 'money', permission: 'payment.review', to: '/staff/debtors' },
   { key: 'queue', section: 'money', permission: 'payment.review', to: '/staff/queue' },
   {
     key: 'approvals',

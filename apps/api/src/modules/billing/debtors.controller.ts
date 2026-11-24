@@ -11,13 +11,17 @@ import { Audit, NoAudit } from '../../common/audit/audit.decorator.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
 import { ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
+import { DebtRemindersService } from './debt-reminders.service.js';
 import { DebtorsService } from './debtors.service.js';
 
 @ApiTags('Billing: Debtors')
 @ApiBearerAuth()
 @Controller('billing/debtors')
 export class DebtorsController {
-  constructor(@Inject(DebtorsService) private readonly debtors: DebtorsService) {}
+  constructor(
+    @Inject(DebtorsService) private readonly debtors: DebtorsService,
+    @Inject(DebtRemindersService) private readonly reminders: DebtRemindersService,
+  ) {}
 
   @Get()
   @RequirePermission('billing.view')
@@ -53,6 +57,6 @@ export class DebtorsController {
     @CurrentUser() user: RequestUser,
     @Param('studentId', ParseUUIDPipe) studentId: string,
   ): Promise<SendReminderResponse> {
-    return this.debtors.sendManualReminder(user, studentId);
+    return this.reminders.sendManual(user, studentId);
   }
 }

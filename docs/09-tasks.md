@@ -344,10 +344,11 @@
 - **Bog'liq:** T-130, T-204 · **Talablar:** FR-PAY-1/2, BR-12
 - **AC:** MS-05 kartochkasidan va MS-06'dan; preview (taqsimot) server'dan; `Idempotency-Key` forma ochilganda; MainButton Saqlash; chek raqami + PDF; e2e ssenariy. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
 
-### ⬜ T-132 · Mini App: qarzdorlar (MS-08)
+### ✅ T-132 · Mini App: qarzdorlar (MS-08)
 
 - **Bog'liq:** T-130, T-208 · **Talablar:** FR-PAY-7, BR-22
 - **AC:** ro'yxat (qarz, kun), qo'ng'iroq `tel:`, eslatma — `notifications` orqali; → MS-07. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-24):** `pages/staff-debtors.tsx`, `screens/staff/debtors.tsx`; API `DebtRemindersService` (Q-100). Yo'lda tuzatilgan mantiq xatolari: yetib bormagan eslatma «yuborildi» deb sanalardi; bir kunda bir nechta xabar; to'langan hisob kechikish kuniga kirardi; `criticalOnly=false`; qidiruvda apostrof; bot xabarlarida `_`/`*` (T-109). Qolgan: haqiqiy Telegram'da qo'lda sinov.
 
 ### ⬜ T-133 · Mini App: lidlar (MS-09)
 
@@ -428,10 +429,100 @@
 - **Bog'liq:** T-146 production'da · **Qaror:** Q-98
 - **AC:** shart — production'da barcha faol Direktor/Admin Telegram'i ulangan. `auth/login`, `totp/*`, `invite/accept`, `staff_invites`, `user_backup_codes`, `password_hash`, `totp_secret`, `TOTP_ENCRYPTION_KEY`, seed taklif tokeni olinadi.
 
-### ⬜ T-148 · Web panel faqat Direktorga
+### ⬜ T-148 · Web panelni yopish
 
-- **Bog'liq:** T-132…T-142 · **Qaror:** Q-98
-- **AC:** Admin ekranlari Mini App'da tayyor bo'lgach `WEB_ROLES` va panel-handoff'dan `admin` olinadi; xodim qo'shish Mini App'da ham (Direktor).
+- **Bog'liq:** T-132…T-143, T-149…T-165 · **Qaror:** Q-98, Q-99, ADR 0008
+- **AC:** tenglik jadvali (`docs/ux/screens.md` MS ↔ W) to'liq; `apps/web`da faqat `/verify/<token>`; panel-handoff va web sessiyalari olinadi; runbook va qo'llanmalar yangilangan; egasi qabul qilgan.
+
+> **T-149…T-164 umumiy AC (ADR 0008):** avval API mantiqi BR/FR bilan solishtiriladi, har xato qizil test bilan; 5 holat, Storybook, faqat Telegram native tugmalar, RBAC; xavfli amalda tasdiq.
+
+### ⬜ T-149 · Mini App: guruh yaratish va tahrirlash (MS-20)
+
+- **Bog'liq:** T-130, T-136, T-103 · **Talablar:** FR-ORG-3/4/6, Q-69
+- **AC:** yaratish, holat, jadval, ustoz biriktirish (sana), sig'im; to'qnashuv xabari.
+
+### ⬜ T-150 · Mini App: kurslar va xonalar (MS-21)
+
+- **Bog'liq:** T-130, T-102 · **Talablar:** FR-ORG-1/2, Q-66
+- **AC:** ro'yxat, forma, arxivlash/tiklash.
+
+### ⬜ T-151 · Mini App: darslar kalendari (MS-22)
+
+- **Bog'liq:** T-130, T-104 · **Talablar:** FR-ORG-5, Q-86, BR-5
+- **AC:** hafta/kun; bekor qilish (sabab), ko'chirish, qo'shimcha dars, o'rinbosar, bayramlar.
+
+### ⬜ T-152 · Mini App: o'quvchining to'liq kartochkasi (MS-23)
+
+- **Bog'liq:** T-130, T-105, T-106, T-126 · **Talablar:** FR-STU-1/2/3, BR-9
+- **AC:** tahrir, ota-onalar, boshqa guruhga o'tkazish, muzlatish, kirish kodi, Telegram uzish, hisob tarixi.
+
+### ⬜ T-153 · Mini App: to'lovlar tarixi, storno va refund (MS-24)
+
+- **Bog'liq:** T-130, T-209 · **Talablar:** FR-PAY-6/8/9, BR-16/17
+- **AC:** ro'yxat, to'lov tafsiloti, storno (shu kun / so'rov), refund (Director / so'rov).
+
+### ⬜ T-154 · Mini App: testlar va import (MS-25)
+
+- **Bog'liq:** T-130, T-302 · **Talablar:** FR-GRD-3/4/6, BR-35
+- **AC:** Admin ro'yxati; import — ustoz MT-08 oqimi bilan bir xil.
+
+### ⬜ T-155 · Mini App: yetib bormagan xabarlar (MS-26)
+
+- **Bog'liq:** T-130, T-109 · **Talablar:** FR-RPT-6
+- **AC:** sabab, qayta yuborish, qo'ng'iroq.
+
+### ⬜ T-156 · Mini App: xarajatlar va foyda-zarar (MS-27)
+
+- **Bog'liq:** T-130, T-142, T-143, T-403 · **Talablar:** FR-FIN-1/2/3
+- **AC:** xarajat ro'yxati, tahrir, oylik P&L tafsiloti.
+
+### ⬜ T-157 · Mini App: oyliklar (MS-28)
+
+- **Bog'liq:** T-130, T-402 · **Talablar:** FR-SAL-1…5, BR-23…28
+- **AC:** shartnoma, avans, qoralama, bonus/jarima, tasdiqlash, to'landi.
+
+### ⬜ T-158 · Mini App: hisobotlar; fayl bot chatiga (MS-29)
+
+- **Bog'liq:** T-130, T-501, T-109 · **Talablar:** FR-DASH-2/4
+- **AC:** hisobotlar ro'yxat ko'rinishida; Excel/PDF navbat orqali so'ragan xodim chatiga, 10 daq ichida takror bosish — bitta fayl.
+
+### ⬜ T-159 · Mini App: prognoz va xavfli o'quvchilar (MS-30)
+
+- **Bog'liq:** T-130, T-502 · **Talablar:** FR-DASH-3, BR-36
+- **AC:** tushum oralig'i, churn ro'yxati «nega» bilan → MS-05.
+
+### ⬜ T-160 · Mini App: xodimlar va ruxsatlar (MS-31)
+
+- **Bog'liq:** T-130, T-101 · **Talablar:** FR-ORG, 02 §4
+- **AC:** qo'shish, rol, override, bloklash, Telegram uzish; oxirgi Director himoyasi.
+
+### ⬜ T-161 · Mini App: sozlamalar va boshlash ustasi (MS-32)
+
+- **Bog'liq:** T-130, T-115, T-117 · **Talablar:** FR-SYS-1
+- **AC:** markaz, rekvizit, muddat, jarima, chegirma limiti; usta qadamlari.
+
+### ⬜ T-162 · Mini App: audit (MS-33)
+
+- **Bog'liq:** T-130, T-404 · **Talablar:** FR-AUD-1/2/3
+- **AC:** filtr, diff, shubhali harakatlar, xodim faolligi.
+
+### ⬜ T-163 · Mini App: yordam va sessiyalar (MS-34)
+
+- **Bog'liq:** T-130, T-123 · **Talablar:** FR-AUTH-7
+- **AC:** qidiruvli yordam, web sessiyalarini yopish.
+
+### ⬜ T-164 · Mini App: keng ekran (Telegram Desktop)
+
+- **Bog'liq:** T-130 · **Talablar:** 11-ux §3
+- **AC:** ≥ 768 px da ro'yxat + tafsilot yonma-yon; bitta kod, alohida ekran yo'q.
+
+### ⬜ T-165 · Pul mantiqining to'liq auditi
+
+- **Bog'liq:** T-201…T-209, T-401…T-403 · **Talablar:** BR-1…BR-28
+- **Sabab (egasi, 2026-11-24):** «mantiqiy xatolar ko'p uchrayapti».
+- **AC:** har BR uchun uchidan-uchiga ssenariy (yozilish → hisob → to'lov → storno → oy yopilishi → oylik); invariantlar testi: `ledger yig'indisi = invoice − to'lov − kredit`, taqsimot ≤ to'lov, to'lanmagan summa manfiy emas. Topilmalar ro'yxati shu yerda.
+- **Tuzatildi (2026-11-24):** (1) Q-96 dan keyin shu oyda qayta yozilgan o'quvchining hisobi `void` ichida qolardi — to'lov taqsimlanmasdi (0039 migratsiyasi eski hisoblarni ochadi); (2) T-145 `openingInvoices` — shu oy hisobi bor bo'lsa kiritilgan qarz jim tashlanardi → 409 `OPENING_DEBT_PERIOD_EXISTS`.
+- **Ochiq topilmalar (kod o'qishdan, hali test bilan tasdiqlanmagan):** (1) T-145 to'lov qabul qilingan o'quvchiga eski qarzni kiritib bo'lmaydi; (2) dashboard 5 daq kesh — chek tasdiqlangandan keyin navbat soni eskicha; (3) «sozlangan» holati `audit_logs`dan o'qiladi; (4) arxivdagi qarzdor ro'yxatda va yig'indida yo'q; (5) MS-07 «Chek ota-onaga yuborildi» — ota-ona botga ulanmagan bo'lsa ham chiqadi.
 
 ### ✅ T-125 · Mini App: birinchi ochilishda rolga qarab 3 ta kartochka
 

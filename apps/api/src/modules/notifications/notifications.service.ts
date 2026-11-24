@@ -12,6 +12,7 @@ import {
   isNotificationMandatory,
   NOTIFICATION_TITLES_UZ,
   renderNotificationTemplate,
+  telegramMessage,
   validatePreferenceUpdate,
 } from '@lg/domain';
 import { eq } from 'drizzle-orm';
@@ -55,7 +56,6 @@ export class NotificationsService {
     const recipient = user.telegramId ? user.telegramId.toString() : user.phone;
     const branchId = params.branchId ?? DEFAULT_BRANCH_ID;
     const rendered = renderNotificationTemplate(params.type, params.payload);
-    const text = rendered.title ? `*${rendered.title}*\n\n${rendered.body}` : rendered.body;
 
     const notif = await this.repo.createNotification({
       branchId,
@@ -76,7 +76,7 @@ export class NotificationsService {
         {
           method: 'sendMessage',
           chatId: recipient,
-          payload: { text, parse_mode: 'Markdown' },
+          payload: telegramMessage(rendered),
           notificationId: notif.id,
         },
         { dedupeKey: params.dedupeKey },

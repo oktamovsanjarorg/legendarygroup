@@ -7,10 +7,11 @@ import {
 } from '@lg/contracts';
 import { closeDb, createDb, type Database, notifications, seed, users } from '@lg/db';
 import { eq } from 'drizzle-orm';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { EventHandlers, OutboxService } from '../outbox/index.js';
+import { TelegramOutbox } from '../telegram/index.js';
 import { NotificationsService } from './notifications.service.js';
 
 let t: TestApp;
@@ -186,5 +187,19 @@ describe('T-109, W-22: yetkazish holati — haqiqiy holatlar', () => {
       .returning();
     const res = await call('POST', `notifications/undelivered/${q!.id}/retry`, directorToken);
     expect(res.json<{ code: string }>().code).toBe('NOT_RETRYABLE');
+  });
+
+  it('matnda `_`, `*`, `<` boʻlsa ham xabar Telegram rad etmaydigan koʻrinishda navbatga tushadi', async () => {
+    const add = vi.spyOn(t.app.get(TelegramOutbox), 'enqueue').mockResolvedValue('job');
+    await t.app.get(NotificationsService).notify({
+      userId: parentUserId,
+      type: 'announcement',
+      payload: { title: 'Dars_vaqti', body: '5 < 7 * ok' },
+    });
+    expect(add.mock.calls[0]?.[0].payload).toEqual({
+      text: '<b>Dars_vaqti</b>\n\n5 &lt; 7 * ok',
+      parse_mode: 'HTML',
+    });
+    add.mockRestore();
   });
 });

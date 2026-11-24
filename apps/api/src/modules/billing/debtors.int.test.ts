@@ -1,4 +1,4 @@
-import type { DebtorListResponse, RoleCode, SendReminderResponse } from '@lg/contracts';
+import type { DebtorListResponse, RoleCode } from '@lg/contracts';
 import {
   closeDb,
   createDb,
@@ -15,7 +15,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
-import { DebtorsService } from './debtors.service.js';
+import { DebtRemindersService } from './debt-reminders.service.js';
 
 // Aging bucket haqiqiy bugungi kunga nisbatan hisoblanadi — qattiq sana (2026-11-08) 16-noyabrdan
 // boshlab boshqa bucket'ga o'tib, CI'ni yiqitardi. Muddatlar bugundan sanaladi.
@@ -24,7 +24,7 @@ const TODAY = formatDateToYmd(new Date());
 let t: TestApp;
 let db: Database;
 let tokens: Map<RoleCode, string>;
-let debtorsService: DebtorsService;
+let reminders: DebtRemindersService;
 
 let student1Id: string;
 let student2Id: string;
@@ -49,7 +49,7 @@ beforeAll(async () => {
   await seed(t.db.url, { withTestDirector: false });
   db = createDb(t.db.url, { max: 2 });
   tokens = await tokensForAllRoles(t, db);
-  debtorsService = t.app.get(DebtorsService);
+  reminders = t.app.get(DebtRemindersService);
 
   // Kurs va guruh yaratamiz (narxi 600,000 UZS)
   const courseRes = await call('POST', 'courses', 'admin', {
@@ -231,56 +231,59 @@ describe('Qarzdorlik va Eslatmalar (T-208, FR-PAY-7, BR-20, 21, 22)', () => {
     expect(res.body).toContain('Anvar Qodirov');
   });
 
-  it('qoʻlda eslatma yuborish (remind) eslatma sonini oshiradi', async () => {
-    const res = await call('POST', `billing/debtors/${student1Id}/remind`, 'admin');
-    expect(res.statusCode).toBe(201);
-
-    const data = res.json<SendReminderResponse>();
-    expect(data.success).toBe(true);
-    expect(data.reminderCount).toBe(1);
-
-    const [record] = await db
-      .select()
-      .from(paymentReminders)
-      .where(eq(paymentReminders.studentId, student1Id));
-    expect(record).toBeDefined();
-    expect(record?.type).toBe('manual');
-    expect(record?.debtAmount).toBe(60000000n);
-
-    // Qayta ro'yxat olganda reminders = 1 bo'lishi kerak
-    const listRes = await call('GET', 'billing/debtors', 'admin');
-    const s1 = listRes.json<DebtorListResponse>().items.find((i) => i.id === student1Id);
-    expect(s1?.reminders).toBe(1);
-  });
-
   it('BR-21 avtomatik eslatmalar jadvali ishlaydi va takrorlanmaydi', async () => {
-    const result = await debtorsService.processScheduledReminders();
+    const result = await reminders.processScheduledReminders();
     expect(result).toBeDefined();
 
+    expect(result.sentCount).toBe(0); // ota-ona ulanmagan — «yuborildi» deb yozilmaydi (Q-100)
+    expect(await db.select().from(paymentReminders)).toHaveLength(0);
+
     // Qayta chaqirilganda bir xil invoice uchun shu milestone takrorlanmasligi kerak
-    const secondRun = await debtorsService.processScheduledReminders();
+    const secondRun = await reminders.processScheduledReminders();
     expect(secondRun.sentCount).toBe(0);
+  });
+
+  it('criticalOnly=false — filtr oʻchiq (satr "false" rost deb oʻqilmaydi)', async () => {
+    const res = await call('GET', 'billing/debtors?criticalOnly=false', 'admin');
+    expect(res.json<DebtorListResponse>().items).toHaveLength(2);
+  });
+
+  it('BR-20: toʻliq toʻlangan eski hisob kechikish kuniga kirmaydi', async () => {
+    const [old] = await db
+      .insert(invoices)
+      .values({
+        studentId: student2Id,
+        period: '2026-01',
+        dueDate: addDays(TODAY, -90),
+        total: 0n,
+        status: 'open',
+      })
+      .returning();
+    const res = await call('GET', 'billing/debtors', 'admin');
+    const row = res.json<DebtorListResponse>().items.find((i) => i.id === student2Id);
+    expect(row?.overdueDays).toBe(5);
+    await db.delete(invoices).where(eq(invoices.id, old!.id));
   });
 
   it('BR-21: haftalik eslatma har hafta (weekly_1, weekly_2) ketsin va cron kechiksa ham oraliq eslatma yoʻqolmasin', async () => {
     // 1) Cron 1 kun kechikkanda (masalan 4 kun o'tganda overdue_3 yuborilishi)
-    const type4 = debtorsService.determineMilestoneType('2026-11-01', '2026-11-05');
+    const type4 = reminders.determineMilestoneType('2026-11-01', '2026-11-05');
     expect(type4).toBe('overdue_3');
 
     // 2) 8 kun o'tganda (7-kun o'tkazib yuborilgan bo'lsa ham overdue_7)
-    const type8 = debtorsService.determineMilestoneType('2026-11-01', '2026-11-09');
+    const type8 = reminders.determineMilestoneType('2026-11-01', '2026-11-09');
     expect(type8).toBe('overdue_7');
 
     // 3) 14 kun o'tganda (1-hafta) -> weekly_1
-    const typeW1 = debtorsService.determineMilestoneType('2026-11-01', '2026-11-15');
+    const typeW1 = reminders.determineMilestoneType('2026-11-01', '2026-11-15');
     expect(typeW1).toBe('weekly_1');
 
     // 4) 15 kun o'tganda (14-kun o'tkazib yuborilgan bo'lsa ham) -> weekly_1
-    const typeW1Late = debtorsService.determineMilestoneType('2026-11-01', '2026-11-16');
+    const typeW1Late = reminders.determineMilestoneType('2026-11-01', '2026-11-16');
     expect(typeW1Late).toBe('weekly_1');
 
     // 5) 21 kun o'tganda (2-hafta) -> weekly_2
-    const typeW2 = debtorsService.determineMilestoneType('2026-11-01', '2026-11-22');
+    const typeW2 = reminders.determineMilestoneType('2026-11-01', '2026-11-22');
     expect(typeW2).toBe('weekly_2');
   });
 });

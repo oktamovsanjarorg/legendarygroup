@@ -1,6 +1,13 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { ListItem, Section } from '@lg/ui-tg';
-import { ClipboardCheck, type LucideIcon, Receipt, UserPlus, Wallet } from 'lucide-react';
+import {
+  CircleAlert,
+  ClipboardCheck,
+  type LucideIcon,
+  Receipt,
+  UserPlus,
+  Wallet,
+} from 'lucide-react';
 import type { StaffMenuItem, StaffMenuKey, StaffSection } from '../../data/staff-menu.js';
 
 const m = t.staffMore;
@@ -8,6 +15,7 @@ const m = t.staffMore;
 const ICONS: Record<StaffMenuKey, LucideIcon> = {
   newStudent: UserPlus,
   pay: Wallet,
+  debtors: CircleAlert,
   queue: Receipt,
   approvals: ClipboardCheck,
 };
