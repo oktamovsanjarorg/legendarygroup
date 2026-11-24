@@ -32,6 +32,7 @@ import { ReceiptPdfService } from './receipt-pdf.service.js';
 import { StornoCashRepository } from './storno-cash.repository.js';
 import { StornoCashService } from './storno-cash.service.js';
 import { SubmissionsController } from './submissions.controller.js';
+import { SubmissionStaffNotifier } from './submission-staff-notifier.js';
 import { SubmissionsRepository } from './submissions.repository.js';
 import { SubmissionsService } from './submissions.service.js';
 import { StudentBillingSetupController } from './student-setup.controller.js';
@@ -82,6 +83,7 @@ import { EnrollmentRemoveService } from './enrollment-remove.service.js';
     DebtRemindersService,
     ReceiptPdfService,
     SubmissionsRepository,
+    SubmissionStaffNotifier,
     SubmissionsService,
     StudentBillingSetupService,
     EnrollmentBillingService,

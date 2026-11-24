@@ -17,6 +17,7 @@ import { AppException } from '../../common/errors/app.exception.js';
 import { botMessages } from '@lg/i18n';
 import type { RequestUser } from '../auth/index.js';
 import { FilesService } from '../files/index.js';
+import { OutboxService } from '../outbox/index.js';
 import { StudentScopeService } from '../students/index.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { TelegramOutbox } from '../telegram/index.js';
@@ -38,6 +39,7 @@ export class SubmissionsService {
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(OutboxService) private readonly outbox: OutboxService,
     @Optional() @Inject(TelegramOutbox) private readonly telegramOutbox?: TelegramOutbox,
   ) {}
 
@@ -59,21 +61,28 @@ export class SubmissionsService {
       fileId: input.fileId,
     });
 
-    const row = await this.repo.createSubmission({
-      branchId: BRANCH_ID,
-      studentId: input.studentId,
-      guardianId,
-      amountClaimed: amount,
-      comment: input.comment ?? null,
-      fileId: input.fileId,
-      status: 'pending_review',
-    });
-
-    await this.audit.record(ctx, {
-      action: 'submission.create',
-      entity: 'payment_submission',
-      entityId: row.id,
-      after: { id: row.id, studentId: row.studentId, amount: row.amountClaimed.toString() },
+    const row = await this.db.transaction(async (tx) => {
+      const created = await this.repo.createSubmission(tx, {
+        branchId: BRANCH_ID,
+        studentId: input.studentId,
+        guardianId,
+        amountClaimed: amount,
+        comment: input.comment ?? null,
+        fileId: input.fileId,
+        status: 'pending_review',
+      });
+      await this.audit.record(
+        ctx,
+        {
+          action: 'submission.create',
+          entity: 'payment_submission',
+          entityId: created.id,
+          after: { id: created.id, studentId: created.studentId, amount: amount.toString() },
+        },
+        tx,
+      );
+      await this.outbox.publish('PaymentSubmissionCreated', { submissionId: created.id }, tx);
+      return created;
     });
 
     return this.serializeSingle(row, dup.reason);

@@ -36,8 +36,11 @@ export class SubmissionsRepository {
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
-  async createSubmission(data: NewPaymentSubmissionRow): Promise<PaymentSubmissionRow> {
-    const [row] = await this.db.insert(paymentSubmissions).values(data).returning();
+  async createSubmission(
+    tx: Transaction,
+    data: NewPaymentSubmissionRow,
+  ): Promise<PaymentSubmissionRow> {
+    const [row] = await tx.insert(paymentSubmissions).values(data).returning();
     if (!row) throw new Error('SUBMISSION_CREATE_FAILED');
     return row;
   }
