@@ -1,3 +1,4 @@
+import { errorMessages } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
 import { useParams } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -27,7 +28,9 @@ export function LessonAttendancePage() {
             saving={mark.isPending}
             quietUntil={result?.kind === 'saved' ? result.quietUntil : null}
             queuedOffline={result?.kind === 'queued'}
-            onSave={(marks) => mark.mutate(marks, { onSuccess: setResult })}
+            readOnly={!d.canEdit}
+            readOnlyText={errorMessages.ATTENDANCE_LOCKED_PAST}
+            onSave={(marks) => mark.mutate({ marks }, { onSuccess: setResult })}
           />
         </>
       )}

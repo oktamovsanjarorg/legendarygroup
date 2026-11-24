@@ -10,10 +10,41 @@ import {
   StaffAnnouncementPage,
   StaffAnnouncementsPage,
 } from './pages/staff-announcements.js';
+import {
+  StaffAttendancePage,
+  StaffGroupAttendancePage,
+  StaffLessonAttendancePage,
+} from './pages/staff-attendance.js';
 import { StaffAuditItemPage, StaffAuditPage } from './pages/staff-audit.js';
+import {
+  StaffCalendarPage,
+  StaffHolidaysPage,
+  StaffLessonCancelPage,
+  StaffLessonMakeupPage,
+  StaffLessonMovePage,
+  StaffLessonNewPage,
+  StaffLessonPage,
+  StaffLessonReplacePage,
+} from './pages/staff-calendar.js';
 import { StaffCashPage } from './pages/staff-cash.js';
+import {
+  StaffCourseNewPage,
+  StaffCoursePage,
+  StaffCoursesPage,
+  StaffRoomNewPage,
+  StaffRoomPage,
+  StaffRoomsPage,
+} from './pages/staff-catalog.js';
 import { StaffDebtorsPage } from './pages/staff-debtors.js';
 import { StaffExpenseNewPage, StaffExpensePage, StaffFinancePage } from './pages/staff-finance.js';
+import {
+  StaffGroupEditPage,
+  StaffGroupNewPage,
+  StaffGroupPage,
+  StaffGroupSchedulePage,
+  StaffGroupsPage,
+  StaffGroupTeacherPage,
+} from './pages/staff-groups.js';
 import { StaffLeadPage, StaffLeadsPage } from './pages/staff-leads.js';
 import {
   StaffLeadConvertPage,
@@ -71,6 +102,29 @@ export const staffRoutes = [
   route('/staff/undelivered', StaffUndeliveredPage),
   route('/staff/audit', StaffAuditPage),
   route('/staff/audit/$id', StaffAuditItemPage),
+  route('/staff/groups', StaffGroupsPage),
+  route('/staff/groups/new', StaffGroupNewPage),
+  route('/staff/groups/$id', StaffGroupPage),
+  route('/staff/groups/$id/edit', StaffGroupEditPage),
+  route('/staff/groups/$id/schedule', StaffGroupSchedulePage),
+  route('/staff/groups/$id/teacher', StaffGroupTeacherPage),
+  route('/staff/groups/$id/attendance', StaffGroupAttendancePage),
+  route('/staff/calendar', StaffCalendarPage),
+  route('/staff/calendar/new', StaffLessonNewPage),
+  route('/staff/lessons/$id', StaffLessonPage),
+  route('/staff/lessons/$id/attendance', StaffLessonAttendancePage),
+  route('/staff/lessons/$id/cancel', StaffLessonCancelPage),
+  route('/staff/lessons/$id/move', StaffLessonMovePage),
+  route('/staff/lessons/$id/makeup', StaffLessonMakeupPage),
+  route('/staff/lessons/$id/replace', StaffLessonReplacePage),
+  route('/staff/holidays', StaffHolidaysPage),
+  route('/staff/attendance', StaffAttendancePage),
+  route('/staff/courses', StaffCoursesPage),
+  route('/staff/courses/new', StaffCourseNewPage),
+  route('/staff/courses/$id', StaffCoursePage),
+  route('/staff/rooms', StaffRoomsPage),
+  route('/staff/rooms/new', StaffRoomNewPage),
+  route('/staff/rooms/$id', StaffRoomPage),
   route('/staff/cash', StaffCashPage),
   route('/staff/finance', StaffFinancePage),
   route('/staff/expenses/new', StaffExpenseNewPage),
