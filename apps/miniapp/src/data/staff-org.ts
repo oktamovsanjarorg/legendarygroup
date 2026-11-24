@@ -1,5 +1,5 @@
 import type { Course, GroupListItem, LessonDto, Room } from '@lg/contracts';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useApi, useClock } from './deps.js';
 import { addDays } from './time.js';
 
@@ -23,11 +23,12 @@ export function useRooms(status: 'active' | 'archived' = 'active', enabled = tru
   });
 }
 
-export function useGroups(status: 'current' | 'completed' | 'all' = 'current') {
+export function useGroups(status: 'current' | 'finished' | 'all' = 'current') {
   const api = useApi();
   return useQuery({
     queryKey: [...ORG_KEY, 'groups', status],
     queryFn: () => api.request<GroupListItem[]>(`/groups?status=${status}`),
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -44,5 +45,14 @@ export function useUpcomingLessons(groupId: string | null) {
       return list.filter((l) => l.status === 'scheduled');
     },
     enabled: groupId !== null,
+  });
+}
+
+/** Bitta kurs yoki xona (tahrir). */
+export function useOrgItem<T>(kind: 'courses' | 'rooms', id: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: [...ORG_KEY, kind, 'one', id],
+    queryFn: () => api.request<T>(`/${kind}/${id}`),
   });
 }

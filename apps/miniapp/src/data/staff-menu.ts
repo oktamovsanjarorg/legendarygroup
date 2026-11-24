@@ -13,6 +13,12 @@ export type StaffMenuKey =
   | 'queue'
   | 'cash'
   | 'addExpense'
+  | 'groups'
+  | 'calendar'
+  | 'attendance'
+  | 'courses'
+  | 'rooms'
+  | 'holidays'
   | 'tickets'
   | 'announcements'
   | 'undelivered'
@@ -55,6 +61,18 @@ export const STAFF_MENU: readonly StaffMenuItem[] = [
     permission: 'expense.manage',
     to: '/staff/expenses/new',
   },
+  // `group.view` ustozda ham bor — xodim menyusi faqat Admin/Director tablari bilan ko'rinadi
+  { key: 'groups', section: 'lessons', permission: 'group.view', to: '/staff/groups' },
+  { key: 'calendar', section: 'lessons', permission: 'lesson.manage', to: '/staff/calendar' },
+  {
+    key: 'attendance',
+    section: 'lessons',
+    permission: 'attendance.edit_past',
+    to: '/staff/attendance',
+  },
+  { key: 'courses', section: 'lessons', permission: 'course.manage', to: '/staff/courses' },
+  { key: 'rooms', section: 'lessons', permission: 'course.manage', to: '/staff/rooms' },
+  { key: 'holidays', section: 'lessons', permission: 'lesson.manage', to: '/staff/holidays' },
   { key: 'tickets', section: 'comms', permission: 'ticket.handle', to: '/staff/tickets' },
   {
     key: 'announcements',
