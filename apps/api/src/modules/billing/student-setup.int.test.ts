@@ -158,6 +158,27 @@ describe('T-145 boshlangʻich holat (BR-3, BR-12)', () => {
     ).toBe(404);
   });
 
+  it('oldingi oy hisobi allaqachon bor — qarz jim tashlanmaydi: 409, hech narsa saqlanmaydi', async () => {
+    const s = await student('Takror Qarz');
+    await db.insert(invoices).values({
+      studentId: s.id,
+      period: prev,
+      dueDate: `${prev}-10`,
+      total: 100000n,
+      status: 'open',
+    });
+    const res = await call('POST', `billing/students/${s.id}/setup`, {
+      openingDebts: [{ enrollmentId: s.enrollmentId, period: prev, amount: '600000' }],
+    });
+    expect([res.statusCode, res.json<{ code: string }>().code]).toEqual([
+      409,
+      'OPENING_DEBT_PERIOD_EXISTS',
+    ]);
+    expect((await call('GET', `billing/students/${s.id}/setup`)).json()).toMatchObject({
+      done: false,
+    });
+  });
+
   it('ruxsat: ustoz va ota-ona — 403', async () => {
     const s = await student('Ruxsat Testov');
     for (const role of ['teacher', 'guardian'] as const) {

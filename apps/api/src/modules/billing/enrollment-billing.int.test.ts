@@ -134,6 +134,18 @@ describe('Q-96: xato yozilgan aʼzolikni olib tashlash', () => {
     expect(res.json<unknown[]>()).toEqual([]);
   });
 
+  it('BR-12: xato guruhdan olib, shu oyda toʻgʻrisiga yozilsa — hisob ochiq, toʻlov taqsimlanadi', async () => {
+    const { s, e } = await setup('Qayta Yozilgan');
+    expect((await remove(e)).statusCode).toBe(204);
+    const start = `${period}-01`;
+    await deliver(await idOf('enrollments', { studentId: s, groupId: g.b, startDate: start }));
+    const [inv] = await db.select().from(invoices).where(eq(invoices.studentId, s));
+    expect([inv?.total, inv?.status]).toEqual([400000n, 'open']);
+    await call('billing/payments', { studentId: s, amount: '400000', method: 'cash' });
+    const [paid] = await db.select().from(invoices).where(eq(invoices.studentId, s));
+    expect(paid?.status).toBe('paid');
+  });
+
   it('toʻlov tegsa — 409 ENROLLMENT_HAS_PAYMENTS; oʻqituvchi — 403', async () => {
     const { s, e } = await setup('Toʻlagan Bola');
     const pay = await call('billing/payments', { studentId: s, amount: '100000', method: 'cash' });

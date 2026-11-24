@@ -521,7 +521,8 @@
 - **Bog'liq:** T-201…T-209, T-401…T-403 · **Talablar:** BR-1…BR-28
 - **Sabab (egasi, 2026-11-24):** «mantiqiy xatolar ko'p uchrayapti».
 - **AC:** har BR uchun uchidan-uchiga ssenariy (yozilish → hisob → to'lov → storno → oy yopilishi → oylik); invariantlar testi: `ledger yig'indisi = invoice − to'lov − kredit`, taqsimot ≤ to'lov, to'lanmagan summa manfiy emas. Topilmalar ro'yxati shu yerda.
-- **Birinchi topilmalar (2026-11-24, kod o'qish — hali tuzatilmagan):** (1) T-145 `openingInvoices` — shu oy hisobi bor bo'lsa kiritilgan qarz **jim tashlab ketiladi**; (2) T-145 to'lov qabul qilingan o'quvchiga eski qarzni kiritib bo'lmaydi; (3) dashboard 5 daq kesh — chek tasdiqlangandan keyin navbat soni eskicha; (4) «sozlangan» holati `audit_logs`dan o'qiladi; (5) qarz yig'indisi arxivdagi qarzdorni hisobga olmaydi — egasi qarori bilan solishtirilsin.
+- **Tuzatildi (2026-11-24):** (1) Q-96 dan keyin shu oyda qayta yozilgan o'quvchining hisobi `void` ichida qolardi — to'lov taqsimlanmasdi (0039 migratsiyasi eski hisoblarni ochadi); (2) T-145 `openingInvoices` — shu oy hisobi bor bo'lsa kiritilgan qarz jim tashlanardi → 409 `OPENING_DEBT_PERIOD_EXISTS`.
+- **Ochiq topilmalar (kod o'qishdan, hali test bilan tasdiqlanmagan):** (1) T-145 to'lov qabul qilingan o'quvchiga eski qarzni kiritib bo'lmaydi; (2) dashboard 5 daq kesh — chek tasdiqlangandan keyin navbat soni eskicha; (3) «sozlangan» holati `audit_logs`dan o'qiladi; (4) arxivdagi qarzdor ro'yxatda va yig'indida yo'q; (5) MS-07 «Chek ota-onaga yuborildi» — ota-ona botga ulanmagan bo'lsa ham chiqadi.
 
 ### ✅ T-125 · Mini App: birinchi ochilishda rolga qarab 3 ta kartochka
 

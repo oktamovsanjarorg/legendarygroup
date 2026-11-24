@@ -37,6 +37,8 @@ export const errorMessages = {
     'Bu guruh hisobiga toʻlov qilingan. Avval toʻlovni bekor qiling, keyin guruhdan olib tashlang.',
   BILLING_ALREADY_SET:
     'Bu oʻquvchining hisobi allaqachon boshlangan. Tuzatish — toʻlovni bekor qilish yoki qarzni kechirish orqali.',
+  OPENING_DEBT_PERIOD_EXISTS:
+    'Bu oy uchun hisob allaqachon bor. Shu oyni belgilamang — qarzi kartochkada koʻrinadi.',
   FILE_TYPE_NOT_ALLOWED:
     'Bu turdagi faylni yuklab boʻlmaydi. Rasm (JPG, PNG, WEBP) yoki PDF tanlang.',
   FILE_TOO_LARGE: 'Fayl juda katta. Hajmi 10 MB dan oshmasin.',
