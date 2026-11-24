@@ -13,6 +13,15 @@ export interface AuditContext {
   requestId: string | null;
 }
 
+/** Tizim (event/cron) amali: bajaruvchi yo'q. */
+export const SYSTEM_ACTOR: AuditContext = {
+  actorId: null,
+  actorRole: null,
+  ip: null,
+  userAgent: null,
+  requestId: null,
+};
+
 export interface AuditEntry {
   /** `<entity>.<verb>`, masalan `auth.login` (12-ai-playbook.md §5). */
   action: string;

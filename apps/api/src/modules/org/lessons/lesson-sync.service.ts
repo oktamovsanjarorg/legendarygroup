@@ -10,6 +10,7 @@ import {
   type Transaction,
 } from '@lg/db';
 import {
+  addDays,
   type Clock,
   generatesLessons,
   hhmm,
@@ -20,7 +21,8 @@ import {
   type TeacherAssignment,
   teacherOn,
 } from '@lg/domain';
-import { and, eq, gte, inArray, lte } from 'drizzle-orm';
+import { botMessages } from '@lg/i18n';
+import { and, eq, gte, inArray, lt, lte } from 'drizzle-orm';
 import { CLOCK_TOKEN } from '../../../common/clock/clock.tokens.js';
 
 export interface SyncResult {
@@ -31,10 +33,14 @@ export interface SyncResult {
   skipped: number;
 }
 
+/** Guruh to'xtatilganda bekor bo'lgan dars belgisi (BR-5 krediti uchun saqlanadi). */
+export const PAUSE_REASON = botMessages.lessonReasons.groupPaused;
+
 /** Jadvaldan endi kelib chiqmaydigan dars saqlanadimi (qaror/tarix bog'langan). */
 function keepsUnplanned(l: LessonRow, holidaySet: ReadonlySet<string>): boolean {
   if (l.status === 'done') return true;
   if (l.status !== 'cancelled') return false;
+  if (l.cancelReason === PAUSE_REASON) return true;
   return l.compensation === 'makeup' || (l.cancelSource === 'holiday' && holidaySet.has(l.date));
 }
 
@@ -101,6 +107,46 @@ export class LessonSyncService {
     result.created = await this.insert(tx, rows, mode);
     result.skipped = rows.length - result.created;
     return result;
+  }
+
+  /**
+   * Q-102: to'xtatilganda joriy oyning qolgan darslari o'chirilmaydi — markaz bekor qilgan dars
+   * (BR-5): o'quvchi to'lagan, oy yopilishida kredit. Keyingi oylar — `sync` o'chiradi.
+   */
+  async pauseMonth(tx: Transaction, groupId: string): Promise<void> {
+    const today = this.clock.today();
+    await tx
+      .update(lessons)
+      .set({
+        status: 'cancelled',
+        cancelReason: PAUSE_REASON,
+        cancelSource: 'manual',
+        cancelledAt: this.clock.now(),
+      })
+      .where(
+        and(
+          eq(lessons.groupId, groupId),
+          eq(lessons.kind, 'regular'),
+          eq(lessons.status, 'scheduled'),
+          gte(lessons.date, today),
+          lt(lessons.date, `${addDays(`${today.slice(0, 7)}-28`, 4).slice(0, 7)}-01`),
+        ),
+      );
+  }
+
+  /** Davom ettirilganda to'xtatish bekor qilgan (hali o'tmagan) darslar qaytadi. */
+  async resume(tx: Transaction, groupId: string): Promise<void> {
+    await tx
+      .update(lessons)
+      .set({ status: 'scheduled', cancelReason: null, cancelSource: null, cancelledAt: null })
+      .where(
+        and(
+          eq(lessons.groupId, groupId),
+          eq(lessons.cancelReason, PAUSE_REASON),
+          eq(lessons.status, 'cancelled'),
+          gte(lessons.date, this.clock.today()),
+        ),
+      );
   }
 
   /**

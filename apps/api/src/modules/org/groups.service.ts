@@ -21,6 +21,7 @@ import { type AuditContext, AuditService } from '../../common/audit/audit.servic
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import { OutboxService } from '../outbox/index.js';
 import { StaffDirectoryService } from '../rbac/index.js';
 import {
   activeCourse,
@@ -48,6 +49,7 @@ export class GroupsService {
     @Inject(StaffDirectoryService) private readonly staff: StaffDirectoryService,
     @Inject(GroupsQueryService) private readonly query: GroupsQueryService,
     @Inject(LessonSyncService) private readonly lessons: LessonSyncService,
+    @Inject(OutboxService) private readonly outbox: OutboxService,
   ) {}
 
   /** Narx va baho sozlamasi kursdan meros; slotlar va ustozlar boshlanish sanasidan. */
@@ -149,8 +151,14 @@ export class GroupsService {
           .set({ status, endDate })
           .where(eq(groups.id, id))
           .returning();
+        if (status === 'paused') await this.lessons.pauseMonth(tx, id);
+        if (current.status === 'paused') await this.lessons.resume(tx, id);
         await rebuildOccupancy(tx, id, trace);
         await this.lessons.sync(tx, id);
+        if (status === 'finished' && endDate)
+          await this.outbox.publish('GroupFinished', { groupId: id, date: endDate }, tx);
+        if (current.status === 'paused' && status === 'active')
+          await this.outbox.publish('GroupResumed', { groupId: id, date: today }, tx);
         return this.recordChange(tx, { ctx, action: 'group.status', before: current, after: row });
       }),
     );

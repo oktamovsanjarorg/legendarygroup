@@ -9,6 +9,7 @@ import { FreezesService } from './freezes.service.js';
 import { LeadConvertService } from './leads/lead-convert.service.js';
 import { LeadsQueryService } from './leads/leads-query.service.js';
 import { GuardianLinkRequestsController } from './guardian-link-requests.controller.js';
+import { GroupFinishedHandler } from './group-finished.handler.js';
 import { GuardianLinkNotifier } from './guardian-link-notifier.js';
 import { GuardianLinkRequestsService } from './guardian-link-requests.service.js';
 import { LeadNotifier } from './leads/lead-notifier.js';
@@ -52,6 +53,7 @@ import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
     StudentGuardiansService,
     GuardianLinkRequestsService,
     GuardianLinkNotifier,
+    GroupFinishedHandler,
     StudentScopeService,
     LeadsQueryService,
     LeadNotifier,

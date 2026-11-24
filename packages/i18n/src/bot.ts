@@ -63,6 +63,7 @@ export const botMessages = {
       'Bu oʻquvchi yoki telefon raqami boshqa Telegram akkauntga bogʻlangan. Administratorga murojaat qiling.',
   },
   /** Q-99: xodimga yangi ish (bildirishnoma; matnda shaxsiy maʼlumot — ism xolos). */
+  lessonReasons: { groupPaused: 'Guruh toʻxtatildi' },
   staffTask: {
     submissionTitle: 'Yangi toʻlov cheki',
     submissionBody: 'Chek navbatga tushdi. Ilovada «Chek navbati»ni oching.',
