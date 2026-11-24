@@ -6,6 +6,7 @@
 export type StaffSection = 'students' | 'money' | 'lessons' | 'comms' | 'director';
 export type StaffMenuKey =
   | 'newStudent'
+  | 'leads'
   | 'linkRequests'
   | 'pay'
   | 'debtors'
@@ -33,6 +34,7 @@ export const STAFF_SECTIONS: readonly StaffSection[] = [
 
 export const STAFF_MENU: readonly StaffMenuItem[] = [
   { key: 'newStudent', section: 'students', permission: 'student.manage', to: '/staff/new' },
+  { key: 'leads', section: 'students', permission: 'lead.manage', to: '/staff/leads' },
   {
     key: 'linkRequests',
     section: 'students',

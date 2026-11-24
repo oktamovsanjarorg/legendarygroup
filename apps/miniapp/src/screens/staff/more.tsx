@@ -11,6 +11,7 @@ import {
   Receipt,
   ShoppingCart,
   UserPlus,
+  UserSearch,
   Wallet,
 } from 'lucide-react';
 import type { StaffMenuItem, StaffMenuKey, StaffSection } from '../../data/staff-menu.js';
@@ -23,6 +24,7 @@ const ICONS: Record<StaffMenuKey, LucideIcon> = {
   debtors: CircleAlert,
   queue: Receipt,
   approvals: ClipboardCheck,
+  leads: UserSearch,
   linkRequests: Link2,
   tickets: MessageCircleQuestion,
   cash: Banknote,

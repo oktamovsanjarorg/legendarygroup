@@ -13,16 +13,22 @@ export interface NewStudentViewProps {
   saving: boolean;
   onForm: (f: NewStudentForm) => void;
   onSave: () => void;
+  /** Lidni aylantirish (T-133): guruh ixtiyoriy, boshqa sarlavha. */
+  title?: string;
+  saveText?: string;
+  groupTitle?: string;
+  groupOptional?: boolean;
 }
 
 function GroupPicker(p: {
   groups: NewStudentViewProps['groups'];
+  title: string;
   value: string;
   onPick: (id: string) => void;
 }) {
   const { groups, value, onPick } = p;
   return (
-    <Section title={c.group}>
+    <Section title={p.title}>
       {groups.length === 0 ? (
         <li className="px-4 py-3 text-sm text-text-muted">{c.noGroups}</li>
       ) : (
@@ -45,19 +51,14 @@ function GroupPicker(p: {
 }
 
 /** MS-04a Yangi oʻquvchi (Q-97): hammasi bitta ekranda, MainButton — «Qoʻshish». */
-export function NewStudentView({
-  today,
-  groups,
-  form,
-  saving,
-  onForm,
-  onSave,
-}: NewStudentViewProps) {
+export function NewStudentView(p: NewStudentViewProps) {
+  const { today, groups, form, saving, onForm, onSave } = p;
+  const optional = p.groupOptional ?? false;
   useMainButton({
-    text: c.save,
+    text: p.saveText ?? c.save,
     onClick: onSave,
     loading: saving,
-    visible: newStudentValid(form, today),
+    visible: newStudentValid(form, today, optional),
   });
   const field = (key: keyof NewStudentForm) => ({
     value: form[key],
@@ -65,7 +66,7 @@ export function NewStudentView({
   });
   return (
     <main className="flex flex-col gap-4 p-2 pt-3 pb-6">
-      <h1 className="px-2 text-xl font-semibold text-text">{c.title}</h1>
+      <h1 className="px-2 text-xl font-semibold text-text">{p.title ?? c.title}</h1>
       <Section>
         <li className="flex flex-col gap-3 px-4 py-3">
           <TextField label={c.fullName} autoComplete="off" {...field('fullName')} />
@@ -80,9 +81,10 @@ export function NewStudentView({
         </li>
       </Section>
       <GroupPicker
+        title={p.groupTitle ?? c.group}
         groups={groups}
         value={form.groupId}
-        onPick={(id) => onForm({ ...form, groupId: id })}
+        onPick={(id) => onForm({ ...form, groupId: optional && id === form.groupId ? '' : id })}
       />
       <Section footer={c.startHint}>
         <li className="px-4 py-3">

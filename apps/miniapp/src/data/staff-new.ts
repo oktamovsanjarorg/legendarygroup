@@ -21,11 +21,11 @@ export const emptyNewStudent = (today: string): NewStudentForm => ({
 });
 
 /** Ism va guruh majburiy; ota-ona ismi yozilsa — telefoni ham. */
-export function newStudentValid(f: NewStudentForm, today: string): boolean {
+export function newStudentValid(f: NewStudentForm, today: string, groupOptional = false): boolean {
   const guardianOk = f.guardianName.trim() === '' || f.guardianPhone.trim() !== '';
   return (
     f.fullName.trim().length >= 3 &&
-    f.groupId !== '' &&
+    (groupOptional || f.groupId !== '') &&
     f.startDate !== '' &&
     f.startDate <= today &&
     guardianOk
