@@ -59,6 +59,21 @@ export const CreateTeacherContractRequest = z.object({
 });
 export type CreateTeacherContractRequest = z.infer<typeof CreateTeacherContractRequest>;
 
+export const EndTeacherContractRequest = z.object({ validTo: z.iso.date() });
+export type EndTeacherContractRequest = z.infer<typeof EndTeacherContractRequest>;
+
+/** BR-28: avans va hisoblarda ushlangan qismi. */
+export const TeacherAdvanceSchema = z.object({
+  id: z.string().uuid(),
+  teacherId: z.string().uuid(),
+  teacherName: z.string(),
+  amount: z.string(),
+  withheld: z.string(),
+  givenAt: z.string(),
+  note: z.string().nullable(),
+});
+export type TeacherAdvance = z.infer<typeof TeacherAdvanceSchema>;
+
 export const CreateTeacherAdvanceRequest = z.object({
   teacherId: z.string().uuid(),
   amount: z.string().regex(/^[1-9]\d*$/), // musbat summa
@@ -116,6 +131,8 @@ export const PayrollRunDetailSchema = z.object({
   period: z.string(),
   status: z.enum(PAYROLL_RUN_STATUSES),
   totalAmount: z.string(),
+  /** Oxirgi hisoblash vaqti; `null` — shart o'zgargan, qayta hisoblash kerak (Q-104). */
+  generatedAt: z.string().nullable(),
   approvedBy: z.string().nullable(),
   approvedAt: z.string().nullable(),
   paidBy: z.string().nullable(),
