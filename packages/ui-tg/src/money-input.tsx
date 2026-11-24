@@ -8,13 +8,15 @@ interface Props {
   onChange: (value: bigint | null) => void;
   hint?: string;
   error?: string | null;
+  /** Nol ham qiymat (kassa sanog'i); standart — faqat musbat. */
+  allowZero?: boolean;
 }
 
 /**
  * Summa maydoni (11-ux §4.8): raqamli klaviatura, yozish paytida guruhlash (U+00A0),
  * faqat musbat butun so'm (`bigint`, float yo'q — CLAUDE.md "Pul").
  */
-export function MoneyInput({ label, value, onChange, hint, error }: Props) {
+export function MoneyInput({ label, value, onChange, hint, error, allowZero = false }: Props) {
   const id = useId();
   const shown = value === null ? '' : formatMoney(value, { withCurrency: false });
   return (
@@ -32,7 +34,7 @@ export function MoneyInput({ label, value, onChange, hint, error }: Props) {
           onChange={(e) => {
             const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
             const v = digits === '' ? null : parseMoney(digits);
-            onChange(v !== null && v > 0n ? v : null);
+            onChange(v !== null && (v > 0n || allowZero) ? v : null);
           }}
           className="min-h-14 min-w-0 flex-1 bg-transparent text-2xl font-semibold tabular-nums text-text outline-none"
         />

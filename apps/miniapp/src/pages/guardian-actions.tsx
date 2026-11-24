@@ -1,10 +1,7 @@
-import { IMAGE_MIMES, PDF_MIME } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
-import type { FilePickState } from '@lg/ui-tg';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useRef, useState } from 'react';
-import { useApi, useClock } from '../data/deps.js';
+import { useClock } from '../data/deps.js';
 import { useChildPayments, useChildren } from '../data/guardian.js';
 import {
   useMySubmission,
@@ -16,11 +13,11 @@ import {
 } from '../data/guardian-actions.js';
 import { QueryView } from '../data/query-view.js';
 import { useSelectedChild } from '../data/selected-child.js';
-import { uploadFile } from '../data/upload.js';
 import { AbsenceView } from '../screens/guardian/absence.js';
 import { PayView } from '../screens/guardian/pay.js';
 import { SubmissionView } from '../screens/guardian/submission.js';
 import { TicketsView } from '../screens/guardian/tickets.js';
+import { useFilePicker } from './use-file-picker.js';
 import { useMe } from '../session/session.js';
 
 const Alert = ({ error }: { error: unknown }) => (
@@ -28,41 +25,6 @@ const Alert = ({ error }: { error: unknown }) => (
     {errorText(error)}
   </p>
 );
-
-/** Chek fayli: yashirin `<input type=file>` → S3'ga yuklash (progress) → fayl ID. */
-function useReceiptPicker() {
-  const api = useApi();
-  const ref = useRef<HTMLInputElement>(null);
-  const [state, setState] = useState<FilePickState>({ kind: 'empty' });
-  const [fileId, setFileId] = useState<string | null>(null);
-  const onFile = async (f: File) => {
-    setFileId(null);
-    setState({ kind: 'uploading', name: f.name, percent: 0 });
-    try {
-      const info = await uploadFile(api, 'payment_receipt', f, (percent) =>
-        setState({ kind: 'uploading', name: f.name, percent }),
-      );
-      setFileId(info.id);
-      const previewUrl = f.type.startsWith('image/') ? URL.createObjectURL(f) : undefined;
-      setState({ kind: 'ready', name: f.name, previewUrl });
-    } catch (e) {
-      setState({ kind: 'error', message: errorText(e) });
-    }
-  };
-  const input = (
-    <input
-      ref={ref}
-      type="file"
-      hidden
-      accept={[...IMAGE_MIMES, PDF_MIME].join(',')}
-      onChange={(e) => {
-        const f = e.target.files?.[0];
-        if (f) void onFile(f);
-      }}
-    />
-  );
-  return { state, fileId, input, open: () => ref.current?.click() };
-}
 
 /** MG-03 o'tkazma cheki (FR-PAY-3, T-206): karta → fayl (S3) → yuborish → holat. */
 export function GuardianPayPage() {
@@ -73,7 +35,7 @@ export function GuardianPayPage() {
   const card = usePaymentCard();
   const payments = useChildPayments(childId);
   const submit = useSubmitReceipt();
-  const picker = useReceiptPicker();
+  const picker = useFilePicker('payment_receipt');
 
   return (
     <QueryView query={card} empty={{ when: (c) => c === null, title: t.pay.card }}>

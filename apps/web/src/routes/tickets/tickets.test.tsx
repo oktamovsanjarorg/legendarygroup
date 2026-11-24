@@ -28,7 +28,7 @@ const msg = (id: string, authorId: string, authorName: string, text: string) => 
   ticketId: TID,
   authorId,
   authorName,
-  authorRole: 'author',
+  authorRole: 'author' as const,
   text,
   fileUrl: null,
   createdAt: '2026-11-15T04:20:00.000Z',
