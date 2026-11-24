@@ -40,6 +40,8 @@ export const staffMessages = {
       addExpense: 'Xarajat qoʻshish',
       finance: 'Moliya',
       payroll: 'Oyliklar',
+      reports: 'Hisobotlar',
+      forecasts: 'Prognozlar',
       audit: 'Audit',
     },
     panelHint: 'Hisobotlar, oyliklar, sozlamalar va audit — kompyuterda, boshqaruv panelida.',

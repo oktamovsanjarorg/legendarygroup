@@ -34,7 +34,7 @@ export function calculateChurnScore(params: ChurnInputParams): ChurnCalculationR
       factor: 'attendance_drop',
       score: attScore,
       weight: 40,
-      reason: `Oxirgi 4 haftada davomat ${params.attendanceDropPercent}% ga pasaygan`,
+      reason: `Oxirgi 4 haftada darslarning ${params.attendanceDropPercent}% iga kelmagan`,
     },
     {
       factor: 'payment_delay',
@@ -52,9 +52,7 @@ export function calculateChurnScore(params: ChurnInputParams): ChurnCalculationR
       factor: 'bot_unresponsive',
       score: botScore,
       weight: 10,
-      reason: params.botUnresponsive
-        ? 'Ota-ona botni bloklagan yoki javob bermaydi'
-        : 'Bot faol ulangan',
+      reason: params.botUnresponsive ? 'Ota-onaga bot orqali yetib boʻlmaydi' : 'Bot faol ulangan',
     },
   ];
 
