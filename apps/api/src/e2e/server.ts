@@ -1,6 +1,6 @@
 /**
  * E2E uchun API (Playwright `webServer`): vaqtinchalik migratsiya qilingan baza, seed,
- * TOTP yoqilgan xodimlar hovuzi va haqiqiy `createApp()` — HTTP portda.
+ * Telegram'i ulangan xodimlar hovuzi va haqiqiy `createApp()` — HTTP portda.
  * Dev bazaga yozilmaydi. Baza nomi `lg_e2e_*`: Nest shutdown hook'i jarayonni darhol tugatadi,
  * shuning uchun oldingi ishga tushirishdan qolgan bazalar keyingi start'da o'chiriladi
  * (bir vaqtda ikkita e2e ishga tushirish qo'llab-quvvatlanmaydi).
@@ -41,7 +41,7 @@ async function main(): Promise<void> {
 
   const { app } = await createApp(env);
   const db = createDb(tmp.url, { max: 1 });
-  const staff = await createE2eFixtures(db, env.get('TOTP_ENCRYPTION_KEY'));
+  const staff = await createE2eFixtures(db);
   const billing = await createBillingFixtures(app, db);
   const fixtures = {
     ...staff,
@@ -52,6 +52,8 @@ async function main(): Promise<void> {
     }),
     // Faqat test tokeni (apps/api/src/test/env.ts) — e2e `initData` imzosi uchun.
     telegramBotToken: env.get('TELEGRAM_BOT_TOKEN'),
+    // Bot o'rnida kirishni tasdiqlash uchun (test tokeni).
+    internalToken: env.get('INTERNAL_API_TOKEN'),
   };
   await closeDb(db);
   await writeFile(fixturesFile, JSON.stringify(fixtures, null, 2));

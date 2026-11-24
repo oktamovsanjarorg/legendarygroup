@@ -363,9 +363,6 @@ importers:
       '@playwright/test':
         specifier: 1.64.1
         version: 1.64.1
-      otpauth:
-        specifier: 9.6.0
-        version: 9.6.0
 
   apps/miniapp:
     dependencies:
