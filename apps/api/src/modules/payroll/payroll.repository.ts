@@ -2,25 +2,19 @@ import type { PayrollItemKind } from '@lg/contracts';
 import {
   type Database,
   type NewPayrollItemRow,
-  type NewTeacherAdvanceRow,
-  type NewTeacherContractRow,
   payrollItems,
   type PayrollItemRow,
   payrollRuns,
   type PayrollRunRow,
   teacherAdvances,
-  type TeacherAdvanceRow,
-  teacherContracts,
-  type TeacherContractRow,
   type Transaction,
   users,
 } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, gte, inArray, isNull, lt, notInArray, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, notInArray, sql } from 'drizzle-orm';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
-import { periodDays } from './payroll-metrics.repository.js';
 
 /** Generatsiya qayta yaratadigan qatorlar; bonus/jarima/tuzatish (BR-26) qo'lda — saqlanadi. */
 export const AUTO_ITEM_KINDS: PayrollItemKind[] = ['fixed', 'percent', 'per_lesson', 'advance'];
@@ -33,58 +27,6 @@ export class PayrollRepository {
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
-
-  async createContract(data: NewTeacherContractRow): Promise<TeacherContractRow> {
-    const [row] = await this.db.insert(teacherContracts).values(data).returning();
-    if (!row) throw new Error('CONTRACT_CREATE_FAILED');
-    return row;
-  }
-
-  async findActiveContracts(teacherId?: string): Promise<TeacherContractRow[]> {
-    const query = this.db.select().from(teacherContracts);
-    if (teacherId) return query.where(eq(teacherContracts.teacherId, teacherId));
-    return query;
-  }
-
-  /** BR-23: shu oyning kamida bir kunida amalda bo'lgan shartnomalar (filial bo'yicha). */
-  async findContractsForPeriod(branchId: string, period: string): Promise<TeacherContractRow[]> {
-    const { first, next } = periodDays(period);
-    return this.db
-      .select()
-      .from(teacherContracts)
-      .where(
-        and(
-          eq(teacherContracts.branchId, branchId),
-          lt(teacherContracts.validFrom, next),
-          or(isNull(teacherContracts.validTo), gte(teacherContracts.validTo, first)),
-        ),
-      );
-  }
-
-  async createAdvance(data: NewTeacherAdvanceRow): Promise<TeacherAdvanceRow> {
-    const [row] = await this.db.insert(teacherAdvances).values(data).returning();
-    if (!row) throw new Error('ADVANCE_CREATE_FAILED');
-    return row;
-  }
-
-  /** BR-28: hali ushlanmagan yoki aynan shu hisobda ushlangan (qayta generatsiya) avanslar. */
-  async findAdvancesForRun(
-    teacherId: string,
-    runId: string,
-    period: string,
-  ): Promise<TeacherAdvanceRow[]> {
-    const { next } = periodDays(period);
-    return this.db
-      .select()
-      .from(teacherAdvances)
-      .where(
-        and(
-          eq(teacherAdvances.teacherId, teacherId),
-          lt(teacherAdvances.givenAt, next),
-          or(isNull(teacherAdvances.deductedInRunId), eq(teacherAdvances.deductedInRunId, runId)),
-        ),
-      );
-  }
 
   async findPayrollRunById(id: string): Promise<PayrollRunRow | undefined> {
     const [row] = await this.db.select().from(payrollRuns).where(eq(payrollRuns.id, id));
@@ -147,6 +89,41 @@ export class PayrollRepository {
     });
   }
 
+  /** Qo'lda kiritilgan bonus/jarimani qoralamadan olib tashlash; DRAFT emas yoki qator yo'q — `null`. */
+  async removeManualItem(runId: string, itemId: string): Promise<PayrollItemRow | null> {
+    return this.db.transaction(async (tx) => {
+      const run = await this.lockRun(tx, runId);
+      if (run?.status !== 'draft') return null;
+      const [item] = await tx
+        .delete(payrollItems)
+        .where(
+          and(
+            eq(payrollItems.id, itemId),
+            eq(payrollItems.runId, runId),
+            notInArray(payrollItems.kind, AUTO_ITEM_KINDS),
+          ),
+        )
+        .returning();
+      if (item) await this.refreshTotal(tx, run.id);
+      return item ?? null;
+    });
+  }
+
+  /** Qo'lda kiritilgan qatorlar yig'indisi (bonus − jarima) — avans ushlash chegarasi uchun. */
+  async manualNet(runId: string, teacherId: string): Promise<bigint> {
+    const [row] = await this.db
+      .select({ net: sql<string>`coalesce(sum(${payrollItems.amount}), 0)::text` })
+      .from(payrollItems)
+      .where(
+        and(
+          eq(payrollItems.runId, runId),
+          eq(payrollItems.teacherId, teacherId),
+          notInArray(payrollItems.kind, AUTO_ITEM_KINDS),
+        ),
+      );
+    return BigInt(row?.net ?? '0');
+  }
+
   /**
    * DRAFT → APPROVED, qulf ostida: `validate` (masalan, manfiy net) xato tashlasa — o'zgarmaydi.
    * DRAFT bo'lmasa — `null` (parallel ikkinchi tasdiqlash ham shu yerga tushadi).
@@ -154,12 +131,12 @@ export class PayrollRepository {
   async approve(
     runId: string,
     actorId: string,
-    validate: (items: PayrollItemWithName[]) => void,
+    validate: (run: PayrollRunRow, items: PayrollItemWithName[]) => void,
   ): Promise<PayrollRunRow | null> {
     return this.db.transaction(async (tx) => {
       const run = await this.lockRun(tx, runId);
       if (run?.status !== 'draft') return null;
-      validate(await this.findPayrollItems(runId, tx));
+      validate(run, await this.findPayrollItems(runId, tx));
       const [row] = await tx
         .update(payrollRuns)
         .set({ status: 'approved', approvedBy: actorId, approvedAt: this.clock.now() })
@@ -193,10 +170,15 @@ export class PayrollRepository {
     return this.db.transaction(async (tx) => {
       const [run] = await tx
         .insert(payrollRuns)
-        .values({ id: params.runId, branchId: params.branchId, period: params.period })
+        .values({
+          id: params.runId,
+          branchId: params.branchId,
+          period: params.period,
+          generatedAt: this.clock.now(),
+        })
         .onConflictDoUpdate({
           target: [payrollRuns.branchId, payrollRuns.period],
-          set: { updatedAt: this.clock.now() },
+          set: { updatedAt: this.clock.now(), generatedAt: this.clock.now() },
           setWhere: eq(payrollRuns.status, 'draft'),
         })
         .returning();

@@ -78,6 +78,7 @@ export function buildPayrollRunDetail(
     period: run.period,
     status: run.status,
     totalAmount: run.totalAmount.toString(),
+    generatedAt: run.generatedAt?.toISOString() ?? null,
     approvedBy: run.approvedBy,
     approvedAt: run.approvedAt?.toISOString() ?? null,
     paidBy: run.paidBy,
