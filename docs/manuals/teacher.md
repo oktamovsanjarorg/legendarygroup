@@ -6,7 +6,7 @@ Ustoz barcha amallarni faqat Telegram Mini App orqali (parol yodlamasdan) bajara
 
 ## 1. Tizimga kirish
 
-1. Markaz tomonidan berilgan maxsus havolani Telegramda oching: `t.me/legendary_group_bot?start=inv_...`.
+1. Telegramda markaz botini oching va **Start** bosing (raqamingizni Direktor avval «Xodimlar»ga kiritgan boʻlishi kerak).
 2. Botda **«Telefon raqamni ulashish»** tugmasini bosing.
 3. Bot tasdiqlab, **«Ilovani ochish»** tugmasini chiqaradi.
 4. Pastdagi tugma orqali Mini App ochiladi va sizning darslaringiz ko'rinadi.

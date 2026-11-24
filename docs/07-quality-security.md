@@ -38,7 +38,7 @@
 - **OWASP ASVS L2** asosida tekshiruv ro'yxati.
 - Telegram `initData` — HMAC-SHA256 tekshiruvi, `auth_date` muddati, replay himoyasi.
 - Bot webhook — `secret_token` header tekshiruvi.
-- Parollar — **Argon2id**; 2FA TOTP (Director/Admin majburiy).
+- Xodim kirishi — Telegram akkauntiga egalik (Q-98, ADR 0006 §11); parol/TOTP ekranda yo'q, API'dan T-147 bilan olinadi.
 - Rate limiting (Redis): login 5/daq, API 100/daq/foydalanuvchi, fayl yuklash 10/daq.
 - Fayl yuklash: MIME + magic bytes tekshiruvi, maks. 10 MB, rasm qayta kodlanadi (EXIF olib tashlanadi), S3'ga to'g'ridan-to'g'ri presigned POST.
 - SQL — faqat parametrlashtirilgan (Drizzle), raw SQL review'da alohida tekshiriladi.

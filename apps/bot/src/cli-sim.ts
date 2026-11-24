@@ -44,7 +44,6 @@ function printHelp(): void {
   console.info('\x1b[33m=== Legendary Group Telegram Bot Simulator ===\x1b[0m');
   console.info('Mavjud buyruqlar:');
   console.info('  /start                 - Boshlash / holat tekshirish');
-  console.info('  /start inv_<token>     - Ustoz taklifi');
   console.info('  /help                  - Yordam');
   console.info(
     '  contact <telefon>      - Telefon raqam ulashish (masalan: contact +998901234567)',
