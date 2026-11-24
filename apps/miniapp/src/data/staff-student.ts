@@ -1,29 +1,54 @@
 import type { EnrollmentDto, StudentDetail } from '@lg/contracts';
+import { formatYmd, miniappMessages as t } from '@lg/i18n';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from './deps.js';
 
 export interface ManageGroup {
   enrollmentId: string;
   name: string;
-  startDate: string;
+  /** Sana va holat: "01.09.2026 dan · Muzlatilgan". */
+  text: string;
 }
 
 export interface StudentManage {
-  /** Chiqish sanasi qo'yilmagan a'zoliklar — kartochkadan «Guruhdan chiqarish». */
+  /** Yakunlanmagan a'zoliklar (rejalashtirilgan chiqish ham). */
   groups: readonly ManageGroup[];
+  past: readonly ManageGroup[];
   /** Q-93: chiqish sanasi yo'q yoki bugundan keyin — arxivlab bo'lmaydi (server ham 409). */
   canArchive: boolean;
   archived: boolean;
 }
+
+/** "01.09.2026 dan · 30.11.2026 gacha". */
+export const enrollmentDates = (e: Pick<EnrollmentDto, 'startDate' | 'endDate'>) =>
+  [
+    t.staffEnroll.since.replace('{date}', formatYmd(e.startDate)),
+    e.endDate && t.staffEnroll.until.replace('{date}', formatYmd(e.endDate)),
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+const manageGroup = (e: EnrollmentDto): ManageGroup => {
+  const dates = [
+    enrollmentDates(e),
+    e.state === 'ended' && e.endReason ? t.staffProfile.endReasons[e.endReason] : null,
+    e.state === 'frozen' || e.state === 'upcoming' ? t.staffEnroll.states[e.state] : null,
+  ];
+  return {
+    enrollmentId: e.id,
+    name: e.group.name,
+    text: dates.filter(Boolean).join(' · '),
+  };
+};
 
 export function studentManage(
   enrollments: readonly EnrollmentDto[],
   archivedAt: string | null,
   today: string,
 ): StudentManage {
-  const open = enrollments.filter((e) => e.endDate === null);
   return {
-    groups: open.map((e) => ({ enrollmentId: e.id, name: e.group.name, startDate: e.startDate })),
+    groups: enrollments.filter((e) => e.state !== 'ended').map(manageGroup),
+    past: enrollments.filter((e) => e.state === 'ended').map(manageGroup),
     canArchive: !enrollments.some((e) => e.endDate === null || e.endDate > today),
     archived: archivedAt !== null,
   };

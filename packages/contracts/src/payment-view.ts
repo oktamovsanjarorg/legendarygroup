@@ -1,11 +1,16 @@
 import { z } from 'zod';
 import { PAYMENT_METHODS } from './billing.js';
 
+/** To'lov, storno (teskari yozuv) yoki avansni qaytarish. */
+export const PAYMENT_KINDS = ['payment', 'reversal', 'refund'] as const;
+export type PaymentKind = (typeof PAYMENT_KINDS)[number];
+
 /** W-17 to'lov tafsiloti (T-205/T-209, FR-PAY-6/8/9): xodim uchun to'liq ko'rinish. */
 export const PaymentViewSchema = z.object({
   id: z.string().uuid(),
   studentId: z.string().uuid(),
   studentName: z.string(),
+  kind: z.enum(PAYMENT_KINDS),
   amount: z.string(),
   method: z.enum(PAYMENT_METHODS),
   paidAt: z.string(),
@@ -69,8 +74,6 @@ export const CashDaySchema = z.object({
 export type CashDay = z.infer<typeof CashDaySchema>;
 
 /** MS-24 (T-153): markaz to'lovlari tarixi — to'lov, storno va qaytarish bitta ro'yxatda. */
-export const PAYMENT_KINDS = ['payment', 'reversal', 'refund'] as const;
-
 export const PaymentHistoryQuery = z
   .object({
     from: z.iso.date(),

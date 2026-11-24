@@ -143,8 +143,12 @@ export function useStudentCard(id: string) {
       return {
         hit: studentHit({ ...s, groups, frozen: false, guardian: null }, debt),
         enrollments,
+        student: s,
         archivedAt: s.archivedAt,
         guardians: s.guardians.map((g) => ({
+          id: g.guardianId,
+          isPrimary: g.isPrimary,
+          notify: g.notify,
           name: g.fullName,
           relation: t.studentCard.relations[g.relation],
           phone: g.phone ?? '',

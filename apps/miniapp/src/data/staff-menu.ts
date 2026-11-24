@@ -10,6 +10,8 @@ export type StaffMenuKey =
   | 'linkRequests'
   | 'pay'
   | 'debtors'
+  | 'payments'
+  | 'discounts'
   | 'queue'
   | 'cash'
   | 'addExpense'
@@ -53,6 +55,8 @@ export const STAFF_MENU: readonly StaffMenuItem[] = [
   { key: 'pay', section: 'money', permission: 'payment.create', to: '/staff/pay' },
   // `billing.view` ota-onada ham bor — markaz ro'yxati faqat xodimga (web W-15 bilan bir xil)
   { key: 'debtors', section: 'money', permission: 'payment.review', to: '/staff/debtors' },
+  { key: 'payments', section: 'money', permission: 'payment.review', to: '/staff/payments' },
+  { key: 'discounts', section: 'money', permission: 'discount.grant', to: '/staff/discounts' },
   { key: 'queue', section: 'money', permission: 'payment.review', to: '/staff/queue' },
   { key: 'cash', section: 'money', permission: 'cash.close', to: '/staff/cash' },
   {

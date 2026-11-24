@@ -147,7 +147,7 @@ export class BillingGeneratorService {
     return {
       enrollmentId: enrollment.enrollmentId,
       amount,
-      description: `${enrollment.groupName} kursi oylik to'lovi (${period})`,
+      description: `${enrollment.groupName} oylik toʻlovi (${period})`,
       kind: 'tuition',
     };
   }

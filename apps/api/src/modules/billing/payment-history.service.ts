@@ -1,16 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { PaymentHistory, PaymentHistoryItem, PaymentHistoryQueryInput } from '@lg/contracts';
+import type { PaymentHistory, PaymentHistoryQueryInput } from '@lg/contracts';
 import { type Database, payments, receiptCancellations, receipts, students } from '@lg/db';
 import { tashkentDayRange } from '@lg/domain';
 import { and, desc, eq, gte, lt, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import type { RequestUser } from '../auth/index.js';
 import { StudentScopeService } from '../students/index.js';
-
-const kindOf = (amount: bigint, reversalOf: string | null): PaymentHistoryItem['kind'] => {
-  if (reversalOf) return 'reversal';
-  return amount < 0n ? 'refund' : 'payment';
-};
+import { paymentKind } from './payment-kind.js';
 
 /** MS-24 (T-153): markazning barcha to'lovlari — faqat markazni to'liq ko'radigan xodimga. */
 @Injectable()
@@ -54,7 +50,7 @@ export class PaymentHistoryService {
         id: r.p.id,
         studentId: r.p.studentId,
         student: r.student,
-        kind: kindOf(r.p.amount, r.p.reversalOf),
+        kind: paymentKind(r.p),
         amount: r.p.amount.toString(),
         method: r.p.method,
         paidAt: r.p.paidAt.toISOString(),

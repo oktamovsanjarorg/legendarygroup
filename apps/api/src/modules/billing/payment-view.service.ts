@@ -20,6 +20,7 @@ import { EnvService } from '../../config/env.service.js';
 import type { RequestUser } from '../auth/index.js';
 import { PermissionsService } from '../rbac/index.js';
 import { StudentScopeService } from '../students/index.js';
+import { paymentKind } from './payment-kind.js';
 
 /**
  * W-17 (FR-PAY-6/8/9): to'lov, chek, oy bo'yicha taqsimot va storno holati bitta javobda.
@@ -60,6 +61,7 @@ export class PaymentViewService {
       id: row.p.id,
       studentId: row.p.studentId,
       studentName: row.studentName,
+      kind: paymentKind(row.p),
       amount: row.p.amount.toString(),
       method: row.p.method,
       paidAt: row.p.paidAt.toISOString(),

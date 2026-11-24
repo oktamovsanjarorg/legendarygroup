@@ -10,7 +10,7 @@ const enr = (id: string, endDate: string | null): EnrollmentDto => ({
   endDate,
   endReason: endDate ? 'left' : null,
   discountPercent: null,
-  state: 'active',
+  state: endDate && endDate < '2026-11-22' ? 'ended' : 'active',
   freezes: [],
 });
 
@@ -21,9 +21,9 @@ describe('studentManage (T-144, Q-93)', () => {
     expect(m.groups.map((g) => g.enrollmentId)).toEqual(['a']);
     expect(m.canArchive).toBe(false);
   });
-  it('kelajak sanada chiqadi — roʻyxatda yoʻq, lekin arxivlash hali yoʻq', () => {
+  it('kelajak sanada chiqadi — roʻyxatda sanasi bilan, arxivlash hali yoʻq', () => {
     const m = studentManage([enr('a', '2026-11-30')], null, today);
-    expect(m.groups).toEqual([]);
+    expect(m.groups[0]?.text).toContain('30.11.2026');
     expect(m.canArchive).toBe(false);
   });
   it('bugun yoki oldin chiqqan — arxivlash mumkin', () => {
