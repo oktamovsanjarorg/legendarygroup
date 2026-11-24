@@ -1,143 +1,118 @@
-import type { LoginResult } from '@lg/contracts';
+import type { PublicSettings } from '@lg/contracts';
+import { normalizePhone } from '@lg/contracts';
 import { webMessages as t } from '@lg/i18n';
 import { Button, Card, CardTitle, Field } from '@lg/ui-web';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { type FormEvent, type ReactNode, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { api, ApiError } from '../api/client.js';
 import { useAuth } from '../auth/auth.js';
-import { type MfaNext, TotpSetupStep, TotpVerifyStep } from './mfa.js';
 import { useTelegramPoll } from './telegram-poll.js';
 
+const m = t.login;
 const message = (e: unknown): string => (e instanceof ApiError ? e.message : String(e));
 
-/** "Telegram orqali kirish" — bot tasdig'ini kutish (ADR 0006 §6). */
-function TelegramWait({
-  challengeId,
-  onDone,
-  onCancel,
-}: {
+function BotLinkLine() {
+  const pub = useQuery({
+    queryKey: ['settings', 'public'],
+    queryFn: () => api.request<PublicSettings>('/settings/public'),
+  });
+  if (!pub.data) return null;
+  return (
+    <a
+      className="text-sm font-medium text-primary underline"
+      href={pub.data.botUrl}
+      target="_blank"
+      rel="noreferrer"
+    >
+      {m.openBot}
+    </a>
+  );
+}
+
+interface WaitProps {
   challengeId: string;
   onDone: (token: string) => void;
   onCancel: () => void;
-}) {
+}
+
+/** Bot tasdig'ini kutish (ADR 0006 §6). Xabar kelmasa — sababi va yo'li shu yerda (Q-98). */
+function TelegramWait({ challengeId, onDone, onCancel }: WaitProps) {
   const [error, setError] = useState<string | null>(null);
   useTelegramPoll(challengeId, onDone, (e) => setError(message(e)));
   return (
     <Card className="flex flex-col gap-4">
-      <CardTitle>{t.login.viaTelegram}</CardTitle>
-      <p className="text-sm text-text-muted">{error ?? t.login.telegramWaiting}</p>
+      <CardTitle>{m.waitingTitle}</CardTitle>
+      <p role={error ? 'alert' : 'status'} className="text-sm text-text-muted">
+        {error ?? m.telegramWaiting}
+      </p>
+      <p className="text-sm text-text-muted">{m.noMessage}</p>
+      <BotLinkLine />
       <Button variant="secondary" onClick={onCancel}>
-        {t.login.telegramCancel}
+        {m.telegramCancel}
       </Button>
     </Card>
   );
 }
 
-type Step = MfaNext | { next: 'telegram'; challengeId: string } | null;
-
-interface CredentialsProps {
+interface FormProps {
   busy: boolean;
   error: string | null;
-  onSubmit: (phone: string, password: string) => void;
-  onTelegram: (phone: string) => void;
+  onSubmit: (phone: string) => void;
 }
 
-/** Telefon + parol formasi. */
-function CredentialsForm({ busy, error, onSubmit, onTelegram }: CredentialsProps) {
+function PhoneForm({ busy, error, onSubmit }: FormProps) {
   const [phone, setPhone] = useState('+998');
-  const [password, setPassword] = useState('');
+  const [invalid, setInvalid] = useState(false);
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit(phone.replaceAll(' ', ''), password);
+    const normalized = normalizePhone(phone);
+    setInvalid(!normalized);
+    if (normalized) onSubmit(normalized);
   };
   return (
     <Card>
-      <form className="flex flex-col gap-4" onSubmit={submit}>
-        <CardTitle>{t.login.title}</CardTitle>
+      <form className="flex flex-col gap-4" onSubmit={submit} noValidate>
+        <CardTitle>{m.title}</CardTitle>
+        <p className="text-sm text-text-muted">{m.hint}</p>
         <Field
-          label={t.login.phone}
+          label={m.phone}
           type="tel"
           autoComplete="username"
+          autoFocus
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-        />
-        <Field
-          label={t.login.password}
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          error={error}
+          error={invalid ? t.staff.form.phoneInvalid : error}
         />
         <Button type="submit" size="full" loading={busy}>
-          {t.login.submit}
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="full"
-          onClick={() => onTelegram(phone.replaceAll(' ', ''))}
-        >
-          {t.login.viaTelegram}
+          {m.viaTelegram}
         </Button>
       </form>
     </Card>
   );
 }
 
-interface StepViewProps {
-  step: Step;
-  form: ReactNode;
-  finish: (token: string) => void;
-  reset: () => void;
-}
-
-function StepView({ step, form, finish, reset }: StepViewProps) {
-  const done = (d: { accessToken: string }) => finish(d.accessToken);
-  if (step?.next === 'totp_setup')
-    return (
-      <TotpSetupStep
-        mfaToken={step.mfaToken}
-        telegramChallengeId={step.telegramChallengeId}
-        onDone={done}
-      />
-    );
-  if (step?.next === 'totp')
-    return (
-      <TotpVerifyStep
-        mfaToken={step.mfaToken}
-        telegramChallengeId={step.telegramChallengeId}
-        onDone={done}
-      />
-    );
-  if (step?.next === 'telegram')
-    return <TelegramWait challengeId={step.challengeId} onDone={finish} onCancel={reset} />;
-  return form;
-}
-
-/** W-01: telefon + parol → MFA (W-02) yoki Telegram orqali. */
-export function LoginPage({ initialStep }: { initialStep?: MfaNext }) {
+/** W-01: telefon → botda «Tasdiqlash» → panel. Parol va 2FA yo'q (Q-98). */
+export function LoginPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [step, setStep] = useState<Step>(initialStep ?? null);
+  const [challengeId, setChallengeId] = useState<string | null>(null);
 
   const finish = async (accessToken: string) => {
     await signIn(accessToken);
     await navigate({ to: '/' });
   };
-
-  const login = async (phone: string, password: string) => {
+  const start = async (phone: string) => {
     setBusy(true);
     setError(null);
     try {
-      const r = await api.request<LoginResult>('/auth/login', {
+      const r = await api.request<{ challengeId: string }>('/auth/telegram/start', {
         method: 'POST',
-        body: { phone, password },
+        body: { phone },
       });
-      if (r.next === 'done') await finish(r.accessToken);
-      else setStep(r);
+      setChallengeId(r.challengeId);
     } catch (err) {
       setError(message(err));
     } finally {
@@ -145,35 +120,17 @@ export function LoginPage({ initialStep }: { initialStep?: MfaNext }) {
     }
   };
 
-  const viaTelegram = async (phone: string) => {
-    setError(null);
-    try {
-      const r = await api.request<{ challengeId: string }>('/auth/telegram/start', {
-        method: 'POST',
-        body: { phone },
-      });
-      setStep({ next: 'telegram', challengeId: r.challengeId });
-    } catch (err) {
-      setError(message(err));
-    }
-  };
-
-  const form = (
-    <CredentialsForm
-      busy={busy}
-      error={error}
-      onSubmit={(ph, pw) => void login(ph, pw)}
-      onTelegram={(ph) => void viaTelegram(ph)}
-    />
-  );
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center p-6">
-      <StepView
-        step={step}
-        form={form}
-        finish={(tok) => void finish(tok)}
-        reset={() => setStep(null)}
-      />
+      {challengeId ? (
+        <TelegramWait
+          challengeId={challengeId}
+          onDone={(token) => void finish(token)}
+          onCancel={() => setChallengeId(null)}
+        />
+      ) : (
+        <PhoneForm busy={busy} error={error} onSubmit={(p) => void start(p)} />
+      )}
     </main>
   );
 }

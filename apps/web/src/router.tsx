@@ -10,7 +10,6 @@ import {
 import { AppLayout } from './layout/app-layout.js';
 import { HandoffPage } from './pages/handoff.js';
 import { HomePage } from './pages/home.js';
-import { InvitePage } from './pages/invite.js';
 import { LoginPage } from './pages/login.js';
 import { SessionsPage } from './pages/sessions.js';
 import { VerifyPage } from './pages/verify.js';
@@ -55,13 +54,6 @@ const login = createRoute({
   getParentRoute: () => root,
   path: '/login',
   component: () => <LoginPage />,
-});
-const invite = createRoute({
-  getParentRoute: () => root,
-  path: '/invite/$token',
-  component: function Invite() {
-    return <InvitePage token={invite.useParams().token} />;
-  },
 });
 const verify = createRoute({
   getParentRoute: () => root,
@@ -209,7 +201,6 @@ const helpRoute = createRoute({ getParentRoute: () => app, path: '/help', compon
 
 const routeTree = root.addChildren([
   login,
-  invite,
   verify,
   handoff,
   landing,

@@ -22,7 +22,7 @@ export const errorMessages = {
   INVALID_INTERNAL_TOKEN: 'Ichki xizmat tokeni notoʻgʻri.',
   INVALID_CREDENTIALS: 'Telefon raqam yoki parol notoʻgʻri.',
   ACCOUNT_BLOCKED: 'Hisobingiz bloklangan. Markaz rahbariyatiga murojaat qiling.',
-  INVALID_MFA_TOKEN: 'Kirish muddati tugadi. Telefon va parolni qayta kiriting.',
+  INVALID_MFA_TOKEN: 'Kirish muddati tugadi. Telefon raqamni qayta kiriting.',
   INVALID_TOTP: 'Tasdiqlash kodi notoʻgʻri. Ilovadagi yangi kodni kiriting.',
   TOTP_ALREADY_ENABLED: 'Ikki bosqichli himoya allaqachon yoqilgan.',
   SESSION_EXPIRED: 'Sessiya tugadi. Tizimga qayta kiring.',

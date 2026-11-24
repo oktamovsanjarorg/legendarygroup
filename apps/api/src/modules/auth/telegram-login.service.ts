@@ -10,7 +10,9 @@ import { defaultWebRole, StaffUsers } from './staff-users.js';
 import { confirmedKey, pendingKey, TelegramChallenges } from './telegram-challenges.js';
 
 export { CHALLENGE_TTL_S } from './telegram-challenges.js';
-const START_LIMIT: RateLimit = { scope: 'login:tg', limit: 5, windowS: 60 };
+/** Telefon bo'yicha — begona odam xodimga xabar yog'dirmasin; IP — keng (markazda bitta NAT). */
+const PHONE_LIMIT: RateLimit = { scope: 'login:tg:phone', limit: 5, windowS: 60 };
+const IP_LIMIT: RateLimit = { scope: 'login:tg', limit: 30, windowS: 60 };
 
 /**
  * "Telegram orqali kirish" (FR-AUTH-3 muqobili): web → challenge → bot xodimga tasdiq tugmasini
@@ -32,7 +34,8 @@ export class TelegramLoginService {
     phone: string,
     ip: string | null,
   ): Promise<{ challengeId: string; expiresAt: string }> {
-    await this.limiter.hit(START_LIMIT, ip ?? 'unknown');
+    await this.limiter.hit(IP_LIMIT, ip ?? 'unknown');
+    await this.limiter.hit(PHONE_LIMIT, phone);
     const user = await this.staff.byPhone(phone);
     const eligible =
       user && user.status === 'active' && user.telegramId && defaultWebRole(user.roles);
@@ -53,17 +56,25 @@ export class TelegramLoginService {
 
   /** Tasdiqlangan bo'lsa — sessiya (bir marta: GETDEL). Aks holda 202 "kutilmoqda". */
   async poll(challengeId: string, meta: ClientMeta, ctx: AuditContext): Promise<Issued> {
-    const userId = await this.redis.getdel(confirmedKey(challengeId));
-    if (!userId) {
-      const pending = (await this.redis.exists(pendingKey(challengeId))) === 1;
-      throw pending
-        ? new AppException(HttpStatus.ACCEPTED, 'TELEGRAM_LOGIN_PENDING')
-        : new AppException(HttpStatus.UNAUTHORIZED, 'INVALID_MFA_TOKEN');
-    }
+    const userId = await this.takeConfirmed(challengeId);
     const user = await this.staff.byId(userId);
     if (!user || user.status !== 'active') {
       throw new AppException(HttpStatus.UNAUTHORIZED, 'INVALID_MFA_TOKEN');
     }
     return this.auth.issue(user, { meta, ctx, method: 'telegram' });
+  }
+
+  /**
+   * `confirm` avval natijani yozadi, keyin kutishni o'chiradi. Shuning uchun kutish yo'q bo'lsa,
+   * natija oradagi lahzada kelgan bo'lishi mumkin — 401 dan oldin yana bir marta qaraladi.
+   */
+  private async takeConfirmed(challengeId: string): Promise<string> {
+    const first = await this.redis.getdel(confirmedKey(challengeId));
+    if (first) return first;
+    if ((await this.redis.exists(pendingKey(challengeId))) === 1)
+      throw new AppException(HttpStatus.ACCEPTED, 'TELEGRAM_LOGIN_PENDING');
+    const late = await this.redis.getdel(confirmedKey(challengeId));
+    if (late) return late;
+    throw new AppException(HttpStatus.UNAUTHORIZED, 'INVALID_MFA_TOKEN');
   }
 }
