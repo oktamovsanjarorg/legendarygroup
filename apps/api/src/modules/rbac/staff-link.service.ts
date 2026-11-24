@@ -1,9 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { StaffInviteCheckResult, TelegramContactResult } from '@lg/contracts';
-import { type Database, guardianLinkRequests, staffInvites, users } from '@lg/db';
+import type { RoleCode, StaffInviteCheckResult, TelegramContactResult } from '@lg/contracts';
+import {
+  type Database,
+  guardianLinkRequests,
+  roles,
+  staffInvites,
+  type Transaction,
+  userRoles,
+  users,
+} from '@lg/db';
 import { webMessages } from '@lg/i18n';
 import type { Clock } from '@lg/domain';
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { and, eq, gt, inArray, isNull } from 'drizzle-orm';
 import { AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
@@ -15,10 +23,14 @@ const STAFF_LINKED_REASON = webMessages.linkRequests.staffLinkedReason;
 
 export const normalizePhone = (raw: string): string => `+${raw.replace(/\D/g, '')}`;
 
+/** Botda raqam ulashib kiradigan rollar (Q-98). Ota-ona/o'quvchi — o'z oqimlari (T-110, T-126). */
+const STAFF_CODES: RoleCode[] = ['director', 'admin', 'teacher'];
+
 /**
- * Ustozni Telegram'ga bog'lash (T-101): `/start inv_<token>` → kontakt ulashish.
- * Bog'lash faqat shu raqamda **amaldagi bot taklifi** bo'lsa (taklifsiz — ota-ona oqimi, T-110).
- * Kontakt egasi tekshiruvi (`contact.user_id === from.id`) — botda.
+ * Xodimni Telegram'ga bog'lash (Q-98): botda o'z raqamini ulashish — yetarli, taklif havolasi yo'q.
+ * Raqam faol xodimniki bo'lishi shart. Telegram raqamga egalikni tasdiqlaydi; kontakt egasi
+ * tekshiruvi (`contact.user_id === from.id`) — botda. Allaqachon boshqa Telegram'ga bog'langan
+ * raqam avtomatik ko'chmaydi (SIM qayta sotilishi) — Director uzadi yoki CLI `director:relink`.
  */
 @Injectable()
 export class StaffLinkService {
@@ -64,19 +76,13 @@ export class StaffLinkService {
       if (!user || user.status !== 'active') return { result: 'not_found' };
       if (user.telegramId === input.telegramId)
         return { result: 'already_linked', fullName: user.fullName };
-      // Boshqa Telegram'ga bog'langan raqam yoki bu Telegram boshqa foydalanuvchida — egallab bo'lmaydi.
-      if (user.telegramId !== null) return { result: 'not_found' };
+      if (!(await this.isStaff(tx, user.id))) return { result: 'not_found' };
+      if (user.telegramId !== null) return { result: 'conflict' };
       const [taken] = await tx
         .select({ id: users.id })
         .from(users)
         .where(eq(users.telegramId, input.telegramId));
-      if (taken) return { result: 'not_found' };
-      const [invite] = await tx
-        .update(staffInvites)
-        .set({ usedAt: now })
-        .where(and(eq(staffInvites.userId, user.id), this.activeBotInvite(now)))
-        .returning({ id: staffInvites.id });
-      if (!invite) return { result: 'not_found' };
+      if (taken) return { result: 'conflict' };
       await tx
         .update(users)
         .set({ telegramId: input.telegramId, telegramUsername: input.username ?? null })
@@ -99,5 +105,15 @@ export class StaffLinkService {
       );
       return { result: 'staff_linked', fullName: user.fullName };
     });
+  }
+
+  private async isStaff(tx: Transaction, userId: string): Promise<boolean> {
+    const rows = await tx
+      .select({ code: roles.code })
+      .from(userRoles)
+      .innerJoin(roles, eq(roles.id, userRoles.roleId))
+      .where(and(eq(userRoles.userId, userId), inArray(roles.code, STAFF_CODES)))
+      .limit(1);
+    return rows.length > 0;
   }
 }

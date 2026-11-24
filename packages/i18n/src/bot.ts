@@ -9,15 +9,11 @@ export const botMessages = {
     body: '/start — bosh menyu\n/help — yordam\nSavol boʻlsa — ilovadagi «Murojaat» boʻlimidan yozing.',
   },
   staffInvite: {
-    greeting: '👋 Assalomu alaykum, {name}!',
-    body: 'Legendary Group xodimi sifatida ulanish uchun telefon raqamingizni ulashing (pastdagi tugma).',
-    shareButton: '📱 Telefon raqamni ulashish',
-    invalid: 'Taklif havolasi eskirgan yoki ishlatilgan. Direktordan yangi havola soʻrang.',
     notOwn: 'Faqat oʻz telefon raqamingizni ulashing (pastdagi tugma orqali).',
     linked: '✅ Telegram akkauntingiz ulandi, {name}.',
-    linkedBody: 'Endi ilovada darslaringiz va davomat chiqadi.',
-    notFound:
-      'Bu raqam boʻyicha faol taklif topilmadi. Direktor yoki administratorga murojaat qiling.',
+    linkedBody: 'Tayyor. Ilovani pastdagi tugma bilan oching — parol kerak emas.',
+    conflict:
+      'Bu raqam yoki Telegram akkaunt tizimda boshqa profilga ulangan. Direktorga ayting: Xodimlar boʻlimida «Telegramni uzish»ni bossin, soʻng raqamni qayta ulashing.',
   },
   /** "Telegram orqali kirish" (web, ADR 0006 §6): bot tasdiq so'raydi. */
   staffLogin: {
@@ -31,7 +27,7 @@ export const botMessages = {
   parentOnboarding: {
     welcomeTitle: '👋 Legendary Group oʻquv markaziga xush kelibsiz!',
     welcomeBody:
-      'Markaz yangiliklari, farzandingiz davomati, baholari va toʻlovlarini kuzatib borish uchun telefon raqamingizni ulashing.\n\n<i>Tugmani bosish orqali siz shaxsiy maʼlumotlarni qayta ishlashga rozilik bildirasiz.</i>',
+      'Kirish uchun telefon raqamingizni ulashing — ota-ona, ustoz va xodimlar uchun bir xil. Parol kerak emas.\n\n<i>Tugmani bosish orqali siz shaxsiy maʼlumotlarni qayta ishlashga rozilik bildirasiz.</i>',
     shareButton: '📱 Telefon raqamni ulashish',
     linkedTitle: '✅ Profilingiz muvaffaqiyatli bogʻlandi, {name}!',
     linkedChildren:

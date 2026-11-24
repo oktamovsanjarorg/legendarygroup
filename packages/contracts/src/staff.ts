@@ -68,8 +68,11 @@ export const TelegramContactRequest = z.object({
   username: z.string().max(64).optional(),
 });
 export const TelegramContactResult = z.object({
-  /** `staff_linked` — xodim bog'landi; `not_found` — taklif yo'q (ota-ona oqimi — T-110). */
-  result: z.enum(['staff_linked', 'already_linked', 'not_found']),
+  /**
+   * `staff_linked` — xodim bog'landi; `conflict` — raqam boshqa Telegram'da yoki Telegram boshqa
+   * foydalanuvchida; `not_found` — xodim emas (ota-ona oqimi — T-110).
+   */
+  result: z.enum(['staff_linked', 'already_linked', 'conflict', 'not_found']),
   fullName: z.string().optional(),
 });
 

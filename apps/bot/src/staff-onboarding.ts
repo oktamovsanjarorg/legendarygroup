@@ -10,29 +10,11 @@ import type { BotStore } from './dedupe.js';
 import type { InternalApi } from './internal-api.js';
 import { studentCodeKey, STUDENT_CODE_TTL_S, takeStudentIntent } from './student-login.js';
 
-/** `/start inv_<token>` (T-101: API'dagi `BOT_INVITE_PREFIX` bilan bir xil). */
-export const INVITE_PREFIX = 'inv_';
-
 const shareKeyboard = () =>
   new Keyboard().requestContact(t.parentOnboarding.shareButton).resized().oneTime();
 
 const escapeHtml = (s: string) =>
   s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-
-async function onInvite(ctx: Context, api: InternalApi, token: string): Promise<void> {
-  const r = await api.checkStaffInvite(token);
-  if (!r.valid) {
-    await ctx.reply(t.staffInvite.invalid);
-    return;
-  }
-  await ctx.reply(
-    `<b>${t.staffInvite.greeting.replace('{name}', escapeHtml(r.fullName))}</b>\n${t.staffInvite.body}`,
-    {
-      parse_mode: 'HTML',
-      reply_markup: shareKeyboard(),
-    },
-  );
-}
 
 async function handleLinkedStatus(
   ctx: Context,
@@ -77,7 +59,8 @@ async function onNormalStart(
   if (status.status === 'pending_approval') {
     await ctx.reply(
       `<b>${t.parentOnboarding.pendingTitle}</b>\n${t.parentOnboarding.pendingBody}`,
-      { parse_mode: 'HTML' },
+      // Raqam tugmasi qoladi: keyin xodim qilib qo'shilgan odam shu yerda tiqilib qolmasin (Q-98)
+      { parse_mode: 'HTML', reply_markup: shareKeyboard() },
     );
     return;
   }
@@ -85,6 +68,7 @@ async function onNormalStart(
   if (status.status === 'rejected') {
     await ctx.reply(
       t.parentOnboarding.rejectedBody.replace('{reason}', escapeHtml(status.rejectReason ?? '')),
+      { reply_markup: shareKeyboard() },
     );
     return;
   }
@@ -111,6 +95,10 @@ async function handleStaffContact(
     username: ctx.from.username,
   });
 
+  if (staffRes.result === 'conflict') {
+    await ctx.reply(t.staffInvite.conflict, { reply_markup: { remove_keyboard: true } });
+    return true;
+  }
   if (staffRes.result !== 'staff_linked' && staffRes.result !== 'already_linked') {
     return false;
   }
@@ -194,7 +182,7 @@ async function handleGuardianContact(input: GuardianContactInput): Promise<void>
 }
 
 /**
- * Onboarding (T-101 xodim, T-110 ota-ona).
+ * Onboarding (T-101 xodim, T-110 ota-ona): telefon raqamni ulashish — yagona kirish yo'li (Q-98).
  */
 export function registerStaffOnboarding(
   bot: Bot,
@@ -202,14 +190,8 @@ export function registerStaffOnboarding(
   openApp: () => InlineKeyboard,
   store: BotStore,
 ): void {
-  bot.command('start', async (ctx) => {
-    const param = typeof ctx.match === 'string' ? ctx.match.trim() : '';
-    if (param.startsWith(INVITE_PREFIX)) {
-      await onInvite(ctx, api, param.slice(INVITE_PREFIX.length));
-      return;
-    }
-    await onNormalStart(ctx, api, openApp);
-  });
+  // Eski `/start inv_<token>` havolalari ham shu yerga tushadi — token endi kerak emas (Q-98)
+  bot.command('start', (ctx) => onNormalStart(ctx, api, openApp));
 
   bot.on('message:contact', async (ctx) => {
     const { contact } = ctx.message;

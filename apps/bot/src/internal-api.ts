@@ -4,9 +4,7 @@ import {
   BotStudentLinkResult,
   BotTelegramStatusResult,
   type BotTelegramStatusResult as StatusResult,
-  StaffInviteCheckResult,
   TelegramLoginConfirmResult,
-  type StaffInviteCheckResult as CheckResult,
   TelegramContactResult,
   type TelegramContactResult as ContactResult,
 } from '@lg/contracts';
@@ -15,7 +13,6 @@ import type { BotEnv } from './env.js';
 
 /** Bot → API ichki chaqiruvlari (bot DB'ga tegmaydi — 03 §2). Testda — fake. */
 export interface InternalApi {
-  checkStaffInvite(token: string): Promise<CheckResult>;
   shareContact(input: {
     telegramId: number;
     phone: string;
@@ -61,7 +58,6 @@ export function createInternalApi(
     return schema.parse(await res.json());
   };
   return {
-    checkStaffInvite: (token) => post('staff/invite/check', { token }, StaffInviteCheckResult),
     shareContact: (input) =>
       post(
         'staff/contact',

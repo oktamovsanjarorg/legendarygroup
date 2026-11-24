@@ -162,7 +162,7 @@ describe('Ustoz qoʻshish — bot taklifi va kontakt orqali bogʻlash', () => {
     expect((await internal('invite/check', { token })).json()).toMatchObject({ valid: true });
   });
 
-  it("boshqa raqam — bog'lanmaydi; o'z raqami (+ siz) — bog'lanadi, taklif ishlatiladi", async () => {
+  it("Q-98: boshqa raqam — bog'lanmaydi; o'z raqami (+ siz) — taklifsiz bog'lanadi", async () => {
     expect(
       (await internal('contact', { telegramId: '7001', phone: '998939999999' })).json(),
     ).toEqual({ result: 'not_found' });
@@ -181,7 +181,6 @@ describe('Ustoz qoʻshish — bot taklifi va kontakt orqali bogʻlash', () => {
     expect(
       (await internal('contact', { telegramId: '7001', phone: '998932220002' })).json(),
     ).toMatchObject({ result: 'already_linked' });
-    expect((await internal('invite/check', { token })).json()).toEqual({ valid: false });
     const detail = (await call('GET', `staff/${id}`, director())).json<{
       status: string;
       telegramLinked: boolean;
@@ -192,7 +191,30 @@ describe('Ustoz qoʻshish — bot taklifi va kontakt orqali bogʻlash', () => {
   it("bog'langan raqamni boshqa Telegram egallay olmaydi", async () => {
     expect(
       (await internal('contact', { telegramId: '7999', phone: '+998932220002' })).json(),
-    ).toEqual({ result: 'not_found' });
+    ).toEqual({ result: 'conflict' });
+  });
+
+  it("Q-98: Admin ham faqat raqam bilan; ota-ona va bloklangan xodim — bog'lanmaydi", async () => {
+    const [a, g, b] = [phone(), phone(), phone()];
+    await createUser(['admin'], a);
+    await createUser(['guardian'], g);
+    const blocked = await createUser(['teacher'], b);
+    await db.update(users).set({ status: 'blocked' }).where(eq(users.id, blocked));
+    const share = async (telegramId: string, p: string) =>
+      (await internal('contact', { telegramId, phone: p })).json<{ result: string }>().result;
+    expect(await share('7101', a)).toBe('staff_linked');
+    expect(await share('7102', g)).toBe('not_found');
+    expect(await share('7103', b)).toBe('not_found');
+  });
+
+  it("Q-98: Telegram boshqa foydalanuvchida band — conflict, yozuv o'zgarmaydi", async () => {
+    const p = phone();
+    const other = await createUser(['teacher'], p);
+    expect((await internal('contact', { telegramId: '7001', phone: p })).json()).toEqual({
+      result: 'conflict',
+    });
+    const [u] = await db.select({ tg: users.telegramId }).from(users).where(eq(users.id, other));
+    expect(u?.tg).toBeNull();
   });
 
   it("taklif kerak emas (bog'langan) — INVITE_NOT_NEEDED", async () => {

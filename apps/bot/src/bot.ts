@@ -36,7 +36,7 @@ export function createBot(deps: BotDeps): Bot {
   const url = deps.env.TELEGRAM_MINIAPP_URL;
 
   bot.use(dedupeUpdates(deps.store));
-  // Onboarding: `/start inv_<token>` (T-101), `/start` (T-110) va kontakt ulashish
+  // Onboarding: `/start` va kontakt ulashish — xodim (Q-98), ota-ona (T-110)
   registerStaffOnboarding(bot, deps.api, () => openAppKeyboard(url), deps.store);
   // Oʻquvchi shaxsiy kod orqali kirish (T-126)
   registerStudentLogin(bot, deps.api, deps.store, () => openAppKeyboard(url));

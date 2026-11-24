@@ -38,7 +38,6 @@ const memoryStore = (): BotStore => {
 
 function fakeApi(): InternalApi {
   return {
-    checkStaffInvite: async () => ({ valid: false }),
     shareContact: async () => ({ result: 'not_found' }),
     checkStatus: async (telegramId) => {
       if (telegramId === 55) {
