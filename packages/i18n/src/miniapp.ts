@@ -4,6 +4,7 @@ import { guardianMessages } from './miniapp-guardian.js';
 import { staffMessages } from './miniapp-staff.js';
 import { staffListMessages } from './miniapp-staff-lists.js';
 import { staffOrgMessages } from './miniapp-staff-org.js';
+import { staffPayrollMessages } from './miniapp-staff-payroll.js';
 import { staffStudentMessages } from './miniapp-staff-students.js';
 import { staffWorkMessages } from './miniapp-staff-work.js';
 import { studentMessages } from './miniapp-student.js';
@@ -50,6 +51,7 @@ export const miniappMessages = {
   ...staffListMessages,
   ...staffOrgMessages,
   ...staffStudentMessages,
+  ...staffPayrollMessages,
   ...auditActionMessages,
   ...studentMessages,
   ...introMessages,
