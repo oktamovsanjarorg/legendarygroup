@@ -10,6 +10,19 @@ export const REPORT_TYPES = [
 ] as const;
 export type ReportType = (typeof REPORT_TYPES)[number];
 
+/** Fayl bot chatiga (T-158): ekrandagi filtr bilan bir xil. */
+export const SendReportRequest = z.object({
+  format: z.enum(['excel', 'pdf']),
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
+  groupBy: z.enum(['month', 'course', 'group', 'teacher']).optional(),
+});
+export type SendReportRequest = z.infer<typeof SendReportRequest>;
+
+/** `already_sent` — 10 daqiqa ichida xuddi shu fayl so'ralgan. */
+export const SendReportResult = z.object({ status: z.enum(['queued', 'already_sent']) });
+export type SendReportResult = z.infer<typeof SendReportResult>;
+
 // 1. Revenue Report
 export const RevenueReportQuerySchema = z.object({
   branchId: z.string().uuid().optional(),

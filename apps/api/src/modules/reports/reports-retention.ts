@@ -9,7 +9,8 @@ import {
   users,
 } from '@lg/db';
 import { calculateAttendanceRateBp, calculateRetentionRateBp } from '@lg/domain';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, gte, isNull, lte, or, sql } from 'drizzle-orm';
+import type { DateFilter } from './reports-revenue.repository.js';
 
 /** `YYYY-MM` + k oy. */
 export const addMonths = (period: string, k: number): string => {
@@ -77,7 +78,11 @@ export async function cohortRetention(
     });
 }
 
-async function teacherAttendance(db: Database, branchId: string) {
+/** Dars sanasi filtri (Toshkent kunlari, ikkala chegara kiradi). */
+const lessonDays = ({ from, to }: DateFilter) =>
+  and(from ? gte(lessons.date, from) : undefined, to ? lte(lessons.date, to) : undefined);
+
+async function teacherAttendance(db: Database, branchId: string, filter: DateFilter) {
   const rows = await db
     .select({
       teacherId: lessons.teacherId,
@@ -88,7 +93,7 @@ async function teacherAttendance(db: Database, branchId: string) {
     .from(attendance)
     .innerJoin(lessons, eq(lessons.id, attendance.lessonId))
     .innerJoin(groups, eq(groups.id, lessons.groupId))
-    .where(eq(groups.branchId, branchId))
+    .where(and(eq(groups.branchId, branchId), lessonDays(filter)))
     .groupBy(lessons.teacherId);
   return new Map(
     rows.map((r) => [
@@ -98,7 +103,7 @@ async function teacherAttendance(db: Database, branchId: string) {
   );
 }
 
-async function teacherGrades(db: Database, branchId: string) {
+async function teacherGrades(db: Database, branchId: string, filter: DateFilter) {
   const rows = await db
     .select({
       teacherId: lessons.teacherId,
@@ -107,34 +112,50 @@ async function teacherGrades(db: Database, branchId: string) {
     .from(grades)
     .innerJoin(lessons, eq(lessons.id, grades.lessonId))
     .innerJoin(groups, eq(groups.id, lessons.groupId))
-    .where(eq(groups.branchId, branchId))
+    .where(and(eq(groups.branchId, branchId), lessonDays(filter)))
     .groupBy(lessons.teacherId);
   return new Map(rows.map((r) => [r.teacherId, Math.round(Number(r.avg) * 100)]));
 }
 
 /**
- * Ustoz samaradorligi: davomat (BR: kechikish — yarim), saqlash = faol yozilishlar / barcha
- * yozilishlar (ustoz guruhlarida), o'rtacha baho (0–100 → bp; baho yo'q — `null`).
+ * Ustoz samaradorligi: davomat (kechikish — yarim) va o'rtacha baho (0–100 → bp; yo'q — `null`) —
+ * davr bo'yicha; guruh, o'quvchi va saqlanish — bugungi holat. Saqlanish = faol / (faol + ketgan):
+ * boshqa guruhga ko'chgan yoki kursni tugatgan ketgan sanalmaydi. O'tib ketgan tayinlov kirmaydi.
  */
-export async function teacherPerformance(db: Database, branchId: string) {
+export async function teacherPerformance(
+  db: Database,
+  branchId: string,
+  filter: DateFilter,
+  today: string,
+) {
+  const active = sql`${enrollments.startDate} <= ${today} and (${enrollments.endDate} is null or ${enrollments.endDate} >= ${today})`;
+  const left = sql`${enrollments.endReason} = 'left' and ${enrollments.endDate} < ${today}`;
   const base = await db
     .select({
       teacherId: users.id,
       teacherName: users.fullName,
       groupCount: sql<number>`count(distinct ${groupTeachers.groupId})::int`,
-      studentCount: sql<number>`count(distinct case when ${enrollments.endDate} is null then ${enrollments.studentId} end)::int`,
-      enrolled: sql<number>`count(distinct ${enrollments.id})::int`,
-      active: sql<number>`count(distinct case when ${enrollments.endDate} is null then ${enrollments.id} end)::int`,
+      studentCount: sql<number>`count(distinct case when ${active} then ${enrollments.studentId} end)::int`,
+      active: sql<number>`count(distinct case when ${active} then ${enrollments.id} end)::int`,
+      left: sql<number>`count(distinct case when ${left} then ${enrollments.id} end)::int`,
     })
     .from(users)
     .innerJoin(groupTeachers, eq(groupTeachers.teacherId, users.id))
     .innerJoin(groups, eq(groups.id, groupTeachers.groupId))
     .leftJoin(enrollments, eq(enrollments.groupId, groups.id))
-    .where(and(eq(groups.branchId, branchId), sql`${groups.status} <> 'finished'`))
-    .groupBy(users.id, users.fullName);
+    .where(
+      and(
+        eq(groups.branchId, branchId),
+        sql`${groups.status} <> 'finished'`,
+        lte(groupTeachers.fromDate, today),
+        or(isNull(groupTeachers.toDate), gte(groupTeachers.toDate, today)),
+      ),
+    )
+    .groupBy(users.id, users.fullName)
+    .orderBy(users.fullName);
   const [att, avg] = await Promise.all([
-    teacherAttendance(db, branchId),
-    teacherGrades(db, branchId),
+    teacherAttendance(db, branchId, filter),
+    teacherGrades(db, branchId, filter),
   ]);
   return base.map((t) => ({
     teacherId: t.teacherId,
@@ -142,7 +163,10 @@ export async function teacherPerformance(db: Database, branchId: string) {
     groupCount: Number(t.groupCount),
     studentCount: Number(t.studentCount),
     attendancePercentBp: att.get(t.teacherId) ?? 0,
-    retentionPercentBp: calculateRetentionRateBp(Number(t.active), Number(t.enrolled)),
+    retentionPercentBp: calculateRetentionRateBp(
+      Number(t.active),
+      Number(t.active) + Number(t.left),
+    ),
     averageGradeScoreBp: avg.get(t.teacherId) ?? null,
   }));
 }
