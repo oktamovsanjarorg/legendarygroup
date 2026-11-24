@@ -17,6 +17,7 @@ import { CLOCK_TOKEN } from '../../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../../common/db/db.tokens.js';
 import { AppException } from '../../../common/errors/app.exception.js';
 import { CoursesService, LessonsQueryService } from '../../org/index.js';
+import { OutboxService } from '../../outbox/index.js';
 import { StaffDirectoryService } from '../../rbac/index.js';
 import { LeadsQueryService } from './leads-query.service.js';
 
@@ -51,11 +52,12 @@ export class LeadsService {
     @Inject(CoursesService) private readonly courses: CoursesService,
     @Inject(LessonsQueryService) private readonly lessons: LessonsQueryService,
     @Inject(StaffDirectoryService) private readonly staff: StaffDirectoryService,
+    @Inject(OutboxService) private readonly outbox: OutboxService,
     @Inject(LeadsQueryService) private readonly query: LeadsQueryService,
   ) {}
 
   /** Telefon bo'yicha ochiq lid bo'lsa — 409 `LEAD_EXISTS` (`details.leadId`). */
-  async create(ctx: AuditContext, input: CreateLeadRequest): Promise<LeadDto> {
+  async create(ctx: AuditContext, input: CreateLeadRequest, fromSite = false): Promise<LeadDto> {
     await this.assertRefs(input);
     try {
       return await this.db.transaction(async (tx) => {
@@ -70,6 +72,7 @@ export class LeadsService {
           { action: 'lead.create', entity: 'lead', entityId: row.id, after: leadAudit(row) },
           tx,
         );
+        if (fromSite) await this.outbox.publish('LeadSubmitted', { leadId: row.id }, tx);
         return this.query.detail(row.id, tx);
       });
     } catch (err) {
@@ -94,13 +97,8 @@ export class LeadsService {
   ): Promise<void> {
     const courseId = v.courseId && (await this.courses.isActive(v.courseId)) ? v.courseId : null;
     try {
-      await this.create(ctx, {
-        fullName: v.fullName,
-        phone: v.phone,
-        courseId,
-        source: 'website',
-        notes: v.comment,
-      });
+      const { fullName, phone, comment: notes } = v;
+      await this.create(ctx, { fullName, phone, courseId, source: 'website', notes }, true);
     } catch (err) {
       if (!(err instanceof AppException && err.code === 'LEAD_EXISTS')) throw err;
     }

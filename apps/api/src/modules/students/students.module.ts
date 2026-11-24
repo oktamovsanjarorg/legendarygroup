@@ -11,6 +11,7 @@ import { LeadsQueryService } from './leads/leads-query.service.js';
 import { GuardianLinkRequestsController } from './guardian-link-requests.controller.js';
 import { GuardianLinkNotifier } from './guardian-link-notifier.js';
 import { GuardianLinkRequestsService } from './guardian-link-requests.service.js';
+import { LeadNotifier } from './leads/lead-notifier.js';
 import { LeadsController } from './leads/leads.controller.js';
 import { LeadsService } from './leads/leads.service.js';
 import { PublicLeadsController } from './leads/public-leads.controller.js';
@@ -53,6 +54,7 @@ import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
     GuardianLinkNotifier,
     StudentScopeService,
     LeadsQueryService,
+    LeadNotifier,
     LeadsService,
     LeadConvertService,
     TeacherCodesService,

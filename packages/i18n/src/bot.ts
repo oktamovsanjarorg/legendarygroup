@@ -67,6 +67,8 @@ export const botMessages = {
     submissionTitle: 'Yangi toʻlov cheki',
     submissionBody: 'Chek navbatga tushdi. Ilovada «Chek navbati»ni oching.',
     ticketTitle: 'Murojaat: {name}',
+    leadTitle: 'Saytdan yangi ariza',
+    leadBody: '{name} ariza qoldirdi. Ilovada «Lidlar»ni oching.',
     linkTitle: 'Yangi bogʻlanish soʻrovi',
     linkBody: '{name} botga ulanmoqchi. Ilovada «Bogʻlanish soʻrovlari»ni oching.',
   },

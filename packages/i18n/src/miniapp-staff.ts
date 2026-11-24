@@ -23,6 +23,7 @@ export const staffMessages = {
       debtors: 'Qarzdorlar',
       queue: 'Chek navbati',
       approvals: 'Tasdiqlash soʻrovlari',
+      leads: 'Lidlar',
       linkRequests: 'Bogʻlanish soʻrovlari',
       tickets: 'Murojaatlar',
       cash: 'Kassa',

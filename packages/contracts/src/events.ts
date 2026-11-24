@@ -31,6 +31,8 @@ export const EVENT_TYPES = [
   'PaymentSubmissionCreated',
   // T-139: eʼlon yozildi — qabul qiluvchilarga navbat orqali.
   'AnnouncementCreated',
+  // T-133: saytdan ariza — xodimlarga bot xabari.
+  'LeadSubmitted',
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
@@ -44,6 +46,7 @@ export interface EventPayloads {
   TestResultsPublished: { testId: string; groupId: string; title: string };
   EnrollmentCreated: { enrollmentId: string; studentId: string };
   TicketMessageCreated: { ticketId: string; messageId: string };
+  LeadSubmitted: { leadId: string };
   AnnouncementCreated: { announcementId: string };
   PaymentSubmissionCreated: { submissionId: string };
   GuardianLinkRequested: { requestId: string };
