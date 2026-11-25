@@ -18,7 +18,7 @@ import { StudentScopeService } from '../students/index.js';
 import { TelegramOutbox } from '../telegram/index.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
-import { notifyPaymentReceipt } from './payment-notify.js';
+import { notifyPaymentReceipt, type PaymentReceiptNotice } from './payment-notify.js';
 import { receiptYear } from './receipt-year.js';
 
 /** API body + `Idempotency-Key` sarlavhasi (BR-11, faqat sarlavhadan — interceptor ham ko'radi). */
@@ -59,13 +59,21 @@ export class PaymentsService {
     return at;
   }
 
-  async createPayment(
-    ctx: AuditContext,
+  private notifyReceipt(n: Omit<PaymentReceiptNotice, 'verifyUrl'> & { verifyToken: string }) {
+    const { verifyToken, ...rest } = n;
+    return notifyPaymentReceipt(this.db, this.telegramOutbox, {
+      ...rest,
+      verifyUrl: `${this.env.get('PUBLIC_APP_URL')}/verify/${verifyToken}`,
+    });
+  }
+
+  /** Takroriy so'rov (Idempotency-Key, BR-11): o'sha to'lov; boshqa so'rov bilan bir xil kalit — 409. */
+  private async replayIfDuplicate(
     user: RequestUser,
     input: CreatePaymentCommand,
-  ): Promise<PaymentDetail> {
-    await this.studentScope.assertVisible(user, input.studentId);
-    if (input.idempotencyKey) {
+  ): Promise<PaymentDetail | null> {
+    if (!input.idempotencyKey) return null;
+    {
       const existing = await this.repo.findPaymentByIdempotencyKey(input.idempotencyKey);
       // Takror — faqat aynan shu so'rov (shu xodim, o'quvchi, summa, usul). Boshqasi bilan bir xil
       // kalit — 409: eski to'lovni jim qaytarish "to'landi" degan yolg'on natija berardi.
@@ -79,6 +87,17 @@ export class PaymentsService {
         return this.getPaymentById(user, existing.id);
       }
     }
+    return null;
+  }
+
+  async createPayment(
+    ctx: AuditContext,
+    user: RequestUser,
+    input: CreatePaymentCommand,
+  ): Promise<PaymentDetail> {
+    await this.studentScope.assertVisible(user, input.studentId);
+    const replay = await this.replayIfDuplicate(user, input);
+    if (replay) return replay;
     const amount = BigInt(input.amount);
     const paidAt = this.paidAt(input.paidAt);
 
@@ -98,14 +117,15 @@ export class PaymentsService {
       },
     });
     // O'tkazma cheki tasdiqlanganda ota-onaga o'z xabari boradi (BR-13) — bu yerda faqat kassa.
-    if (!input.submissionId)
-      await notifyPaymentReceipt(this.db, this.telegramOutbox, {
-        paymentId: payment.id,
-        studentId: payment.studentId,
-        amount,
-        receiptNumber,
-        verifyUrl: `${this.env.get('PUBLIC_APP_URL')}/verify/${verifyToken}`,
-      });
+    const notified = input.submissionId
+      ? null
+      : await this.notifyReceipt({
+          paymentId: payment.id,
+          studentId: payment.studentId,
+          amount,
+          receiptNumber,
+          verifyToken,
+        });
 
     return {
       id: payment.id,
@@ -122,6 +142,7 @@ export class PaymentsService {
       })),
       advance: advance.toString(),
       createdAt: payment.createdAt.toISOString(),
+      ...(notified === null ? {} : { guardiansNotified: notified }),
     };
   }
 

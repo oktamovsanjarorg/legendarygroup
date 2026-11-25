@@ -56,7 +56,7 @@ function useOnboardButton(p: OnboardingViewProps) {
 const HINT: Partial<Record<OnboardPhase, string>> = {
   start: c.hint,
   checking: c.checking,
-  declined: c.declined,
+  declined: c.hint,
   conflict: c.conflict,
 };
 

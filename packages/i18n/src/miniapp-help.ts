@@ -10,17 +10,16 @@ const helpSections: readonly HelpSection[] = [
         id: 'kirish',
         q: 'Tizimga qanday kiraman?',
         steps: [
-          'Markaz botini oching → «Start» → «📱 Telefon raqamni ulashish».',
-          'Raqamingiz «Xodimlar»dagi raqam bilan bir xil boʻlsa — darhol ulanadi. Parol yoʻq.',
-          'Keyin bot menyu tugmasi bilan ilovani ochasiz.',
+          'Ilovani oching → «📱 Raqamni ulashish».',
+          'Raqamingiz «Xodimlar»dagi raqam bilan bir xil boʻlsa — darhol kirasiz. Parol yoʻq.',
         ],
       },
       {
         id: 'kirish-muammo',
         q: 'Kira olmayapman — nima qilay?',
         steps: [
-          'Bot raqamni tanimasa: Direktor «Xodimlar» → xodim → «Ism va raqamni tuzatish»da raqamni tekshirsin.',
-          'Bot «boshqa profilga ulangan» desa: Direktor xodim kartasida «Telegramni uzish»ni bossin, soʻng raqamni qayta ulashing.',
+          '«Raqamingiz bazada yoʻq» chiqsa: Direktor «Xodimlar» → xodim → «Ism va raqamni tuzatish»da raqamni tekshirsin.',
+          '«Boshqa Telegram akkauntga ulangan» chiqsa: Direktor xodim kartasida «Telegramni uzish»ni bossin, soʻng raqamni qayta ulashing.',
         ],
       },
       {
@@ -48,7 +47,7 @@ const helpSections: readonly HelpSection[] = [
         q: 'Ota-onani botga qanday ulayman?',
         steps: [
           'Oʻquvchi kartasi → ota-ona raqamini kiriting.',
-          'Ota-ona botda «Start» bosib shu raqamni ulashsa, oʻzi bogʻlanadi.',
+          'Ota-ona ilovani ochib shu raqamni ulashsa, oʻzi bogʻlanadi.',
         ],
         note: 'Raqam mos kelmasa, soʻrov «Bogʻlanish soʻrovlari»ga tushadi.',
       },

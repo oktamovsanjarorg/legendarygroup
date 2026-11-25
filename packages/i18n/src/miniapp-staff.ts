@@ -199,7 +199,9 @@ export const staffMessages = {
     save: 'Saqlash · {amount}',
     done: 'Toʻlov saqlandi',
     receipt: 'Chek {no} ota-onaga yuborildi.',
-    openReceipt: 'Chekni ochish (PDF)',
+    receiptNoParent:
+      'Chek {no} saqlandi. Ota-ona botga ulanmagan — xabar bormadi; PDF chekni oʻzingizga olib, uzating.',
+    openReceipt: 'Chek PDF — bot chatimga',
     finish: 'Tayyor',
   },
   /** MS-08 Qarzdorlar (T-132, FR-PAY-7, BR-21/22, Q-100). */

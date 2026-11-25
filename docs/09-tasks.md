@@ -552,6 +552,11 @@
 - **Bog'liq:** T-167, T-126, T-110 · **Qaror:** Q-111
 - **Bajarildi (2026-11-25):** «Akkaunt bogʻlanmagan» ekrani olib tashlandi; raqam ulashish → server imzoni tekshirib darhol bogʻlaydi; oʻquvchi — kod Mini App ichida; nomaʼlum raqam — soʻrov va kutish ekrani. Testlar: `telegram-onboarding.int.test.ts`, `pages/not-linked.test.tsx`.
 
+### ✅ T-170 · Kirish va toʻlov xabarlaridagi nomuvofiqliklar
+
+- **Bog'liq:** T-169 · **Qaror:** Q-112
+- **Bajarildi (2026-11-25):** soʻrov holati qayta ochilganda; matnlar Mini App oqimiga moslandi; «Chek yuborildi» — faqat haqiqatda yuborilganda.
+
 ### ⬜ T-164 · Mini App: keng ekran (Telegram Desktop)
 
 - **Bog'liq:** T-130 · **Talablar:** 11-ux §3

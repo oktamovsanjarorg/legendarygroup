@@ -98,10 +98,13 @@ export function PayView(props: PayViewProps) {
 /** Saqlangandan keyin: chek raqami, PDF, MainButton «Tayyor» (kartochkaga qaytadi). */
 export function PayDoneView({
   receipt,
+  notified,
   onReceipt,
   onFinish,
 }: {
   receipt: string;
+  /** Chek botda yetgan ota-onalar soni (`0` — hech kimga). */
+  notified?: number;
   onReceipt: () => void;
   onFinish: () => void;
 }) {
@@ -110,7 +113,7 @@ export function PayDoneView({
     <StateShell
       icon={<CheckCircle2 className="size-10 text-success" aria-hidden />}
       title={p.done}
-      hint={p.receipt.replace('{no}', receipt)}
+      hint={(notified === 0 ? p.receiptNoParent : p.receipt).replace('{no}', receipt)}
     >
       <InlineButton onClick={onReceipt}>{p.openReceipt}</InlineButton>
     </StateShell>

@@ -129,6 +129,8 @@ export const PaymentDetailSchema = z.object({
   allocations: z.array(PaymentAllocationSchema),
   advance: z.string(),
   createdAt: z.string(),
+  /** Faqat kiritish javobida: chek botda nechta ota-onaga ketdi (0 — hech kimga). */
+  guardiansNotified: z.number().int().min(0).optional(),
 });
 export type PaymentDetail = z.infer<typeof PaymentDetailSchema>;
 

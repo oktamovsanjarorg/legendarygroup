@@ -101,6 +101,9 @@ describe('Q-111: Mini App ichida bogʻlanish (botsiz)', () => {
     expect((await post('auth/telegram/contact', body)).json()).toEqual({ result: 'not_found' });
     const res = await post('auth/telegram/contact', { ...body, createRequest: true });
     expect(res.json()).toEqual({ result: 'request_created' });
+    // Ilovani qayta ochsa — kutish ekrani (yana «Xush kelibsiz» emas).
+    const st = await post('auth/telegram/status', { initData: initDataFor(id) });
+    expect(st.json()).toEqual({ status: 'pending_approval' });
     expect((await db.select().from(guardianLinkRequests)).length).toBeGreaterThan(0);
     expect((await signIn(id)).json<{ code: string }>().code).toBe('TELEGRAM_NOT_LINKED');
   });
@@ -115,6 +118,9 @@ describe('Q-111: Mini App ichida bogʻlanish (botsiz)', () => {
       expect(res.statusCode).toBe(400);
       expect(res.json<{ code: string }>().code).toBe('INVALID_CONTACT');
     }
+    expect(
+      (await post('auth/telegram/status', { initData: 'auth_date=1&hash=00' })).statusCode,
+    ).toBe(401);
     const bad = await post('auth/telegram/contact', {
       initData: 'auth_date=1&hash=00',
       contact: contactFor(id, '+998931234567'),

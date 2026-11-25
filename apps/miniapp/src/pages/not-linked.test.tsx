@@ -15,6 +15,9 @@ const user = (role: string) => ({
   activeRole: role,
 });
 
+const onboardKey = (path: string, body: Record<string, unknown>) =>
+  path.endsWith('student') ? 'student' : body['createRequest'] ? 'request' : 'contact';
+
 /** Soxta API: `onboard` — bog'lash javobi; bog'langach `/auth/telegram` kiradi. */
 function fakeApi(onboard: Record<string, unknown>, role = 'guardian') {
   let linked = false;
@@ -28,13 +31,10 @@ function fakeApi(onboard: Record<string, unknown>, role = 'guardian') {
         ? json(200, { next: 'done', accessToken: 't', user: user(role) })
         : json(401, { code: 'TELEGRAM_NOT_LINKED', message: 'x' });
     if (path === '/auth/me') return json(200, { ...user(role), permissions: [] });
+    if (path === '/auth/telegram/status')
+      return json(200, { status: onboard['status'] ?? 'not_registered' });
     if (path === '/auth/telegram/contact' || path === '/auth/telegram/student') {
-      const key = path.endsWith('student')
-        ? 'student'
-        : body['createRequest']
-          ? 'request'
-          : 'contact';
-      const result = onboard[key];
+      const result = onboard[onboardKey(path, body)];
       if (result === 'linked') linked = true;
       return json(200, { result });
     }
@@ -99,6 +99,14 @@ describe('C-03 Xush kelibsiz — Mini App ichida kirish (Q-111)', () => {
     result = 'linked';
     act(() => wa.MainButton.click());
     await waitFor(() => expect(screen.queryByText(c.studentTitle)).toBeNull());
+  });
+
+  it('soʻrov yuborgan ota-ona qayta ochsa — darhol kutish ekrani', async () => {
+    fakeApi({ status: 'pending_approval' });
+    const wa = appWebApp();
+    render(<App webApp={wa} />);
+    expect(await screen.findByText(c.requestedTitle)).toBeTruthy();
+    await main(wa, c.refresh);
   });
 
   it('raqamni ulashmasa — tushuntirish, qayta soʻraydi', async () => {

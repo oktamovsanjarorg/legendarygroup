@@ -57,6 +57,14 @@ export const TELEGRAM_ONBOARD_RESULTS = [
 export const TelegramOnboardResult = z.object({ result: z.enum(TELEGRAM_ONBOARD_RESULTS) });
 export type TelegramOnboardResult = z.infer<typeof TelegramOnboardResult>;
 
+export const TelegramStatusRequest = z.object({ initData: z.string().min(10).max(4096) });
+export type TelegramStatusRequest = z.infer<typeof TelegramStatusRequest>;
+export const TelegramOnboardStatus = z.object({
+  status: z.enum(['not_registered', 'pending_approval', 'linked', 'rejected']),
+  rejectReason: z.string().optional(),
+});
+export type TelegramOnboardStatus = z.infer<typeof TelegramOnboardStatus>;
+
 /** O'quvchi: raqam (o'zi yoki ota-onasi) + Admin bergan 6 xonali kod (T-126). */
 export const TelegramStudentOnboardRequest = z.object({
   initData: z.string().min(10).max(4096),
