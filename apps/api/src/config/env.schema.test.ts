@@ -11,6 +11,7 @@ const valid = {
   TELEGRAM_BOT_TOKEN: '1:' + 'a'.repeat(30),
   TELEGRAM_BOT_USERNAME: 'legendary_dev_bot',
   PUBLIC_APP_URL: 'https://app.lg.uz',
+  TELEGRAM_MINIAPP_URL: 'https://app.lg.uz/app/',
   JWT_ACCESS_SECRET: 'j'.repeat(32),
   TOTP_ENCRYPTION_KEY: 'a'.repeat(64),
   CORS_ORIGINS: 'http://localhost:5173, http://localhost:5174',
@@ -34,6 +35,7 @@ describe('Config env validatsiyasi (T-004)', () => {
     'CORS_ORIGINS',
     'TELEGRAM_BOT_USERNAME',
     'PUBLIC_APP_URL',
+    'TELEGRAM_MINIAPP_URL',
   ])("%s yo'q bo'lsa ilova ishga tushmaydi (yashirin standart yo'q)", (key) => {
     const env = Object.fromEntries(Object.entries(valid).filter(([k]) => k !== key));
     expect(() => validateEnv(env)).toThrow(key);

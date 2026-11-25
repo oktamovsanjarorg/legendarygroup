@@ -1,3 +1,4 @@
+import { ReceiptSendController } from './receipt-send.controller.js';
 import { FirstMonthQuoteService } from './first-month-quote.service.js';
 import { Module } from '@nestjs/common';
 import { AuditModule } from '../../common/audit/audit.module.js';
@@ -62,6 +63,7 @@ import { EnrollmentRemoveService } from './enrollment-remove.service.js';
     SubmissionsController,
     StudentBillingSetupController,
     EnrollmentRemoveController,
+    ReceiptSendController,
   ],
   providers: [
     MonthCloseRepository,

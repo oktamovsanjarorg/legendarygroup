@@ -209,6 +209,12 @@ describe('T-109, W-22: yetkazish holati — haqiqiy holatlar', () => {
     expect(add.mock.calls[0]?.[0].payload).toEqual({
       text: '<b>Dars_vaqti</b>\n\n5 &lt; 7 * ok',
       parse_mode: 'HTML',
+      // Q-99: har xabar ostida Mini App tugmasi.
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: 'Ilovani ochish', web_app: { url: 'https://app.test.lg/app/' } }],
+        ],
+      },
     });
     add.mockRestore();
   });

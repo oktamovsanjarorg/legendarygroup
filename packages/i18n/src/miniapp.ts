@@ -28,6 +28,7 @@ export const miniappMessages = {
     title: 'Qaysi rolda kirasiz?',
     hint: 'Tanlovingiz eslab qolinadi. Keyin sozlamalarda almashtirishingiz mumkin.',
   },
+  receiptSent: 'Chek PDF bot chatiga yuborildi.',
   notLinked: {
     title: 'Akkaunt bogʻlanmagan',
     share: '📱 Telefon raqamni ulashish',

@@ -18,6 +18,8 @@ export const envSchema = z.object({
     .regex(/^[A-Za-z][A-Za-z0-9_]{3,30}bot$/i, 'BotFather username (…bot)'),
   /** Web panel ommaviy manzili — taklif havolasi `<url>/invite/<token>` (T-101, CLI). */
   PUBLIC_APP_URL: z.url({ protocol: /^https?$/ }),
+  /** Mini App manzili — bot xabarlaridagi «Ilovani ochish» tugmasi (Q-99). */
+  TELEGRAM_MINIAPP_URL: z.url({ protocol: /^https?$/ }),
   /** Bot API manzili (testlarda soxta server). */
   TELEGRAM_API_URL: z.url().default('https://api.telegram.org'),
   /** Access JWT imzosi (HS256). */

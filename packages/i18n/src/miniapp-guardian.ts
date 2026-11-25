@@ -39,7 +39,7 @@ export const guardianMessages = {
     attendanceValue: '{x} / {y} dars',
     averageGrade: 'Oʻrtacha baho',
     payment: 'Toʻlov holati',
-    pdf: 'PDF yuklab olish',
+    pdf: 'PDF — bot chatiga',
   },
   payments: {
     title: 'Toʻlovlar',
@@ -57,7 +57,7 @@ export const guardianMessages = {
     receiptMethod: 'Usul',
     receiptValid: 'Haqiqiy chek',
     receiptCancelled: 'Bekor qilingan',
-    receiptPdf: 'PDF yuklab olish',
+    receiptPdf: 'PDF — bot chatiga',
     makePayment: 'Toʻlov qilish',
     methods: { cash: 'Naqd', card_terminal: 'Terminal', transfer: 'Oʻtkazma', other: 'Boshqa' },
     empty: 'Hali hisob yoʻq',

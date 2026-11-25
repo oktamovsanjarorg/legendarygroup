@@ -149,19 +149,14 @@ export function useReceipt(number: string) {
   });
 }
 
-/** Chek PDF: auth bilan yuklab olinadi va ochiladi (Telegram'da — yangi oynada). */
+/** Chek PDF — bot chatiga (ADR 0008 §5; Telegram WebView'da blob yuklab olish ishonchsiz). */
 export function useReceiptPdf() {
   const api = useApi();
   return useMutation({
-    mutationFn: async (number: string) => {
-      const blob = await api.blob(`/billing/receipts/${encodeURIComponent(number)}/pdf`);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `chek-${number}.pdf`;
-      a.target = '_blank';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    },
+    mutationFn: (number: string) =>
+      api.request<{ status: 'queued' }>(`/billing/receipts/${encodeURIComponent(number)}/send`, {
+        method: 'POST',
+        body: {},
+      }),
   });
 }

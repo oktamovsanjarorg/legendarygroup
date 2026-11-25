@@ -68,6 +68,7 @@ export function StaffPaymentPage() {
       {(v) => (
         <>
           <ErrorNotice error={pdf.error} />
+          <OkNotice text={pdf.isSuccess ? t.receiptSent : null} />
           <PaymentDetailView
             v={v}
             onStudent={() =>
