@@ -1,3 +1,4 @@
+import { FirstMonthQuoteService } from './first-month-quote.service.js';
 import { Module } from '@nestjs/common';
 import { AuditModule } from '../../common/audit/audit.module.js';
 import { ClockModule } from '../../common/clock/clock.module.js';
@@ -72,6 +73,7 @@ import { EnrollmentRemoveService } from './enrollment-remove.service.js';
     BillingCron,
     PaymentsService,
     PaymentPreviewService,
+    FirstMonthQuoteService,
     DiscountListService,
     CashDayService,
     PaymentHistoryService,

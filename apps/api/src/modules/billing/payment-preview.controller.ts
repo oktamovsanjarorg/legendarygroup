@@ -11,7 +11,11 @@ import {
   PaymentPreviewQuery,
   type PaymentPreviewQueryInput,
   type PaymentView,
+  FirstMonthQuery,
+  type FirstMonthQueryInput,
+  type FirstMonthQuote,
 } from '@lg/contracts';
+import { FirstMonthQuoteService } from './first-month-quote.service.js';
 import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
 import { ZodQuery } from '../../common/decorators/zod.decorators.js';
@@ -32,7 +36,18 @@ export class PaymentPreviewController {
     @Inject(DiscountListService) private readonly discounts: DiscountListService,
     @Inject(CashDayService) private readonly cash: CashDayService,
     @Inject(PaymentHistoryService) private readonly history: PaymentHistoryService,
+    @Inject(FirstMonthQuoteService) private readonly firstMonth: FirstMonthQuoteService,
   ) {}
+
+  @Get('first-month')
+  @RequirePermission('student.manage')
+  @NoAudit('GET — yozuv yoʻq')
+  @ApiOperation({ summary: 'MS-10: BR-3 birinchi oy narxi (guruhga yozishdan oldin)' })
+  async quoteFirstMonth(
+    @ZodQuery(FirstMonthQuery) query: FirstMonthQueryInput,
+  ): Promise<FirstMonthQuote> {
+    return this.firstMonth.quote(query);
+  }
 
   @Get('cash/day')
   @RequirePermission('cash.close')

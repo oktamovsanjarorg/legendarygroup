@@ -5,6 +5,7 @@ import {
   type Database,
   invoiceLines,
   invoices,
+  lessons,
   outboxEvents,
   seed,
 } from '@lg/db';
@@ -173,4 +174,37 @@ it('Q-103/BR-4: oy oʻrtasiga rejalangan koʻchirish — oy faqat eski guruhda h
     .innerJoin(invoices, eq(invoices.id, invoiceLines.invoiceId))
     .where(and(eq(invoices.studentId, s), eq(invoices.period, next)));
   expect(rows).toEqual([{ enrollmentId: e, amount: 600_000n }]);
+});
+
+describe('T-134: birinchi oy narxi oldindan (BR-3)', () => {
+  const quote = (q: string, role: RoleCode = 'admin') =>
+    call(`billing/first-month?${q}`, undefined, role, 'GET');
+
+  it('qolgan darslarga mutanosib, generator bilan bir xil; dars yoʻq — toʻliq', async () => {
+    const days = ['02', '05', '09', '12', '16', '19', '23', '26'];
+    await db.insert(lessons).values(
+      days.map((d) => ({
+        groupId: g.b,
+        date: `2027-02-${d}`,
+        startTime: '10:00',
+        endTime: '11:30',
+      })),
+    );
+    const res = await quote(`groupId=${g.b}&startDate=2027-02-15`);
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({
+      period: '2027-02',
+      monthlyPrice: '400000',
+      amount: '200000',
+      lessonsLeft: 4,
+      lessonsTotal: 8,
+    });
+    const full = await quote(`groupId=${g.b}&startDate=2027-03-10`);
+    expect(full.json<{ amount: string }>().amount).toBe('400000');
+  });
+
+  it('RBAC: ustoz — 403; notoʻgʻri sana — 400', async () => {
+    expect((await quote(`groupId=${g.b}&startDate=2027-02-15`, 'teacher')).statusCode).toBe(403);
+    expect((await quote(`groupId=${g.b}&startDate=bad`)).statusCode).toBe(400);
+  });
 });
