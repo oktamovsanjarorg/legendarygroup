@@ -79,7 +79,7 @@ describe('Settings API (T-115, FR-SYS-1)', () => {
       }>();
       expect(json.billingDueDay).toBe(10);
       expect(json.penaltyConfig.absenceThreshold).toBe(3);
-      expect(json.notificationTimes.morningReminderTime).toBe('08:30');
+      expect(json.notificationTimes.morningReminderTime).toBe('09:00');
     });
   });
 

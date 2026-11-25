@@ -30,6 +30,17 @@ export const staffReportMessages = {
     grade: 'oʻrtacha baho {n}',
     overall: 'Umumiy',
   },
+  /** Direktorga kunlik xulosa (bot, T-405). */
+  dailySummary: {
+    title: 'Kunlik xulosa',
+    revenueToday: 'Bugungi tushum',
+    revenueMonth: 'Shu oy tushumi',
+    attendance: 'Davomat',
+    unmarked: 'Belgilanmagan darslar',
+    joined: 'Shu oy qoʻshilganlar',
+    activeStudents: 'Faol oʻquvchilar',
+    approvals: 'Kutayotgan tasdiqlar',
+  },
   staffForecasts: {
     title: 'Prognozlar',
     revenue: 'Kutilayotgan tushum',

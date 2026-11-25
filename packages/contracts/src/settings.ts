@@ -27,11 +27,22 @@ export type CenterInfo = z.infer<typeof CenterInfoSchema>;
 
 export const PaymentCardSchema = z.object({
   id: z.string().uuid(),
-  cardNumber: z.string().trim().min(16).max(20),
+  cardNumber: z
+    .string()
+    .transform((v) => v.replace(/\s/g, ''))
+    .pipe(z.string().regex(/^\d{16,20}$/, 'INVALID_CARD')),
   holderName: z.string().trim().min(2).max(100),
   bankName: z.string().trim().min(2).max(100),
   isPrimary: z.boolean(),
 });
+
+/** Ota-onaga bitta karta ko'rinadi: ro'yxat bo'sh bo'lmasa, asosiysi aynan bitta. */
+const PaymentCardsSchema = z
+  .array(PaymentCardSchema)
+  .max(10)
+  .refine((list) => list.length === 0 || list.filter((c) => c.isPrimary).length === 1, {
+    message: 'PRIMARY_CARD',
+  });
 
 export type PaymentCard = z.infer<typeof PaymentCardSchema>;
 
@@ -44,6 +55,7 @@ export const PenaltyConfigSchema = z.object({
 
 export type PenaltyConfig = z.infer<typeof PenaltyConfigSchema>;
 
+/** `morningReminderTime` — qarz eslatmalari (BR-21), `eveningDigestTime` — Direktor xulosasi. */
 export const NotificationTimesSchema = z.object({
   morningReminderTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'INVALID_TIME_FORMAT'),
   eveningDigestTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'INVALID_TIME_FORMAT'),
@@ -67,7 +79,7 @@ export type SystemSettings = z.infer<typeof SystemSettingsSchema>;
 export const UpdateSystemSettingsSchema = z
   .object({
     centerInfo: CenterInfoSchema.partial().optional(),
-    paymentCards: z.array(PaymentCardSchema).max(10).optional(),
+    paymentCards: PaymentCardsSchema.optional(),
     billingDueDay: z.number().int().min(1).max(28).optional(),
     penaltyConfig: PenaltyConfigSchema.partial().optional(),
     notificationTimes: NotificationTimesSchema.partial().optional(),
@@ -107,8 +119,8 @@ export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
     lateThresholdMin: 15, // BR-10: >= 15 daqiqa
   },
   notificationTimes: {
-    morningReminderTime: '08:30',
-    eveningDigestTime: '20:00',
+    morningReminderTime: '09:00', // BR-21 eslatmalari
+    eveningDigestTime: '21:00', // T-405 Direktor xulosasi
     attendanceReminderMinutes: 30, // FR-ATT-5: 30 daqiqa
   },
   absenceNoticeWindowMinutes: 3, // Q-19, BR-31: 3 daqiqa

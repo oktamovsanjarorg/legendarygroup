@@ -1,6 +1,5 @@
 /** Hisobotlar (T-158): Mini App ro'yxati va Excel/PDF ustunlari bitta manbadan. */
 export const reportMessages = {
-  center: 'Legendary Group',
   period: 'Davr: {from} – {to}',
   asOf: 'Holat: {date}',
   total: 'Jami',

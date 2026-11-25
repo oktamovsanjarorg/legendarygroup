@@ -74,6 +74,13 @@ export const FILE_PURPOSES = {
     upload: 'stats.operational',
     view: 'finance.view',
   },
+  /** Markaz logotipi — chek PDF'ida (FR-SYS-1, T-161). */
+  center_logo: {
+    mimes: ['image/jpeg', 'image/png'],
+    maxBytes: 1024 * 1024,
+    upload: 'settings.manage',
+    view: 'settings.manage',
+  },
   /**
    * Fikr-mulohaza skrinshoti (FR-SYS-4, T-118): har kim o'zi uchun yuklaydi; feedback'ga faqat
    * o'z fayli biriktiriladi (FeedbackService tekshiradi). Ko'rish — Direktor.
