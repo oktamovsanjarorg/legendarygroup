@@ -23,6 +23,7 @@ export interface RawDebtorStudent {
   fullName: string;
   branchId: string;
   debt: bigint;
+  archived: boolean;
 }
 
 export interface DebtorGroupInfo {
@@ -51,19 +52,31 @@ export interface DebtorInvoiceInfo {
 export class DebtorsRepository {
   constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
 
-  /** Ledger bo'yicha qarzi (sum(amount) > 0) bor faol o'quvchilarni topadi. */
-  async findStudentsWithPositiveLedger(branchId: string): Promise<RawDebtorStudent[]> {
+  /**
+   * Ledger bo'yicha qarzi (sum(amount) > 0) bor o'quvchilar. Arxivdagilar — faqat `withArchived`
+   * (T-165: arxivlash qarzni yo'q qilmaydi — ro'yxat va jami summada; eslatma/e'londa — yo'q).
+   */
+  async findStudentsWithPositiveLedger(
+    branchId: string,
+    withArchived = false,
+  ): Promise<RawDebtorStudent[]> {
     const rows = await this.db
       .select({
         id: students.id,
         code: students.code,
         fullName: students.fullName,
         branchId: students.branchId,
+        archivedAt: students.archivedAt,
         debt: sql<bigint>`coalesce(sum(${ledgerEntries.amount}), 0)`,
       })
       .from(students)
       .innerJoin(ledgerEntries, eq(ledgerEntries.studentId, students.id))
-      .where(and(eq(students.branchId, branchId), isNull(students.archivedAt)))
+      .where(
+        and(
+          eq(students.branchId, branchId),
+          withArchived ? undefined : isNull(students.archivedAt),
+        ),
+      )
       .groupBy(students.id, students.code, students.fullName, students.branchId)
       .having(sql`sum(${ledgerEntries.amount}) > 0`);
 
@@ -73,6 +86,7 @@ export class DebtorsRepository {
       fullName: r.fullName,
       branchId: r.branchId,
       debt: BigInt(r.debt),
+      archived: r.archivedAt !== null,
     }));
   }
 

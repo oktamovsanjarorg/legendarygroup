@@ -286,4 +286,24 @@ describe('Qarzdorlik va Eslatmalar (T-208, FR-PAY-7, BR-20, 21, 22)', () => {
     const typeW2 = reminders.determineMilestoneType('2026-11-01', '2026-11-22');
     expect(typeW2).toBe('weekly_2');
   });
+
+  it('T-165 / BR-20: arxivlangan oʻquvchining qarzi roʻyxatda (belgi bilan) va jami summada qoladi', async () => {
+    const list = async () =>
+      (await call('GET', 'billing/debtors?limit=100', 'admin')).json<DebtorListResponse>();
+    const kpi = async () =>
+      BigInt(
+        (await call('GET', 'dashboard/director?refresh=true', 'director')).json<{
+          debtTotal: string;
+        }>().debtTotal,
+      );
+    const before = await list();
+    const totalBefore = await kpi();
+    expect(before.items.find((i) => i.id === student2Id)?.archived).toBe(false);
+    await db.update(students).set({ archivedAt: new Date() }).where(eq(students.id, student2Id));
+    const after = await list();
+    expect(after.items.find((i) => i.id === student2Id)?.archived).toBe(true);
+    expect(after.items).toHaveLength(before.items.length);
+    expect(await kpi()).toBe(totalBefore);
+    await db.update(students).set({ archivedAt: null }).where(eq(students.id, student2Id));
+  });
 });

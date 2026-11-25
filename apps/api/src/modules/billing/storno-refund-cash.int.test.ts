@@ -6,6 +6,7 @@ import {
   createDb,
   type Database,
   ledgerEntries,
+  payments,
   receiptCancellations,
   seed,
   students,
@@ -16,6 +17,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { backdatePayment } from '../../test/backdate.js';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { expectMoneyInvariants } from '../../test/money-invariants.js';
 
 let t: TestApp;
 let db: Database;
@@ -71,6 +73,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await expectMoneyInvariants(db);
   await closeDb(db);
   await t.close();
 });
@@ -210,6 +213,20 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
       const refEntry = ledgers.find((l) => l.entryType === 'refund');
       expect(refEntry).toBeDefined();
       expect(refEntry!.amount).toBe(10000000n);
+    });
+
+    it('T-165: pul qaytarilgan avans toʻlovini storno qilib boʻlmaydi (409) — qaytarilgan pul toʻlovsiz qolardi', async () => {
+      const [adv] = await db
+        .select({ id: payments.id })
+        .from(payments)
+        .where(eq(payments.idempotencyKey, 'storno-test-pay-3'));
+      const res = await call('POST', `billing/payments/${adv!.id}/reverse`, 'director', {
+        reason: 'Xato kiritilgan',
+      });
+      expect([res.statusCode, res.json<{ code: string }>().code]).toEqual([
+        409,
+        'REVERSAL_REFUNDED',
+      ]);
     });
   });
 

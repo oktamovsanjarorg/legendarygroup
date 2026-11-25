@@ -10,6 +10,7 @@ import { closeDb, createDb, type Database, seed } from '@lg/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { expectMoneyInvariants } from '../../test/money-invariants.js';
 
 /** W-13 preview (T-204, BR-12): createPayment bilan bir xil FIFO, yozuvsiz. */
 let t: TestApp;
@@ -53,6 +54,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await expectMoneyInvariants(db);
   await closeDb(db);
   await t.close();
 });

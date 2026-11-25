@@ -19,6 +19,7 @@ const item: DebtorItem = {
   guardian: null,
   canRemind: false,
   remindedToday: false,
+  archived: false,
 };
 const handler = (c: Call) => {
   if (c.path.startsWith('/billing/debtors?'))

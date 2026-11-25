@@ -22,6 +22,7 @@ const base: DebtorItem = {
   guardian: { name: 'Aliyeva Nodira', phone: '+998901234567' },
   canRemind: true,
   remindedToday: false,
+  archived: false,
 };
 const ITEMS: DebtorItem[] = [
   base,

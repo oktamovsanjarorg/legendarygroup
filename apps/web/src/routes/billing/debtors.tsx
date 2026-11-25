@@ -1,4 +1,5 @@
 import type { DebtorBucket, DebtorItem, DebtorListResponse } from '@lg/contracts';
+import { webMessages as t } from '@lg/i18n';
 import { ForbiddenState } from '@lg/ui-web';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
@@ -11,7 +12,7 @@ import { download } from './download.js';
 
 export const toDebtorRow = (d: DebtorItem): DebtorRow => ({
   id: d.id,
-  name: d.name,
+  name: d.archived ? `${d.name} · ${t.common.archived}` : d.name,
   group: d.group,
   debt: BigInt(d.debt),
   overdueDays: d.overdueDays,

@@ -576,13 +576,15 @@
 - **Bog'liq:** T-130, T-164 · **Qaror:** Q-113
 - **Bajarildi (2026-11-25):** xodim tablari qayta tanlandi; «Bugun»da tezkor amallar va kutayotgan ishlar soni; tab ildizlarida MainButton yo'q; keng ekranda yon panel. Testlar: `staff-menu.test.ts`, `staff-home.test.tsx`, `side-nav.test.tsx`.
 
-### ⬜ T-165 · Pul mantiqining to'liq auditi
+### ✅ T-165 · Pul mantiqining to'liq auditi
 
 - **Bog'liq:** T-201…T-209, T-401…T-403 · **Talablar:** BR-1…BR-28
 - **Sabab (egasi, 2026-11-24):** «mantiqiy xatolar ko'p uchrayapti».
 - **AC:** har BR uchun uchidan-uchiga ssenariy (yozilish → hisob → to'lov → storno → oy yopilishi → oylik); invariantlar testi: `ledger yig'indisi = invoice − to'lov − kredit`, taqsimot ≤ to'lov, to'lanmagan summa manfiy emas. Topilmalar ro'yxati shu yerda.
 - **Tuzatildi (2026-11-24):** (1) Q-96 dan keyin shu oyda qayta yozilgan o'quvchining hisobi `void` ichida qolardi — to'lov taqsimlanmasdi (0039 migratsiyasi eski hisoblarni ochadi); (2) T-145 `openingInvoices` — shu oy hisobi bor bo'lsa kiritilgan qarz jim tashlanardi → 409 `OPENING_DEBT_PERIOD_EXISTS`.
-- **Ochiq topilmalar (kod o'qishdan, hali test bilan tasdiqlanmagan):** (1) T-145 to'lov qabul qilingan o'quvchiga eski qarzni kiritib bo'lmaydi; (2) dashboard 5 daq kesh — chek tasdiqlangandan keyin navbat soni eskicha; (3) «sozlangan» holati `audit_logs`dan o'qiladi; (4) arxivdagi qarzdor ro'yxatda va yig'indida yo'q; (5) MS-07 «Chek ota-onaga yuborildi» — ota-ona botga ulanmagan bo'lsa ham chiqadi.
+- **Invariantlar (2026-11-25):** `apps/api/src/test/money-invariants.ts` — butun DB bo'yicha 8 tekshiruv (hisob = qatorlar; ledger(kassa) = −Σ to'lov; ledger = hisoblangan − to'langan; qator va to'lov ortiqcha taqsimlanmaydi; avans ≥ 0; qarz turganda avans bo'sh turmaydi; holat = samarali to'lov). 20 ta pul int testi (billing, approvals, guruh, yozilish, oylik) oxirida ishlaydi; DB'ga to'g'ridan-to'g'ri fikstura yozadigan 5 fayl bundan tashqari.
+- **Topildi va tuzatildi (2026-11-25):** (yangi) avansidan pul qaytarilgan to'lovni storno qilish mumkin edi — qaytarilgan pul hech bir to'lovga tayanmay qolardi, ledger qarzi hisoblardagi qoldiqqa mos kelmasdi → 409 `REVERSAL_REFUNDED` (invariant `advance` topdi); (2) dashboard navbat/so'rovlar soni 5 daqiqa keshdan — endi har safar yangi; (4) arxivlangan o'quvchining qarzi qarzdorlar ro'yxati, dashboard jami va qarz yoshi hisobotidan yo'qolardi → «Arxivda» belgisi bilan qoladi (BR-20), avtomatik eslatma va e'lon auditoriyasi — faqat faollar.
+- **Qaror bilan qoldirildi (Q-117):** (1) to'lov qabul qilingan o'quvchiga T-145 sozlash yopiq; (3) «sozlangan» belgisi `audit_logs`da. (5) «Chek ota-onaga yuborildi» — T-170 da tuzatilgan.
 
 ### ✅ T-125 · Mini App: birinchi ochilishda rolga qarab 3 ta kartochka
 
