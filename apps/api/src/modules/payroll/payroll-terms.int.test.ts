@@ -10,6 +10,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { expectMoneyInvariants } from '../../test/money-invariants.js';
 
 // FR-SAL-1, BR-23/BR-27/BR-28 (Q-104): shartnoma muddati, avans qoldig'i, tasdiqlash sharti.
 let t: TestApp;
@@ -52,6 +53,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await expectMoneyInvariants(db);
   await closeDb(db);
   await t.close();
 });

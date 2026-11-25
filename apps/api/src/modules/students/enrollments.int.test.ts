@@ -4,6 +4,7 @@ import { addDays, formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { expectMoneyInvariants } from '../../test/money-invariants.js';
 
 let t: TestApp;
 let db: Database;
@@ -60,6 +61,7 @@ beforeAll(async () => {
   await call('POST', `students/${s['Arxiv']}/archive`);
 });
 afterAll(async () => {
+  await expectMoneyInvariants(db);
   await closeDb(db);
   await t.close();
 });

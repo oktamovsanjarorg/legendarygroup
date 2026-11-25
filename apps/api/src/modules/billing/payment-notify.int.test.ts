@@ -11,6 +11,7 @@ import { createTempDb, type TempDb } from '@lg/db/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { TelegramMessage, TelegramOutbox } from '../telegram/index.js';
 import { notifyPaymentReceipt } from './payment-notify.js';
+import { expectMoneyInvariants } from '../../test/money-invariants.js';
 
 let tmp: TempDb;
 let db: Database;
@@ -20,6 +21,7 @@ beforeAll(async () => {
   db = createDb(tmp.url, { max: 2 });
 });
 afterAll(async () => {
+  await expectMoneyInvariants(db);
   await closeDb(db);
   await tmp.drop();
 });

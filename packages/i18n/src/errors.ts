@@ -161,6 +161,7 @@ export const errorMessages = {
   REVERSAL_OF_REVERSAL: 'Storno yozuvini storno qilib boʻlmaydi.',
   REVERSAL_NEEDS_APPROVAL: 'Oldingi kun toʻlovini bekor qilish uchun Director tasdigʻi kerak.',
   ALREADY_REVERSED: 'Bu toʻlov allaqachon bekor qilingan.',
+  REVERSAL_REFUNDED: 'Bu toʻlov avansidan oʻquvchiga pul qaytarilgan — uni bekor qilib boʻlmaydi.',
   REFUND_EXCEEDS_ADVANCE: 'Qaytariladigan summa oʻquvchining avansidan koʻp.',
   PENALTY_ALREADY_PAID: 'Toʻlangan jarimani bekor qilib boʻlmaydi — avval toʻlovni storno qiling.',
   NOT_RETRYABLE: 'Bu xabar yetkazilgan yoki navbatda — qayta yuborib boʻlmaydi.',

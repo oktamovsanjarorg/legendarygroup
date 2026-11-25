@@ -85,6 +85,9 @@ export class StornoCashService {
     if (await this.repo.findReversalOf(p.payment.id, tx)) {
       throw new AppException(HttpStatus.CONFLICT, 'ALREADY_REVERSED');
     }
+    if (await this.balance.refundsExceedWithout(tx, p.payment.studentId, p.payment.id)) {
+      throw new AppException(HttpStatus.CONFLICT, 'REVERSAL_REFUNDED');
+    }
     const reversal = await this.repo.insertPayment(
       {
         branchId: p.payment.branchId,

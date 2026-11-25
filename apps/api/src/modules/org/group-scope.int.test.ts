@@ -4,6 +4,7 @@ import { addDays, formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
+import { expectMoneyInvariants } from '../../test/money-invariants.js';
 
 /**
  * Ustoz scope matritsasi (02 §3, Q-64, T-103): o'z / begona / ketgan / hali boshlanmagan guruh.
@@ -71,6 +72,7 @@ beforeAll(async () => {
   g.future = (await mk('Kelajak', [{ teacherId: teacher, role: 'main' }], addDays(today, 7))).id;
 });
 afterAll(async () => {
+  await expectMoneyInvariants(db);
   await closeDb(db);
   await t.close();
 });

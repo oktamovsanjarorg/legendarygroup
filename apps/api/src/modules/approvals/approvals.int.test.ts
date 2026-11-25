@@ -17,6 +17,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { EventHandlers } from '../outbox/index.js';
+import { expectMoneyInvariants } from '../../test/money-invariants.js';
 
 /** T-119, 02 §5: so'rov → Director qarori → amal bajariladi (yoki rad). */
 let t: TestApp;
@@ -79,6 +80,13 @@ beforeAll(async () => {
     paidAt: new Date(Date.now() - 86_400_000).toISOString(),
     idempotencyKey: 'appr-init-pay-1',
   });
+  // Refund shu avansdan (T-165: refund qilingan toʻlov storno qilinmaydi — storno boshqasiga).
+  await call('POST', 'billing/payments', 'admin', {
+    studentId: f.student,
+    amount: '500000',
+    method: 'cash',
+    idempotencyKey: 'appr-init-pay-2',
+  });
   const p = paid.json<{ id: string; receiptNumber: string }>();
   f.payment = p.id;
   f.receipt = p.receiptNumber;
@@ -95,6 +103,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await expectMoneyInvariants(db);
   await closeDb(db);
   await t.close();
 });

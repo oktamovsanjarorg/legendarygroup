@@ -21,6 +21,7 @@ import { createUserWithRole } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { BillingGeneratorService } from './billing-generator.service.js';
 import { prevPeriodOf } from './month-close.service.js';
+import { expectMoneyInvariants } from '../../test/money-invariants.js';
 
 let t: TestApp;
 let db: Database;
@@ -113,6 +114,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await expectMoneyInvariants(db);
   await closeDb(db);
   await t.close();
 });

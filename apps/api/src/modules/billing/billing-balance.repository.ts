@@ -90,6 +90,24 @@ export class BillingBalanceRepository {
     return list.reduce((sum, p) => sum + p.remaining, 0n);
   }
 
+  /**
+   * T-165: shu to'lov storno qilinsa, qaytarilgan (refund) pul boshqa samarali to'lovlarning
+   * taqsimlanmagan qoldig'idan oshadimi? Oshsa — qaytarilgan pul hech bir to'lovga tayanmaydi
+   * (ledger qarzi hisoblardagi qoldiqqa mos kelmay qoladi).
+   */
+  async refundsExceedWithout(tx: Transaction, studentId: string, paymentId: string) {
+    const [row] = await tx.execute<{ over: boolean }>(sql`
+      SELECT (SELECT coalesce(-sum(f.amount), 0) FROM payments f
+              WHERE f.student_id = ${studentId} AND f.amount < 0 AND f.reversal_of IS NULL)
+           > (SELECT coalesce(sum(p.amount - coalesce((SELECT sum(pa.amount) FROM payment_allocations pa
+                                                       WHERE pa.payment_id = p.id), 0)), 0)
+              FROM payments p
+              WHERE p.student_id = ${studentId} AND p.amount > 0 AND p.id <> ${paymentId}
+                AND NOT EXISTS (SELECT 1 FROM payments r WHERE r.reversal_of = p.id)) AS over
+    `);
+    return row?.over === true;
+  }
+
   /** Invoice holati faqat samarali taqsimotdan (void o'zgarmaydi). */
   async refreshInvoiceStatuses(tx: Transaction, studentId: string): Promise<void> {
     const paid = invoicePaidSql(invoices.id);

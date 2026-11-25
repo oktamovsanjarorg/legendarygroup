@@ -11,6 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import type { GenerateResult } from './billing-generator.service.js';
+import { expectMoneyInvariants } from '../../test/money-invariants.js';
 
 let t: TestApp;
 let db: Database;
@@ -72,6 +73,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await expectMoneyInvariants(db);
   await closeDb(db);
   await t.close();
 });
