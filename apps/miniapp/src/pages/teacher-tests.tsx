@@ -30,14 +30,33 @@ export function TeacherTestsPage() {
   };
 
   return (
-    <QueryView query={testsQuery}>
+    <TestsScreen
+      query={testsQuery}
+      groupName={groupQuery.data?.group.name ?? ''}
+      canManage={canManage && online}
+      onCreate={handleCreate}
+      onOpen={handleOpen}
+    />
+  );
+}
+
+/** MT-07 / MS-25: ustoz va xodim uchun bir xil ro'yxat (T-154). */
+export function TestsScreen(p: {
+  query: ReturnType<typeof useGroupTests>;
+  groupName: string;
+  canManage: boolean;
+  onCreate: () => void;
+  onOpen: (test: GroupTest) => void;
+}) {
+  return (
+    <QueryView query={p.query}>
       {(tests) => (
         <TestsView
-          groupName={groupQuery.data?.group.name ?? ''}
+          groupName={p.groupName}
           tests={tests}
-          canManage={canManage && online}
-          onCreate={handleCreate}
-          onOpen={handleOpen}
+          canManage={p.canManage}
+          onCreate={p.onCreate}
+          onOpen={p.onOpen}
         />
       )}
     </QueryView>

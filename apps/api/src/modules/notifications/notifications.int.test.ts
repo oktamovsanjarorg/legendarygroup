@@ -117,6 +117,16 @@ describe('T-109: Bildirishnomalar moduli (FR-RPT-4, 6)', () => {
 
     const failedItem = items[0]!;
     expect(failedItem.status).toBe('failed');
+    expect(failedItem.phone).toMatch(/^\+998/);
+    expect(new Date(failedItem.createdAt).toISOString()).toBe(failedItem.createdAt);
+    // FR-RPT-6: Admin'ga ham ko'rsatiladi.
+    const adminToken = await tokenFor(
+      t,
+      db,
+      await createUserWithRole(db, 'admin', '+998905550099'),
+      'admin',
+    );
+    expect((await call('GET', 'notifications/undelivered', adminToken)).statusCode).toBe(200);
 
     // Qayta yuborish (retry)
     const retryRes = await call(

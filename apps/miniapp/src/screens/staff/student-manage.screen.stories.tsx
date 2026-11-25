@@ -17,7 +17,7 @@ const card = (m: StudentManage) => (
     s={s}
     guardians={GUARDIANS}
     onPay={m.archived ? undefined : noop}
-    manage={{ m, busy: false, onLeave: noop, onArchive: noop, onRestore: noop }}
+    manage={{ m, busy: false, onOpen: noop, onEnroll: noop, onArchive: noop, onRestore: noop }}
   />
 );
 
@@ -25,16 +25,17 @@ export const MS05_InGroup: Story = {
   tags: ['primary'],
   render: () =>
     card({
-      groups: s.groups.map((name, i) => ({ enrollmentId: `e${i}`, name, startDate: '2026-09-01' })),
+      groups: s.groups.map((name, i) => ({ enrollmentId: `e${i}`, name, text: '01.09.2026 dan' })),
+      past: [{ enrollmentId: 'p1', name: 'Ingliz A1', text: '01.02.2026 dan · koʻchirilgan' }],
       canArchive: false,
       archived: false,
     }),
 };
 export const MS05_CanArchive: Story = {
-  render: () => card({ groups: [], canArchive: true, archived: false }),
+  render: () => card({ groups: [], past: [], canArchive: true, archived: false }),
 };
 export const MS05_Archived: Story = {
-  render: () => card({ groups: [], canArchive: true, archived: true }),
+  render: () => card({ groups: [], past: [], canArchive: true, archived: true }),
 };
 
 function Leave() {

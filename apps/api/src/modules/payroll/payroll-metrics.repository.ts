@@ -10,6 +10,13 @@ export interface GroupScope {
   exclude: string[];
 }
 
+/** Kunlar oralig'i (`to` — kirmaydi) va guruhlar doirasi. */
+export interface DayRange {
+  from: string;
+  to: string;
+  scope: GroupScope;
+}
+
 /** `YYYY-MM` → oyning birinchi kuni va keyingi oyning birinchi kuni (`date` taqqoslash uchun). */
 export function periodDays(period: string): { first: string; next: string } {
   const [y, m] = period.split('-').map(Number) as [number, number];
@@ -38,15 +45,13 @@ export class PayrollMetricsRepository {
 
   async lessonMetrics(
     teacherId: string,
-    period: string,
-    scope: GroupScope,
+    { from, to, scope }: DayRange,
   ): Promise<Omit<TeacherLessonMetrics, 'substituteLessonsTaughtAsSub'>> {
-    const { first, next } = periodDays(period);
     const rows = await this.db.execute<{ total: number; by_others: number }>(sql`
       SELECT count(DISTINCT l.id)::int AS total,
              count(DISTINCT l.id) FILTER (WHERE l.teacher_id <> ${teacherId})::int AS by_others
       FROM lessons l
-      WHERE l.date >= ${first} AND l.date < ${next} AND l.status <> 'cancelled'
+      WHERE l.date >= ${from} AND l.date < ${to} AND l.status <> 'cancelled'
         ${scopeSql(sql`l.group_id`, scope)}
         AND EXISTS (
           SELECT 1 FROM group_teachers gt
@@ -72,20 +77,23 @@ export class PayrollMetricsRepository {
   }
 
   /**
-   * BR-24: shu oyda (Toshkent) ustoz guruhlariga taqsimlangan to'lovlar.
-   * Shu oy oxirigacha storno qilingan to'lov hisobga olinmaydi; oldingi oy to'lovi shu oyda
-   * storno qilinsa — shu oy bazasidan ayriladi (yopilgan hisob o'zgarmaydi, BR-27).
+   * BR-24: shu oyda (Toshkent) ustoz guruhlariga taqsimlangan to'lovlar — taqsimlangan kun
+   * bo'yicha (Q-104): oldindan to'langan avans keyingi oylarda hisobga tushganda ham sanaladi.
+   * Shu oy oxirigacha storno qilingan to'lov hisobga olinmaydi; oldingi oyda taqsimlangani shu
+   * oyda storno qilinsa — shu oy bazasidan ayriladi (yopilgan hisob o'zgarmaydi, BR-27).
    */
-  async collectedBase(teacherId: string, period: string, scope: GroupScope): Promise<bigint> {
-    const range = tashkentMonthRange(period);
-    const start = sql`${range.start.toISOString()}::timestamptz`;
-    const end = sql`${range.end.toISOString()}::timestamptz`;
+  async collectedBase(teacherId: string, period: string, days: DayRange): Promise<bigint> {
+    const month = tashkentMonthRange(period);
+    const monthStart = sql`${month.start.toISOString()}::timestamptz`;
+    const monthEnd = sql`${month.end.toISOString()}::timestamptz`;
+    const from = sql`(${days.from}::date::timestamp AT TIME ZONE 'Asia/Tashkent')`;
+    const to = sql`(${days.to}::date::timestamp AT TIME ZONE 'Asia/Tashkent')`;
     const teacherOwns = sql`EXISTS (
       SELECT 1 FROM group_teachers gt
       WHERE gt.group_id = e.group_id AND gt.teacher_id = ${teacherId} AND gt.role = 'main'
-        AND gt.from_date <= (p.paid_at AT TIME ZONE 'Asia/Tashkent')::date
-        AND (gt.to_date IS NULL OR gt.to_date >= (p.paid_at AT TIME ZONE 'Asia/Tashkent')::date)
-    ) ${scopeSql(sql`e.group_id`, scope)}`;
+        AND gt.from_date <= (pa.created_at AT TIME ZONE 'Asia/Tashkent')::date
+        AND (gt.to_date IS NULL OR gt.to_date >= (pa.created_at AT TIME ZONE 'Asia/Tashkent')::date)
+    ) ${scopeSql(sql`e.group_id`, days.scope)}`;
     const allocations = sql`payment_allocations pa
       JOIN payments p ON p.id = pa.payment_id
       JOIN invoice_lines il ON il.id = pa.invoice_line_id
@@ -93,12 +101,13 @@ export class PayrollMetricsRepository {
     const rows = await this.db.execute<{ total: string }>(sql`
       SELECT (
         COALESCE((SELECT sum(pa.amount) FROM ${allocations}
-          WHERE p.paid_at >= ${start} AND p.paid_at < ${end} AND ${teacherOwns}
-            AND NOT EXISTS (SELECT 1 FROM payments r WHERE r.reversal_of = p.id AND r.paid_at < ${end})
+          WHERE pa.created_at >= ${from} AND pa.created_at < ${to} AND ${teacherOwns}
+            AND NOT EXISTS (SELECT 1 FROM payments r WHERE r.reversal_of = p.id AND r.paid_at < ${monthEnd})
         ), 0)
         - COALESCE((SELECT sum(pa.amount) FROM ${allocations}
           JOIN payments r ON r.reversal_of = p.id
-          WHERE r.paid_at >= ${start} AND r.paid_at < ${end} AND p.paid_at < ${start} AND ${teacherOwns}
+          WHERE r.paid_at >= ${from} AND r.paid_at < ${to}
+            AND pa.created_at < ${monthStart} AND ${teacherOwns}
         ), 0)
       )::text AS total
     `);

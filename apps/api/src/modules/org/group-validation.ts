@@ -2,7 +2,7 @@ import { HttpStatus } from '@nestjs/common';
 import type { SlotInput } from '@lg/contracts';
 import { courses, type CourseRow, groups, lessons, rooms, type Transaction } from '@lg/db';
 import { findSlotOverlap } from '@lg/domain';
-import { and, eq, gte, ne } from 'drizzle-orm';
+import { and, eq, gt, gte, ne } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { StaffDirectoryService } from '../rbac/index.js';
@@ -79,4 +79,24 @@ export async function assertNoFutureLessons(
     )
     .limit(1);
   if (l) throw new AppException(HttpStatus.CONFLICT, 'HAS_ACTIVE_GROUPS');
+}
+
+/** Q-69: xona sig'imi undagi yakunlanmagan guruh maksimumidan kichik bo'lmaydi. */
+export async function assertHoldsGroups(
+  tx: Transaction,
+  roomId: string,
+  capacity: number,
+): Promise<void> {
+  const [g] = await tx
+    .select({ name: groups.name })
+    .from(groups)
+    .where(
+      and(
+        eq(groups.roomId, roomId),
+        ne(groups.status, 'finished'),
+        gt(groups.maxStudents, capacity),
+      ),
+    )
+    .limit(1);
+  if (g) throw new AppException(HttpStatus.CONFLICT, 'ROOM_CAPACITY_EXCEEDED', { capacity });
 }

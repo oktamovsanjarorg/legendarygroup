@@ -69,6 +69,8 @@ export const payrollRuns = pgTable(
     totalAmount: bigint('total_amount', { mode: 'bigint' })
       .notNull()
       .default(sql`0`),
+    /** Q-104: oxirgi hisoblash — oy tugagandan oldingisi tasdiqlanmaydi (tushum to'liq emas). */
+    generatedAt: timestamp('generated_at', { withTimezone: true }),
     approvedBy: uuid('approved_by').references(() => users.id, { onDelete: 'set null' }),
     approvedAt: timestamp('approved_at', { withTimezone: true }),
     paidBy: uuid('paid_by').references(() => users.id, { onDelete: 'set null' }),

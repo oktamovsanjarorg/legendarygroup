@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { CronJobs } from '../../common/scheduler/cron-jobs.js';
-import { AttendanceService } from './attendance.service.js';
+import { UnmarkedLessonsService } from './unmarked-lessons.service.js';
 
 @Injectable()
 export class AttendanceCron implements OnModuleInit {
@@ -8,7 +8,7 @@ export class AttendanceCron implements OnModuleInit {
 
   constructor(
     @Inject(CronJobs) private readonly cron: CronJobs,
-    @Inject(AttendanceService) private readonly service: AttendanceService,
+    @Inject(UnmarkedLessonsService) private readonly service: UnmarkedLessonsService,
   ) {}
 
   onModuleInit(): void {

@@ -1,3 +1,4 @@
+import { FirstMonthQuoteService } from './first-month-quote.service.js';
 import { Module } from '@nestjs/common';
 import { AuditModule } from '../../common/audit/audit.module.js';
 import { ClockModule } from '../../common/clock/clock.module.js';
@@ -26,12 +27,14 @@ import { PaymentPreviewController } from './payment-preview.controller.js';
 import { CashDayService } from './cash-day.service.js';
 import { DiscountListService } from './discount-list.service.js';
 import { PaymentPreviewService } from './payment-preview.service.js';
+import { PaymentHistoryService } from './payment-history.service.js';
 import { PaymentViewService } from './payment-view.service.js';
 import { PaymentsService } from './payments.service.js';
 import { ReceiptPdfService } from './receipt-pdf.service.js';
 import { StornoCashRepository } from './storno-cash.repository.js';
 import { StornoCashService } from './storno-cash.service.js';
 import { SubmissionsController } from './submissions.controller.js';
+import { SubmissionStaffNotifier } from './submission-staff-notifier.js';
 import { SubmissionsRepository } from './submissions.repository.js';
 import { SubmissionsService } from './submissions.service.js';
 import { StudentBillingSetupController } from './student-setup.controller.js';
@@ -70,8 +73,10 @@ import { EnrollmentRemoveService } from './enrollment-remove.service.js';
     BillingCron,
     PaymentsService,
     PaymentPreviewService,
+    FirstMonthQuoteService,
     DiscountListService,
     CashDayService,
+    PaymentHistoryService,
     PaymentViewService,
     DiscountsRepository,
     DiscountsService,
@@ -82,6 +87,7 @@ import { EnrollmentRemoveService } from './enrollment-remove.service.js';
     DebtRemindersService,
     ReceiptPdfService,
     SubmissionsRepository,
+    SubmissionStaffNotifier,
     SubmissionsService,
     StudentBillingSetupService,
     EnrollmentBillingService,

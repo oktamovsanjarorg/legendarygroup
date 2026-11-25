@@ -13,6 +13,7 @@ import {
 import { eq } from 'drizzle-orm';
 import { formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { backdatePayment } from '../../test/backdate.js';
 import { tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 
@@ -120,17 +121,33 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
       expect(res.statusCode).toBe(409);
     });
 
+    it('BR-16: oʻtgan sana bilan bugun kiritilgan toʻlovni Admin storno qila oladi; kelajak sana — 400', async () => {
+      const pay = (n: number, paidAt: number) =>
+        call('POST', 'billing/payments', 'admin', {
+          studentId: testStudentId,
+          amount: '70000',
+          method: 'cash',
+          paidAt: new Date(paidAt).toISOString(),
+          idempotencyKey: `storno-date-${n}`,
+        });
+      const day = 86_400_000;
+      const { id } = (await pay(1, Date.now() - day)).json<{ id: string }>();
+      const reversed = await call('POST', `billing/payments/${id}/reverse`, 'admin', {
+        reason: 'Xato kiritilgan',
+      });
+      expect(reversed.statusCode).toBe(201);
+      expect((await pay(2, Date.now() + day)).json()).toMatchObject({ code: 'PAYMENT_IN_FUTURE' });
+    });
+
     it('Kiritilgan kundan keyingi toʻlovni Admin storno qila olmaydi (403), faqat Director (200)', async () => {
-      // Kechagi to'lov yaratamiz
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const pastPayRes = await call('POST', 'billing/payments', 'admin', {
         studentId: testStudentId,
         amount: '20000000',
         method: 'cash',
-        paidAt: yesterday.toISOString(),
         idempotencyKey: 'storno-test-pay-2',
       });
       const pastPayId = pastPayRes.json<{ id: string }>().id;
+      await backdatePayment(db, pastPayId);
 
       // Admin urinishi -> 403 (kiritilgan kundan keyingi to'lov)
       const adminRes = await call('POST', `billing/payments/${pastPayId}/reverse`, 'admin', {
@@ -211,6 +228,31 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
         countedCash: '999999999',
       });
       expect(res.statusCode).toBe(400);
+      expect(res.json<{ code: string }>().code).toBe('CASH_DIFF_NOTE_REQUIRED');
+    });
+
+    it('T-140: kelajak kun kassasi yopilmaydi (400), mavjud boʻlmagan kun — 400', async () => {
+      const future = await call('POST', 'billing/cash/close', 'admin', {
+        date: '2099-01-01',
+        countedCash: '0',
+      });
+      expect(future.json<{ code: string }>().code).toBe('CASH_DATE_IN_FUTURE');
+      const wrong = await call('POST', 'billing/cash/close', 'admin', {
+        date: '2026-02-31',
+        countedCash: '0',
+      });
+      expect(wrong.statusCode).toBe(400);
+    });
+
+    it('T-140: bir vaqtda ikki marta yopish — bittasi oʻtadi, ikkinchisi 409 (500 emas)', async () => {
+      const body = { date: '2026-01-05', countedCash: '0' };
+      const both = await Promise.all([
+        call('POST', 'billing/cash/close', 'admin', body),
+        call('POST', 'billing/cash/close', 'director', body),
+      ]);
+      expect(both.map((r) => r.statusCode).sort()).toEqual([201, 409]);
+      const lost = both.find((r) => r.statusCode === 409);
+      expect(lost?.json<{ code: string }>().code).toBe('CASH_ALREADY_CLOSED');
     });
 
     it('Admin yoki Director izoh bilan kassani yopadi (201)', async () => {
@@ -235,6 +277,23 @@ describe('Storno, Refund va Kassa Yopish (T-209, FR-PAY-9, 10, BR-16, 17)', () =
         countedCash: '50000000',
       });
       expect(res.statusCode).toBe(409);
+    });
+
+    it('T-140: kun yopilgach sanalgan summa, farq va izoh koʻrinadi', async () => {
+      const res = await call('GET', `billing/cash/day?date=${todayStr}`, 'admin');
+      expect(res.json<{ closed: object }>().closed).toMatchObject({
+        countedCash: '50000000',
+        note: 'Kassa sanaldi, farq kassa qoldigʻi bilan mos',
+      });
+    });
+
+    it('T-140: tarix sana boʻyicha kursor bilan sahifalanadi', async () => {
+      const first = await call('GET', 'billing/cash/closings?limit=1', 'admin');
+      const [last] = first.json<{ date: string }[]>();
+      const next = await call('GET', `billing/cash/closings?limit=5&cursor=${last!.date}`, 'admin');
+      const rest = next.json<{ date: string }[]>();
+      expect(rest.length).toBeGreaterThan(0);
+      expect(rest.every((r) => r.date < last!.date)).toBe(true);
     });
 
     it('Kassalar tarixi roʻyxatini olish mumkin (200)', async () => {

@@ -10,6 +10,7 @@ import { GroupsController } from './groups.controller.js';
 import { GroupsService } from './groups.service.js';
 import { HolidaysController } from './lessons/holidays.controller.js';
 import { HolidaysService } from './lessons/holidays.service.js';
+import { LessonHeldService } from './lessons/lesson-held.service.js';
 import { LessonMakeupService } from './lessons/lesson-makeup.service.js';
 import { LessonSyncService } from './lessons/lesson-sync.service.js';
 import { LessonsQueryService } from './lessons/lessons-query.service.js';
@@ -38,6 +39,7 @@ import { RoomsService } from './rooms.service.js';
     GroupsService,
     GroupScheduleService,
     LessonSyncService,
+    LessonHeldService,
     LessonsCron,
     LessonsQueryService,
     LessonsService,
@@ -45,6 +47,7 @@ import { RoomsService } from './rooms.service.js';
     HolidaysService,
   ],
   exports: [
+    LessonHeldService,
     CoursesService,
     RoomsService,
     GroupScopeService,

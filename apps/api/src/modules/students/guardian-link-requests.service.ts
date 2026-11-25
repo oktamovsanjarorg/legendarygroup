@@ -13,6 +13,7 @@ import { AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
+import { OutboxService } from '../outbox/index.js';
 import { claimGuardianTelegram, normalizePhone } from '../rbac/index.js';
 
 type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
@@ -23,6 +24,7 @@ export class GuardianLinkRequestsService {
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(OutboxService) private readonly outbox: OutboxService,
   ) {}
 
   private formatRequest(r: typeof guardianLinkRequests.$inferSelect): GuardianLinkRequest {
@@ -109,21 +111,16 @@ export class GuardianLinkRequestsService {
         .for('update');
       if (!req) throw new AppException(HttpStatus.NOT_FOUND, 'REQUEST_NOT_FOUND');
 
-      let resolvedGuardianId = input.guardianId;
-      if (input.studentId) {
-        resolvedGuardianId = await this.resolveStudentLink(tx, input, req);
-      }
-
-      if (resolvedGuardianId) {
-        await this.linkGuardianAccount(tx, resolvedGuardianId, req);
-      }
+      const resolvedGuardianId =
+        input.guardianId ?? (await this.resolveStudentLink(tx, input, req));
+      const userId = await this.linkGuardianAccount(tx, resolvedGuardianId, req);
 
       const now = this.clock.now();
       const [updated] = await tx
         .update(guardianLinkRequests)
         .set({
           status: 'approved',
-          resolvedGuardianId: resolvedGuardianId ?? null,
+          resolvedGuardianId,
           resolvedBy: ctx.actorId,
           resolvedAt: now,
         })
@@ -137,10 +134,11 @@ export class GuardianLinkRequestsService {
           action: 'guardian_link_request.approved',
           entity: 'guardian_link_request',
           entityId: requestId,
-          after: { status: 'approved', resolvedGuardianId },
+          after: { status: 'approved', resolvedGuardianId, studentId: input.studentId ?? null },
         },
         tx,
       );
+      await this.outbox.publish('GuardianLinkApproved', { requestId, userId }, tx);
 
       return this.formatRequest(updated);
     });
@@ -151,39 +149,41 @@ export class GuardianLinkRequestsService {
     requestId: string,
     input: RejectGuardianLinkRequest,
   ): Promise<GuardianLinkRequest> {
-    const now = this.clock.now();
-    const [updated] = await this.db
-      .update(guardianLinkRequests)
-      .set({
-        status: 'rejected',
-        rejectReason: input.reason,
-        resolvedBy: ctx.actorId,
-        resolvedAt: now,
-      })
-      .where(
-        and(eq(guardianLinkRequests.id, requestId), eq(guardianLinkRequests.status, 'pending')),
-      )
-      .returning();
-
-    if (!updated) throw new AppException(HttpStatus.NOT_FOUND, 'REQUEST_NOT_FOUND');
-
-    await this.audit.record(ctx, {
-      action: 'guardian_link_request.rejected',
-      entity: 'guardian_link_request',
-      entityId: requestId,
-      after: { status: 'rejected', reason: input.reason },
+    return this.db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(guardianLinkRequests)
+        .set({
+          status: 'rejected',
+          rejectReason: input.reason,
+          resolvedBy: ctx.actorId,
+          resolvedAt: this.clock.now(),
+        })
+        .where(
+          and(eq(guardianLinkRequests.id, requestId), eq(guardianLinkRequests.status, 'pending')),
+        )
+        .returning();
+      if (!updated) throw new AppException(HttpStatus.NOT_FOUND, 'REQUEST_NOT_FOUND');
+      await this.audit.record(
+        ctx,
+        {
+          action: 'guardian_link_request.rejected',
+          entity: 'guardian_link_request',
+          entityId: requestId,
+          after: { status: 'rejected', reason: input.reason },
+        },
+        tx,
+      );
+      return this.formatRequest(updated);
     });
-
-    return this.formatRequest(updated);
   }
 
   private async linkGuardianAccount(
     tx: Tx,
     guardianId: string,
     req: typeof guardianLinkRequests.$inferSelect,
-  ): Promise<void> {
+  ): Promise<string> {
     const [guardian] = await tx.select().from(guardians).where(eq(guardians.id, guardianId));
-    if (!guardian) return;
+    if (!guardian) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
 
     // Admin tasdig'i xodim profilini begona Telegram'ga o'tkaza olmaydi (Q-98)
     const userId = await claimGuardianTelegram(tx, {
@@ -193,5 +193,6 @@ export class GuardianLinkRequestsService {
       verifiedPhone: normalizePhone(req.phone),
     });
     if (!userId) throw new AppException(HttpStatus.CONFLICT, 'TELEGRAM_LINK_CONFLICT');
+    return userId;
   }
 }

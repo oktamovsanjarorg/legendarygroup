@@ -12,12 +12,12 @@ import {
   groupTeachers,
   groups,
   guardians,
-  invoices,
   studentGuardians,
   students,
+  type Transaction,
   users,
 } from '@lg/db';
-import { and, desc, eq, gte, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import type { Clock } from '@lg/domain';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
@@ -37,10 +37,11 @@ export interface CreateAnnouncementInput {
   body: string;
   targetType: AnnouncementTargetType;
   targetId?: string | null;
-  fileUrl?: string | null;
+  fileId?: string | null;
   fileType?: AnnouncementFileType | null;
-  status?: AnnouncementStatus;
-  scheduledAt?: Date | null;
+  status: AnnouncementStatus;
+  totalRecipients: number;
+  sentAt: Date | null;
 }
 
 @Injectable()
@@ -50,24 +51,26 @@ export class AnnouncementsRepository {
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
-  /** O'qituvchining ruxsat etilgan guruhlarini tekshirish */
-  async isTeacherInGroup(teacherUserId: string, groupId: string): Promise<boolean> {
+  /** Q-62: e'lonni faqat guruhning bugungi asosiy (`main`) ustozi yuboradi. */
+  async isMainTeacher(teacherUserId: string, groupId: string, today: string): Promise<boolean> {
     const [row] = await this.db
       .select({ id: groupTeachers.groupId })
       .from(groupTeachers)
-      .where(and(eq(groupTeachers.teacherId, teacherUserId), eq(groupTeachers.groupId, groupId)));
+      .where(
+        and(
+          eq(groupTeachers.teacherId, teacherUserId),
+          eq(groupTeachers.groupId, groupId),
+          eq(groupTeachers.role, 'main'),
+          lte(groupTeachers.fromDate, today),
+          or(isNull(groupTeachers.toDate), gte(groupTeachers.toDate, today)),
+        ),
+      );
     return Boolean(row);
   }
 
-  /** E'lon auditoriyasini aniqlash */
-  async findAudience(params: {
-    branchId: string;
-    targetType: AnnouncementTargetType;
-    targetId?: string | null;
-  }): Promise<AudienceRecipient[]> {
-    const studentIds = await this.resolveStudentIds(params);
+  /** O'quvchilarning botga ulangan (foydalanuvchisi bor) ota-onalari. */
+  async guardiansOf(studentIds: string[]): Promise<AudienceRecipient[]> {
     if (studentIds.length === 0) return [];
-
     const rows = await this.db
       .select({
         userId: guardians.userId,
@@ -83,67 +86,37 @@ export class AnnouncementsRepository {
         and(
           inArray(studentGuardians.studentId, studentIds),
           eq(studentGuardians.notify, true),
-          sql`${guardians.userId} IS NOT NULL`,
+          isNotNull(guardians.userId),
+          isNull(students.archivedAt),
         ),
       );
-
     return this.groupAudienceRows(rows);
   }
 
-  private async resolveStudentIds(params: {
-    branchId: string;
-    targetType: AnnouncementTargetType;
-    targetId?: string | null;
-  }): Promise<string[]> {
-    switch (params.targetType) {
-      case 'group': {
-        if (!params.targetId) return [];
-        const rows = await this.db
-          .select({ studentId: enrollments.studentId })
-          .from(enrollments)
-          .where(
-            and(
-              eq(enrollments.groupId, params.targetId),
-              or(isNull(enrollments.endDate), gte(enrollments.endDate, sql`CURRENT_DATE`)),
-            ),
-          );
-        return rows.map((r) => r.studentId);
-      }
-      case 'course': {
-        if (!params.targetId) return [];
-        const rows = await this.db
-          .select({ studentId: enrollments.studentId })
-          .from(enrollments)
-          .innerJoin(groups, eq(groups.id, enrollments.groupId))
-          .where(
-            and(
-              eq(groups.courseId, params.targetId),
-              or(isNull(enrollments.endDate), gte(enrollments.endDate, sql`CURRENT_DATE`)),
-            ),
-          );
-        return rows.map((r) => r.studentId);
-      }
-      case 'debtors': {
-        const rows = await this.db
-          .selectDistinct({ studentId: invoices.studentId })
-          .from(invoices)
-          .where(
-            and(
-              eq(invoices.branchId, params.branchId),
-              inArray(invoices.status, ['open', 'partially_paid']),
-            ),
-          );
-        return rows.map((r) => r.studentId);
-      }
-      case 'all':
-      default: {
-        const rows = await this.db
-          .select({ id: students.id })
-          .from(students)
-          .where(and(eq(students.branchId, params.branchId), isNull(students.archivedAt)));
-        return rows.map((r) => r.id);
-      }
-    }
+  /** Hali chiqmagan (chiqish kuni bugundan oldin emas) a'zolar. */
+  async enrolledStudentIds(
+    by: { groupId: string } | { courseId: string },
+    today: string,
+  ): Promise<string[]> {
+    const rows = await this.db
+      .selectDistinct({ studentId: enrollments.studentId })
+      .from(enrollments)
+      .innerJoin(groups, eq(groups.id, enrollments.groupId))
+      .where(
+        and(
+          'groupId' in by ? eq(groups.id, by.groupId) : eq(groups.courseId, by.courseId),
+          or(isNull(enrollments.endDate), gte(enrollments.endDate, today)),
+        ),
+      );
+    return rows.map((r) => r.studentId);
+  }
+
+  async activeStudentIds(branchId: string): Promise<string[]> {
+    const rows = await this.db
+      .select({ id: students.id })
+      .from(students)
+      .where(and(eq(students.branchId, branchId), isNull(students.archivedAt)));
+    return rows.map((r) => r.id);
   }
 
   private groupAudienceRows(
@@ -177,8 +150,8 @@ export class AnnouncementsRepository {
   }
 
   /** Yangi e'lon yaratish */
-  async createAnnouncement(data: CreateAnnouncementInput) {
-    const [row] = await this.db
+  async createAnnouncement(tx: Transaction, data: CreateAnnouncementInput) {
+    const [row] = await tx
       .insert(announcements)
       .values({
         branchId: data.branchId,
@@ -187,10 +160,12 @@ export class AnnouncementsRepository {
         body: data.body,
         targetType: data.targetType,
         targetId: data.targetId ?? null,
-        fileUrl: data.fileUrl ?? null,
+        fileId: data.fileId ?? null,
         fileType: data.fileType ?? null,
-        status: data.status ?? 'draft',
-        scheduledAt: data.scheduledAt ?? null,
+        status: data.status,
+        totalRecipients: data.totalRecipients,
+        sentAt: data.sentAt,
+        createdAt: this.clock.now(),
       })
       .returning();
     if (!row) throw new Error('Announcement not created');
@@ -215,12 +190,14 @@ export class AnnouncementsRepository {
     branchId: string;
     targetType?: AnnouncementTargetType;
     status?: AnnouncementStatus;
+    authorId?: string;
     limit: number;
     offset: number;
   }) {
     const conditions = [eq(announcements.branchId, params.branchId)];
     if (params.targetType) conditions.push(eq(announcements.targetType, params.targetType));
     if (params.status) conditions.push(eq(announcements.status, params.status));
+    if (params.authorId) conditions.push(eq(announcements.authorId, params.authorId));
 
     const rows = await this.db
       .select({
@@ -239,6 +216,7 @@ export class AnnouncementsRepository {
 
   /** Qabul qiluvchilar ro'yxatini kiritish */
   async insertRecipients(
+    tx: Transaction,
     items: Array<{
       announcementId: string;
       userId: string;
@@ -248,30 +226,40 @@ export class AnnouncementsRepository {
     }>,
   ) {
     if (items.length === 0) return [];
-    return this.db.insert(announcementRecipients).values(items).returning();
+    return tx.insert(announcementRecipients).values(items).returning();
   }
 
-  /** E'lon hisoblagichlari va holatini yangilash */
-  async updateAnnouncementStatus(
-    id: string,
-    data: {
-      status?: AnnouncementStatus;
-      sentAt?: Date | null;
-      totalRecipients?: number;
-      sentCount?: number;
-      failedCount?: number;
-      blockedCount?: number;
-    },
-  ) {
-    const [row] = await this.db
+  /** Hamma qabul qiluvchi navbatga qo'yildi. */
+  async markCompleted(id: string, at: Date) {
+    await this.db
       .update(announcements)
-      .set({
-        ...data,
-        updatedAt: this.clock.now(),
-      })
-      .where(eq(announcements.id, id))
-      .returning();
-    return row;
+      .set({ status: 'completed', sentAt: at, updatedAt: at })
+      .where(eq(announcements.id, id));
+  }
+
+  /** Ikki marta bosish: shu muallifning `since`dan keyingi aynan shu e'loni (muallif qulflanadi). */
+  async findDuplicate(
+    tx: Transaction,
+    data: Pick<CreateAnnouncementInput, 'authorId' | 'title' | 'body' | 'targetType' | 'targetId'>,
+    since: Date,
+  ): Promise<string | null> {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${data.authorId}))`);
+    const [row] = await tx
+      .select({ id: announcements.id })
+      .from(announcements)
+      .where(
+        and(
+          eq(announcements.authorId, data.authorId),
+          eq(announcements.title, data.title),
+          eq(announcements.body, data.body),
+          eq(announcements.targetType, data.targetType),
+          data.targetId
+            ? eq(announcements.targetId, data.targetId)
+            : isNull(announcements.targetId),
+          gte(announcements.createdAt, since),
+        ),
+      );
+    return row?.id ?? null;
   }
 
   /** Qabul qiluvchini notificationId va holati bilan yangilash */
@@ -299,12 +287,13 @@ export class AnnouncementsRepository {
       );
   }
 
-  /** E'lon qabul qiluvchilari statistikasi */
-  async findRecipients(announcementId: string) {
+  /** Qabul qiluvchilar (bir yoki bir nechta e'lon uchun). */
+  async findRecipients(...announcementIds: string[]) {
+    if (announcementIds.length === 0) return [];
     return this.db
       .select()
       .from(announcementRecipients)
-      .where(eq(announcementRecipients.announcementId, announcementId))
-      .orderBy(desc(announcementRecipients.createdAt));
+      .where(inArray(announcementRecipients.announcementId, announcementIds))
+      .orderBy(asc(announcementRecipients.recipientName));
   }
 }

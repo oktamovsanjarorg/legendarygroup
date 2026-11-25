@@ -1,6 +1,16 @@
 import { introMessages } from './miniapp-intro.js';
+import { auditActionMessages } from './miniapp-audit.js';
+import { staffHelpMessages } from './miniapp-help.js';
 import { guardianMessages } from './miniapp-guardian.js';
 import { staffMessages } from './miniapp-staff.js';
+import { staffListMessages } from './miniapp-staff-lists.js';
+import { staffOrgMessages } from './miniapp-staff-org.js';
+import { staffPayrollMessages } from './miniapp-staff-payroll.js';
+import { staffPeopleMessages } from './miniapp-staff-people.js';
+import { staffReportMessages } from './miniapp-staff-reports.js';
+import { staffSettingsMessages } from './miniapp-staff-settings.js';
+import { staffStudentMessages } from './miniapp-staff-students.js';
+import { staffWorkMessages } from './miniapp-staff-work.js';
 import { studentMessages } from './miniapp-student.js';
 import { teacherMessages } from './miniapp-teacher.js';
 import { webMessages } from './web.js';
@@ -9,6 +19,7 @@ import { webMessages } from './web.js';
 export const miniappMessages = {
   appTitle: 'Legendary Group',
   roles: webMessages.roles,
+  permissions: webMessages.permissions,
   openInTelegram: {
     title: 'Ilovani Telegram orqali oching',
     hint: 'Bu sahifa faqat Legendary Group boti ichida ishlaydi.',
@@ -41,6 +52,16 @@ export const miniappMessages = {
   ...teacherMessages,
   ...guardianMessages,
   ...staffMessages,
+  ...staffWorkMessages,
+  ...staffListMessages,
+  ...staffOrgMessages,
+  ...staffStudentMessages,
+  ...staffPayrollMessages,
+  ...staffPeopleMessages,
+  ...staffReportMessages,
+  ...staffSettingsMessages,
+  ...staffHelpMessages,
+  ...auditActionMessages,
   ...studentMessages,
   ...introMessages,
   feedback: {

@@ -20,6 +20,7 @@ import { EnvService } from '../../config/env.service.js';
 import type { RequestUser } from '../auth/index.js';
 import { PermissionsService } from '../rbac/index.js';
 import { StudentScopeService } from '../students/index.js';
+import { paymentKind } from './payment-kind.js';
 
 /**
  * W-17 (FR-PAY-6/8/9): to'lov, chek, oy bo'yicha taqsimot va storno holati bitta javobda.
@@ -55,11 +56,12 @@ export class PaymentViewService {
     if (!row) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
     await this.studentScope.assertVisible(user, row.p.studentId);
     const perms = await this.permissions.forUser(user.id, user.role, user.pv);
-    const sameDay = formatDateToYmd(row.p.paidAt) === formatDateToYmd(this.clock.now());
+    const sameDay = formatDateToYmd(row.p.createdAt) === formatDateToYmd(this.clock.now());
     return {
       id: row.p.id,
       studentId: row.p.studentId,
       studentName: row.studentName,
+      kind: paymentKind(row.p),
       amount: row.p.amount.toString(),
       method: row.p.method,
       paidAt: row.p.paidAt.toISOString(),
@@ -74,7 +76,11 @@ export class PaymentViewService {
         row.cancelReason && row.cancelledAt
           ? { reason: row.cancelReason, at: row.cancelledAt.toISOString() }
           : null,
-      canReverseNow: perms.has('payment.reverse') && (sameDay || perms.has('approval.decide')),
+      canReverseNow:
+        row.p.amount > 0n &&
+        row.cancelledAt === null &&
+        perms.has('payment.reverse') &&
+        (sameDay || perms.has('approval.decide')),
     };
   }
 

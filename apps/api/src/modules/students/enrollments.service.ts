@@ -10,7 +10,7 @@ import {
   type Transaction,
 } from '@lg/db';
 import { type Clock, peakConcurrency, transferSplit } from '@lg/domain';
-import { and, asc, eq, gt, gte, lte } from 'drizzle-orm';
+import { and, asc, eq, gt, gte, isNull, lte } from 'drizzle-orm';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
@@ -128,6 +128,37 @@ export class EnrollmentsService {
       );
       return this.dto(tx, row);
     });
+  }
+
+  /** Guruh yakunlandi (Q-102): ochiq a'zoliklar `finished`; yakunlangandan keyin boshlanadigani — boshlanish kunida. */
+  async finishGroup(
+    ctx: AuditContext,
+    g: { groupId: string; date: string },
+    tx: Transaction,
+  ): Promise<void> {
+    const open = await tx
+      .select()
+      .from(enrollments)
+      .where(and(eq(enrollments.groupId, g.groupId), isNull(enrollments.endReason)))
+      .for('update');
+    for (const e of open) {
+      const row = await this.close(tx, e, {
+        endDate: e.startDate > g.date ? e.startDate : g.date,
+        endReason: 'finished',
+        note: null,
+      });
+      await this.audit.record(
+        ctx,
+        {
+          action: 'enrollment.end',
+          entity: 'enrollment',
+          entityId: e.id,
+          before: enrollmentAudit(e),
+          after: enrollmentAudit(row),
+        },
+        tx,
+      );
+    }
   }
 
   /** Ko'chirish: eski `date - 1` da (`transferred`), yangi guruhda `date` dan; chegirma saqlanadi. */

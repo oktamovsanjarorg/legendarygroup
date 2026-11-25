@@ -1,6 +1,6 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { ActionSheet, ListItem, Section } from '@lg/ui-tg';
-import { Archive, ArchiveRestore, LogOut } from 'lucide-react';
+import { Archive, ArchiveRestore, Plus } from 'lucide-react';
 import { useState } from 'react';
 import type { StudentManage } from '../../data/staff-student.js';
 
@@ -9,23 +9,57 @@ const c = t.studentCard;
 export interface StudentManageProps {
   m: StudentManage;
   busy: boolean;
-  onLeave: (enrollmentId: string) => void;
+  /** A'zolik ekrani (MS-23a): koʻchirish, muzlatish, chegirma, chiqarish. */
+  onOpen: (enrollmentId: string) => void;
+  onEnroll?: () => void;
+  onGuardian?: (guardianId: string) => void;
+  onAddGuardian?: () => void;
   onArchive: () => void;
   onRestore: () => void;
 }
 
-/** MS-05 guruhlar (`student.manage` bo'lsa): guruhni bosish — MS-05a «Guruhdan chiqarish». */
-export function ManageGroups({ m, onLeave }: Pick<StudentManageProps, 'm' | 'onLeave'>) {
-  if (m.groups.length === 0) return null;
+/** MS-05 guruhlar (`student.manage` bo'lsa): guruhni bosish — a'zolik amallari. */
+export function ManageGroups({
+  m,
+  onOpen,
+  onEnroll,
+}: Pick<StudentManageProps, 'm' | 'onOpen' | 'onEnroll'>) {
+  const add = m.archived ? undefined : onEnroll;
+  if (m.groups.length === 0 && !add) return null;
   return (
-    <Section title={c.groups} footer={c.leaveHint}>
+    <Section title={c.groups} footer={m.groups.length > 0 ? t.staffProfile.groupsHint : undefined}>
       {m.groups.map((g) => (
         <ListItem
           key={g.enrollmentId}
           title={g.name}
-          after={<LogOut className="size-5 text-text-muted" aria-hidden />}
+          subtitle={g.text}
           chevron
-          onClick={() => onLeave(g.enrollmentId)}
+          onClick={() => onOpen(g.enrollmentId)}
+        />
+      ))}
+      {add && (
+        <ListItem
+          before={<Plus className="size-5 text-link" aria-hidden />}
+          title={<span className="text-link">{t.staffProfile.addGroup}</span>}
+          onClick={add}
+        />
+      )}
+    </Section>
+  );
+}
+
+/** FR-STU-3: a'zolik tarixi. */
+export function PastGroups({ m, onOpen }: Pick<StudentManageProps, 'm' | 'onOpen'>) {
+  if (m.past.length === 0) return null;
+  return (
+    <Section title={t.staffProfile.pastGroups}>
+      {m.past.map((g) => (
+        <ListItem
+          key={g.enrollmentId}
+          title={g.name}
+          subtitle={g.text}
+          chevron
+          onClick={() => onOpen(g.enrollmentId)}
         />
       ))}
     </Section>

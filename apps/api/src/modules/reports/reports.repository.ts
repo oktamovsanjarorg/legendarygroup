@@ -1,28 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
-  courses,
   type Database,
   enrollments,
   groups,
+  invoiceOutstandingSql,
   invoices,
   leads,
   ledgerEntries,
-  paymentAllocations,
-  payments,
   students,
 } from '@lg/db';
 import { calculateConversionRateBp, classifyDebtAgingBucket } from '@lg/domain';
-import { and, desc, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { ReportsPerformanceRepository } from './reports-performance.repository.js';
-
-export interface RevenueRowItem {
-  id: string;
-  name: string;
-  totalRevenue: bigint;
-  paymentCount: number;
-  studentCount: number;
-}
+import {
+  type DateFilter,
+  type RevenueReport,
+  ReportsRevenueRepository,
+} from './reports-revenue.repository.js';
 
 export interface DebtorDetailItem {
   studentId: string;
@@ -40,6 +35,7 @@ export class ReportsRepository {
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(ReportsPerformanceRepository)
     private readonly performanceRepo: ReportsPerformanceRepository,
+    @Inject(ReportsRevenueRepository) private readonly revenueRepo: ReportsRevenueRepository,
   ) {}
 
   /** Tungi rejimda materialized view'ni yangilaydi (AC: T-501) */
@@ -47,82 +43,14 @@ export class ReportsRepository {
     await this.db.execute(sql`REFRESH MATERIALIZED VIEW mv_monthly_revenue;`);
   }
 
-  /** 1. Daromad hisoboti */
-  async getRevenueReport(
+  /** 1. Daromad hisoboti (sof, davr va kesim bo'yicha). */
+  getRevenueReport(
     branchId: string,
     groupBy: 'month' | 'course' | 'group' | 'teacher',
-    from?: string,
-    to?: string,
-  ): Promise<RevenueRowItem[]> {
-    if (groupBy === 'course') {
-      return this.getRevenueByCourse(branchId);
-    }
-    return this.getRevenueByMonth(branchId, from, to);
-  }
-
-  private async getRevenueByMonth(branchId: string, from?: string, to?: string) {
-    const conditions = [
-      eq(payments.branchId, branchId),
-      sql`${payments.amount} > 0`,
-      isNull(payments.reversalOf),
-    ];
-    if (from)
-      conditions.push(
-        gte(sql`to_char(${payments.paidAt} AT TIME ZONE 'Asia/Tashkent', 'YYYY-MM')`, from),
-      );
-    if (to)
-      conditions.push(
-        lte(sql`to_char(${payments.paidAt} AT TIME ZONE 'Asia/Tashkent', 'YYYY-MM')`, to),
-      );
-
-    const rows = await this.db
-      .select({
-        period: sql<string>`to_char(${payments.paidAt} AT TIME ZONE 'Asia/Tashkent', 'YYYY-MM')`,
-        totalRevenue: sql<bigint>`coalesce(sum(${payments.amount}), 0)`,
-        paymentCount: sql<number>`count(${payments.id})::int`,
-        studentCount: sql<number>`count(distinct ${payments.studentId})::int`,
-      })
-      .from(payments)
-      .where(and(...conditions))
-      .groupBy(sql`to_char(${payments.paidAt} AT TIME ZONE 'Asia/Tashkent', 'YYYY-MM')`)
-      .orderBy(desc(sql`to_char(${payments.paidAt} AT TIME ZONE 'Asia/Tashkent', 'YYYY-MM')`));
-
-    return rows.map((r) => ({
-      id: r.period,
-      name: r.period,
-      totalRevenue: BigInt(r.totalRevenue),
-      paymentCount: Number(r.paymentCount),
-      studentCount: Number(r.studentCount),
-    }));
-  }
-
-  private async getRevenueByCourse(branchId: string) {
-    const rows = await this.db
-      .select({
-        id: courses.id,
-        name: courses.name,
-        totalRevenue: sql<bigint>`coalesce(sum(${paymentAllocations.amount}), 0)`,
-        paymentCount: sql<number>`count(distinct ${paymentAllocations.paymentId})::int`,
-        studentCount: sql<number>`count(distinct ${payments.studentId})::int`,
-      })
-      .from(paymentAllocations)
-      .innerJoin(payments, eq(payments.id, paymentAllocations.paymentId))
-      .innerJoin(
-        enrollments,
-        eq(enrollments.id, sql`NULLIF(${paymentAllocations.invoiceLineId}, NULL)::uuid`),
-      )
-      .innerJoin(groups, eq(groups.id, enrollments.groupId))
-      .innerJoin(courses, eq(courses.id, groups.courseId))
-      .where(and(eq(payments.branchId, branchId), isNull(payments.reversalOf)))
-      .groupBy(courses.id, courses.name);
-
-    return rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      totalRevenue: BigInt(r.totalRevenue),
-      paymentCount: Number(r.paymentCount),
-      studentCount: Number(r.studentCount),
-    }));
+    filter: DateFilter,
+  ): Promise<RevenueReport> {
+    if (groupBy === 'month') return this.revenueRepo.byMonth(branchId, filter);
+    return this.revenueRepo.byDimension(branchId, groupBy, filter);
   }
 
   /** 2. Qarzdorlik yoshi (aging) hisoboti */
@@ -175,6 +103,8 @@ export class ReportsRepository {
         and(
           inArray(invoices.studentId, studentIds),
           inArray(invoices.status, ['open', 'partially_paid']),
+          // BR-20: to'lab bo'lingan qoldiqsiz hisob kechikish sanalmaydi (MS-08 bilan bir xil).
+          sql`${invoiceOutstandingSql(invoices.id, invoices.total)} > 0`,
         ),
       )
       .groupBy(invoices.studentId);
@@ -206,8 +136,7 @@ export class ReportsRepository {
   async getAttendanceReport(
     branchId: string,
     groupBy: 'group' | 'teacher',
-    from?: string,
-    to?: string,
+    { from, to }: DateFilter,
   ) {
     return this.performanceRepo.getAttendanceReport(branchId, groupBy, from, to);
   }
@@ -218,14 +147,15 @@ export class ReportsRepository {
   }
 
   /** 5. Lid konversiyasi hisoboti */
-  async getLeadsConversionReport(branchId: string, from?: string, to?: string) {
+  async getLeadsConversionReport(branchId: string, { from, to }: DateFilter) {
     const conditions = [eq(leads.branchId, branchId)];
-    if (from) conditions.push(gte(sql`to_char(${leads.createdAt}, 'YYYY-MM-DD')`, from));
-    if (to) conditions.push(lte(sql`to_char(${leads.createdAt}, 'YYYY-MM-DD')`, to));
+    const day = sql`(${leads.createdAt} AT TIME ZONE 'Asia/Tashkent')::date`;
+    if (from) conditions.push(sql`${day} >= ${from}::date`);
+    if (to) conditions.push(sql`${day} <= ${to}::date`);
 
     const rows = await this.db
       .select({
-        source: sql<string>`coalesce(${leads.source}, 'boshqa')`,
+        source: sql<string>`coalesce(${leads.source}, 'other')`,
         totalLeads: sql<number>`count(${leads.id})::int`,
         contactedCount: sql<number>`count(case when ${leads.status} in ('contacted', 'trial', 'won') then 1 end)::int`,
         trialCount: sql<number>`count(case when ${leads.status} in ('trial', 'won') then 1 end)::int`,
@@ -233,7 +163,8 @@ export class ReportsRepository {
       })
       .from(leads)
       .where(and(...conditions))
-      .groupBy(sql`coalesce(${leads.source}, 'boshqa')`);
+      .groupBy(sql`1`)
+      .orderBy(sql`2 desc`);
 
     return rows.map((r) => ({
       source: r.source,
@@ -246,7 +177,7 @@ export class ReportsRepository {
   }
 
   /** 6. Ustoz samaradorligi hisoboti */
-  async getTeacherPerformanceReport(branchId: string) {
-    return this.performanceRepo.getTeacherPerformanceReport(branchId);
+  getTeacherPerformanceReport(branchId: string, filter: DateFilter, today: string) {
+    return this.performanceRepo.getTeacherPerformanceReport(branchId, filter, today);
   }
 }

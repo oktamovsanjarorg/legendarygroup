@@ -11,22 +11,64 @@ describe('MS-06 Koʻproq (T-130)', () => {
   it('Admin: toʻlov kiritish bor; navbat tabda — takrorlanmaydi; soʻrovlar — ruxsat yoʻq', () => {
     expect(keys(staffMenuFor(ROLE_PERMISSIONS.admin, tabPaths('admin')))).toEqual([
       'newStudent',
+      'leads',
+      'linkRequests',
       'pay',
       'debtors',
+      'payments',
+      'discounts',
+      'cash',
+      'groups',
+      'calendar',
+      'attendance',
+      'courses',
+      'rooms',
+      'holidays',
+      'tickets',
+      'announcements',
+      'undelivered',
+      'reports',
+      'forecasts',
+      'help',
+      'sessions',
     ]);
   });
 
   it('Director: navbat Koʻproq’da (tabda yoʻq), soʻrovlar — tabda', () => {
     expect(keys(staffMenuFor(ROLE_PERMISSIONS.director, tabPaths('director')))).toEqual([
       'newStudent',
+      'leads',
+      'linkRequests',
       'pay',
       'debtors',
+      'payments',
+      'discounts',
       'queue',
+      'cash',
+      'addExpense',
+      'groups',
+      'calendar',
+      'attendance',
+      'courses',
+      'rooms',
+      'holidays',
+      'tickets',
+      'announcements',
+      'undelivered',
+      'finance',
+      'payroll',
+      'reports',
+      'forecasts',
+      'people',
+      'settings',
+      'audit',
+      'help',
+      'sessions',
     ]);
   });
 
-  it('ruxsatsiz band koʻrsatilmaydi, boʻsh boʻlim tushib qoladi', () => {
-    expect(staffMenuFor([], [])).toEqual([]);
+  it('ruxsatsiz — faqat yordam va sessiyalar; boʻsh boʻlim tushib qoladi', () => {
+    expect(keys(staffMenuFor([], []))).toEqual(['help', 'sessions']);
   });
 
   it('har band yoʻli xodim marshruti, kalitlar takrorlanmaydi', () => {

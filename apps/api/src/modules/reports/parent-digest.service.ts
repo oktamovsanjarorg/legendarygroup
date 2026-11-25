@@ -5,6 +5,7 @@ import { students } from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { PDFDocument, type PDFFont, type PDFPage, rgb, StandardFonts } from 'pdf-lib';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
+import { pdfText } from '../../common/pdf/pdf-text.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import type { Database } from '@lg/db';
 import { AppException } from '../../common/errors/app.exception.js';
@@ -124,7 +125,7 @@ export class ParentDigestService {
       font: fontBold,
       color: rgb(0.1, 0.2, 0.5),
     });
-    page.drawText(`O'quvchi: ${report.studentName}`, {
+    page.drawText(pdfText(`O'quvchi: ${report.studentName}`), {
       x: 50,
       y: height - 80,
       size: 13,
@@ -147,7 +148,7 @@ export class ParentDigestService {
     let y = startY;
     const drawRow = (label: string, value: string) => {
       page.drawText(label, { x: 50, y, size: 11, font: fontBold });
-      page.drawText(value, { x: 260, y, size: 11, font: fontRegular });
+      page.drawText(pdfText(value), { x: 260, y, size: 11, font: fontRegular });
       y -= 25;
     };
 
@@ -171,7 +172,7 @@ export class ParentDigestService {
       page.drawText("Ushbu davrda izohlar yo'q.", { x: 50, y, size: 10, font: fontRegular });
     } else {
       for (const c of report.comments) {
-        page.drawText(`- ${c}`, { x: 50, y, size: 10, font: fontRegular });
+        page.drawText(pdfText(`- ${c}`), { x: 50, y, size: 10, font: fontRegular });
         y -= 18;
       }
     }

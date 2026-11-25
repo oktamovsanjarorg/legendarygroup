@@ -5,6 +5,7 @@ import {
   type NewExpenseRow,
   payments,
   payrollRuns,
+  type Transaction,
   users,
 } from '@lg/db';
 import { tashkentMonthRange, type Clock } from '@lg/domain';
@@ -28,8 +29,8 @@ export class ExpensesRepository {
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
-  async createExpense(data: NewExpenseRow): Promise<ExpenseRow> {
-    const [row] = await this.db.insert(expenses).values(data).returning();
+  async createExpense(tx: Transaction, data: NewExpenseRow): Promise<ExpenseRow> {
+    const [row] = await tx.insert(expenses).values(data).returning();
     if (!row) throw new Error('EXPENSE_CREATE_FAILED');
     return row;
   }
@@ -39,8 +40,12 @@ export class ExpensesRepository {
     return row ?? null;
   }
 
-  async updateExpense(id: string, data: Partial<NewExpenseRow>): Promise<ExpenseRow | null> {
-    const [row] = await this.db
+  async updateExpense(
+    tx: Transaction,
+    id: string,
+    data: Partial<NewExpenseRow>,
+  ): Promise<ExpenseRow | null> {
+    const [row] = await tx
       .update(expenses)
       .set({ ...data, updatedAt: this.clock.now() })
       .where(eq(expenses.id, id))
@@ -48,12 +53,13 @@ export class ExpensesRepository {
     return row ?? null;
   }
 
-  async deleteExpense(id: string): Promise<boolean> {
-    const result = await this.db
-      .delete(expenses)
-      .where(eq(expenses.id, id))
-      .returning({ id: expenses.id });
-    return result.length > 0;
+  async deleteExpense(tx: Transaction, id: string): Promise<void> {
+    await tx.delete(expenses).where(eq(expenses.id, id));
+  }
+
+  async lockExpense(tx: Transaction, id: string): Promise<ExpenseRow | null> {
+    const [row] = await tx.select().from(expenses).where(eq(expenses.id, id)).for('update');
+    return row ?? null;
   }
 
   async listExpenses(branchId: string, filter: ListExpensesFilter): Promise<ExpenseRow[]> {
@@ -122,10 +128,13 @@ export class ExpensesRepository {
     return rows.map((r) => ({ method: r.method, amount: BigInt(r.total) }));
   }
 
+  /** Oylik xarajati — ishlangan summa: ushlangan avans ham (pul oldin berilgan) xarajat (Q-104). */
   async findApprovedPayrollTotal(branchId: string, period: string): Promise<bigint> {
     const [row] = await this.db
       .select({
-        total: sql<bigint>`coalesce(sum(${payrollRuns.totalAmount}), 0)`,
+        total: sql<string>`coalesce(sum(payroll_runs.total_amount + coalesce((
+          select -sum(i.amount) from payroll_items i
+          where i.run_id = payroll_runs.id and i.kind = 'advance'), 0)), 0)`,
       })
       .from(payrollRuns)
       .where(
@@ -136,6 +145,6 @@ export class ExpensesRepository {
         ),
       );
 
-    return BigInt(row?.total ?? 0n);
+    return BigInt(row?.total ?? '0');
   }
 }

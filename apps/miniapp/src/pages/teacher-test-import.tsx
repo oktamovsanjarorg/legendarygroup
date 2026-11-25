@@ -13,15 +13,16 @@ import {
   validateExcelFile,
 } from '../data/tests-map.js';
 import {
-  useDownloadTemplate,
   useImportConfirm,
   useImportPreview,
+  useSendTemplate,
   usePublishTest,
   useTestDetail,
 } from '../data/tests.js';
 import { type ImportRow, TestImportView } from '../screens/teacher/test-import.js';
 import { useMe } from '../session/session.js';
 import { useOnline } from '../use-online.js';
+import { OkNotice } from './notice.js';
 
 const FROM = '/group/$id/tests/$testId/import';
 
@@ -77,17 +78,26 @@ function useTestImport(testId: string) {
 export function TeacherTestImportPage() {
   const { id, testId } = useParams({ from: FROM });
   const me = useMe();
-  const online = useOnline();
-
   const groupQuery = useTeacherGroup(id, me.id);
+  // Q-62: yordamchi ustoz natijalarni ko'radi, o'zgartirmaydi (API ham shunday).
+  return (
+    <TestImportScreen
+      groupId={id}
+      testId={testId}
+      canManage={groupQuery.data?.group.role === 'main'}
+    />
+  );
+}
+
+/** MT-08 / MS-25b: ustoz va xodim uchun bir xil oqim (T-154). */
+export function TestImportScreen(p: { groupId: string; testId: string; canManage: boolean }) {
+  const { groupId: id, testId, canManage } = p;
+  const online = useOnline();
   const detailQuery = useTestDetail(testId);
   const confirmMutation = useImportConfirm(testId, id);
   const publishMutation = usePublishTest(testId, id);
-  const downloadTemplate = useDownloadTemplate();
+  const sendTemplate = useSendTemplate();
   const imp = useTestImport(testId);
-
-  // Q-62: yordamchi ustoz natijalarni ko'radi, o'zgartirmaydi (API ham shunday).
-  const canManage = groupQuery.data?.group.role === 'main';
 
   const handleImport = () => {
     if (!canManage || !imp.preview || !online || confirmMutation.isPending) return;
@@ -99,28 +109,31 @@ export function TeacherTestImportPage() {
     if (!canManage || !online || publishMutation.isPending) return;
     publishMutation.mutate();
   };
-  const actionError = confirmMutation.error ?? publishMutation.error;
+  const actionError = confirmMutation.error ?? publishMutation.error ?? sendTemplate.error;
 
   return (
-    <QueryView query={detailQuery}>
-      {(test) => (
-        <TestImportContent
-          test={test}
-          preview={imp.preview}
-          decisions={imp.decisions}
-          fileName={imp.fileName}
-          fileError={imp.fileError ?? (actionError ? errorText(actionError) : undefined)}
-          online={online}
-          canManage={canManage}
-          isImporting={imp.isPending || confirmMutation.isPending}
-          onFileSelect={imp.handleFileSelect}
-          onDownloadTemplate={() => downloadTemplate.mutate(testId)}
-          onDecide={imp.handleDecide}
-          onImport={handleImport}
-          onPublish={handlePublish}
-        />
-      )}
-    </QueryView>
+    <>
+      <OkNotice text={sendTemplate.isSuccess ? t.testImport.templateSent : null} />
+      <QueryView query={detailQuery}>
+        {(test) => (
+          <TestImportContent
+            test={test}
+            preview={imp.preview}
+            decisions={imp.decisions}
+            fileName={imp.fileName}
+            fileError={imp.fileError ?? (actionError ? errorText(actionError) : undefined)}
+            online={online}
+            canManage={canManage}
+            isImporting={imp.isPending || confirmMutation.isPending}
+            onFileSelect={imp.handleFileSelect}
+            onDownloadTemplate={() => !sendTemplate.isPending && sendTemplate.mutate(testId)}
+            onDecide={imp.handleDecide}
+            onImport={handleImport}
+            onPublish={handlePublish}
+          />
+        )}
+      </QueryView>
+    </>
   );
 }
 

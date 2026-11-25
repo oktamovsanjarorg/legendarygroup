@@ -5,21 +5,26 @@ import type {
   LessonAttendance,
   MarkAttendanceInput,
   StudentAttendanceHistoryQueryInput,
-  UnmarkedLessonItem,
-  UnmarkedLessonsQuery,
 } from '@lg/contracts';
-import { canEditAttendance, type Clock, tashkentInstant } from '@lg/domain';
+import type { Transaction } from '@lg/db';
+import { canEditAttendance, type Clock } from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
-import { NotificationsService } from '../notifications/index.js';
-import { GroupScopeService } from '../org/index.js';
+import { GroupScopeService, LessonHeldService } from '../org/index.js';
 import { OutboxService } from '../outbox/index.js';
 import { PermissionsService } from '../rbac/index.js';
 import { StudentScopeService } from '../students/index.js';
 import { AbsenceNoticesRepository } from './absence-notices.repository.js';
 import { AttendanceRepository, type EnrichedAttendanceRow } from './attendance.repository.js';
+
+const isRow = <T>(r: T | undefined): r is T => r !== undefined;
+
+/** Audit ko'rinishi: kim qanday belgilangan (BR-30 — o'tgan kun tuzatishida nima o'zgargani). */
+const statusView = (items: readonly { studentId: string; status: string }[]) => ({
+  marks: Object.fromEntries(items.map((i) => [i.studentId, i.status])),
+});
 
 @Injectable()
 export class AttendanceService {
@@ -31,9 +36,9 @@ export class AttendanceService {
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(LessonHeldService) private readonly held: LessonHeldService,
     @Inject(OutboxService) private readonly outbox: OutboxService,
     @Inject(AbsenceNoticesRepository) private readonly absenceRepo: AbsenceNoticesRepository,
-    @Inject(NotificationsService) private readonly notifications: NotificationsService,
     @Inject(PermissionsService) private readonly permissions: PermissionsService,
   ) {}
 
@@ -65,9 +70,9 @@ export class AttendanceService {
       expected.map((s) => s.id),
       lesson.date,
     );
-    const enrichedExpected = expected.map((s) => ({
+    const enrichedExpected = expected.map(({ freezeReason, ...s }) => ({
       ...s,
-      advanceAbsenceReason: absenceMap.get(s.id) ?? null,
+      advanceAbsenceReason: absenceMap.get(s.id) ?? freezeReason,
     }));
     const records = await this.repo.findLessonAttendance(lessonId);
 
@@ -103,34 +108,47 @@ export class AttendanceService {
     const policy = await this.assertAttendancePolicy(user, lesson, input, now);
 
     const prevRecords = await this.repo.findLessonAttendance(lessonId);
-    const prevMap = new Map(prevRecords.map((r) => [r.studentId, r.status]));
+    const prevMap = new Map(prevRecords.map((r) => [r.studentId, r]));
 
     const rowsToUpsert = input.items.map((item) => ({
       lessonId,
       studentId: item.studentId,
       status: item.status,
       lateMinutes: item.status === 'late' ? (item.lateMinutes ?? null) : null,
-      note: item.note ?? null,
+      // Yuborilmagan izoh — avvalgisi qoladi (Mini App izohsiz saqlaydi).
+      note: item.note === undefined ? (prevMap.get(item.studentId)?.note ?? null) : item.note,
       markedBy: user.id,
       markedAt: now,
       clientMutationId: input.clientMutationId ?? null,
     }));
 
-    await this.repo.upsertAttendanceBatch(rowsToUpsert);
-
-    const action = policy.requiresReason ? 'attendance.edit_past' : 'attendance.mark';
-    await this.audit.record(ctx, {
-      action,
-      entity: 'attendance',
-      entityId: lessonId,
-      after: {
-        count: input.items.length,
-        changeReason: input.changeReason ?? null,
-        clientMutationId: input.clientMutationId ?? null,
-      },
+    // Yozuv, audit va event — bitta tranzaksiyada (yarmi yozilib qolmasin).
+    await this.repo.transaction(async (tx) => {
+      await this.repo.upsertAttendanceBatch(tx, rowsToUpsert);
+      await this.held.markHeld(tx, lessonId);
+      await this.audit.record(
+        ctx,
+        {
+          action: policy.requiresReason ? 'attendance.edit_past' : 'attendance.mark',
+          entity: 'attendance',
+          entityId: lessonId,
+          before: statusView(input.items.map((i) => prevMap.get(i.studentId)).filter(isRow)),
+          after: {
+            ...statusView(input.items),
+            count: input.items.length,
+            changeReason: input.changeReason ?? null,
+            clientMutationId: input.clientMutationId ?? null,
+          },
+        },
+        tx,
+      );
+      await this.publishAttendanceEvents(tx, {
+        lessonId,
+        items: input.items,
+        prevMap,
+        markedAt: now,
+      });
     });
-
-    await this.publishAttendanceEvents(lessonId, input.items, prevMap, now.toISOString());
     return this.getLessonAttendance(user, lessonId);
   }
 
@@ -149,7 +167,7 @@ export class AttendanceService {
     });
 
     if (!policy.allowed) {
-      throw new AppException(HttpStatus.CONFLICT, 'ATTENDANCE_LOCKED_PAST');
+      throw new AppException(HttpStatus.CONFLICT, policy.reason ?? 'ATTENDANCE_LOCKED_PAST');
     }
     if (policy.requiresReason && !input.changeReason) {
       throw new AppException(HttpStatus.BAD_REQUEST, 'CHANGE_REASON_REQUIRED');
@@ -166,22 +184,27 @@ export class AttendanceService {
   }
 
   private async publishAttendanceEvents(
-    lessonId: string,
-    items: MarkAttendanceInput['items'],
-    prevMap: Map<string, string>,
-    markedAt: string,
+    tx: Transaction,
+    m: {
+      lessonId: string;
+      items: MarkAttendanceInput['items'];
+      prevMap: Map<string, EnrichedAttendanceRow>;
+      markedAt: Date;
+    },
   ): Promise<void> {
-    for (const item of items) {
-      const prevStatus = prevMap.get(item.studentId) ?? null;
-      await this.outbox.publish('AttendanceMarked', {
-        lessonId,
-        studentId: item.studentId,
-        status: item.status,
-        lateMinutes: item.status === 'late' ? (item.lateMinutes ?? null) : null,
-        previousStatus: prevStatus,
-        markedAt,
-      });
-    }
+    for (const item of m.items)
+      await this.outbox.publish(
+        'AttendanceMarked',
+        {
+          lessonId: m.lessonId,
+          studentId: item.studentId,
+          status: item.status,
+          lateMinutes: item.status === 'late' ? (item.lateMinutes ?? null) : null,
+          previousStatus: m.prevMap.get(item.studentId)?.status ?? null,
+          markedAt: m.markedAt.toISOString(),
+        },
+        tx,
+      );
   }
 
   /** O'quvchining davomat tarixi (ota-ona, ustoz, admin). */
@@ -232,86 +255,5 @@ export class AttendanceService {
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
     };
-  }
-
-  async getUnmarkedLessons(
-    user: RequestUser,
-    query: UnmarkedLessonsQuery,
-  ): Promise<{ items: UnmarkedLessonItem[] }> {
-    const branchId = user.role === 'admin' || user.role === 'director' ? query.branchId : undefined;
-    const rows = await this.repo.findUnmarkedLessons({
-      date: query.date,
-      branchId,
-    });
-
-    const now = this.clock.now();
-    const items: UnmarkedLessonItem[] = [];
-
-    for (const r of rows) {
-      const lessonStartTime = tashkentInstant(r.date, r.startTime);
-      const minutesPassed = Math.floor((now.getTime() - lessonStartTime.getTime()) / 60000);
-
-      if (minutesPassed > 0) {
-        items.push({
-          lessonId: r.lessonId,
-          groupId: r.groupId,
-          groupName: r.groupName,
-          courseName: r.courseName,
-          teacherId: r.teacherId ?? '',
-          teacherName: r.teacherName ?? '',
-          date: r.date,
-          startTime: r.startTime,
-          endTime: r.endTime,
-          minutesPassed,
-        });
-      }
-    }
-
-    return { items };
-  }
-
-  async sendAttendanceReminders(): Promise<{ teacherReminders: number; adminReminders: number }> {
-    const now = this.clock.now();
-    const today = this.clock.today();
-    const unmarked = await this.repo.findUnmarkedLessons({ date: today });
-
-    let teacherReminders = 0;
-    let adminReminders = 0;
-    const admins = await this.repo.findAdminUsers();
-
-    for (const lesson of unmarked) {
-      const lessonStartTime = tashkentInstant(lesson.date, lesson.startTime);
-      const minutesPassed = Math.floor((now.getTime() - lessonStartTime.getTime()) / 60000);
-
-      if (lesson.teacherId && minutesPassed >= 30 && minutesPassed < 120) {
-        await this.notifications.notify({
-          userId: lesson.teacherId,
-          type: 'announcement',
-          payload: {
-            title: '⏰ Davomat belgilanmagan',
-            message: `${lesson.groupName} guruhida dars boshlanganiga ${minutesPassed} daqiqa boʻldi. Iltimos, davomatni belgilang.`,
-          },
-          dedupeKey: `att_rem_teacher_${lesson.lessonId}_${lesson.date}`,
-        });
-        teacherReminders += 1;
-      }
-
-      if (minutesPassed >= 120) {
-        for (const admin of admins) {
-          await this.notifications.notify({
-            userId: admin.id,
-            type: 'announcement',
-            payload: {
-              title: '⏰ Davomat belgilanmagan (ogohlantirish)',
-              message: `${lesson.teacherName} (${lesson.groupName}) dars boshlanganidan 2 soat oʻtsa ham davomat belgilanmadi.`,
-            },
-            dedupeKey: `att_rem_admin_${admin.id}_${lesson.lessonId}_${lesson.date}`,
-          });
-          adminReminders += 1;
-        }
-      }
-    }
-
-    return { teacherReminders, adminReminders };
   }
 }

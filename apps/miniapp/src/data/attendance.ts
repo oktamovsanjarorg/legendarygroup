@@ -25,6 +25,7 @@ export function useLessonAttendance(lessonId: string) {
         students: roster(att),
         saved: savedMarks(att),
         canEdit: att.canEdit,
+        date: att.date,
       };
     },
   });
@@ -39,6 +40,12 @@ const post = (api: ApiClient, q: QueuedMark) =>
 /** Tarmoq xatosi (javob yo'q) — navbatga; server javobi (ApiError) — foydalanuvchiga. */
 const isNetwork = (e: unknown) => !(e instanceof ApiError);
 
+export interface MarkInput {
+  marks: Marks;
+  /** BR-30: o'tgan kun — sabab bilan. */
+  reason?: string;
+}
+
 export type SaveResult = { kind: 'saved'; quietUntil: Date } | { kind: 'queued' };
 
 export function useMarkAttendance(lessonId: string) {
@@ -46,10 +53,14 @@ export function useMarkAttendance(lessonId: string) {
   const clock = useClock();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (marks: Marks): Promise<SaveResult> => {
+    mutationFn: async ({ marks, reason }: MarkInput): Promise<SaveResult> => {
       const item: QueuedMark = {
         lessonId,
-        body: { clientMutationId: crypto.randomUUID(), items: toItems(marks) },
+        body: {
+          clientMutationId: crypto.randomUUID(),
+          items: toItems(marks),
+          ...(reason ? { changeReason: reason } : {}),
+        },
       };
       try {
         await post(api, item);
@@ -60,7 +71,10 @@ export function useMarkAttendance(lessonId: string) {
         return { kind: 'queued' };
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['teacher', 'today'] }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['teacher', 'today'] });
+      await qc.invalidateQueries({ queryKey: ['staff'] });
+    },
   });
 }
 

@@ -42,6 +42,13 @@ describe('effectivePermissions (02 §1, §4)', () => {
     );
   });
 
+  it("FR-AUTH-5: xodim cheklovi o'sha odamning ota-ona rolini cheklamaydi", () => {
+    const o = [{ permission: 'student.view', granted: false }] as const;
+    expect(effectivePermissions('teacher', o).has('student.view')).toBe(false);
+    expect(effectivePermissions('guardian', o).has('student.view')).toBe(true);
+    expect(overrideError('guardian', o[0])).toBe('OVERRIDE_NOT_ALLOWED');
+  });
+
   it("property: override faqat ruxsat qo'shadi — ustoz/ota-ona/director'ga hech narsa qo'shilmaydi", () => {
     fc.assert(
       fc.property(

@@ -17,7 +17,13 @@ import {
   validateTestScore,
   type Clock,
 } from '@lg/domain';
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type { RequestUser } from '../auth/index.js';
 import { GroupScopeService } from '../org/index.js';
 import { OutboxService } from '../outbox/index.js';
@@ -61,6 +67,11 @@ export class TestsService {
     const existing = await this.loadTest(actor, id, 'manage');
     if (existing.status === 'published') {
       throw new BadRequestException({ code: 'TEST_ALREADY_PUBLISHED' });
+    }
+    // Ball shkalasi natijalar kiritilgach o'zgarmaydi — eski ballar yangi maks.dan oshib qoladi.
+    const scale = req.maxScore !== undefined || req.sections !== undefined;
+    if (scale && (await this.repo.findTestResultsWithStudents(id)).length > 0) {
+      throw new ConflictException({ code: 'TEST_HAS_RESULTS' });
     }
 
     const updated = await this.repo.updateTest(id, {
@@ -113,15 +124,7 @@ export class TestsService {
       throw new BadRequestException({ code: 'TEST_ALREADY_PUBLISHED' });
     }
 
-    for (const item of req.results) {
-      if (!validateTestScore(item.score, test.maxScore)) {
-        throw new BadRequestException({ code: 'TEST_SCORE_INVALID' });
-      }
-      const secVal = validateSectionScores(item.sectionScores ?? [], test.sections);
-      if (!secVal.valid) {
-        throw new BadRequestException({ code: 'TEST_SECTION_SCORE_INVALID' });
-      }
-    }
+    await this.assertResults(test, req.results);
 
     const payload = req.results.map((r) => ({
       testId,
@@ -137,6 +140,9 @@ export class TestsService {
   async publishTest(actor: RequestUser, testId: string): Promise<TestItem> {
     const test = await this.loadTest(actor, testId, 'manage');
     if (test.status === 'published') return this.mapTestRow(test);
+    if ((await this.repo.findTestResultsWithStudents(testId)).length === 0) {
+      throw new BadRequestException({ code: 'TEST_NO_RESULTS' });
+    }
 
     const updated = await this.repo.updateTest(testId, {
       status: 'published',
@@ -194,15 +200,7 @@ export class TestsService {
       throw new BadRequestException({ code: 'TEST_ALREADY_PUBLISHED' });
     }
 
-    for (const item of req.results) {
-      if (!validateTestScore(item.score, test.maxScore)) {
-        throw new BadRequestException({ code: 'TEST_SCORE_INVALID' });
-      }
-      const secVal = validateSectionScores(item.sectionScores ?? [], test.sections);
-      if (!secVal.valid) {
-        throw new BadRequestException({ code: 'TEST_SECTION_SCORE_INVALID' });
-      }
-    }
+    await this.assertResults(test, req.results);
 
     const payload = req.results.map((r) => ({
       testId,
@@ -256,6 +254,29 @@ export class TestsService {
       list.map((s) => s.id),
     );
     return list.map((s) => ({ ...s, code: own.get(s.id) ?? s.code }));
+  }
+
+  /** BR-34 ball chegarasi + faqat test kuni guruhda bo'lgan o'quvchilar (begona o'quvchiga ball yo'q). */
+  private async assertResults(
+    test: TestRow,
+    results: ReadonlyArray<{
+      studentId: string;
+      score: number;
+      sectionScores?: TestSectionScore[];
+    }>,
+  ): Promise<void> {
+    const members = new Set((await this.candidates(test)).map((x) => x.id));
+    for (const item of results) {
+      if (!members.has(item.studentId)) {
+        throw new BadRequestException({ code: 'TEST_STUDENT_NOT_IN_GROUP' });
+      }
+      if (!validateTestScore(item.score, test.maxScore)) {
+        throw new BadRequestException({ code: 'TEST_SCORE_INVALID' });
+      }
+      if (!validateSectionScores(item.sectionScores ?? [], test.sections).valid) {
+        throw new BadRequestException({ code: 'TEST_SECTION_SCORE_INVALID' });
+      }
+    }
   }
 
   private async loadTest(actor: RequestUser, id: string, mode: 'view' | 'manage') {

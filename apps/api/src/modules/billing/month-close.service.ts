@@ -39,13 +39,24 @@ export class MonthCloseService {
     @Inject(SettingsService) private readonly settings: SettingsService,
   ) {}
 
-  async adjustments(studentId: string, period: string): Promise<MonthAdjustment[]> {
+  /**
+   * `active` — yangi qator yoziladigan a'zoliklar: o'tgan oyda hisobi bo'lmagani (guruh
+   * to'xtatilgan edi, Q-102) — oxirgi hisobli oyi bo'yicha, kredit yo'qolmaydi.
+   */
+  async adjustments(
+    studentId: string,
+    period: string,
+    active: readonly string[] = [],
+  ): Promise<MonthAdjustment[]> {
     const prev = prevPeriodOf(period);
-    const range = monthRange(prev);
-    const rows = await this.repo.prevTuition(studentId, prev);
+    const recent = await this.repo.prevTuition(studentId, prev);
+    const gap = active.filter((id) => !recent.some((r) => r.enrollmentId === id));
+    const rows = [...recent, ...(await this.repo.lastTuition(studentId, prev, gap))];
     if (rows.length === 0) return [];
     const base = (await this.settings.getSettings()).penaltyConfig;
-    return Promise.all(rows.map((r) => this.forEnrollment(studentId, r, range, base)));
+    return Promise.all(
+      rows.map((r) => this.forEnrollment(studentId, r, monthRange(r.period), base)),
+    );
   }
 
   private async forEnrollment(

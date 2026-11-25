@@ -13,6 +13,10 @@ export const NOTIFICATION_TITLES_UZ: Record<NotificationType, string> = {
   monthly_parent_report: 'Oylik hisobot',
   announcement: 'Markaz eʼloni',
   approval_decided: 'Soʻrov natijasi',
+  link_approved: 'Profil bogʻlandi',
+  ticket_reply: 'Murojaatga javob',
+  staff_task: 'Yangi ish (xodim)',
+  report_file: 'Hisobot fayli',
 };
 
 /**
@@ -90,6 +94,16 @@ const TEMPLATE_RENDERERS: Record<NotificationType, TemplateRenderer> = {
     title: p.decision === 'approved' ? 'Soʻrovingiz tasdiqlandi' : 'Soʻrovingiz rad etildi',
     body: `${String(p.typeLabel ?? 'Soʻrov')}${p.note ? `\nIzoh: ${String(p.note)}` : ''}`,
   }),
+  link_approved: () => ({
+    title: 'Profilingiz bogʻlandi',
+    body: 'Farzandingizning davomati, baholari va toʻlovlari endi ilovada koʻrinadi.',
+  }),
+  ticket_reply: (p) => ({
+    title: `Murojaatingizga javob: ${String(p.subject ?? '')}`,
+    body: String(p.text ?? ''),
+  }),
+  report_file: (p) => ({ title: String(p.title ?? ''), body: String(p.body ?? '') }),
+  staff_task: (p) => ({ title: String(p.title ?? ''), body: String(p.body ?? '') }),
 };
 
 /**

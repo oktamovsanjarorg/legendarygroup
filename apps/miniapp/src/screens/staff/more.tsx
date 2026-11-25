@@ -1,11 +1,35 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { ListItem, Section } from '@lg/ui-tg';
 import {
+  Banknote,
+  BookOpen,
+  CalendarDays,
+  ChartLine,
   CircleAlert,
+  CircleHelp,
   ClipboardCheck,
+  DoorOpen,
+  FileChartColumn,
+  HandCoins,
+  IdCard,
   type LucideIcon,
+  Link2,
+  MailWarning,
+  Megaphone,
+  MessageCircleQuestion,
+  MonitorSmartphone,
+  PartyPopper,
+  Percent,
   Receipt,
+  ReceiptText,
+  ScrollText,
+  Settings,
+  ShoppingCart,
+  TrendingUp,
+  UserCheck,
   UserPlus,
+  Users,
+  UserSearch,
   Wallet,
 } from 'lucide-react';
 import type { StaffMenuItem, StaffMenuKey, StaffSection } from '../../data/staff-menu.js';
@@ -16,8 +40,32 @@ const ICONS: Record<StaffMenuKey, LucideIcon> = {
   newStudent: UserPlus,
   pay: Wallet,
   debtors: CircleAlert,
+  payments: ReceiptText,
+  discounts: Percent,
   queue: Receipt,
   approvals: ClipboardCheck,
+  leads: UserSearch,
+  linkRequests: Link2,
+  groups: Users,
+  calendar: CalendarDays,
+  attendance: UserCheck,
+  courses: BookOpen,
+  rooms: DoorOpen,
+  holidays: PartyPopper,
+  tickets: MessageCircleQuestion,
+  announcements: Megaphone,
+  undelivered: MailWarning,
+  audit: ScrollText,
+  cash: Banknote,
+  addExpense: ShoppingCart,
+  finance: ChartLine,
+  payroll: HandCoins,
+  reports: FileChartColumn,
+  forecasts: TrendingUp,
+  people: IdCard,
+  settings: Settings,
+  help: CircleHelp,
+  sessions: MonitorSmartphone,
 };
 
 export interface StaffMoreViewProps {
@@ -54,7 +102,6 @@ export function StaffMoreView({ groups, counts = {}, onOpen }: StaffMoreViewProp
           })}
         </Section>
       ))}
-      <p className="px-4 text-sm text-text-muted">{m.panelHint}</p>
     </main>
   );
 }

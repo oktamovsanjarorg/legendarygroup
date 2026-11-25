@@ -1,9 +1,10 @@
 import type { RoleCode } from '@lg/contracts';
-import { closeDb, createDb, type Database, leads, seed } from '@lg/db';
+import { closeDb, createDb, type Database, leads, notifications, seed, users } from '@lg/db';
 import { addDays, formatDateToYmd, isoWeekday } from '@lg/domain';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { tokensForAllRoles } from '../../../test/role-tokens.js';
+import { dispatchEvents } from '../../../test/dispatch-event.js';
+import { createUserWithRole, tokensForAllRoles } from '../../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../../test/test-app.js';
 
 let t: TestApp;
@@ -205,6 +206,13 @@ describe('Landing formasi (W-35, ochiq)', () => {
     ).toBe(202);
     expect(await db.$count(leads, eq(leads.phone, phone(6)))).toBe(1);
     expect(await db.$count(leads, eq(leads.phone, phone(7)))).toBe(0);
+  });
+  it('T-133: yangi ariza — xodimga bot xabari (takror arizada yoʻq)', async () => {
+    const admin = await createUserWithRole(db, 'admin');
+    await db.update(users).set({ telegramId: 700100200n }).where(eq(users.id, admin));
+    expect(await dispatchEvents(t, db, 'LeadSubmitted')).toBe(1);
+    const sent = await db.select().from(notifications).where(eq(notifications.userId, admin));
+    expect(sent.map((n) => n.body).join()).toContain('Sayt Mehmon');
   });
   it('IP limiti: 5 tadan keyin 429', async () => {
     const ip = randomIp();

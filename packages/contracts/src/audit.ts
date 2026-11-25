@@ -31,14 +31,8 @@ export const ListAuditLogsQuery = z.object({
   actorId: z.string().uuid().optional(),
   action: z.string().optional(),
   entity: z.string().optional(),
-  from: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  to: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 });
@@ -72,7 +66,12 @@ export type StaffActivityItem = z.infer<typeof StaffActivityItemSchema>;
 export const StaffActivityQuery = z.object({
   period: z
     .string()
-    .regex(/^\d{4}-\d{2}$/)
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
     .optional(),
 });
 export type StaffActivityQuery = z.infer<typeof StaffActivityQuery>;
+
+export const ListSuspiciousQuery = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+export type ListSuspiciousQuery = z.infer<typeof ListSuspiciousQuery>;

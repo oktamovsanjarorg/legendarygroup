@@ -9,13 +9,14 @@ import {
   invoices,
   lessons,
 } from '@lg/db';
-import { and, eq, gte, lte, ne, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, lt, lte, ne, type SQL, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface PrevTuition {
   enrollmentId: string;
   groupId: string;
   amount: bigint;
+  period: string;
   penaltyConfig: Record<string, unknown> | null;
 }
 
@@ -25,12 +26,36 @@ export class MonthCloseRepository {
   constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
 
   /** O'tgan oy invoice'idagi o'qish qatorlari (kredit asosi — haqiqatan undirilgan summa). */
-  async prevTuition(studentId: string, period: string): Promise<PrevTuition[]> {
+  prevTuition(studentId: string, period: string): Promise<PrevTuition[]> {
+    return this.tuition(studentId, eq(invoices.period, period));
+  }
+
+  /** Har a'zolikning `before` dan oldingi oxirgi o'qish qatori. */
+  async lastTuition(
+    studentId: string,
+    before: string,
+    enrollmentIds: readonly string[],
+  ): Promise<PrevTuition[]> {
+    if (enrollmentIds.length === 0) return [];
+    const rows = await this.tuition(
+      studentId,
+      and(lt(invoices.period, before), inArray(invoiceLines.enrollmentId, [...enrollmentIds])),
+    );
+    const last = new Map<string, PrevTuition>();
+    for (const r of rows) {
+      const seen = last.get(r.enrollmentId);
+      if (!seen || seen.period < r.period) last.set(r.enrollmentId, r);
+    }
+    return [...last.values()];
+  }
+
+  private async tuition(studentId: string, when: SQL | undefined): Promise<PrevTuition[]> {
     const rows = await this.db
       .select({
         enrollmentId: invoiceLines.enrollmentId,
         groupId: enrollments.groupId,
         amount: invoiceLines.amount,
+        period: invoices.period,
         penaltyConfig: groups.penaltyConfig,
       })
       .from(invoiceLines)
@@ -40,7 +65,7 @@ export class MonthCloseRepository {
       .where(
         and(
           eq(invoices.studentId, studentId),
-          eq(invoices.period, period),
+          when,
           ne(invoices.status, 'void'),
           eq(invoiceLines.kind, 'tuition'),
         ),
@@ -117,6 +142,7 @@ export class MonthCloseRepository {
         and(
           eq(attendance.studentId, studentId),
           eq(lessons.groupId, groupId),
+          ne(lessons.status, 'cancelled'),
           gte(lessons.date, from),
           lte(lessons.date, to),
         ),

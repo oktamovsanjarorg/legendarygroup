@@ -8,6 +8,7 @@ import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { EnrollmentsService } from '../students/index.js';
+import { SettingsService } from '../settings/index.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { ledgerFor } from './billing-generator.service.js';
 import { EnrollmentBillingService } from './enrollment-billing.service.js';
@@ -29,6 +30,7 @@ export class StudentBillingSetupService {
     @Inject(BillingRepository) private readonly repo: BillingRepository,
     @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
     @Inject(EnrollmentBillingService) private readonly billing: EnrollmentBillingService,
+    @Inject(SettingsService) private readonly settings: SettingsService,
     @Inject(EnrollmentsService) private readonly enrollments: EnrollmentsService,
   ) {}
 
@@ -119,7 +121,7 @@ export class StudentBillingSetupService {
         (await this.repo.insertInvoice(tx, {
           studentId,
           period,
-          dueDate: `${period}-10`,
+          dueDate: await this.settings.dueDateOf(period),
           total,
           status: 'open',
         }));

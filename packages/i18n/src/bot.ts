@@ -62,6 +62,26 @@ export const botMessages = {
     inUse:
       'Bu oʻquvchi yoki telefon raqami boshqa Telegram akkauntga bogʻlangan. Administratorga murojaat qiling.',
   },
+  /** Q-99: xodimga yangi ish (bildirishnoma; matnda shaxsiy maʼlumot — ism xolos). */
+  /** FR-ATT-5: davomat belgilanmagan eslatmasi. */
+  attendanceReminder: {
+    teacherTitle: '⏰ Davomat belgilanmagan',
+    teacherBody:
+      '{group} guruhida dars boshlanganiga {min} daqiqa boʻldi. Iltimos, davomatni belgilang.',
+    adminTitle: '⏰ Davomat belgilanmagan (ogohlantirish)',
+    adminBody: '{teacher} ({group}) dars boshlanganidan 2 soat oʻtsa ham davomat belgilanmadi.',
+    noTeacher: 'Ustoz biriktirilmagan',
+  },
+  lessonReasons: { groupPaused: 'Guruh toʻxtatildi' },
+  staffTask: {
+    submissionTitle: 'Yangi toʻlov cheki',
+    submissionBody: 'Chek navbatga tushdi. Ilovada «Chek navbati»ni oching.',
+    ticketTitle: 'Murojaat: {name}',
+    leadTitle: 'Saytdan yangi ariza',
+    leadBody: '{name} ariza qoldirdi. Ilovada «Lidlar»ni oching.',
+    linkTitle: 'Yangi bogʻlanish soʻrovi',
+    linkBody: '{name} botga ulanmoqchi. Ilovada «Bogʻlanish soʻrovlari»ni oching.',
+  },
   submission: {
     confirmed: 'Toʻlovingiz tasdiqlandi. Chek raqami: {number}',
     rejected: 'Toʻlov chekingiz rad etildi. Sabab: {reason}',

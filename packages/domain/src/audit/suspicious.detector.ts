@@ -13,17 +13,17 @@ const SUSPICIOUS_ACTION_RULES: Record<
   string,
   { riskLevel: 'high' | 'medium'; title: string; description: string }
 > = {
-  'payment.reverse': {
+  'billing.payment.reverse': {
     riskLevel: 'high',
     title: 'Toʻlov bekor qilindi (storno)',
     description: 'Kiritilgan toʻlov operatsiyasi bekor qilindi.',
   },
-  'payment.refund': {
+  'billing.payment.refund': {
     riskLevel: 'high',
     title: 'Pul qaytarildi (refund)',
     description: 'Mijozga toʻlov mablagʻi qaytarildi.',
   },
-  'discount.grant': {
+  'billing.discount.set': {
     riskLevel: 'medium',
     title: 'Chegirma berildi',
     description: 'Oʻquvchiga maxsus chegirma qoʻllandi.',
@@ -33,12 +33,15 @@ const SUSPICIOUS_ACTION_RULES: Record<
     title: 'Oʻtgan dars davomati tahrirlandi',
     description: 'Oʻtgan dars uchun davomat maʼlumotlari oʻzgartirildi.',
   },
-  'penalty.waive': {
+  'billing.penalty.waive': {
     riskLevel: 'medium',
     title: 'Jarima bekor qilindi',
     description: 'Kechikish uchun hisoblangan jarima bekor qilindi.',
   },
 };
+
+/** Audit jurnalidagi haqiqiy amal nomlari (test: API shu nomlarni yozadi). */
+export const SUSPICIOUS_ACTIONS: readonly string[] = Object.keys(SUSPICIOUS_ACTION_RULES);
 
 /**
  * Berilgan amal harakati shubhali qoidalarga tushishini tekshirish.

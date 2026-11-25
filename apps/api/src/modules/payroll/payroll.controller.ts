@@ -1,15 +1,21 @@
 import {
   type OwnPayrollMonth,
   AddPayrollAdjustmentRequest,
-  CreateTeacherAdvanceRequest,
-  CreateTeacherContractRequest,
   DEFAULT_BRANCH_ID,
   GeneratePayrollRunRequest,
   PayrollRunByPeriodQuery,
   type PayrollRunDetail,
-  type TeacherContract,
 } from '@lg/contracts';
-import { Controller, Get, Inject, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Audit, NoAudit } from '../../common/audit/audit.decorator.js';
 import { Authenticated, RequirePermission } from '../../common/decorators/access.decorators.js';
@@ -22,39 +28,6 @@ import { PayrollService } from './payroll.service.js';
 @Controller('payroll')
 export class PayrollController {
   constructor(@Inject(PayrollService) private readonly service: PayrollService) {}
-
-  @Post('contracts')
-  @RequirePermission('payroll.manage')
-  @Audit({ action: 'contract.create', entity: 'teacher_contract' })
-  @ApiOperation({ summary: 'FR-SAL-1 Ustoz shartnomasini yaratish' })
-  async createContract(
-    @CurrentUser() actor: RequestUser,
-    @ZodBody(CreateTeacherContractRequest) req: CreateTeacherContractRequest,
-  ): Promise<TeacherContract> {
-    return this.service.createContract(actor, DEFAULT_BRANCH_ID, req);
-  }
-
-  @Get('contracts')
-  @RequirePermission('payroll.manage')
-  @NoAudit('GET query')
-  @ApiOperation({ summary: 'Ustoz shartnomalari roʻyxati' })
-  async listContracts(
-    @CurrentUser() actor: RequestUser,
-    @Query('teacherId') teacherId?: string,
-  ): Promise<TeacherContract[]> {
-    return this.service.listContracts(actor, teacherId);
-  }
-
-  @Post('advances')
-  @RequirePermission('payroll.manage')
-  @Audit({ action: 'advance.create', entity: 'teacher_advance' })
-  @ApiOperation({ summary: 'BR-28 Ustozga avans berish' })
-  async createAdvance(
-    @CurrentUser() actor: RequestUser,
-    @ZodBody(CreateTeacherAdvanceRequest) req: CreateTeacherAdvanceRequest,
-  ): Promise<{ id: string }> {
-    return this.service.createAdvance(actor, DEFAULT_BRANCH_ID, req);
-  }
 
   @Post('runs/generate')
   @RequirePermission('payroll.manage')
@@ -108,6 +81,18 @@ export class PayrollController {
   ): Promise<{ success: true }> {
     await this.service.addAdjustment(actor, id, req);
     return { success: true };
+  }
+
+  @Delete('runs/:id/adjustments/:itemId')
+  @HttpCode(204)
+  @RequirePermission('payroll.manage')
+  @Audit({ action: 'payroll.adjust_remove', entity: 'payroll_item' })
+  @ApiOperation({ summary: 'BR-26 Xato bonus/jarimani qoralamadan olib tashlash' })
+  async removeAdjustment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('itemId', ParseUUIDPipe) itemId: string,
+  ): Promise<void> {
+    await this.service.removeAdjustment(id, itemId);
   }
 
   @Post('runs/:id/approve')

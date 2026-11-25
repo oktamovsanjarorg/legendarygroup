@@ -3,6 +3,7 @@ import { attendance, type Database, groups, lessons, users } from '@lg/db';
 import { calculateAttendanceRateBp } from '@lg/domain';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import type { DateFilter } from './reports-revenue.repository.js';
 import { cohortRetention, teacherPerformance } from './reports-retention.js';
 
 @Injectable()
@@ -97,7 +98,7 @@ export class ReportsPerformanceRepository {
   }
 
   /** Ustoz samaradorligi hisoboti */
-  getTeacherPerformanceReport(branchId: string) {
-    return teacherPerformance(this.db, branchId);
+  getTeacherPerformanceReport(branchId: string, filter: DateFilter, today: string) {
+    return teacherPerformance(this.db, branchId, filter, today);
   }
 }

@@ -101,19 +101,14 @@ export function usePublishTest(testId: string, groupId?: string) {
   });
 }
 
-/** MT-08: Excel namuna shablonini yuklab olish. */
-export function useDownloadTemplate() {
+/** MT-08: Excel namuna shablon — bot chatiga (ADR 0008 §5; WebView'da yuklab olish ishonchsiz). */
+export function useSendTemplate() {
   const api = useApi();
   return useMutation({
-    mutationFn: async (testId: string) => {
-      const blob = await api.blob(`/tests/${testId}/template`);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `shablon-${testId}.xlsx`;
-      a.target = '_blank';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    },
+    mutationFn: (testId: string) =>
+      api.request<{ status: 'queued' }>(`/tests/${testId}/template/send`, {
+        method: 'POST',
+        body: {},
+      }),
   });
 }

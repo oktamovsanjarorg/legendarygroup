@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { FilesModule } from '../files/index.js';
+import { NotificationsModule } from '../notifications/index.js';
 import { OrgModule } from '../org/index.js';
 import { EnrollmentsController } from './enrollments.controller.js';
 import { EnrollmentsQueryService } from './enrollments-query.service.js';
@@ -8,7 +9,10 @@ import { FreezesService } from './freezes.service.js';
 import { LeadConvertService } from './leads/lead-convert.service.js';
 import { LeadsQueryService } from './leads/leads-query.service.js';
 import { GuardianLinkRequestsController } from './guardian-link-requests.controller.js';
+import { GroupFinishedHandler } from './group-finished.handler.js';
+import { GuardianLinkNotifier } from './guardian-link-notifier.js';
 import { GuardianLinkRequestsService } from './guardian-link-requests.service.js';
+import { LeadNotifier } from './leads/lead-notifier.js';
 import { LeadsController } from './leads/leads.controller.js';
 import { LeadsService } from './leads/leads.service.js';
 import { PublicLeadsController } from './leads/public-leads.controller.js';
@@ -28,7 +32,7 @@ import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
  * davomat/billing modullari uchun ochiq.
  */
 @Module({
-  imports: [FilesModule, OrgModule],
+  imports: [FilesModule, OrgModule, NotificationsModule],
   controllers: [
     StudentsController,
     StudentGuardiansController,
@@ -48,8 +52,11 @@ import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
     StudentsQueryService,
     StudentGuardiansService,
     GuardianLinkRequestsService,
+    GuardianLinkNotifier,
+    GroupFinishedHandler,
     StudentScopeService,
     LeadsQueryService,
+    LeadNotifier,
     LeadsService,
     LeadConvertService,
     TeacherCodesService,

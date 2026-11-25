@@ -1,13 +1,11 @@
 import { HttpStatus, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
-import type { NotificationType } from '@lg/contracts';
 import { type Database, notifications, users } from '@lg/db';
-import { renderNotificationTemplate, telegramMessage } from '@lg/domain';
 import { eq } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { EventHandlers } from '../outbox/index.js';
-import { TelegramOutbox } from '../telegram/index.js';
 import { NotificationsRepository } from './notifications.repository.js';
+import { NotificationsService } from './notifications.service.js';
 
 const RETRYABLE = new Set(['failed', 'blocked']);
 
@@ -21,7 +19,7 @@ const RETRYABLE = new Set(['failed', 'blocked']);
 export class NotificationDeliveryService implements OnModuleInit {
   constructor(
     @Inject(NotificationsRepository) private readonly repo: NotificationsRepository,
-    @Inject(TelegramOutbox) private readonly telegramOutbox: TelegramOutbox,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
     @Inject(EventHandlers) private readonly events: EventHandlers,
     @Inject(DB_TOKEN) private readonly db: Database,
   ) {}
@@ -49,20 +47,8 @@ export class NotificationDeliveryService implements OnModuleInit {
     // Telefon raqami chat_id emas: Telegram bog'lanmaguncha qayta yuborish ma'nosiz.
     if (!user?.telegramId) throw new AppException(HttpStatus.CONFLICT, 'NO_TELEGRAM');
     const chatId = user.telegramId.toString();
-    const rendered = renderNotificationTemplate(
-      notif.type as NotificationType,
-      notif.payload as Record<string, unknown>,
-    );
-    await this.telegramOutbox.enqueue({
-      method: 'sendMessage',
-      chatId,
-      payload: telegramMessage(rendered),
-      notificationId: notif.id,
-    });
-    await this.repo.updateStatus(notif.id, 'queued', {
-      attempts: notif.attempts + 1,
-      failedReason: null,
-      recipient: chatId,
-    });
+    const claimed = await this.repo.claimForRetry(id, chatId);
+    if (!claimed) throw new AppException(HttpStatus.CONFLICT, 'NOT_RETRYABLE');
+    await this.notifications.enqueue(claimed, chatId);
   }
 }

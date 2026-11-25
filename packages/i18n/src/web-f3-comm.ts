@@ -152,6 +152,10 @@ export const webF3CommMessages = {
       monthly_parent_report: 'Oylik hisobot',
       announcement: 'Markaz eʼloni',
       approval_decided: 'Soʻrov natijasi',
+      link_approved: 'Profil bogʻlandi',
+      ticket_reply: 'Murojaatga javob',
+      staff_task: 'Xodimga yangi ish',
+      report_file: 'Hisobot fayli',
     },
     cols: {
       recipient: 'Qabul qiluvchi',

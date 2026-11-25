@@ -11,6 +11,7 @@ const view = (over: Partial<PaymentView> = {}): PaymentView => ({
   id: PID,
   studentId: SID,
   studentName: 'Aliyeva Madina',
+  kind: 'payment',
   amount: '650000',
   method: 'card',
   paidAt: '2026-11-12T05:00:00Z',

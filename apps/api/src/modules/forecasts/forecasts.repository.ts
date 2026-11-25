@@ -4,16 +4,21 @@ import {
   type Database,
   enrollments,
   groups,
-  guardians,
+  invoiceOutstandingSql,
   invoices,
   lessons,
-  payments,
-  studentGuardians,
   students,
 } from '@lg/db';
 import { and, eq, gte, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
-import { gradeDropMap, minusDays, paidRevenue } from './forecasts-history.js';
+import {
+  collectionRateBp,
+  gradeDropMap,
+  minusDays,
+  monthValue,
+  paidRevenue,
+  reachableStudents,
+} from './forecasts-history.js';
 
 export interface RawStudentChurnData {
   studentId: string;
@@ -31,53 +36,12 @@ export interface RawStudentChurnData {
 export class ForecastsRepository {
   constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
 
-  /** Faol enrollmentlar soni va joriy oylik jami qiymatini oladi */
-  async getActiveEnrollmentsMonthlyTotal(branchId: string, today: string) {
-    const rows = await this.db
-      .select({
-        count: sql<number>`count(${enrollments.id})::int`,
-        totalValue: sql<bigint>`coalesce(sum(${groups.monthlyPrice}), 0)`,
-      })
-      .from(enrollments)
-      .innerJoin(groups, eq(groups.id, enrollments.groupId))
-      .where(
-        and(
-          eq(groups.branchId, branchId),
-          lte(enrollments.startDate, today),
-          sql`(${enrollments.endDate} IS NULL OR ${enrollments.endDate} >= ${today})`,
-        ),
-      );
-
-    return {
-      count: Number(rows[0]?.count ?? 0),
-      totalValue: BigInt(rows[0]?.totalValue ?? 0n),
-    };
+  getMonthValue(branchId: string, period: string) {
+    return monthValue(this.db, branchId, period);
   }
 
-  /** Tarixiy to'lov yig'ilish koeffitsientini (bp) hisoblaydi (standart 9000 = 90%) */
-  async getHistoricalCollectionRateBp(branchId: string): Promise<number> {
-    const invRows = await this.db
-      .select({ totalInvoiced: sql<bigint>`coalesce(sum(${invoices.total}), 0)` })
-      .from(invoices)
-      .where(eq(invoices.branchId, branchId));
-
-    const totalInvoiced = BigInt(invRows[0]?.totalInvoiced ?? 0n);
-    if (totalInvoiced <= 0n) return 9000;
-
-    const payRows = await this.db
-      .select({ totalPaid: sql<bigint>`coalesce(sum(${payments.amount}), 0)` })
-      .from(payments)
-      .where(
-        and(
-          eq(payments.branchId, branchId),
-          sql`${payments.amount} > 0`,
-          isNull(payments.reversalOf),
-        ),
-      );
-
-    const totalPaid = BigInt(payRows[0]?.totalPaid ?? 0n);
-    const rate = Math.round(Number((totalPaid * 10000n) / totalInvoiced));
-    return Math.max(5000, Math.min(10000, rate));
+  getCollectionRateBp(branchId: string, period: string): Promise<number> {
+    return collectionRateBp(this.db, branchId, period);
   }
 
   /** O'quvchilar bo'yicha ketish xavfi (churn) ma'lumotlarini to'playdi */
@@ -87,9 +51,9 @@ export class ForecastsRepository {
 
     const studentIds = activeStudents.map((s) => s.id);
     const delaysMap = await this.fetchPaymentDelays(studentIds, today);
-    const [botMap, attendanceMap, gradeMap] = await Promise.all([
-      this.fetchBotUnresponsiveMap(studentIds),
-      this.fetchAttendanceDropMap(studentIds, today),
+    const [reachable, absences, gradeMap] = await Promise.all([
+      reachableStudents(this.db, studentIds),
+      this.fetchAbsences(studentIds, today),
       gradeDropMap(this.db, studentIds, today),
     ]);
 
@@ -100,10 +64,10 @@ export class ForecastsRepository {
       groupId: s.groupId,
       groupName: s.groupName,
       // Ma'lumot yo'q — xavf belgisi yo'q (uydirma standart qiymat emas).
-      attendanceDropPercent: attendanceMap.get(s.id) ?? 0,
+      attendanceDropPercent: absences.get(s.id) ?? 0,
       paymentDelayDays: delaysMap.get(s.id) ?? 0,
       gradeDropPercent: gradeMap.get(s.id) ?? 0,
-      botUnresponsive: botMap.get(s.id) ?? false,
+      botUnresponsive: !reachable.has(s.id),
     }));
   }
 
@@ -129,10 +93,8 @@ export class ForecastsRepository {
       );
   }
 
-  private async fetchAttendanceDropMap(
-    studentIds: string[],
-    today: string,
-  ): Promise<Map<string, number>> {
+  /** Oxirgi 4 haftada kelmagan darslar ulushi, % (Q-105). */
+  private async fetchAbsences(studentIds: string[], today: string): Promise<Map<string, number>> {
     const fourWeeksAgo = minusDays(today, 28);
 
     const rows = await this.db
@@ -177,6 +139,8 @@ export class ForecastsRepository {
           inArray(invoices.studentId, studentIds),
           inArray(invoices.status, ['open', 'partially_paid']),
           sql`${invoices.dueDate} < ${today}`,
+          // BR-20: to'lab bo'lingan hisob kechikish emas
+          sql`${invoiceOutstandingSql(invoices.id, invoices.total)} > 0`,
         ),
       )
       .groupBy(invoices.studentId);
@@ -185,24 +149,6 @@ export class ForecastsRepository {
     for (const r of rows) {
       const diffMs = new Date(today).getTime() - new Date(r.minDueDate).getTime();
       map.set(r.studentId, Math.max(0, Math.floor(diffMs / 86400000)));
-    }
-    return map;
-  }
-
-  private async fetchBotUnresponsiveMap(studentIds: string[]): Promise<Map<string, boolean>> {
-    const rows = await this.db
-      .select({
-        studentId: studentGuardians.studentId,
-        hasUser: sql<boolean>`bool_or(${guardians.userId} IS NOT NULL)`,
-      })
-      .from(studentGuardians)
-      .innerJoin(guardians, eq(guardians.id, studentGuardians.guardianId))
-      .where(inArray(studentGuardians.studentId, studentIds))
-      .groupBy(studentGuardians.studentId);
-
-    const map = new Map<string, boolean>();
-    for (const r of rows) {
-      map.set(r.studentId, !r.hasUser);
     }
     return map;
   }
@@ -253,7 +199,8 @@ export class ForecastsRepository {
       .where(
         and(
           eq(groups.branchId, branchId),
-          sql`${enrollments.endDate} IS NOT NULL`,
+          // Ko'chgan yoki kursni tugatgan — ketgan emas
+          eq(enrollments.endReason, 'left'),
           gte(enrollments.endDate, monthStart),
           lt(enrollments.endDate, endExclusive),
         ),

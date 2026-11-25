@@ -1,11 +1,21 @@
-import type { GroupAttendance, LessonAttendance, RoleCode } from '@lg/contracts';
-import { attendance, closeDb, createDb, type Database, guardians, lessons, seed } from '@lg/db';
+import type { DayAttendance, GroupAttendance, LessonAttendance, RoleCode } from '@lg/contracts';
+import {
+  attendance,
+  closeDb,
+  createDb,
+  type Database,
+  enrollmentFreezes,
+  enrollments,
+  guardians,
+  lessons,
+  seed,
+} from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { addDays, formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
-import { AttendanceService } from './attendance.service.js';
+import { UnmarkedLessonsService } from './unmarked-lessons.service.js';
 
 /** Sanalar real soatdan (Toshkent): qattiq sana ertasi kuni testni yiqitadi. */
 const TODAY = formatDateToYmd(new Date());
@@ -221,6 +231,52 @@ describe('T-111, T-112, T-113 Davomat tizimi (BR-29, BR-30, BR-31, BR-32)', () =
     expect(r1?.status).toBe('excused');
   });
 
+  it('BR-30 izoh yuborilmasa avvalgisi saqlanadi; hali boʻlmagan dars belgilanmaydi', async () => {
+    const again = await call('POST', `attendance/lessons/${todayLessonId}`, teacherToken, {
+      items: [{ studentId: student2Id, status: 'late', lateMinutes: 25 }],
+    });
+    const r2 = again.json<LessonAttendance>().records.find((r) => r.studentId === student2Id);
+    expect([r2?.lateMinutes, r2?.note]).toEqual([25, 'Tirbandlik sababli']);
+    const [future] = await db
+      .insert(lessons)
+      .values({ groupId, date: addDays(TODAY, 1), startTime: '14:00', endTime: '15:20' })
+      .returning();
+    const res = await call('POST', `attendance/lessons/${future!.id}`, tokens.get('admin')!, {
+      changeReason: 'oldindan',
+      items: [{ studentId: student1Id, status: 'present' }],
+    });
+    expect([res.statusCode, res.json<{ code: string }>().code]).toEqual([409, 'ATTENDANCE_FUTURE']);
+    await db.delete(lessons).where(eq(lessons.id, future!.id));
+  });
+
+  it('BR-9 muzlatilgan oʻquvchi — sababli belgisi bilan chiqadi', async () => {
+    const [e] = await db.select().from(enrollments).where(eq(enrollments.studentId, student1Id));
+    const [f] = await db
+      .insert(enrollmentFreezes)
+      .values({
+        enrollmentId: e!.id,
+        fromDate: TODAY,
+        toDate: addDays(TODAY, 14),
+        reason: 'Kasalxona',
+      })
+      .returning();
+    const res = await call('GET', `attendance/lessons/${todayLessonId}`, teacherToken);
+    const s1 = res.json<LessonAttendance>().expectedStudents.find((s) => s.id === student1Id);
+    expect(s1?.advanceAbsenceReason).toBe('Kasalxona');
+    await db.delete(enrollmentFreezes).where(eq(enrollmentFreezes.id, f!.id));
+  });
+
+  it('FR-ATT-5 ustozsiz dars ham belgilanmaganlar roʻyxatida', async () => {
+    const [l] = await db
+      .insert(lessons)
+      .values({ groupId, date: addDays(TODAY, -2), startTime: '09:00', endTime: '10:00' })
+      .returning();
+    const res = await call('GET', 'attendance/unmarked', tokens.get('admin')!);
+    const ids = res.json<{ items: { lessonId: string }[] }>().items.map((i) => i.lessonId);
+    expect(ids).toContain(l!.id);
+    await db.delete(lessons).where(eq(lessons.id, l!.id));
+  });
+
   it('boshqa guruh ustozi dars davomatini belgilay olmaydi (Scope himoyasi)', async () => {
     const res = await call('POST', `attendance/lessons/${todayLessonId}`, teacher2Token, {
       items: [{ studentId: student1Id, status: 'present' }],
@@ -253,7 +309,7 @@ describe('T-111, T-112, T-113 Davomat tizimi (BR-29, BR-30, BR-31, BR-32)', () =
   });
 
   it('FR-ATT-5 Davomat eslatmalari yuborish servisi (AttendanceCron)', async () => {
-    const service = t.app.get(AttendanceService);
+    const service = t.app.get(UnmarkedLessonsService);
     const result = await service.sendAttendanceReminders();
     expect(result).toHaveProperty('teacherReminders');
     expect(result).toHaveProperty('adminReminders');
@@ -285,5 +341,34 @@ describe('GET attendance/groups (W-12, T-112, FR-ATT-4)', () => {
     expect((await call('GET', url(), parentToken)).statusCode).toBe(403);
     const wide = `attendance/groups?groupId=${groupId}&from=${addDays(TODAY, -100)}&to=${TODAY}`;
     expect((await call('GET', wide, tokens.get('admin')!)).statusCode).toBe(400);
+  });
+});
+
+describe('GET attendance/day (MS-13, T-137, FR-ATT-5)', () => {
+  it('kun darslari: kutilgan, belgilangan, kelgan; kelmaganlar roʻyxati', async () => {
+    await call('POST', `attendance/lessons/${todayLessonId}`, teacherToken, {
+      items: [
+        { studentId: student1Id, status: 'present' },
+        { studentId: student2Id, status: 'absent' },
+      ],
+    });
+    const res = await call('GET', `attendance/day?date=${TODAY}`, tokens.get('admin')!);
+    expect(res.statusCode).toBe(200);
+    const d = res.json<DayAttendance>();
+    expect(d.lessons.find((l) => l.lessonId === todayLessonId)).toMatchObject({
+      startTime: '14:00',
+      expected: 2,
+      marked: 2,
+      came: 1,
+      cancelled: false,
+    });
+    expect(d.absentees).toEqual([
+      expect.objectContaining({ studentId: student2Id, status: 'absent', groupName: 'IELTS-A1' }),
+    ]);
+  });
+
+  it('forbidden: ustoz va ota-ona — 403', async () => {
+    for (const token of [teacherToken, parentToken])
+      expect((await call('GET', `attendance/day?date=${TODAY}`, token)).statusCode).toBe(403);
   });
 });

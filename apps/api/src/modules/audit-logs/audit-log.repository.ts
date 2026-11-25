@@ -7,9 +7,9 @@ import {
   userRoles,
   users,
 } from '@lg/db';
-import { tashkentDayRange, tashkentMonthRange } from '@lg/domain';
+import { SUSPICIOUS_ACTIONS, tashkentDayRange, tashkentMonthRange } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, gte, inArray, isNotNull, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, gte, inArray, isNotNull, like, lt, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface AuditLogFilter {
@@ -47,6 +47,8 @@ export interface RawStaffStats {
   avgResponseMinutes: number | null;
 }
 
+const STAFF = ['director', 'admin', 'teacher'] as const;
+
 @Injectable()
 export class AuditLogRepository {
   constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
@@ -54,7 +56,7 @@ export class AuditLogRepository {
   async findAuditLogs(filter: AuditLogFilter): Promise<RawAuditLogRow[]> {
     const conditions = [];
     if (filter.actorId) conditions.push(eq(auditLogs.actorId, filter.actorId));
-    if (filter.action) conditions.push(eq(auditLogs.action, filter.action));
+    if (filter.action) conditions.push(like(auditLogs.action, `${filter.action}%`));
     if (filter.entity) conditions.push(eq(auditLogs.entity, filter.entity));
     if (filter.from) conditions.push(gte(auditLogs.at, tashkentDayRange(filter.from).start));
     if (filter.to) conditions.push(lt(auditLogs.at, tashkentDayRange(filter.to).end));
@@ -86,16 +88,7 @@ export class AuditLogRepository {
   }
 
   async findSuspiciousLogs(limit = 50): Promise<RawAuditLogRow[]> {
-    const suspiciousActions = [
-      'payment.reverse',
-      'payment.refund',
-      'discount.grant',
-      'attendance.edit_past',
-      'penalty.waive',
-    ];
-
-    // Shubhali amallar yoki Toshkent vaqti bilan tunda (23:00 - 06:00) qilingan amallar
-    // Toshkent vaqti = at AT TIME ZONE 'Asia/Tashkent'
+    const hour = sql`extract(hour from ${auditLogs.at} at time zone 'Asia/Tashkent')`;
     const rows = await this.db
       .select({
         id: auditLogs.id,
@@ -115,10 +108,11 @@ export class AuditLogRepository {
       .from(auditLogs)
       .leftJoin(users, eq(auditLogs.actorId, users.id))
       .where(
-        sql`${auditLogs.action} IN (${sql.join(
-          suspiciousActions.map((a) => sql`${a}`),
-          sql`, `,
-        )}) OR EXTRACT(HOUR FROM ${auditLogs.at} AT TIME ZONE 'Asia/Tashkent') >= 23 OR EXTRACT(HOUR FROM ${auditLogs.at} AT TIME ZONE 'Asia/Tashkent') < 6`,
+        or(
+          inArray(auditLogs.action, [...SUSPICIOUS_ACTIONS]),
+          // Tunda — faqat xodim (tizim cron'i va ota-ona harakati shubhali emas).
+          and(inArray(auditLogs.actorRole, [...STAFF]), or(gte(hour, 23), lt(hour, 6))),
+        ),
       )
       .orderBy(desc(auditLogs.at))
       .limit(limit);
@@ -127,39 +121,41 @@ export class AuditLogRepository {
   }
 
   async getStaffActivity(period?: string): Promise<RawStaffStats[]> {
-    // Xodimlar ro'yxati (admin yoki director roliga ega bo'lganlar)
+    // Bitta xodim — bitta qator (ikki rolli bo'lsa ham).
     const staffUsers = await this.db
       .select({
         id: users.id,
         fullName: users.fullName,
-        roleCode: roles.code,
+        roleCode: sql<string>`case when bool_or(${roles.code} = 'director') then 'director' else 'admin' end`,
       })
       .from(users)
       .innerJoin(userRoles, eq(users.id, userRoles.userId))
       .innerJoin(roles, eq(userRoles.roleId, roles.id))
-      .where(inArray(roles.code, ['admin', 'director']));
+      .where(inArray(roles.code, ['admin', 'director']))
+      .groupBy(users.id, users.fullName)
+      .orderBy(users.fullName);
 
-    const results: RawStaffStats[] = [];
-
-    for (const staff of staffUsers) {
-      const payCount = await this.countStaffPayments(staff.id, period);
-      const { count: appCount, avgMinutes } = await this.getStaffApprovals(staff.id, period);
-
-      results.push({
-        staffId: staff.id,
-        staffName: staff.fullName,
-        role: staff.roleCode,
-        paymentsCount: payCount,
-        approvalsCount: appCount,
-        avgResponseMinutes: avgMinutes,
-      });
-    }
-
-    return results;
+    return Promise.all(
+      staffUsers.map(async (staff) => {
+        const [paymentsCount, approvals] = await Promise.all([
+          this.countStaffPayments(staff.id, period),
+          this.getStaffApprovals(staff.id, period),
+        ]);
+        return {
+          staffId: staff.id,
+          staffName: staff.fullName,
+          role: staff.roleCode,
+          paymentsCount,
+          approvalsCount: approvals.count,
+          avgResponseMinutes: approvals.avgMinutes,
+        };
+      }),
+    );
   }
 
   private async countStaffPayments(staffId: string, period?: string): Promise<number> {
-    const conditions = [eq(payments.receivedBy, staffId)];
+    // Storno/refund — manfiy to'lov: «nechta to'lov kiritdi»ga kirmaydi.
+    const conditions = [eq(payments.receivedBy, staffId), gt(payments.amount, 0n)];
     if (period) {
       const { start, end } = this.getPeriodRange(period);
       conditions.push(gte(payments.paidAt, start), lt(payments.paidAt, end));
@@ -183,7 +179,7 @@ export class AuditLogRepository {
     ];
     if (period) {
       const { start, end } = this.getPeriodRange(period);
-      conditions.push(gte(approvalRequests.createdAt, start), lt(approvalRequests.createdAt, end));
+      conditions.push(gte(approvalRequests.decidedAt, start), lt(approvalRequests.decidedAt, end));
     }
 
     const [row] = await this.db

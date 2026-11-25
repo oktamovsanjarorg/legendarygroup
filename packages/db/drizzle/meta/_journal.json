@@ -281,6 +281,41 @@
       "when": 1795537642404,
       "tag": "0039_reopen_void_invoices",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1795539343701,
+      "tag": "0040_notification_types_staff",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1795542446807,
+      "tag": "0041_announcement_file",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1795543571450,
+      "tag": "0042_lessons_done",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1795545168767,
+      "tag": "0043_payroll_generated_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1795545741029,
+      "tag": "0044_notification_report_file",
+      "breakpoints": true
     }
   ]
 }

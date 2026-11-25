@@ -19,10 +19,13 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { FastifyReply } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { auditContext } from '../../common/audit/request-context.js';
+import { TestTemplateDeliveryService } from './test-template-delivery.service.js';
 import { z } from 'zod';
 import { Audit, NoAudit } from '../../common/audit/audit.decorator.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
@@ -38,7 +41,10 @@ const ImportPreviewBody = z.object({
 @ApiBearerAuth()
 @Controller('tests')
 export class TestsController {
-  constructor(@Inject(TestsService) private readonly service: TestsService) {}
+  constructor(
+    @Inject(TestsService) private readonly service: TestsService,
+    @Inject(TestTemplateDeliveryService) private readonly template: TestTemplateDeliveryService,
+  ) {}
 
   @Post()
   @RequirePermission('test.manage')
@@ -123,6 +129,18 @@ export class TestsController {
       .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
       .header('Content-Disposition', `attachment; filename="test-template-${id}.xlsx"`)
       .send(buffer);
+  }
+
+  @Post(':id/template/send')
+  @RequirePermission('test.manage')
+  @Audit({ action: 'test.template_send', entity: 'test' })
+  @ApiOperation({ summary: 'T-154 Excel shablonini bot chatiga yuborish' })
+  async sendTemplate(
+    @CurrentUser() actor: RequestUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: FastifyRequest,
+  ): Promise<{ status: 'queued' }> {
+    return this.template.send(actor, id, auditContext(req));
   }
 
   @Post(':id/import-preview')

@@ -19,14 +19,13 @@ export type AnnouncementFileType = (typeof ANNOUNCEMENT_FILE_TYPES)[number];
 
 export const CreateAnnouncementSchema = z
   .object({
-    title: z.string().min(3).max(200),
-    body: z.string().min(5).max(4000),
+    title: z.string().trim().min(3).max(200),
+    /** Telegram xabari 4096 belgi: sarlavha va belgilash uchun joy qoldiriladi. */
+    body: z.string().trim().min(5).max(3500),
     targetType: z.enum(ANNOUNCEMENT_TARGET_TYPES),
     targetId: z.string().uuid().optional().nullable(),
-    fileUrl: z.string().url().optional().nullable(),
-    fileType: z.enum(ANNOUNCEMENT_FILE_TYPES).optional().nullable(),
-    sendNow: z.boolean().default(true),
-    scheduledAt: z.string().datetime().optional().nullable(),
+    /** `announcement` maqsadli yuklangan fayl (rasm/PDF). */
+    fileId: z.uuid().optional().nullable(),
   })
   .refine(
     (data) => {
@@ -97,7 +96,7 @@ export const AnnouncementItemSchema = z.object({
   body: z.string(),
   targetType: z.enum(ANNOUNCEMENT_TARGET_TYPES),
   targetId: z.string().uuid().nullable(),
-  fileUrl: z.string().nullable(),
+  fileId: z.string().uuid().nullable(),
   fileType: z.enum(ANNOUNCEMENT_FILE_TYPES).nullable(),
   status: z.enum(ANNOUNCEMENT_STATUSES),
   totalRecipients: z.number().int().nonnegative(),

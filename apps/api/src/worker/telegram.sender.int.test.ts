@@ -1,8 +1,9 @@
 import { closeDb, createDb, type Database, outboxEvents } from '@lg/db';
 import { eq } from 'drizzle-orm';
 import Fastify, { type FastifyInstance } from 'fastify';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { QUEUES, QueueService } from '../common/queue/queue.service.js';
+import { FilesService } from '../modules/files/index.js';
 import { TelegramOutbox } from '../modules/telegram/index.js';
 import {
   createWorkerTestContext,
@@ -16,11 +17,16 @@ interface Hit {
   at: number;
 }
 const hits: Hit[] = [];
+const uploads: string[] = [];
 const rateLimitedOnce = new Set<string>();
 let fake: FastifyInstance;
 
 async function startFakeTelegram(): Promise<string> {
   fake = Fastify();
+  fake.addContentTypeParser('multipart/form-data', { parseAs: 'string' }, (_req, body, done) => {
+    uploads.push(String(body));
+    done(null, { chat_id: 'file' });
+  });
   fake.post('/bot:token/:method', async (req, reply) => {
     const { chat_id: chatId } = req.body as { chat_id: string };
     hits.push({ chatId, at: Date.now() });
@@ -76,6 +82,23 @@ describe('Telegram yuboruvchi (T-010, FR-RPT-6)', () => {
     await waitFor(() => hitsOf('100').length >= 1);
     await new Promise((r) => setTimeout(r, 500));
     expect(hitsOf('100')).toHaveLength(1);
+  });
+
+  it('T-139: fayl — multipart `sendDocument` (havola emas, mazmuni)', async () => {
+    vi.spyOn(t.ctx.get(FilesService), 'readForDelivery').mockResolvedValue({
+      body: Buffer.from('PDF-MAZMUN'),
+      mime: 'application/pdf',
+    });
+    await t.ctx.get(TelegramOutbox).enqueue({
+      method: 'sendDocument',
+      chatId: '300',
+      payload: {},
+      file: { id: 'f1', name: 'jadval.pdf' },
+    });
+    await waitFor(() => uploads.length >= 1);
+    expect(uploads[0]).toContain('PDF-MAZMUN');
+    expect(uploads[0]).toContain('filename="jadval.pdf"');
+    expect(uploads[0]).toContain('name="document"');
   });
 
   it('429 retry_after — kutib qayta yuboriladi (urinish sanalmaydi), oxiri yetkaziladi', async () => {

@@ -19,6 +19,9 @@ import { AttendanceNoticeProcessor } from './attendance-notice.processor.js';
 import { AttendanceNoticeService } from './attendance-notice.service.js';
 import { AttendanceCron } from './attendance.cron.js';
 import { AttendanceRepository } from './attendance.repository.js';
+import { DayAttendanceController } from './day-attendance.controller.js';
+import { DayAttendanceService } from './day-attendance.service.js';
+import { UnmarkedLessonsService } from './unmarked-lessons.service.js';
 import { AttendanceService } from './attendance.service.js';
 
 @Module({
@@ -34,11 +37,18 @@ import { AttendanceService } from './attendance.service.js';
     NotificationsModule,
     SettingsModule,
   ],
-  controllers: [AttendanceGridController, AttendanceController, AbsenceNoticesController],
+  controllers: [
+    AttendanceGridController,
+    DayAttendanceController,
+    AttendanceController,
+    AbsenceNoticesController,
+  ],
   providers: [
     AttendanceRepository,
     AttendanceService,
+    UnmarkedLessonsService,
     AttendanceGridService,
+    DayAttendanceService,
     AttendanceNoticeService,
     AttendanceNoticeProcessor,
     AbsenceNoticesRepository,

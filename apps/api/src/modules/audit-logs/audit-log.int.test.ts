@@ -69,7 +69,7 @@ beforeAll(async () => {
   await db.insert(auditLogs).values({
     actorId: adminUserId,
     actorRole: 'admin',
-    action: 'payment.reverse',
+    action: 'billing.payment.reverse',
     entity: 'payment',
     entityId: '01900000-0000-7000-8000-000000000020',
     before: { status: 'paid', amount: 500000 },
@@ -90,6 +90,22 @@ beforeAll(async () => {
     ip: '10.0.0.1',
     at: new Date('2026-11-13T20:00:00Z'),
   });
+
+  // Tunda, lekin xodim emas (ota-ona, tizim) — shubhali emas
+  await db.insert(auditLogs).values([
+    {
+      actorRole: 'guardian',
+      action: 'auth.login',
+      entity: 'user',
+      at: new Date('2026-11-13T20:00:00Z'),
+    },
+    {
+      actorRole: null,
+      action: 'billing.invoices_generate',
+      entity: 'invoice',
+      at: new Date('2026-11-13T20:00:00Z'),
+    },
+  ]);
 
   // Xodim faolligi uchun to'lov va approval:
   const studentRes = await call('POST', 'students', adminToken, {
@@ -150,7 +166,7 @@ describe('T-404: Audit UI va shubhali harakatlar (FR-AUD-1, 2, 3)', () => {
     expect(logs.length).toBeGreaterThanOrEqual(3);
 
     // Diff tekshiruvi: payment.reverse da status o'zgargan
-    const revLog = logs.find((l) => l.action === 'payment.reverse');
+    const revLog = logs.find((l) => l.action === 'billing.payment.reverse');
     expect(revLog).toBeDefined();
     expect(revLog?.diff).toBeDefined();
     expect(revLog?.diff?.some((d) => d.field === 'status' && d.after === 'reversed')).toBe(true);
@@ -174,7 +190,7 @@ describe('T-404: Audit UI va shubhali harakatlar (FR-AUD-1, 2, 3)', () => {
     expect(suspicious.length).toBeGreaterThanOrEqual(2);
 
     // payment.reverse high risk
-    const rev = suspicious.find((s) => s.action === 'payment.reverse');
+    const rev = suspicious.find((s) => s.action === 'billing.payment.reverse');
     expect(rev).toBeDefined();
     expect(rev?.riskLevel).toBe('high');
     expect(rev?.title).toContain('storno');
@@ -183,6 +199,8 @@ describe('T-404: Audit UI va shubhali harakatlar (FR-AUD-1, 2, 3)', () => {
     const night = suspicious.find((s) => s.action === 'student.update');
     expect(night).toBeDefined();
     expect(night?.title).toContain('Tunda');
+    expect(suspicious.some((s) => s.action === 'auth.login')).toBe(false);
+    expect(suspicious.some((s) => s.action === 'billing.invoices_generate')).toBe(false);
   });
 
   it('FR-AUD-3: Xodimlar faolligi hisoboti (toʻlovlar, qarorlar, oʻrtacha vaqt)', async () => {

@@ -8,6 +8,8 @@ export interface TelegramMessage {
   payload: Record<string, unknown>;
   /** Bildirishnoma (T-109) — yakuniy xatoda `TelegramSendFailed` shu ID bilan. */
   notificationId?: string;
+  /** `sendDocument`/`sendPhoto`: saqlangan fayl (multipart bilan yuboriladi, havola emas). */
+  file?: { id: string; name: string };
 }
 
 export const SEND_ATTEMPTS = 8;

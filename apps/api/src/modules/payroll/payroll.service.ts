@@ -1,12 +1,6 @@
-import type {
-  OwnPayrollMonth,
-  AddPayrollAdjustmentRequest,
-  CreateTeacherAdvanceRequest,
-  CreateTeacherContractRequest,
-  PayrollRunDetail,
-  TeacherContract,
-} from '@lg/contracts';
+import type { AddPayrollAdjustmentRequest, OwnPayrollMonth, PayrollRunDetail } from '@lg/contracts';
 import type { NewPayrollItemRow, TeacherContractRow } from '@lg/db';
+import { type Clock, tashkentMonthRange } from '@lg/domain';
 import {
   BadRequestException,
   ForbiddenException,
@@ -15,8 +9,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { uuidv7 } from 'uuidv7';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import type { RequestUser } from '../auth/index.js';
-import { buildPayrollRunDetail, mapContractRow } from './payroll.mappers.js';
+import { PermissionsService } from '../rbac/index.js';
+import { PayrollTermsRepository } from './payroll-terms.repository.js';
+import { buildPayrollRunDetail } from './payroll.mappers.js';
 import { PayrollRepository } from './payroll.repository.js';
 import { PayrollGenerator } from './payroll-generator.js';
 
@@ -24,69 +21,40 @@ import { PayrollGenerator } from './payroll-generator.js';
 export class PayrollService {
   constructor(
     @Inject(PayrollRepository) private readonly repo: PayrollRepository,
+    @Inject(PayrollTermsRepository) private readonly terms: PayrollTermsRepository,
     @Inject(PayrollGenerator) private readonly generator: PayrollGenerator,
+    @Inject(PermissionsService) private readonly permissions: PermissionsService,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
-
-  async createContract(
-    actor: RequestUser,
-    branchId: string,
-    req: CreateTeacherContractRequest,
-  ): Promise<TeacherContract> {
-    const row = await this.repo.createContract({
-      branchId,
-      teacherId: req.teacherId,
-      groupId: req.groupId ?? null,
-      type: req.type,
-      fixedAmount: BigInt(req.fixedAmount),
-      percentBp: req.percentBp,
-      perLessonRate: BigInt(req.perLessonRate),
-      base: req.base,
-      validFrom: req.validFrom,
-      validTo: req.validTo ?? null,
-    });
-    return mapContractRow(row);
-  }
-
-  async listContracts(_actor: RequestUser, teacherId?: string): Promise<TeacherContract[]> {
-    const rows = await this.repo.findActiveContracts(teacherId);
-    return rows.map(mapContractRow);
-  }
-
-  async createAdvance(
-    actor: RequestUser,
-    branchId: string,
-    req: CreateTeacherAdvanceRequest,
-  ): Promise<{ id: string }> {
-    const row = await this.repo.createAdvance({
-      branchId,
-      teacherId: req.teacherId,
-      amount: BigInt(req.amount),
-      givenAt: req.givenAt,
-      note: req.note ?? null,
-      createdBy: actor.id,
-    });
-    return { id: row.id };
-  }
 
   async generatePayrollRun(
     actor: RequestUser,
     branchId: string,
     period: string,
   ): Promise<PayrollRunDetail> {
+    if (period > this.clock.today().slice(0, 7))
+      throw new BadRequestException({ code: 'PERIOD_IN_FUTURE' });
     const existing = await this.repo.findPayrollRunByPeriod(branchId, period);
     if (existing && existing.status !== 'draft') {
       throw new BadRequestException({ code: 'PAYROLL_ALREADY_APPROVED' });
     }
     const runId = existing?.id ?? uuidv7();
     const byTeacher = new Map<string, TeacherContractRow[]>();
-    for (const c of await this.repo.findContractsForPeriod(branchId, period)) {
+    for (const c of await this.terms.contractsForPeriod(branchId, period)) {
       byTeacher.set(c.teacherId, [...(byTeacher.get(c.teacherId) ?? []), c]);
     }
+    const advances = await this.terms.outstandingAdvances(branchId, runId, period);
+    // Shartnomasi yo'q, lekin avansi bor xodim: qo'lda yozilgan bonusidan ushlanadi.
+    for (const a of advances) byTeacher.set(a.teacherId, byTeacher.get(a.teacherId) ?? []);
 
     const items: NewPayrollItemRow[] = [];
     const advanceIds: string[] = [];
     for (const [teacherId, contracts] of byTeacher) {
-      const res = await this.generator.teacherItems(teacherId, contracts, { runId, period });
+      const res = await this.generator.teacherItems(teacherId, contracts, {
+        runId,
+        period,
+        advances: advances.filter((a) => a.teacherId === teacherId),
+      });
       items.push(...res.items.map((i) => ({ ...i, runId })));
       advanceIds.push(...res.advanceIds);
     }
@@ -102,6 +70,8 @@ export class PayrollService {
     runId: string,
     req: AddPayrollAdjustmentRequest,
   ): Promise<void> {
+    if (!(await this.terms.isStaff(req.teacherId)))
+      throw new BadRequestException({ code: 'PAYROLL_NOT_STAFF' });
     const amt = BigInt(req.amount);
     const saved = await this.repo.addItemToDraft({
       runId,
@@ -114,9 +84,24 @@ export class PayrollService {
     if (!saved) await this.throwStatusError(runId, 'PAYROLL_ALREADY_APPROVED');
   }
 
-  /** BR-27: DRAFT → APPROVED. Biror ustoz net'i manfiy bo'lsa (avans > oylik) — tasdiqlanmaydi. */
+  /** BR-26: xato kiritilgan bonus/jarimani qoralamadan olib tashlash. */
+  async removeAdjustment(runId: string, itemId: string): Promise<void> {
+    if (await this.repo.removeManualItem(runId, itemId)) return;
+    const run = await this.repo.findPayrollRunById(runId);
+    if (run?.status === 'draft') throw new NotFoundException({ code: 'NOT_FOUND' });
+    await this.throwStatusError(runId, 'PAYROLL_ALREADY_APPROVED');
+  }
+
+  /**
+   * BR-27: DRAFT → APPROVED. Oy tugagan va undan keyin hisoblangan bo'lishi shart (Q-104): aks
+   * holda oyning qolgan kunlaridagi tushum hech qaysi hisobga tushmasdi. Manfiy net — rad.
+   */
   async approvePayrollRun(actor: RequestUser, runId: string): Promise<void> {
-    const approved = await this.repo.approve(runId, actor.id, (items) => {
+    const approved = await this.repo.approve(runId, actor.id, (run, items) => {
+      const { end } = tashkentMonthRange(run.period);
+      if (this.clock.now() < end) throw new BadRequestException({ code: 'PAYROLL_PERIOD_OPEN' });
+      if (!run.generatedAt || run.generatedAt < end)
+        throw new BadRequestException({ code: 'PAYROLL_STALE' });
       const net = new Map<string, bigint>();
       for (const i of items) net.set(i.teacherId, (net.get(i.teacherId) ?? 0n) + i.amount);
       if ([...net.values()].some((v) => v < 0n)) {
@@ -141,22 +126,21 @@ export class PayrollService {
   }
 
   async getPayrollRun(actor: RequestUser, runId: string): Promise<PayrollRunDetail> {
-    if (actor.role !== 'director' && actor.role !== 'teacher') {
-      throw new ForbiddenException();
-    }
+    const perms = await this.permissions.forUser(actor.id, actor.role, actor.pv);
+    const manages = perms.has('payroll.manage');
+    if (!manages && !perms.has('payroll.view_own')) throw new ForbiddenException();
     const run = await this.repo.findPayrollRunById(runId);
     if (!run) throw new NotFoundException({ code: 'PAYROLL_RUN_NOT_FOUND' });
 
     const rawItems = await this.repo.findPayrollItems(runId);
     let items = rawItems;
-    if (actor.role === 'teacher') {
+    if (!manages) {
       items = rawItems.filter((i) => i.teacherId === actor.id);
     }
 
     const detail = buildPayrollRunDetail(run, items);
-    // Ustozga jami — faqat o'ziniki (boshqalar oyligi yig'indisi oshkor bo'lmaydi).
-    if (actor.role === 'teacher')
-      return { ...detail, totalAmount: detail.teachers[0]?.totalNet ?? '0' };
+    // Xodimga jami — faqat o'ziniki (boshqalar oyligi yig'indisi oshkor bo'lmaydi).
+    if (!manages) return { ...detail, totalAmount: detail.teachers[0]?.totalNet ?? '0' };
     return detail;
   }
 

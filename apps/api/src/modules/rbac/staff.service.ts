@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { CreateStaffResult, StaffRole } from '@lg/contracts';
+import type { CreateStaffResult, StaffRole, UpdateStaffRequest } from '@lg/contracts';
 import { type Database, roles, type Transaction, userRoles, users } from '@lg/db';
 import type { Clock } from '@lg/domain';
 import { and, eq } from 'drizzle-orm';
@@ -12,7 +12,10 @@ import { hasStaffRole } from './telegram-claim.js';
 import { unlinkTelegram } from './telegram-unlink.js';
 import { bumpPermissionsVersion } from './user-version.js';
 
-type UserRow = Pick<typeof users.$inferSelect, 'id' | 'status' | 'telegramId'>;
+type UserRow = Pick<
+  typeof users.$inferSelect,
+  'id' | 'status' | 'telegramId' | 'phone' | 'fullName'
+>;
 
 /** Bot havolasi (Q-98): xodim «Start» bosib, o'z raqamini ulashadi. */
 export const botLink = (username: string): string => `https://t.me/${username}`;
@@ -65,6 +68,49 @@ export class StaffService {
       );
       return { id: user.id, botUrl: this.botUrlFor(linked) };
     });
+  }
+
+  /**
+   * Ism yoki raqamni tuzatish (Q-106). Raqam — kirish kaliti (Q-98): almashsa Telegram uziladi,
+   * xodim botda yangi raqamini ulashadi. O'z raqami — faqat CLI `director:relink`.
+   */
+  async update(ctx: AuditContext, userId: string, input: UpdateStaffRequest): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const user = await this.lockUser(tx, userId);
+      if (!(await hasStaffRole(tx, userId)))
+        throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+      const phone = input.phone ?? user.phone;
+      const fullName = input.fullName ?? user.fullName;
+      const phoneChanged = phone !== user.phone;
+      if (!phoneChanged && fullName === user.fullName) return;
+      if (phoneChanged) await this.assertPhoneFree(tx, ctx, { userId, phone });
+      await tx
+        .update(users)
+        .set({ phone, fullName, updatedAt: this.clock.now() })
+        .where(eq(users.id, userId));
+      if (phoneChanged) await unlinkTelegram(tx, userId, this.clock.now());
+      await this.audit.record(
+        ctx,
+        {
+          action: 'staff.update',
+          entity: 'user',
+          entityId: userId,
+          before: { fullName: user.fullName },
+          after: { fullName, phoneChanged },
+        },
+        tx,
+      );
+    });
+  }
+
+  private async assertPhoneFree(
+    tx: Transaction,
+    ctx: AuditContext,
+    { userId, phone }: { userId: string; phone: string },
+  ): Promise<void> {
+    if (ctx.actorId === userId) throw new AppException(HttpStatus.CONFLICT, 'OWN_ACCESS');
+    const [taken] = await tx.select({ id: users.id }).from(users).where(eq(users.phone, phone));
+    if (taken) throw new AppException(HttpStatus.CONFLICT, 'PHONE_TAKEN');
   }
 
   /** Telegram'ni uzish (Q-98): xodim yangi Telegram'dan raqamini qayta ulashadi. */

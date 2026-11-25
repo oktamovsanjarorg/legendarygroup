@@ -27,3 +27,17 @@ export const StudentBillingSetupState = z.object({
 export type StudentBillingSetupRequest = z.input<typeof StudentBillingSetupRequest>;
 export type StudentBillingSetupInput = z.output<typeof StudentBillingSetupRequest>;
 export type StudentBillingSetupState = z.infer<typeof StudentBillingSetupState>;
+
+/** MS-10 (T-134): guruhga yozishdan oldin BR-3 birinchi oy narxi. */
+export const FirstMonthQuery = z.object({ groupId: z.uuid(), startDate: z.iso.date() });
+export type FirstMonthQueryInput = z.infer<typeof FirstMonthQuery>;
+
+export const FirstMonthQuoteSchema = z.object({
+  period: z.string(),
+  monthlyPrice: z.string(),
+  /** So'm, BR-3 bo'yicha (chegirmasiz — chegirma yozilgandan keyin beriladi). */
+  amount: z.string(),
+  lessonsLeft: z.number().int(),
+  lessonsTotal: z.number().int(),
+});
+export type FirstMonthQuote = z.infer<typeof FirstMonthQuoteSchema>;

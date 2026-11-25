@@ -14,9 +14,17 @@ import {
 } from '@lg/domain';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import type { RequestUser } from '../auth/index.js';
-import { ForecastsRepository } from './forecasts.repository.js';
+import { ForecastsRepository, type RawStudentChurnData } from './forecasts.repository.js';
 import { addMonths } from './forecasts-history.js';
 import { prevMonthRange } from './prev-month.js';
+
+const churnScore = (i: RawStudentChurnData) =>
+  calculateChurnScore({
+    attendanceDropPercent: i.attendanceDropPercent,
+    paymentDelayDays: i.paymentDelayDays,
+    gradeDropPercent: i.gradeDropPercent,
+    botUnresponsive: i.botUnresponsive,
+  });
 
 /** |prognoz − haqiqiy| / haqiqiy, 0.1% aniqlik (pul emas — nisbat); haqiqiy 0 bo'lsa 0. */
 export const errorPercent = (predicted: bigint, actual: bigint): number => {
@@ -44,30 +52,27 @@ export class ForecastsService {
     const targetBranch = this.resolveBranchId(actor, branchId);
     const today = this.clock.today();
 
-    const { count, totalValue } = await this.repo.getActiveEnrollmentsMonthlyTotal(
-      targetBranch,
-      today,
+    const current = today.slice(0, 7);
+    const rateBp = await this.repo.getCollectionRateBp(targetBranch, current);
+    const items = await Promise.all(
+      [1, 2, 3].map(async (monthDistance) => {
+        const month = addMonths(current, monthDistance);
+        const { count, totalValue } = await this.repo.getMonthValue(targetBranch, month);
+        const forecast = calculateRevenueForecast({
+          activeValue: totalValue,
+          historicalCollectionRateBp: rateBp,
+          monthDistance,
+        });
+        return {
+          month,
+          expected: forecast.expected.toString(),
+          lowerBound: forecast.lowerBound.toString(),
+          upperBound: forecast.upperBound.toString(),
+          activeEnrollmentsCount: count,
+          historicalCollectionRateBp: rateBp,
+        };
+      }),
     );
-    const collectionRateBp = await this.repo.getHistoricalCollectionRateBp(targetBranch);
-
-    const items = [1, 2, 3].map((monthDistance) => {
-      const monthStr = addMonths(today.slice(0, 7), monthDistance);
-
-      const forecast = calculateRevenueForecast({
-        activeValue: totalValue,
-        historicalCollectionRateBp: collectionRateBp,
-        monthDistance,
-      });
-
-      return {
-        month: monthStr,
-        expected: forecast.expected.toString(),
-        lowerBound: forecast.lowerBound.toString(),
-        upperBound: forecast.upperBound.toString(),
-        activeEnrollmentsCount: count,
-        historicalCollectionRateBp: collectionRateBp,
-      };
-    });
 
     return { items };
   }
@@ -78,14 +83,15 @@ export class ForecastsService {
     const today = this.clock.today();
 
     const rawInputs = await this.repo.getStudentsChurnInputs(targetBranch, today);
-    const calculatedItems = rawInputs.map((input) => {
-      const res = calculateChurnScore({
-        attendanceDropPercent: input.attendanceDropPercent,
-        paymentDelayDays: input.paymentDelayDays,
-        gradeDropPercent: input.gradeDropPercent,
-        botUnresponsive: input.botUnresponsive,
-      });
-
+    // Ikki guruhda o'qiydigan o'quvchi — bitta qator.
+    const byStudent = new Map<string, RawStudentChurnData>();
+    for (const r of rawInputs) {
+      const seen = byStudent.get(r.studentId);
+      const groupName = [seen?.groupName, r.groupName].filter(Boolean).join(', ') || null;
+      byStudent.set(r.studentId, { ...r, groupName });
+    }
+    const calculatedItems = [...byStudent.values()].map((input) => {
+      const res = churnScore(input);
       return {
         studentId: input.studentId,
         studentName: input.studentName,
@@ -121,13 +127,7 @@ export class ForecastsService {
 
     const atRiskByGroup = new Map<string, number>();
     for (const input of churnInputs) {
-      const res = calculateChurnScore({
-        attendanceDropPercent: input.attendanceDropPercent,
-        paymentDelayDays: input.paymentDelayDays,
-        gradeDropPercent: input.gradeDropPercent,
-        botUnresponsive: input.botUnresponsive,
-      });
-      if (res.isAtRisk) {
+      if (churnScore(input).isAtRisk) {
         atRiskByGroup.set(input.groupId, (atRiskByGroup.get(input.groupId) ?? 0) + 1);
       }
     }
@@ -156,20 +156,14 @@ export class ForecastsService {
     const prev = prevMonthRange(this.clock.today());
     // Backtest: prognoz o'tgan oy BOSHIDAGI holat bo'yicha, natija — o'sha oyda ketganlar.
     const churnInputs = await this.repo.getStudentsChurnInputs(targetBranch, prev.start);
-    const predictedChurnCount = churnInputs.filter((input) => {
-      const res = calculateChurnScore({
-        attendanceDropPercent: input.attendanceDropPercent,
-        paymentDelayDays: input.paymentDelayDays,
-        gradeDropPercent: input.gradeDropPercent,
-        botUnresponsive: input.botUnresponsive,
-      });
-      return res.isAtRisk;
-    }).length;
+    const predictedChurnCount = new Set(
+      churnInputs.filter((i) => churnScore(i).isAtRisk).map((i) => i.studentId),
+    ).size;
 
     const [actualChurnCount, active, rateBp, actualRevenue] = await Promise.all([
       this.repo.getActualChurnCount(targetBranch, prev.start, prev.endExclusive),
-      this.repo.getActiveEnrollmentsMonthlyTotal(targetBranch, prev.start),
-      this.repo.getHistoricalCollectionRateBp(targetBranch),
+      this.repo.getMonthValue(targetBranch, prev.period),
+      this.repo.getCollectionRateBp(targetBranch, prev.period),
       this.repo.getPaidRevenue(targetBranch, prev.start, prev.endExclusive),
     ]);
     // Tushum: o'sha oy boshidagi faol yozilishlar × yig'ilish koeffitsienti (1 oylik model).

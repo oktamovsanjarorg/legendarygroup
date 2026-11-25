@@ -7,22 +7,46 @@ import {
   type TicketDetail,
   type TicketItem,
   type TicketMessageItem,
+  type TicketStatus,
   type UpdateTicketRequest,
 } from '@lg/contracts';
-import { type Database, guardians, studentGuardians } from '@lg/db';
+import { type Database, guardians, studentGuardians, type TicketMessageRow } from '@lg/db';
 import { and, eq } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
-import { NotificationsService } from '../notifications/index.js';
-import { PermissionsService } from '../rbac/index.js';
+import { OutboxService } from '../outbox/index.js';
+import { PermissionsService, StaffDirectoryService } from '../rbac/index.js';
 import { TicketsRepository } from './tickets.repository.js';
+
+/** `undefined` — holat o'zgarmaydi. */
+function nextStatus(status: TicketStatus, byAuthor: boolean): TicketStatus | undefined {
+  if (byAuthor) return status === 'resolved' || status === 'closed' ? 'open' : undefined;
+  if (status === 'closed') throw new AppException(HttpStatus.CONFLICT, 'TICKET_CLOSED');
+  return status === 'open' ? 'in_progress' : undefined;
+}
+
+const toMessage = (
+  m: TicketMessageRow,
+  authorName: string,
+  ticketAuthorId: string,
+): TicketMessageItem => ({
+  id: m.id,
+  ticketId: m.ticketId,
+  authorId: m.authorId,
+  authorName,
+  authorRole: m.authorId === ticketAuthorId ? 'author' : 'staff',
+  text: m.text,
+  fileUrl: m.fileUrl,
+  createdAt: m.createdAt.toISOString(),
+});
 
 @Injectable()
 export class TicketsService {
   constructor(
     @Inject(TicketsRepository) private readonly repo: TicketsRepository,
-    @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(OutboxService) private readonly outbox: OutboxService,
+    @Inject(StaffDirectoryService) private readonly staff: StaffDirectoryService,
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(PermissionsService) private readonly permissions: PermissionsService,
   ) {}
@@ -62,78 +86,54 @@ export class TicketsService {
       }
     }
 
-    const ticket = await this.repo.createTicket({
-      branchId: DEFAULT_BRANCH_ID,
-      authorId: actor.id,
-      studentId: dto.studentId,
-      subject: dto.subject,
-      priority: dto.priority,
+    const ticketId = await this.repo.transaction(async (tx) => {
+      const ticket = await this.repo.createTicket(tx, {
+        branchId: DEFAULT_BRANCH_ID,
+        authorId: actor.id,
+        studentId: dto.studentId,
+        subject: dto.subject,
+        priority: dto.priority,
+      });
+      const message = await this.repo.createMessage(tx, {
+        ticketId: ticket.id,
+        authorId: actor.id,
+        text: dto.message,
+      });
+      await this.outbox.publish(
+        'TicketMessageCreated',
+        { ticketId: ticket.id, messageId: message.id },
+        tx,
+      );
+      return ticket.id;
     });
 
-    await this.repo.createMessage({
-      ticketId: ticket.id,
-      authorId: actor.id,
-      text: dto.message,
-    });
-
-    return this.getTicket(actor, ticket.id);
+    return this.getTicket(actor, ticketId);
   }
 
-  /** Ticketga yangi xabar qo'shish (javob qaytarish) */
+  /**
+   * Xabar (T-138): xodim javobi ochiq murojaatni «koʻrilmoqda»ga oʻtkazadi, egasining xabari hal
+   * boʻlganini qayta ochadi; yopilganiga xodim yozmaydi. Xabarnoma — `TicketMessageCreated`.
+   */
   async addMessage(
     actor: RequestUser,
     ticketId: string,
     dto: CreateTicketMessageRequest,
   ): Promise<TicketMessageItem> {
-    const existing = await this.repo.findById(ticketId);
-    if (!existing) {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
-    }
-
-    await this.assertVisible(actor, existing.ticket.authorId);
-
-    const message = await this.repo.createMessage({
-      ticketId,
-      authorId: actor.id,
-      text: dto.text,
-      fileUrl: dto.fileUrl,
+    const message = await this.repo.transaction(async (tx) => {
+      const ticket = await this.repo.lockTicket(tx, ticketId);
+      if (!ticket) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
+      await this.assertVisible(actor, ticket.authorId);
+      const row = await this.repo.createMessage(
+        tx,
+        { ticketId, authorId: actor.id, text: dto.text, fileUrl: dto.fileUrl },
+        nextStatus(ticket.status, actor.id === ticket.authorId),
+      );
+      await this.outbox.publish('TicketMessageCreated', { ticketId, messageId: row.id }, tx);
+      return row;
     });
-
-    // Agar xodim javob bergan bo'lsa (author !== ticket author), ota-onaga bildirishnoma yuboriladi
-    if (actor.id !== existing.ticket.authorId) {
-      await this.notifyParentOnReply(existing.ticket.authorId, existing.ticket.subject, dto.text);
-    }
-
-    return {
-      id: message.id,
-      ticketId: message.ticketId,
-      authorId: message.authorId,
-      authorName: actor.id,
-      authorRole: actor.role,
-      text: message.text,
-      fileUrl: message.fileUrl,
-      createdAt: message.createdAt.toISOString(),
-    };
-  }
-
-  private async notifyParentOnReply(
-    parentUserId: string,
-    subject: string,
-    replyText: string,
-  ): Promise<void> {
-    try {
-      await this.notifications.notify({
-        userId: parentUserId,
-        type: 'announcement',
-        dedupeKey: `ticket-reply-${Date.now()}`,
-        payload: {
-          title: `Murojaatingizga javob: ${subject}`,
-          message: replyText,
-        },
-      });
-    } catch {
-      // Bildirishnoma xatosi ticket saqlanishiga to'sqinlik qilmasligi kerak
-    }
+    const row = await this.repo.messageWithTicket(message.id);
+    if (!row) throw new Error('murojaat xabari topilmadi');
+    return toMessage(row.message, row.authorName, row.ticket.authorId);
   }
 
   /** Ticket holatini yangilash (Admin / Director) */
@@ -142,6 +142,8 @@ export class TicketsService {
     ticketId: string,
     dto: UpdateTicketRequest,
   ): Promise<TicketItem> {
+    if (dto.assignedTo && !(await this.staff.isActiveManager(dto.assignedTo)))
+      throw new AppException(HttpStatus.BAD_REQUEST, 'VALIDATION_ERROR', { field: 'assignedTo' });
     const updated = await this.repo.updateTicket(ticketId, dto);
     if (!updated) {
       throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND');
@@ -177,16 +179,7 @@ export class TicketsService {
       lastMessageAt: t.lastMessageAt.toISOString(),
       createdAt: t.createdAt.toISOString(),
       updatedAt: t.updatedAt.toISOString(),
-      messages: messages.map((m) => ({
-        id: m.message.id,
-        ticketId: m.message.ticketId,
-        authorId: m.message.authorId,
-        authorName: m.authorName,
-        authorRole: 'user',
-        text: m.message.text,
-        fileUrl: m.message.fileUrl,
-        createdAt: m.message.createdAt.toISOString(),
-      })),
+      messages: messages.map((m) => toMessage(m.message, m.authorName, t.authorId)),
     };
   }
 

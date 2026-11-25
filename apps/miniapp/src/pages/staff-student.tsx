@@ -1,3 +1,4 @@
+import type { StudentDetail } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -15,6 +16,7 @@ import { useBillingSetupState } from '../data/staff-setup.js';
 import { useStudentCard } from '../data/staff.js';
 import { LeaveView } from '../screens/staff/leave.js';
 import { StudentCardView } from '../screens/staff/student-card.js';
+import { StudentInfo, StudentLinks } from '../screens/staff/student-edit.js';
 import { useMe } from '../session/session.js';
 
 const Alert = ({ error }: { error: unknown }) => (
@@ -22,6 +24,46 @@ const Alert = ({ error }: { error: unknown }) => (
     {errorText(error)}
   </p>
 );
+
+/** MS-23: ma'lumotlar va ichki ekranlar — ruxsatga qarab. */
+function StudentDetails({ s }: { s: StudentDetail }) {
+  const { permissions } = useMe();
+  const navigate = useNavigate();
+  const params = { id: s.id };
+  const manage = permissions.includes('student.manage') && s.archivedAt === null;
+  return (
+    <>
+      <StudentInfo s={s} />
+      <StudentLinks
+        onFinance={
+          permissions.includes('billing.view')
+            ? () => void navigate({ to: '/staff/student/$id/finance', params })
+            : undefined
+        }
+        onAttendance={() => void navigate({ to: '/staff/student/$id/attendance', params })}
+        onAccess={
+          manage ? () => void navigate({ to: '/staff/student/$id/access', params }) : undefined
+        }
+        onEdit={manage ? () => void navigate({ to: '/staff/student/$id/edit', params }) : undefined}
+      />
+    </>
+  );
+}
+
+function useManageLinks(id: string) {
+  const navigate = useNavigate();
+  return {
+    onOpen: (enrollmentId: string) =>
+      void navigate({
+        to: '/staff/student/$id/enrollment/$enrollmentId',
+        params: { id, enrollmentId },
+      }),
+    onEnroll: () => void navigate({ to: '/staff/student/$id/enroll', params: { id } }),
+    onGuardian: (guardianId: string) =>
+      void navigate({ to: '/staff/student/$id/guardian/$guardianId', params: { id, guardianId } }),
+    onAddGuardian: () => void navigate({ to: '/staff/student/$id/guardian-new', params: { id } }),
+  };
+}
 
 /** MS-05 O'quvchi kartochkasi; `student.manage` — guruhdan chiqarish va arxiv (T-144). */
 export function StaffStudentPage() {
@@ -34,6 +76,7 @@ export function StaffStudentPage() {
   const canManage = me.permissions.includes('student.manage');
   const canPay = me.permissions.includes('payment.create');
   const setupState = useBillingSetupState(id, canManage);
+  const open = useManageLinks(id);
   const needsSetup = setupState.data?.done === false;
   return (
     <QueryView query={query}>
@@ -45,6 +88,7 @@ export function StaffStudentPage() {
             <StudentCardView
               s={d.hit}
               guardians={d.guardians}
+              details={<StudentDetails s={d.student} />}
               onSetup={
                 needsSetup && !m.archived
                   ? () => void navigate({ to: '/staff/student/$id/setup', params: { id } })
@@ -60,11 +104,7 @@ export function StaffStudentPage() {
                   ? {
                       m,
                       busy: archive.isPending,
-                      onLeave: (enrollmentId) =>
-                        void navigate({
-                          to: '/staff/student/$id/leave/$enrollmentId',
-                          params: { id, enrollmentId },
-                        }),
+                      ...open,
                       onArchive: () => archive.mutate('archive'),
                       onRestore: () => archive.mutate('restore'),
                     }

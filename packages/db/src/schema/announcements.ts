@@ -8,6 +8,7 @@ import { check, index, integer, pgTable, text, uniqueIndex, uuid } from 'drizzle
 import { createdAt, oneOf, primaryUuid, tstz, updatedAt } from './common.js';
 import { notifications } from './notifications.js';
 import { branchId } from './org.js';
+import { files } from './system.js';
 import { users } from './users.js';
 
 export const announcements = pgTable(
@@ -22,7 +23,9 @@ export const announcements = pgTable(
     body: text('body').notNull(),
     targetType: text('target_type', { enum: ANNOUNCEMENT_TARGET_TYPES }).notNull(),
     targetId: uuid('target_id'),
+    /** Eskirgan (T-139): tashqi havola hech qachon yuborilmasdi — `fileId` ishlatiladi. */
     fileUrl: text('file_url'),
+    fileId: uuid('file_id').references(() => files.id, { onDelete: 'set null' }),
     fileType: text('file_type', { enum: ANNOUNCEMENT_FILE_TYPES }),
     status: text('status', { enum: ANNOUNCEMENT_STATUSES }).notNull().default('draft'),
     scheduledAt: tstz('scheduled_at'),

@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { ROLES } from './roles.js';
+
+const PayrollPeriod = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
 
 export const TEACHER_CONTRACT_TYPES = ['fixed', 'percent', 'mixed'] as const;
 export type TeacherContractType = (typeof TEACHER_CONTRACT_TYPES)[number];
@@ -32,11 +35,8 @@ export const TeacherContractSchema = z.object({
   percentBp: z.number().int().min(0).max(10000),
   perLessonRate: z.string(), // bigint string
   base: z.enum(PAYROLL_BASES),
-  validFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  validTo: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .nullable(),
+  validFrom: z.iso.date(),
+  validTo: z.iso.date().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -50,19 +50,38 @@ export const CreateTeacherContractRequest = z.object({
   percentBp: z.number().int().min(0).max(10000).default(0),
   perLessonRate: z.string().regex(/^\d+$/).default('0'),
   base: z.enum(PAYROLL_BASES).default('collected'),
-  validFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  validTo: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional()
-    .nullable(),
+  validFrom: z.iso.date(),
+  validTo: z.iso.date().optional().nullable(),
 });
 export type CreateTeacherContractRequest = z.infer<typeof CreateTeacherContractRequest>;
+
+export const EndTeacherContractRequest = z.object({ validTo: z.iso.date() });
+export type EndTeacherContractRequest = z.infer<typeof EndTeacherContractRequest>;
+
+/** Oylik yoziladigan xodimlar (faol, bitta qator — bitta odam). */
+export const PayrollStaffOptionSchema = z.object({
+  id: z.string().uuid(),
+  fullName: z.string(),
+  roles: z.array(z.enum(ROLES)),
+});
+export type PayrollStaffOption = z.infer<typeof PayrollStaffOptionSchema>;
+
+/** BR-28: avans va hisoblarda ushlangan qismi. */
+export const TeacherAdvanceSchema = z.object({
+  id: z.string().uuid(),
+  teacherId: z.string().uuid(),
+  teacherName: z.string(),
+  amount: z.string(),
+  withheld: z.string(),
+  givenAt: z.string(),
+  note: z.string().nullable(),
+});
+export type TeacherAdvance = z.infer<typeof TeacherAdvanceSchema>;
 
 export const CreateTeacherAdvanceRequest = z.object({
   teacherId: z.string().uuid(),
   amount: z.string().regex(/^[1-9]\d*$/), // musbat summa
-  givenAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  givenAt: z.iso.date(),
   note: z.string().max(255).optional(),
 });
 export type CreateTeacherAdvanceRequest = z.infer<typeof CreateTeacherAdvanceRequest>;
@@ -76,11 +95,11 @@ export const AddPayrollAdjustmentRequest = z.object({
 export type AddPayrollAdjustmentRequest = z.infer<typeof AddPayrollAdjustmentRequest>;
 
 export const GeneratePayrollRunRequest = z.object({
-  period: z.string().regex(/^\d{4}-\d{2}$/),
+  period: PayrollPeriod,
 });
 export type GeneratePayrollRunRequest = z.infer<typeof GeneratePayrollRunRequest>;
 
-export const PayrollRunByPeriodQuery = z.object({ period: z.string().regex(/^\d{4}-\d{2}$/) });
+export const PayrollRunByPeriodQuery = z.object({ period: PayrollPeriod });
 export type PayrollRunByPeriodQuery = z.infer<typeof PayrollRunByPeriodQuery>;
 
 export const PayrollItemSchema = z.object({
@@ -116,6 +135,8 @@ export const PayrollRunDetailSchema = z.object({
   period: z.string(),
   status: z.enum(PAYROLL_RUN_STATUSES),
   totalAmount: z.string(),
+  /** Oxirgi hisoblash vaqti; `null` — shart o'zgargan, qayta hisoblash kerak (Q-104). */
+  generatedAt: z.string().nullable(),
   approvedBy: z.string().nullable(),
   approvedAt: z.string().nullable(),
   paidBy: z.string().nullable(),

@@ -6,6 +6,7 @@ import {
   type Database,
   guardians,
   invoices,
+  ledgerEntries,
   notifications,
   seed,
   studentGuardians,
@@ -15,6 +16,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { EventHandlers, OutboxService } from '../outbox/index.js';
+import { dispatchEvents } from '../../test/dispatch-event.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 
 describe('Ommaviy eʼlonlar moduli (T-305 / FR-RPT-5)', () => {
@@ -213,7 +215,6 @@ describe('Ommaviy eʼlonlar moduli (T-305 / FR-RPT-5)', () => {
         body: 'Hurmatli ota-onalar, ertaga soat 15:00 da ochiq dars boʻlib oʻtadi.',
         targetType: 'group',
         targetId: group1Id,
-        sendNow: true,
       },
     });
 
@@ -224,9 +225,11 @@ describe('Ommaviy eʼlonlar moduli (T-305 / FR-RPT-5)', () => {
       totalRecipients: number;
       sentCount: number;
     }>();
-    expect(ann.status).toBe('completed');
+    expect(ann.status).toBe('processing');
     expect(ann.totalRecipients).toBe(1);
-    expect(ann.sentCount).toBe(1);
+    // Hali yuborilmagan: hisob haqiqiy yetkazishdan (bug: navbatga qo'yilishi bilan `sent` edi).
+    expect(ann.sentCount).toBe(0);
+    await dispatchEvents(t, db, 'AnnouncementCreated');
 
     // Notifications jadvalida yozuv borligini tekshiramiz
     const notifs = await db
@@ -245,12 +248,12 @@ describe('Ommaviy eʼlonlar moduli (T-305 / FR-RPT-5)', () => {
     expect(statsRes.statusCode).toBe(200);
     const stats = statsRes.json<{
       totalRecipients: number;
-      sentCount: number;
+      queuedCount: number;
       recipients: Array<{ status: string }>;
     }>();
     expect(stats.totalRecipients).toBe(1);
-    expect(stats.sentCount).toBe(1);
-    expect(stats.recipients[0]?.status).toBe('sent');
+    expect(stats.queuedCount).toBe(1);
+    expect(stats.recipients[0]?.status).toBe('queued');
 
     // Navbatdan keyin ota-ona botni bloklasa — statistika haqiqiy holatni koʻrsatadi.
     const payload = { chatId: '555000111', description: 'Forbidden: bot was blocked' };
@@ -282,6 +285,10 @@ describe('Ommaviy eʼlonlar moduli (T-305 / FR-RPT-5)', () => {
       dueDate: '2026-11-10',
     });
 
+    await db
+      .insert(ledgerEntries)
+      .values({ studentId: student1Id, entryType: 'invoice', amount: 700000n });
+
     const previewRes = await t.app.inject({
       method: 'GET',
       url: `/api/announcements/preview?targetType=debtors`,
@@ -298,10 +305,9 @@ describe('Ommaviy eʼlonlar moduli (T-305 / FR-RPT-5)', () => {
         title: 'Toʻlov muddati eslatmasi',
         body: 'Iltimos, oʻqish toʻlovini oʻz vaqtida amalga oshiring.',
         targetType: 'debtors',
-        sendNow: true,
       },
     });
     expect(sendRes.statusCode).toBe(201);
-    expect(sendRes.json<{ sentCount: number }>().sentCount).toBe(1);
+    expect(sendRes.json<{ totalRecipients: number }>().totalRecipients).toBe(1);
   });
 });

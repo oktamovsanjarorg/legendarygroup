@@ -11,7 +11,7 @@ export interface CanEditAttendanceParams {
 export interface CanEditAttendanceResult {
   allowed: boolean;
   requiresReason: boolean;
-  reason?: string;
+  reason?: 'ATTENDANCE_LOCKED_PAST' | 'ATTENDANCE_FUTURE';
 }
 
 /**
@@ -24,8 +24,12 @@ export function canEditAttendance(params: CanEditAttendanceParams): CanEditAtten
 
   const today = formatDateToYmd(now); // Toshkent kuni (UTC emas)
 
-  // Agar dars bugun yoki kelajakda bo'lsa (bugun 23:59 gacha)
-  if (lessonDate >= today) {
+  // Hali bo'lmagan kun — belgilanmaydi (oldindan sabab — absence_notices).
+  if (lessonDate > today)
+    return { allowed: false, requiresReason: false, reason: 'ATTENDANCE_FUTURE' };
+
+  // Dars kuni 23:59 gacha
+  if (lessonDate === today) {
     return { allowed: true, requiresReason: false };
   }
 

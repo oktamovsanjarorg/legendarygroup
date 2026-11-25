@@ -1,5 +1,15 @@
-import { type Database, grades, lessons, payments } from '@lg/db';
-import { and, eq, gte, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
+import {
+  type Database,
+  enrollments,
+  grades,
+  groups,
+  invoiceOutstandingSql,
+  invoices,
+  lessons,
+  payments,
+  students,
+} from '@lg/db';
+import { and, eq, gte, inArray, isNull, lt, lte, ne, or, sql } from 'drizzle-orm';
 
 /** `YYYY-MM-DD` − n kun (UTC sana arifmetikasi; vaqt zonasi ta'sir qilmaydi). */
 export const minusDays = (ymd: string, n: number): string =>
@@ -47,7 +57,7 @@ export async function gradeDropMap(
   return map;
 }
 
-/** Oraliqdagi haqiqiy tushum: musbat, storno qilinmagan to'lovlar (Toshkent sanasi). */
+/** Oraliqdagi sof tushum: storno va qaytarish ayriladi (P&L, hisobot bilan bir xil; Toshkent kuni). */
 export async function paidRevenue(
   db: Database,
   branchId: string,
@@ -58,14 +68,85 @@ export async function paidRevenue(
   const [row] = await db
     .select({ total: sql<string>`coalesce(sum(${payments.amount}), 0)::text` })
     .from(payments)
+    .where(and(eq(payments.branchId, branchId), gte(day, start), lt(day, endExclusive)));
+  return BigInt(row?.total ?? '0');
+}
+
+/**
+ * Oy qiymati: o'sha oyda o'qiydigan yozilishlar (rejadagi chiqish/kirish hisobga olinadi) narxi,
+ * doimiy chegirma bilan (BR-18). To'xtatilgan va tugagan guruhga hisob yozilmaydi — kirmaydi.
+ */
+export async function monthValue(
+  db: Database,
+  branchId: string,
+  period: string,
+): Promise<{ count: number; totalValue: bigint }> {
+  const first = `${period}-01`;
+  const next = `${addMonths(period, 1)}-01`;
+  const [row] = await db
+    .select({
+      count: sql<number>`count(${enrollments.id})::int`,
+      total: sql<string>`coalesce(sum(${groups.monthlyPrice} * (100 - coalesce(${enrollments.discountPercent}, 0)) / 100), 0)::text`,
+    })
+    .from(enrollments)
+    .innerJoin(groups, eq(groups.id, enrollments.groupId))
+    .innerJoin(students, eq(students.id, enrollments.studentId))
     .where(
       and(
-        eq(payments.branchId, branchId),
-        sql`${payments.amount} > 0`,
-        isNull(payments.reversalOf),
-        gte(day, start),
-        lt(day, endExclusive),
+        eq(groups.branchId, branchId),
+        inArray(groups.status, ['forming', 'active']),
+        isNull(students.archivedAt),
+        lt(enrollments.startDate, next),
+        or(isNull(enrollments.endDate), gte(enrollments.endDate, first)),
       ),
     );
-  return BigInt(row?.total ?? '0');
+  return { count: Number(row?.count ?? 0), totalValue: BigInt(row?.total ?? '0') };
+}
+
+const RATE_MONTHS = 6;
+/** Hali yig'ilish tarixi yo'q — ehtiyotkor taxmin. */
+const DEFAULT_RATE_BP = 9000;
+
+/** Yig'ilish koeffitsienti: `period`dan oldingi 6 oy hisoblarining to'langan ulushi (void — yo'q). */
+export async function collectionRateBp(
+  db: Database,
+  branchId: string,
+  period: string,
+): Promise<number> {
+  const [row] = await db
+    .select({
+      total: sql<string>`coalesce(sum(${invoices.total}), 0)::text`,
+      paid: sql<string>`coalesce(sum(${invoices.total} - ${invoiceOutstandingSql(invoices.id, invoices.total)}), 0)::text`,
+    })
+    .from(invoices)
+    .where(
+      and(
+        eq(invoices.branchId, branchId),
+        ne(invoices.status, 'void'),
+        gte(invoices.period, addMonths(period, -RATE_MONTHS)),
+        lt(invoices.period, period),
+      ),
+    );
+  const total = BigInt(row?.total ?? '0');
+  if (total <= 0n) return DEFAULT_RATE_BP;
+  return Math.min(10_000, Number((BigInt(row?.paid ?? '0') * 10_000n) / total));
+}
+
+/**
+ * BR-36: ota-onaga bot orqali yetib bo'lmaydi — birortasi ham ulanmagan yoki oxirgi xabari
+ * bloklangan. Kiritilgan ota-ona yo'q bo'lsa ham (natijada qator yo'q — `true`).
+ */
+export async function reachableStudents(db: Database, studentIds: string[]): Promise<Set<string>> {
+  const rows = await db.execute<{ student_id: string }>(sql`
+    SELECT DISTINCT sg.student_id
+    FROM student_guardians sg
+    JOIN guardians g ON g.id = sg.guardian_id
+    JOIN users u ON u.id = g.user_id AND u.telegram_id IS NOT NULL
+    WHERE sg.student_id IN (${sql.join(
+      studentIds.map((id) => sql`${id}::uuid`),
+      sql`, `,
+    )})
+      AND coalesce((SELECT n.status FROM notifications n WHERE n.user_id = u.id
+        ORDER BY n.created_at DESC LIMIT 1), 'sent') <> 'blocked'`);
+  return new Set([...rows].map((r) => r.student_id));
 }

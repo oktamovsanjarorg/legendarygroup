@@ -20,6 +20,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import { AuditService } from '../../common/audit/audit.service.js';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { OutboxService } from '../outbox/index.js';
 import { normalizePhone } from './staff-link.service.js';
 import { claimGuardianTelegram } from './telegram-claim.js';
 
@@ -32,6 +33,7 @@ export class GuardianLinkService {
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(OutboxService) private readonly outbox: OutboxService,
   ) {}
 
   async checkTelegramStatus(telegramId: bigint): Promise<BotTelegramStatusResult> {
@@ -165,13 +167,18 @@ export class GuardianLinkService {
     if (pendingReq) return { result: 'pending_approval' };
     if (!input.createRequest) return { result: 'not_found' };
 
-    await tx.insert(guardianLinkRequests).values({
-      telegramId: input.telegramId,
-      phone,
-      fullName: input.fullName,
-      telegramUsername: input.username ?? null,
-      status: 'pending',
-    });
+    const [created] = await tx
+      .insert(guardianLinkRequests)
+      .values({
+        telegramId: input.telegramId,
+        phone,
+        fullName: input.fullName,
+        telegramUsername: input.username ?? null,
+        status: 'pending',
+      })
+      .returning({ id: guardianLinkRequests.id });
+    if (!created) throw new Error('bogʻlanish soʻrovi yaratilmadi');
+    await this.outbox.publish('GuardianLinkRequested', { requestId: created.id }, tx);
     return { result: 'request_created' };
   }
 }

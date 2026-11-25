@@ -32,9 +32,9 @@ describe('parseStartParam (screens.md §5)', () => {
     expect(parseStartParam(param)).toBeNull();
   });
 
-  it('jadvaldagi har prefiks screens.md §5 dagi 13 qatorni qamraydi', () => {
-    expect(DEEP_LINK_RULES).toHaveLength(13);
-    expect(new Set(DEEP_LINK_RULES.map((r) => r.key)).size).toBe(13);
+  it('jadvaldagi har prefiks screens.md §5 dagi 15 qatorni qamraydi', () => {
+    expect(DEEP_LINK_RULES).toHaveLength(15);
+    expect(new Set(DEEP_LINK_RULES.map((r) => r.key)).size).toBe(15);
   });
 });
 

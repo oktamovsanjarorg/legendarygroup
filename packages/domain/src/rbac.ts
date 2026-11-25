@@ -6,6 +6,9 @@ import {
   type RoleCode,
 } from '@lg/contracts';
 
+/** Override faqat xodim rollariga: ustoz ham ota-ona bo'lsa, farzandini ko'rish cheklanmaydi. */
+const isStaffRole = (role: RoleCode): boolean => role !== 'guardian' && role !== 'student';
+
 export interface PermissionOverride {
   permission: Permission;
   granted: boolean;
@@ -22,6 +25,7 @@ export function effectivePermissions(
   overrides: readonly PermissionOverride[] = [],
 ): Set<Permission> {
   const result = new Set<Permission>(ROLE_PERMISSIONS[role]);
+  if (!isStaffRole(role)) return result;
   for (const o of overrides) {
     if (!o.granted) result.delete(o.permission);
     else if (overrideError(role, o) === null) result.add(o.permission);
@@ -38,6 +42,7 @@ export type OverrideError = 'NON_DELEGABLE_PERMISSION' | 'OVERRIDE_NOT_ALLOWED';
  * - `granted=false` — rolning standart ruxsatini cheklash (har qanday).
  */
 export function overrideError(role: RoleCode, o: PermissionOverride): OverrideError | null {
+  if (!isStaffRole(role)) return 'OVERRIDE_NOT_ALLOWED';
   if (!o.granted)
     return ROLE_PERMISSIONS[role].includes(o.permission) ? null : 'OVERRIDE_NOT_ALLOWED';
   if ((NON_DELEGABLE_PERMISSIONS as readonly Permission[]).includes(o.permission)) {

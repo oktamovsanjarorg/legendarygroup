@@ -1,3 +1,5 @@
+import type { GroupStatus } from '@lg/contracts';
+
 export interface ActiveEnrollmentInfo {
   enrollmentId: string;
   studentId: string;
@@ -7,6 +9,7 @@ export interface ActiveEnrollmentInfo {
   discountPercent: number | null;
   monthlyPrice: bigint;
   groupName: string;
+  groupStatus: GroupStatus;
 }
 
 export interface OpenLineInfo {

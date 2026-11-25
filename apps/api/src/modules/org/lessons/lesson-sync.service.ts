@@ -10,6 +10,7 @@ import {
   type Transaction,
 } from '@lg/db';
 import {
+  addDays,
   type Clock,
   generatesLessons,
   hhmm,
@@ -17,10 +18,12 @@ import {
   lessonKey,
   type PlannedLesson,
   planLessons,
+  tashkentInstant,
   type TeacherAssignment,
   teacherOn,
 } from '@lg/domain';
-import { and, eq, gte, inArray, lte } from 'drizzle-orm';
+import { botMessages } from '@lg/i18n';
+import { and, eq, gte, inArray, lt, lte } from 'drizzle-orm';
 import { CLOCK_TOKEN } from '../../../common/clock/clock.tokens.js';
 
 export interface SyncResult {
@@ -31,10 +34,16 @@ export interface SyncResult {
   skipped: number;
 }
 
+/** Guruh to'xtatilganda bekor bo'lgan dars belgisi (BR-5 krediti uchun saqlanadi). */
+export const PAUSE_REASON = botMessages.lessonReasons.groupPaused;
+
 /** Jadvaldan endi kelib chiqmaydigan dars saqlanadimi (qaror/tarix bog'langan). */
-function keepsUnplanned(l: LessonRow, holidaySet: ReadonlySet<string>): boolean {
+function keepsUnplanned(l: LessonRow, holidaySet: ReadonlySet<string>, now: Date): boolean {
   if (l.status === 'done') return true;
+  // Bugun boshlangan dars (davomati hali kiritilmagan) — tarix, o'chirilmaydi.
+  if (l.status === 'scheduled' && startsAt(l) <= now) return true;
   if (l.status !== 'cancelled') return false;
+  if (l.cancelReason === PAUSE_REASON) return true;
   return l.compensation === 'makeup' || (l.cancelSource === 'holiday' && holidaySet.has(l.date));
 }
 
@@ -46,6 +55,8 @@ function syncWindow(g: GroupRow, today: string): { from: string; to: string } {
     to: g.endDate !== null && g.endDate < horizon ? g.endDate : horizon,
   };
 }
+
+const startsAt = (l: LessonRow) => tashkentInstant(l.date, hhmm(l.startTime));
 
 const sameTime = (l: LessonRow, p: PlannedLesson) =>
   hhmm(l.startTime) === p.startTime && hhmm(l.endTime) === p.endTime;
@@ -63,6 +74,7 @@ export class LessonSyncService {
   async sync(tx: Transaction, groupId: string, mode: 'api' | 'cron' = 'api'): Promise<SyncResult> {
     const [g] = await tx.select().from(groups).where(eq(groups.id, groupId));
     if (!g) throw new Error(`guruh topilmadi: ${groupId}`);
+    const now = this.clock.now();
     const today = this.clock.today();
     const { from, to } = syncWindow(g, today);
     const holidaySet = await this.holidaysIn(tx, from, to);
@@ -83,7 +95,7 @@ export class LessonSyncService {
       if (p && sameTime(l, p)) {
         occupied.add(lessonKey(l));
         if (await this.refresh(tx, { g, l, p, main })) result.updated++;
-      } else if (keepsUnplanned(l, holidaySet)) occupied.add(lessonKey(l));
+      } else if (keepsUnplanned(l, holidaySet, now)) occupied.add(lessonKey(l));
       else drop.push(l.id);
     }
     if (drop.length > 0) await tx.delete(lessons).where(inArray(lessons.id, drop));
@@ -101,6 +113,52 @@ export class LessonSyncService {
     result.created = await this.insert(tx, rows, mode);
     result.skipped = rows.length - result.created;
     return result;
+  }
+
+  /**
+   * Q-102: to'xtatilganda joriy oyning qolgan darslari o'chirilmaydi — markaz bekor qilgan dars
+   * (BR-5): o'quvchi to'lagan, oy yopilishida kredit. Keyingi oylar — `sync` o'chiradi.
+   */
+  async pauseMonth(tx: Transaction, groupId: string): Promise<void> {
+    const today = this.clock.today();
+    const rows = await tx
+      .select()
+      .from(lessons)
+      .where(
+        and(
+          eq(lessons.groupId, groupId),
+          eq(lessons.kind, 'regular'),
+          eq(lessons.status, 'scheduled'),
+          gte(lessons.date, today),
+          lt(lessons.date, `${addDays(`${today.slice(0, 7)}-28`, 4).slice(0, 7)}-01`),
+        ),
+      );
+    const ids = rows.filter((l) => startsAt(l) > this.clock.now()).map((l) => l.id);
+    if (ids.length === 0) return;
+    await tx
+      .update(lessons)
+      .set({
+        status: 'cancelled',
+        cancelReason: PAUSE_REASON,
+        cancelSource: 'manual',
+        cancelledAt: this.clock.now(),
+      })
+      .where(inArray(lessons.id, ids));
+  }
+
+  /** Davom ettirilganda to'xtatish bekor qilgan (hali o'tmagan) darslar qaytadi. */
+  async resume(tx: Transaction, groupId: string): Promise<void> {
+    await tx
+      .update(lessons)
+      .set({ status: 'scheduled', cancelReason: null, cancelSource: null, cancelledAt: null })
+      .where(
+        and(
+          eq(lessons.groupId, groupId),
+          eq(lessons.cancelReason, PAUSE_REASON),
+          eq(lessons.status, 'cancelled'),
+          gte(lessons.date, this.clock.today()),
+        ),
+      );
   }
 
   /**

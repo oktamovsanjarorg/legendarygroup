@@ -7,14 +7,17 @@ import {
   files,
   guardians,
   ledgerEntries,
+  notifications,
   payments,
   paymentSubmissions,
   receipts,
   seed,
+  users,
 } from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
+import { dispatchEvents } from '../../test/dispatch-event.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 
 let t: TestApp;
@@ -120,6 +123,17 @@ describe('T-206 & T-207 Toʻlov cheki yuborish va Admin tasdiqlash oqimi (BR-13,
     expect(body.amountClaimed).toBe('500000');
     expect(body.duplicateWarning).toBeNull();
     createdSubmissionId = body.id;
+  });
+
+  it('BR-13: yangi chek haqida botga ulangan xodimga bir marta xabar boradi', async () => {
+    const managerId = await createUserWithRole(db, 'admin', '+998907770077');
+    await db.update(users).set({ telegramId: 990003n }).where(eq(users.id, managerId));
+    await dispatchEvents(t, db, 'PaymentSubmissionCreated');
+    await dispatchEvents(t, db, 'PaymentSubmissionCreated');
+    const sent = await db.select().from(notifications).where(eq(notifications.userId, managerId));
+    expect(sent.map((n) => [n.type, n.dedupeKey])).toEqual([
+      ['staff_task', `submission-${createdSubmissionId}-${managerId}`],
+    ]);
   });
 
   it('ota-ona begona oʻquvchi uchun chek yubora olmaydi (IDOR himoyasi — 404)', async () => {

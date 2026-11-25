@@ -56,7 +56,8 @@ export function AnnounceView({
 }: Props) {
   const [text, setText] = useState(draft ?? '');
   const [confirm, setConfirm] = useState(false);
-  const ready = text.trim().length > 0;
+  // Server: matn kamida 5 belgi.
+  const ready = text.trim().length >= 5;
   useClosingConfirmation(ready);
   useMainButton({
     text: t.announce.send,

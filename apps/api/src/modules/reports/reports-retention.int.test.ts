@@ -118,13 +118,19 @@ describe('FR-DASH-2: kohorta va ustoz samaradorligi — haqiqiy maʼlumot', () =
   });
 
   it('ustoz: davomat (kechikish — yarim), saqlash 2/4, oʻrtacha baho 80', async () => {
-    const rows = await teacherPerformance(db, DEFAULT_BRANCH_ID);
+    const rows = await teacherPerformance(db, DEFAULT_BRANCH_ID, {}, '2026-11-15');
     expect(rows.find((r) => r.teacherId === teacherId)).toMatchObject({
       groupCount: 1,
       studentCount: 2,
       attendancePercentBp: 7500,
       retentionPercentBp: 5000,
       averageGradeScoreBp: 8000,
+    });
+    const october = { from: '2026-10-01', to: '2026-10-31' };
+    const oct = await teacherPerformance(db, DEFAULT_BRANCH_ID, october, '2026-11-15');
+    expect(oct.find((r) => r.teacherId === teacherId)).toMatchObject({
+      attendancePercentBp: 0,
+      averageGradeScoreBp: null,
     });
   });
 });

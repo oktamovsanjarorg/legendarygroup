@@ -71,7 +71,7 @@ beforeAll(async () => {
     roomId,
     name: 'MATH-01',
     maxStudents: 12,
-    startDate: '2026-11-01',
+    startDate: '2026-08-01',
     monthlyPrice: '500000',
     teachers: [{ teacherId: teacher1UserId, role: 'main' }],
   });
@@ -83,7 +83,7 @@ beforeAll(async () => {
     const teacherId = isSub ? teacher2UserId : teacher1UserId;
     await db.insert(lessons).values({
       groupId,
-      date: `2026-11-${String(day).padStart(2, '0')}`,
+      date: `2026-08-${String(day).padStart(2, '0')}`,
       startTime: '14:00',
       endTime: '15:00',
       roomId,
@@ -104,7 +104,7 @@ beforeAll(async () => {
   const enrollRes = await call('POST', 'enrollments', adminToken, {
     studentId,
     groupId,
-    startDate: '2026-11-01',
+    startDate: '2026-08-01',
   });
   const enrollmentId = enrollRes.json<{ id: string }>().id;
 
@@ -113,8 +113,8 @@ beforeAll(async () => {
     .insert(invoices)
     .values({
       studentId,
-      period: '2026-11',
-      dueDate: '2026-11-10',
+      period: '2026-08',
+      dueDate: '2026-08-10',
       total: 500_000n,
       status: 'paid',
     })
@@ -138,7 +138,7 @@ beforeAll(async () => {
       studentId,
       amount: 500_000n,
       method: 'cash',
-      paidAt: new Date('2026-11-05T10:00:00Z'),
+      paidAt: new Date('2026-08-05T10:00:00Z'),
       receivedBy: adminUserId,
       idempotencyKey: 'int-test-pay-1',
     })
@@ -148,6 +148,7 @@ beforeAll(async () => {
     paymentId: pay!.id,
     invoiceLineId: line!.id,
     amount: 500_000n,
+    createdAt: new Date('2026-08-05T10:00:00Z'),
   });
 });
 
@@ -162,7 +163,7 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
       teacherId: teacher1UserId,
       type: 'fixed',
       fixedAmount: '5000000',
-      validFrom: '2026-11-01',
+      validFrom: '2026-08-01',
     });
     expect(res.statusCode).toBe(403);
 
@@ -170,7 +171,7 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
       teacherId: teacher1UserId,
       type: 'fixed',
       fixedAmount: '5000000',
-      validFrom: '2026-11-01',
+      validFrom: '2026-08-01',
     });
     expect(adminRes.statusCode).toBe(403);
   });
@@ -184,7 +185,7 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
       percentBp: 3000, // 30%
       perLessonRate: '150000',
       base: 'collected',
-      validFrom: '2026-11-01',
+      validFrom: '2026-08-01',
     });
     expect(res1.statusCode).toBe(201);
     const c1 = res1.json<TeacherContract>();
@@ -198,7 +199,7 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
       fixedAmount: '3000000',
       perLessonRate: '200000',
       base: 'collected',
-      validFrom: '2026-11-01',
+      validFrom: '2026-08-01',
     });
     expect(res2.statusCode).toBe(201);
   });
@@ -207,7 +208,7 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
     const res = await call('POST', 'payroll/advances', tokens.get('director')!, {
       teacherId: teacher1UserId,
       amount: '1000000',
-      givenAt: '2026-11-15',
+      givenAt: '2026-08-15',
       note: 'Kasalxona xarajatlari uchun',
     });
     expect(res.statusCode).toBe(201);
@@ -216,7 +217,7 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
 
   it('BR-23…BR-28: Oylik hisob-kitob qoralamasi generatsiya qilinadi', async () => {
     const res = await call('POST', 'payroll/runs/generate', tokens.get('director')!, {
-      period: '2026-11',
+      period: '2026-08',
     });
     expect(res.statusCode).toBe(201);
     const run = res.json<PayrollRunDetail>();
@@ -296,7 +297,7 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
     expect(adjRes.json<{ code: string }>().code).toBe('PAYROLL_ALREADY_APPROVED');
 
     const genRes = await call('POST', 'payroll/runs/generate', tokens.get('director')!, {
-      period: '2026-11',
+      period: '2026-08',
     });
     expect(genRes.statusCode).toBe(400);
     expect(genRes.json<{ code: string }>().code).toBe('PAYROLL_ALREADY_APPROVED');
@@ -353,9 +354,9 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
 
     const groupRes = await call('POST', 'groups', tokens.get('director')!, {
       courseId: cId,
-      name: 'PHYS-2026',
+      name: 'PHYS-26',
       maxStudents: 10,
-      startDate: '2026-12-01',
+      startDate: '2026-09-01',
       monthlyPrice: '500000',
     });
     const gId = groupRes.json<{ id: string }>().id;
@@ -364,7 +365,7 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
       groupId: gId,
       teacherId: t3UserId,
       role: 'main',
-      fromDate: '2026-12-01',
+      fromDate: '2026-09-01',
     });
 
     // O'quvchi qo'shamiz va invoice yaratamiz (to'lov qilinmaydi!)
@@ -375,15 +376,15 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
 
     const [enr] = await db
       .insert(enrollments)
-      .values({ studentId: stu!.id, groupId: gId, startDate: '2026-12-01' })
+      .values({ studentId: stu!.id, groupId: gId, startDate: '2026-09-01' })
       .returning();
 
     const [inv] = await db
       .insert(invoices)
       .values({
         studentId: stu!.id,
-        period: '2026-12',
-        dueDate: '2026-12-10',
+        period: '2026-09',
+        dueDate: '2026-09-10',
         total: 50000000n,
         status: 'open',
       })
@@ -405,12 +406,12 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
       percentBp: 2000,
       perLessonRate: '0',
       base: 'accrued',
-      validFrom: '2026-12-01',
+      validFrom: '2026-09-01',
     });
 
-    // Payroll generatsiya qilamiz davr = '2026-12'
+    // Payroll generatsiya qilamiz davr = '2026-09'
     const genRes = await call('POST', 'payroll/runs/generate', tokens.get('director')!, {
-      period: '2026-12',
+      period: '2026-09',
     });
     expect(genRes.statusCode).toBe(201);
     const detail = genRes.json<PayrollRunDetail>();
@@ -441,13 +442,13 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
         courseId: cId,
         name: 'CHEM-2027',
         maxStudents: 10,
-        startDate: '2027-01-01',
+        startDate: '2026-10-01',
         monthlyPrice: '500000',
       })
     ).json<{ id: string }>().id;
     await db.insert(groupTeachers).values([
-      { groupId: gId, teacherId: a, role: 'main', fromDate: '2027-01-01', toDate: '2027-01-15' },
-      { groupId: gId, teacherId: b, role: 'main', fromDate: '2027-01-16' },
+      { groupId: gId, teacherId: a, role: 'main', fromDate: '2026-10-01', toDate: '2026-10-15' },
+      { groupId: gId, teacherId: b, role: 'main', fromDate: '2026-10-16' },
     ]);
     const [stu] = await db
       .insert(students)
@@ -455,14 +456,14 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
       .returning();
     const [enr] = await db
       .insert(enrollments)
-      .values({ studentId: stu!.id, groupId: gId, startDate: '2027-01-01' })
+      .values({ studentId: stu!.id, groupId: gId, startDate: '2026-10-01' })
       .returning();
     const [inv] = await db
       .insert(invoices)
       .values({
         studentId: stu!.id,
-        period: '2027-01',
-        dueDate: '2027-01-10',
+        period: '2026-10',
+        dueDate: '2026-10-10',
         total: 1000000n,
         status: 'open',
       })
@@ -482,11 +483,11 @@ describe('T-401 & T-402: Ustoz oyligi (Payroll Calculation & Contracts)', () => 
         percentBp: 1000,
         perLessonRate: '0',
         base: 'accrued',
-        validFrom: '2027-01-01',
+        validFrom: '2026-10-01',
       });
 
     const detail = (
-      await call('POST', 'payroll/runs/generate', director, { period: '2027-01' })
+      await call('POST', 'payroll/runs/generate', director, { period: '2026-10' })
     ).json<PayrollRunDetail>();
     const pct = (id: string) =>
       detail.teachers.find((x) => x.teacherId === id)?.items.find((i) => i.kind === 'percent')

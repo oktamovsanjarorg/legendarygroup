@@ -1,6 +1,7 @@
 import type { RoleCode } from '@lg/contracts';
-import { closeDb, createDb, type Database, seed } from '@lg/db';
+import { closeDb, createDb, type Database, lessons, seed } from '@lg/db';
 import { addDays, formatDateToYmd, holidayEffect, isoWeekday, lessonHorizon } from '@lg/domain';
+import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../../test/test-app.js';
@@ -278,5 +279,62 @@ describe('Jadval oʻzgarishi va bayramlar (BR-3)', () => {
     await call('POST', `groups/${ids.other}/status`, { status: 'active' });
     await call('POST', `groups/${ids.other}/status`, { status: 'finished' });
     expect((await lessonsOf(ids.other)).filter((l) => l.date > today)).toEqual([]);
+  });
+});
+
+describe('Oʻtgan dars (davomatli) himoyasi', () => {
+  it('davomat belgilansa — done; jadval oʻzgarsa ham dars va davomat saqlanadi; koʻchirilmaydi', async () => {
+    const g = (
+      await call('POST', 'groups', {
+        courseId: ids.course,
+        name: 'Davomatli',
+        maxStudents: 5,
+        startDate: addDays(today, -7),
+        slots: [{ weekday: isoWeekday(today), startTime: '05:00', endTime: '06:00' }],
+      })
+    ).json<{ id: string }>().id;
+    const studentId = (await call('POST', 'students', { fullName: 'Davomatli Oʻquvchi' })).json<{
+      id: string;
+    }>().id;
+    await call('POST', 'enrollments', { studentId, groupId: g, startDate: today });
+    const lesson = (await lessonsOf(g)).find((l) => l.date === today)!;
+    await call('POST', `attendance/lessons/${lesson.id}`, {
+      items: [{ studentId, status: 'present' }],
+    });
+    await call('PUT', `groups/${g}/schedule`, { from: today, slots: [] });
+    const after = (await lessonsOf(g)).find((l) => l.id === lesson.id);
+    expect(after?.status).toBe('done');
+    const att = await call('GET', `attendance/lessons/${lesson.id}`);
+    expect(att.json<{ records: unknown[] }>().records).toHaveLength(1);
+    const move = await call('POST', `lessons/${lesson.id}/move`, {
+      date: addDays(today, 1),
+      startTime: '05:00',
+      endTime: '06:00',
+    });
+    expect(codeOf(move)).toBe('LESSON_NOT_SCHEDULED');
+  });
+
+  it('BR-5: yopilgan oy darsi bekor qilinmaydi va qoplanmaydi (kredit ikki marta boʻlmasin)', async () => {
+    const date = addDays(`${today.slice(0, 7)}-01`, -3);
+    const [old] = await db
+      .insert(lessons)
+      .values({ groupId: ids.g, date, startTime: '18:00', endTime: '19:00' })
+      .returning();
+    expect(codeOf(await call('POST', `lessons/${old!.id}/cancel`, { reason: 'Kasal' }))).toBe(
+      'LESSON_MONTH_CLOSED',
+    );
+    await db
+      .update(lessons)
+      .set({ status: 'cancelled', cancelSource: 'manual', cancelledAt: new Date() })
+      .where(eq(lessons.id, old!.id));
+    const slot = { date: addDays(today, 3), startTime: '18:00', endTime: '19:00' };
+    expect(codeOf(await call('POST', `lessons/${old!.id}/makeup`, slot))).toBe(
+      'LESSON_MONTH_CLOSED',
+    );
+  });
+
+  it('Q-69: xona sigʻimi undagi guruh maksimumidan kichraymaydi', async () => {
+    const res = await call('PATCH', `rooms/${ids.room2}`, { capacity: 2 });
+    expect([res.statusCode, codeOf(res)]).toEqual([409, 'ROOM_CAPACITY_EXCEEDED']);
   });
 });

@@ -1,11 +1,16 @@
 import { z } from 'zod';
 import { PAYMENT_METHODS } from './billing.js';
 
+/** To'lov, storno (teskari yozuv) yoki avansni qaytarish. */
+export const PAYMENT_KINDS = ['payment', 'reversal', 'refund'] as const;
+export type PaymentKind = (typeof PAYMENT_KINDS)[number];
+
 /** W-17 to'lov tafsiloti (T-205/T-209, FR-PAY-6/8/9): xodim uchun to'liq ko'rinish. */
 export const PaymentViewSchema = z.object({
   id: z.string().uuid(),
   studentId: z.string().uuid(),
   studentName: z.string(),
+  kind: z.enum(PAYMENT_KINDS),
   amount: z.string(),
   method: z.enum(PAYMENT_METHODS),
   paidAt: z.string(),
@@ -55,6 +60,50 @@ export const CashDaySchema = z.object({
       receiptNumber: z.string().nullable(),
     }),
   ),
-  closed: z.object({ at: z.string(), by: z.string().nullable() }).nullable(),
+  closed: z
+    .object({
+      at: z.string(),
+      by: z.string().nullable(),
+      /** Yopilgan paytdagi kutilgan summa — keyin toʻlov qoʻshilgan boʻlsa `expectedCash`dan farq qiladi. */
+      expectedCash: z.string(),
+      countedCash: z.string(),
+      note: z.string().nullable(),
+    })
+    .nullable(),
 });
 export type CashDay = z.infer<typeof CashDaySchema>;
+
+/** MS-24 (T-153): markaz to'lovlari tarixi — to'lov, storno va qaytarish bitta ro'yxatda. */
+export const PaymentHistoryQuery = z
+  .object({
+    from: z.iso.date(),
+    to: z.iso.date(),
+    method: z.enum(PAYMENT_METHODS).optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+    /** Oldingi sahifaning oxirgi to'lovi. */
+    cursor: z.uuid().optional(),
+  })
+  .refine((v) => v.to >= v.from, { message: 'DATE_RANGE', path: ['to'] });
+export type PaymentHistoryQueryInput = z.infer<typeof PaymentHistoryQuery>;
+
+export const PaymentHistoryItemSchema = z.object({
+  id: z.string().uuid(),
+  studentId: z.string().uuid(),
+  student: z.string(),
+  kind: z.enum(PAYMENT_KINDS),
+  amount: z.string(),
+  method: z.enum(PAYMENT_METHODS),
+  paidAt: z.string(),
+  receiptNumber: z.string().nullable(),
+  /** Chek bekor qilingan (BR-16). */
+  cancelled: z.boolean(),
+});
+export type PaymentHistoryItem = z.infer<typeof PaymentHistoryItemSchema>;
+
+export const PaymentHistorySchema = z.object({
+  items: z.array(PaymentHistoryItemSchema),
+  /** Davrdagi sof tushum (storno va qaytarishlar ayirilgan), filtr bilan. */
+  total: z.string(),
+  nextCursor: z.string().nullable(),
+});
+export type PaymentHistory = z.infer<typeof PaymentHistorySchema>;

@@ -42,7 +42,6 @@ describe('Ustoz MT-10 e‘lon va yordamchi ustoz cheklovlari (T-305, Q-62)', () 
       body: 'Ertaga dars 15:00 da boshlanadi.',
       targetType: 'group',
       targetId: 'g1',
-      sendNow: true,
     });
   });
 

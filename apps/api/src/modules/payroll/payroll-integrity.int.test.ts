@@ -120,9 +120,12 @@ async function addPayment(amount: bigint, key: string, reversalOf?: string): Pro
     })
     .returning();
   if (!reversalOf) {
-    await db
-      .insert(paymentAllocations)
-      .values({ paymentId: pay!.id, invoiceLineId: lineId, amount });
+    await db.insert(paymentAllocations).values({
+      paymentId: pay!.id,
+      invoiceLineId: lineId,
+      amount,
+      createdAt: new Date('2026-10-06T07:00:00Z'),
+    });
   }
   return pay!.id;
 }
@@ -169,6 +172,41 @@ describe('BR-23…BR-28: oylik hisobining yaxlitligi', () => {
     const run = await generate();
     expect(kinds(run)).toEqual(['percent']);
     expect(teacherNet(run)).toBe(100_000n); // 50% × 200 000 (storno qilingan 200 000 yo'q)
+  });
+
+  it('BR-24: oldin (yopilgan oyda) toʻlangan pul taqsimlangan oyda sanaladi', async () => {
+    const [early] = await db
+      .insert(payments)
+      .values({
+        studentId,
+        amount: 80_000n,
+        method: 'cash',
+        paidAt: new Date('2026-08-15T07:00:00Z'),
+        receivedBy: adminUserId,
+        idempotencyKey: 'pi-early',
+      })
+      .returning();
+    await db.insert(paymentAllocations).values({
+      paymentId: early!.id,
+      invoiceLineId: lineId,
+      amount: 80_000n,
+      createdAt: new Date('2026-10-01T07:00:00Z'),
+    });
+    expect(teacherNet(await generate())).toBe(140_000n);
+    const [back] = await db
+      .insert(payments)
+      .values({
+        studentId,
+        amount: -80_000n,
+        method: 'cash',
+        paidAt: new Date('2026-10-02T07:00:00Z'),
+        receivedBy: adminUserId,
+        idempotencyKey: 'pi-early-storno',
+        reversalOf: early!.id,
+      })
+      .returning();
+    expect(back).toBeDefined();
+    expect(teacherNet(await generate())).toBe(100_000n);
   });
 
   it('BR-26/BR-28: qayta generatsiya qoʻlda kiritilgan bonusni va avans ushlanmasini saqlaydi', async () => {

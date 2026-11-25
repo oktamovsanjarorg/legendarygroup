@@ -11,7 +11,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { PERMISSIONS, ROLES } from '@lg/contracts';
+import { PERMISSIONS } from '@lg/contracts';
 import type { FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
@@ -19,9 +19,11 @@ import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { ZodBody } from '../../common/decorators/zod.decorators.js';
 import { auditContext } from '../auth/index.js';
 import { RbacService } from './rbac.service.js';
+import { STAFF_CODES } from './telegram-claim.js';
 
 const PermissionParam = z.enum(PERMISSIONS);
-const RoleParam = z.enum(ROLES);
+/** Ota-ona/o'quvchi roli bu yerdan olinmaydi — u bog'lanish bilan keladi (T-110, T-126). */
+const RoleParam = z.enum(STAFF_CODES);
 const OverrideBody = z.object({ granted: z.boolean() });
 
 /**

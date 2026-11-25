@@ -36,6 +36,16 @@ describe('BR-30 canEditAttendance', () => {
     expect(res.allowed).toBe(true);
     expect(res.requiresReason).toBe(true);
   });
+
+  it('hali boʻlmagan kun belgilanmaydi (admin ham)', () => {
+    const res = canEditAttendance({
+      lessonDate: '2026-11-14',
+      userRole: 'admin',
+      hasEditPastPermission: true,
+      now,
+    });
+    expect(res).toEqual({ allowed: false, requiresReason: false, reason: 'ATTENDANCE_FUTURE' });
+  });
 });
 
 describe('BR-31, BR-10 shouldNotifyAbsenceOrLate', () => {

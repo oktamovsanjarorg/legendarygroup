@@ -1,4 +1,4 @@
-import { type RoleCode, ROLES } from '@lg/contracts';
+import { type RoleCode, ROLES, type StaffDetail } from '@lg/contracts';
 import {
   auditLogs,
   closeDb,
@@ -44,7 +44,12 @@ async function tokenOf(userId: string, role: RoleCode): Promise<string> {
   return t.app.get(TokensService).signAccess({ sub: userId, role, sid: s.sessionId, pv: u!.pv });
 }
 
-const call = (method: 'GET' | 'POST', url: string, token: string, payload?: object) =>
+const call = (
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
+  url: string,
+  token: string,
+  payload?: object,
+) =>
   t.app.inject({
     method,
     url: `/api/${url}`,
@@ -74,10 +79,11 @@ afterAll(async () => {
 
 describe('Ruxsat: faqat staff.manage (Director) — har endpoint uchun forbidden (CLAUDE.md)', () => {
   const someId = '00000000-0000-4000-8000-000000000000';
-  const endpoints: [method: 'GET' | 'POST', url: string, body?: object][] = [
+  const endpoints: [method: 'GET' | 'POST' | 'PATCH', url: string, body?: object][] = [
     ['GET', 'staff'],
     ['GET', `staff/${someId}`],
     ['POST', 'staff', { phone: '+998930000999', fullName: 'Ali Valiyev', role: 'teacher' }],
+    ['PATCH', `staff/${someId}`, { fullName: 'Ali Valiyev' }],
     ['POST', `staff/${someId}/telegram/unlink`],
     ['POST', `staff/${someId}/unblock`],
     ['POST', `staff/${someId}/roles`, { role: 'admin' }],
@@ -273,5 +279,61 @@ describe('Q-98: Direktor ham botda raqam ulashib ulanadi', () => {
       .from(guardianLinkRequests)
       .where(eq(guardianLinkRequests.telegramId, 7900n));
     expect(req?.status).toBe('rejected');
+  });
+});
+
+describe('Q-106: xodim maʼlumotini tuzatish va kirish himoyasi (T-160)', () => {
+  const code = (r: { statusCode: number; json: () => unknown }) => [
+    r.statusCode,
+    (r.json() as { code: string }).code,
+  ];
+
+  it('ism — oʻzgaradi; raqam — Telegram uziladi; band raqam — 409; ota-ona — 404', async () => {
+    const id = await createUser(['teacher']);
+    await db.update(users).set({ telegramId: 880_001n }).where(eq(users.id, id));
+    const row = async () => (await db.select().from(users).where(eq(users.id, id)))[0]!;
+    const patch = (body: object, target = id) => call('PATCH', `staff/${target}`, director(), body);
+
+    expect((await patch({ fullName: 'Yangi Ism' })).statusCode).toBe(204);
+    expect(await row()).toMatchObject({ fullName: 'Yangi Ism', telegramId: 880_001n });
+    const other = phone();
+    await createUser(['guardian'], other);
+    expect(code(await patch({ phone: other }))).toEqual([409, 'PHONE_TAKEN']);
+    const next = phone();
+    expect((await patch({ phone: next })).statusCode).toBe(204);
+    expect(await row()).toMatchObject({ phone: next, telegramId: null });
+    const logs = await db.select().from(auditLogs).where(eq(auditLogs.entityId, id));
+    expect(logs.map((l) => l.after)).toContainEqual({ fullName: 'Yangi Ism', phoneChanged: true });
+    expect((await patch({ fullName: 'Ali Vali' }, await createUser(['guardian']))).statusCode).toBe(
+      404,
+    );
+  });
+
+  it('Director oʻzini bloklay, cheklay, raqamini almashtira olmaydi — OWN_ACCESS', async () => {
+    await createUser(['director']); // oxirgi Director himoyasi ishlamasin
+    const me = await createUser(['director']);
+    const token = await tokenOf(me, 'director');
+    expect(code(await call('POST', `rbac/users/${me}/block`, token))).toEqual([409, 'OWN_ACCESS']);
+    const url = `rbac/users/${me}/overrides/staff.permissions`;
+    expect(code(await call('PUT', url, token, { granted: false }))).toEqual([409, 'OWN_ACCESS']);
+    expect(code(await call('PATCH', `staff/${me}`, token, { phone: phone() }))).toEqual([
+      409,
+      'OWN_ACCESS',
+    ]);
+  });
+
+  it('rol olinsa — unga tegishli override ham oʻchadi; ota-ona roli bu yerdan olinmaydi', async () => {
+    const id = await createUser(['admin', 'teacher', 'guardian']);
+    const set = (p: string, granted: boolean) =>
+      call('PUT', `rbac/users/${id}/overrides/${p}`, director(), { granted });
+    expect((await set('finance.view', true)).statusCode).toBe(204);
+    expect((await set('grade.write', false)).statusCode).toBe(204);
+    expect((await set('ticket.create', false)).statusCode).toBe(422); // ota-ona ruxsati
+    expect((await call('DELETE', `rbac/users/${id}/roles/admin`, director())).statusCode).toBe(204);
+    const detail = (await call('GET', `staff/${id}`, director())).json<StaffDetail>();
+    expect(detail.overrides).toEqual([{ permission: 'grade.write', granted: false }]);
+    expect((await call('DELETE', `rbac/users/${id}/roles/guardian`, director())).statusCode).toBe(
+      400,
+    );
   });
 });

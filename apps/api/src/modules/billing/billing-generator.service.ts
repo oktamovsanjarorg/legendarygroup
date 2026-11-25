@@ -2,54 +2,18 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Database, NewInvoiceLineRow, NewLedgerEntryRow } from '@lg/db';
 import { applyDiscounts, calculateMidMonthEnrollmentPrice } from '@lg/domain';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { SettingsService } from '../settings/index.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import type { ActiveEnrollmentInfo } from './billing.types.js';
-import { type MonthAdjustment, MonthCloseService } from './month-close.service.js';
+import { applyAdjustments, type PreparedLine } from './month-adjustments.js';
+import { MonthCloseService } from './month-close.service.js';
 
 export interface GenerateResult {
   period: string;
   invoicesCreated: number;
   linesCreated: number;
   totalAmount: string;
-}
-
-export interface PreparedLine {
-  enrollmentId: string;
-  /** Qator summasi (o'qishda — kreditdan keyingi net). */
-  amount: bigint;
-  description: string;
-  kind: 'tuition' | 'penalty';
-  /** BR-5/9 kredit: ledger'da `invoice` (+brutto) va `credit` (−kredit) alohida. */
-  credit?: bigint;
-}
-
-/** BR-2: o'tgan oy yopilishi tuzatishlarini yangi oy qatorlariga qo'llash (manfiy qator yo'q). */
-export function applyAdjustments(
-  lines: PreparedLine[],
-  adj: readonly MonthAdjustment[],
-): PreparedLine[] {
-  const out = lines.map((l) => {
-    const a = adj.find((x) => x.enrollmentId === l.enrollmentId);
-    if (!a || a.credit <= 0n || l.kind !== 'tuition') return l;
-    const credit = a.credit < l.amount ? a.credit : l.amount;
-    return {
-      ...l,
-      amount: l.amount - credit,
-      credit,
-      description: `${l.description}; kredit −${credit} (${a.creditNote ?? ''})`,
-    };
-  });
-  for (const a of adj) {
-    if (a.penalty > 0n)
-      out.push({
-        enrollmentId: a.enrollmentId,
-        amount: a.penalty,
-        kind: 'penalty',
-        description: `Jarima: ${a.penaltyNote ?? ''}`,
-      });
-  }
-  return out;
 }
 
 /** Ledger: o'qish — `invoice` (+brutto) va kredit bo'lsa `credit` (−kredit); jarima — `penalty`. */
@@ -77,11 +41,12 @@ export class BillingGeneratorService {
     @Inject(BillingRepository) private readonly repo: BillingRepository,
     @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
     @Inject(MonthCloseService) private readonly monthClose: MonthCloseService,
+    @Inject(SettingsService) private readonly settings: SettingsService,
   ) {}
 
   async generateMonthlyInvoices(period: string, customDueDate?: string): Promise<GenerateResult> {
-    const { monthStart, monthEnd, defaultDueDate } = this.calculateMonthDates(period);
-    const dueDate = customDueDate ?? defaultDueDate;
+    const { monthStart, monthEnd } = this.calculateMonthDates(period);
+    const dueDate = customDueDate ?? (await this.settings.dueDateOf(period));
 
     const enrollmentsList = await this.repo.findActiveEnrollmentsForMonth(monthStart, monthEnd);
     const studentLinesMap = await this.prepareLinesByStudent(
@@ -92,10 +57,7 @@ export class BillingGeneratorService {
     );
     // BR-2 1-qadam: o'tgan oy yopiladi (kredit, jarima). Xato bo'lsa — 2-qadam (invoice) yo'q.
     for (const [studentId, lines] of studentLinesMap)
-      studentLinesMap.set(
-        studentId,
-        applyAdjustments(lines, await this.monthClose.adjustments(studentId, period)),
-      );
+      studentLinesMap.set(studentId, await this.adjusted(studentId, period, lines));
 
     return this.persistInvoices(period, dueDate, studentLinesMap);
   }
@@ -105,14 +67,20 @@ export class BillingGeneratorService {
    * BR-3). Bor bo'lsa — o'tkaziladi. Muddat o'tib ketgan bo'lsa — bugun.
    */
   async generateForStudent(studentId: string, period: string, today: string): Promise<void> {
-    const { monthStart, monthEnd, defaultDueDate } = this.calculateMonthDates(period);
+    const { monthStart, monthEnd } = this.calculateMonthDates(period);
     const list = (await this.repo.findActiveEnrollmentsForMonth(monthStart, monthEnd)).filter(
       (e) => e.studentId === studentId,
     );
     const map = await this.prepareLinesByStudent(list, monthStart, monthEnd, period);
-    for (const [id, lines] of map)
-      map.set(id, applyAdjustments(lines, await this.monthClose.adjustments(id, period)));
-    await this.persistInvoices(period, defaultDueDate < today ? today : defaultDueDate, map);
+    for (const [id, lines] of map) map.set(id, await this.adjusted(id, period, lines));
+    const due = await this.settings.dueDateOf(period);
+    await this.persistInvoices(period, due < today ? today : due, map);
+  }
+
+  /** BR-2: o'tgan oy (yoki to'xtatishdan oldingi oxirgi oy, Q-102) tuzatishlari bilan. */
+  async adjusted(studentId: string, period: string, lines: PreparedLine[]) {
+    const ids = lines.map((l) => l.enrollmentId);
+    return applyAdjustments(lines, await this.monthClose.adjustments(studentId, period, ids));
   }
 
   private calculateMonthDates(period: string) {
@@ -122,8 +90,7 @@ export class BillingGeneratorService {
     const monthStart = `${period}-01`;
     const lastDay = new Date(year, month, 0).getDate();
     const monthEnd = `${period}-${String(lastDay).padStart(2, '0')}`;
-    const defaultDueDate = `${period}-10`;
-    return { monthStart, monthEnd, defaultDueDate };
+    return { monthStart, monthEnd };
   }
 
   private async prepareLinesByStudent(
@@ -182,7 +149,7 @@ export class BillingGeneratorService {
     return {
       enrollmentId: enrollment.enrollmentId,
       amount,
-      description: `${enrollment.groupName} kursi oylik to'lovi (${period})`,
+      description: `${enrollment.groupName} oylik toʻlovi (${period})`,
       kind: 'tuition',
     };
   }

@@ -17,12 +17,16 @@ import { RequirePermission } from '../../common/decorators/access.decorators.js'
 import { ZodBody, ZodQuery } from '../../common/decorators/zod.decorators.js';
 import { CurrentUser, type RequestUser } from '../auth/index.js';
 import { AttendanceService } from './attendance.service.js';
+import { UnmarkedLessonsService } from './unmarked-lessons.service.js';
 
 @ApiTags('Attendance')
 @ApiBearerAuth()
 @Controller('attendance')
 export class AttendanceController {
-  constructor(@Inject(AttendanceService) private readonly attendance: AttendanceService) {}
+  constructor(
+    @Inject(AttendanceService) private readonly attendance: AttendanceService,
+    @Inject(UnmarkedLessonsService) private readonly unmarked: UnmarkedLessonsService,
+  ) {}
 
   @Get('lessons/:lessonId')
   @RequirePermission('attendance.mark')
@@ -67,6 +71,6 @@ export class AttendanceController {
     @CurrentUser() user: RequestUser,
     @ZodQuery(UnmarkedLessonsQuerySchema) query: UnmarkedLessonsQuery,
   ): Promise<{ items: UnmarkedLessonItem[] }> {
-    return this.attendance.getUnmarkedLessons(user, query);
+    return this.unmarked.getUnmarkedLessons(user, query);
   }
 }

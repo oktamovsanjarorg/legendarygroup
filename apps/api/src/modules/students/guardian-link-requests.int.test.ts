@@ -1,8 +1,18 @@
 import type { RoleCode } from '@lg/contracts';
-import { closeDb, createDb, type Database, guardianLinkRequests, guardians, seed } from '@lg/db';
+import {
+  closeDb,
+  createDb,
+  type Database,
+  guardianLinkRequests,
+  guardians,
+  notifications,
+  seed,
+  users,
+} from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
+import { dispatchEvents } from '../../test/dispatch-event.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import { TEST_ENV } from '../../test/env.js';
 
@@ -221,5 +231,77 @@ describe('Ota-ona onboarding va bogʻlanish soʻrovlari (T-110 / FR-AUTH-1)', ()
     expect(statusRes.statusCode).toBe(200);
     expect(statusRes.json().status).toBe('rejected');
     expect(statusRes.json().rejectReason).toBe('Bunday ota-ona mavjud emas');
+  });
+
+  describe('T-135: tasdiq aynan kimga bogʻlanishini talab qiladi', () => {
+    const approve = (id: string, payload: object, token = adminToken) =>
+      t.app.inject({
+        method: 'POST',
+        url: `/api/guardians/link-requests/${id}/approve`,
+        headers: { authorization: `Bearer ${token}` },
+        payload,
+      });
+    const request = async (telegramId: number, phone: string) => {
+      await t.app.inject({
+        method: 'POST',
+        url: '/internal/guardian/contact',
+        headers: internalHeaders,
+        payload: { telegramId, phone, fullName: 'Yangi Ota' },
+      });
+      const [row] = await db
+        .select()
+        .from(guardianLinkRequests)
+        .where(eq(guardianLinkRequests.telegramId, BigInt(telegramId)));
+      return row!.id;
+    };
+    const statusOf = async (id: string) => {
+      const [row] = await db
+        .select()
+        .from(guardianLinkRequests)
+        .where(eq(guardianLinkRequests.id, id));
+      return row!.status;
+    };
+
+    it('farzand ham, ota-ona ham tanlanmasa yoki ikkalasi berilsa — 400, soʻrov kutishda qoladi', async () => {
+      const id = await request(888111010, '+998903330010');
+      expect((await approve(id, {})).statusCode).toBe(400);
+      expect((await approve(id, { studentId, guardianId: studentId })).statusCode).toBe(400);
+      expect(await statusOf(id)).toBe('pending');
+    });
+
+    it('mavjud boʻlmagan ota-ona kartasi — 404, soʻrov kutishda qoladi', async () => {
+      const id = await request(888111011, '+998903330011');
+      const res = await approve(id, { guardianId: '01900000-0000-7000-8000-0000000000ff' });
+      expect(res.statusCode).toBe(404);
+      expect(await statusOf(id)).toBe('pending');
+    });
+
+    it('Ustoz tasdiqlay/rad eta olmaydi (403)', async () => {
+      const id = await request(888111012, '+998903330012');
+      expect((await approve(id, { studentId }, teacherToken)).statusCode).toBe(403);
+    });
+
+    it('yangi soʻrov — botga ulangan xodimga, tasdiq — ota-onaga xabar (bir martadan)', async () => {
+      const managerId = await createUserWithRole(db, 'admin', '+998903339900');
+      await db.update(users).set({ telegramId: 990001n }).where(eq(users.id, managerId));
+      const id = await request(888111013, '+998903330013');
+      await dispatchEvents(t, db, 'GuardianLinkRequested');
+      await dispatchEvents(t, db, 'GuardianLinkRequested');
+      const tasks = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, managerId));
+      const mine = tasks.filter((n) => n.dedupeKey === `link-request-${id}-${managerId}`);
+      expect(mine.map((n) => n.type)).toEqual(['staff_task']);
+      expect(mine[0]?.body).toContain('Yangi Ota');
+
+      expect((await approve(id, { studentId, relation: 'father' })).statusCode).toBe(200);
+      await dispatchEvents(t, db, 'GuardianLinkApproved');
+      const sent = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.dedupeKey, `link-approved-${id}`));
+      expect(sent.map((n) => [n.type, n.recipient])).toEqual([['link_approved', '888111013']]);
+    });
   });
 });

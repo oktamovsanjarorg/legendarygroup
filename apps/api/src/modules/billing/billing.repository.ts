@@ -30,6 +30,7 @@ import {
 } from '@lg/db';
 import { and, desc, eq, gte, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { billableGroup, notTransferredIn } from './group-billing.repository.js';
 import type { ActiveEnrollmentInfo } from './billing.types.js';
 
 @Injectable()
@@ -116,6 +117,7 @@ export class BillingRepository {
         discountPercent: enrollments.discountPercent,
         monthlyPrice: groups.monthlyPrice,
         groupName: groups.name,
+        groupStatus: groups.status,
       })
       .from(enrollments)
       .innerJoin(groups, eq(groups.id, enrollments.groupId))
@@ -123,6 +125,9 @@ export class BillingRepository {
         and(
           lte(enrollments.startDate, monthEnd),
           or(isNull(enrollments.endDate), gte(enrollments.endDate, monthStart)),
+          // Q-102: to'xtatilgan va oy boshlanishidan oldin yakunlangan guruh — hisob yo'q.
+          billableGroup(monthStart),
+          notTransferredIn(monthStart),
         ),
       );
   }
@@ -142,6 +147,7 @@ export class BillingRepository {
         discountPercent: enrollments.discountPercent,
         monthlyPrice: groups.monthlyPrice,
         groupName: groups.name,
+        groupStatus: groups.status,
       })
       .from(enrollments)
       .innerJoin(groups, eq(groups.id, enrollments.groupId))
