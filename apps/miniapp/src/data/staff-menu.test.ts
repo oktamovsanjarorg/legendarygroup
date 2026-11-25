@@ -77,9 +77,21 @@ describe('MS-06 Koʻproq (T-130)', () => {
     expect(new Set(STAFF_MENU.map((i) => i.key)).size).toBe(STAFF_MENU.length);
   });
 
-  it('xodim tablari: Bugun, Oʻquvchilar, …, Menyu (Q-113)', () => {
-    expect(tabPaths('admin')).toEqual(['/', '/staff/search', '/staff/pay', '/staff/more']);
-    expect(tabPaths('director')).toEqual(['/', '/staff/search', '/staff/finance', '/staff/more']);
+  it('xodim tablari: Bugun, Oʻquvchilar, …, Yordamchi, Menyu (Q-113, Q-114)', () => {
+    expect(tabPaths('admin')).toEqual([
+      '/',
+      '/staff/search',
+      '/staff/pay',
+      '/staff/assistant',
+      '/staff/more',
+    ]);
+    expect(tabPaths('director')).toEqual([
+      '/',
+      '/staff/search',
+      '/staff/finance',
+      '/staff/assistant',
+      '/staff/more',
+    ]);
   });
 
   it('ruxsati yoʻq tab koʻrsatilmaydi', () => {

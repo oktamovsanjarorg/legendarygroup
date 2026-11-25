@@ -1,0 +1,42 @@
+/** MS-35 AI yordamchi (Q-114). */
+export const assistantMessages = {
+  assistant: {
+    title: 'Yordamchi',
+    hint: 'Savolingizni oddiy soʻz bilan yozing — men maʼlumotni topib, kerakli ekranni ochib beraman.',
+    placeholder: 'Masalan: Ali Valiyevning qarzi qancha?',
+    send: 'Yuborish',
+    thinking: 'Oʻylayapman…',
+    clear: 'Yangi suhbat',
+    safety:
+      'Yordamchi hech narsani oʻzi oʻzgartirmaydi: toʻlov, oʻquvchi va boshqa amallarni ochilgan ekranda siz tasdiqlaysiz.',
+    disabledTitle: 'Yordamchi hali yoqilmagan',
+    disabledHint: 'Uni yoqish uchun tizimga AI kaliti sozlanishi kerak.',
+    you: 'Siz',
+    suggestionsTitle: 'Tez savollar',
+    suggestions: [
+      'Bugun nima holat?',
+      'Eng katta qarzdorlar kimlar?',
+      'Chek navbatida nechta chek bor?',
+      'Toʻlov kiritmoqchiman',
+    ],
+    open: {
+      student: 'Kartochkani ochish',
+      pay: 'Toʻlov kiritish',
+      newStudent: 'Yangi oʻquvchi',
+      debtors: 'Qarzdorlar',
+      queue: 'Chek navbati',
+      approvals: 'Tasdiqlash soʻrovlari',
+      attendance: 'Davomat',
+      leads: 'Lidlar',
+      groups: 'Guruhlar',
+      calendar: 'Darslar kalendari',
+      payments: 'Toʻlovlar tarixi',
+      cash: 'Kassa',
+      finance: 'Moliya',
+      addExpense: 'Xarajat qoʻshish',
+      reports: 'Hisobotlar',
+      announcements: 'Eʼlonlar',
+      tickets: 'Murojaatlar',
+    },
+  },
+} as const;

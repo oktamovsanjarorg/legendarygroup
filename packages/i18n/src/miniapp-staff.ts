@@ -5,6 +5,7 @@ export const staffMessages = {
     students: 'Oʻquvchilar',
     pay: 'Toʻlov',
     finance: 'Moliya',
+    assistant: 'Yordamchi',
     menu: 'Menyu',
   },
   /** MS-06 Koʻproq (11-ux §2, T-130): ruxsatga qarab boʻlimlar. */
