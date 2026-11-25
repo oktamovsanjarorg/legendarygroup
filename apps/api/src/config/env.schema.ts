@@ -26,6 +26,11 @@ export const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32, 'kamida 32 belgi'),
   /** TOTP sirlarini shifrlash (AES-256-GCM): 32 bayt, hex. */
   TOTP_ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/i, '64 belgili hex (32 bayt)'),
+  /** AI yordamchi (Q-114). Berilmasa — yordamchi o'chiq, ilova ishlayveradi (ochiq holat). */
+  ANTHROPIC_API_KEY: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(20, 'Anthropic API kaliti').optional(),
+  ),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   /** S3 (prod — AWS, lokal — MinIO). Kalitlar bo'lmasa — SDK standart zanjiri (EC2 IAM roli). */
   S3_ENDPOINT: z.url().optional(),
