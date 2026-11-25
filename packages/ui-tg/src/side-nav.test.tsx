@@ -29,15 +29,34 @@ describe('SideNav (T-164, Q-113)', () => {
     expect(activeItem(GROUPS, '/staff/student/1')).toBeNull();
   });
 
-  it('boʻlim sarlavhasi, son belgisi; faol bandni qayta bosish — hech narsa', () => {
+  it('guruh yigʻilgan: sarlavhada kutayotganlar soni; ochilsa — band; faol bandni qayta bosish — hech narsa', () => {
+    localStorage.clear();
     const onSelect = vi.fn();
     render(<SideNav groups={GROUPS} active="/" onSelect={onSelect} />);
-    expect(screen.getByText('Pul')).toBeTruthy();
+    expect(screen.queryByText('Toʻlov')).toBeNull();
     expect(screen.getByText('3')).toBeTruthy();
     fireEvent.click(screen.getByText('Bugun'));
     expect(onSelect).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /Pul/ }));
     fireEvent.click(screen.getByText('Toʻlov'));
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ to: '/staff/pay' }));
+    expect(localStorage.getItem('lg_side_open')).toBe('["money"]');
+  });
+
+  it('faol band turgan guruh doim ochiq; qidiruv tugmasi', () => {
+    localStorage.clear();
+    const onSearch = vi.fn();
+    render(
+      <SideNav
+        groups={GROUPS}
+        active="/staff/pay"
+        onSelect={vi.fn()}
+        search={{ label: 'Qidirish', hint: 'Ctrl K', onClick: onSearch }}
+      />,
+    );
+    expect(screen.getByText('Toʻlov').closest('button')?.getAttribute('aria-current')).toBe('page');
+    fireEvent.click(screen.getByText('Qidirish'));
+    expect(onSearch).toHaveBeenCalledOnce();
   });
 });
 
@@ -77,7 +96,7 @@ describe('PassiveControls va toʻliq ekran (T-164)', () => {
 
   it('kompyuterda bir marta toʻliq ekran soʻraladi; telefonda — yoʻq', async () => {
     const { createFakeWebApp } = await import('./testing.js');
-    const { useDesktopFullscreen } = await import('./side-nav.js');
+    const { useDesktopFullscreen } = await import('./desk.js');
     function Probe({ wa }: { wa: ReturnType<typeof createFakeWebApp> }) {
       useDesktopFullscreen(wa, true);
       return null;
