@@ -27,6 +27,7 @@ function PayForm({ id, student }: { id: string; student: { name: string; code: s
         <OkNotice text={pdf.isSuccess ? t.receiptSent : null} />
         <PayDoneView
           receipt={receipt}
+          notified={create.data?.guardiansNotified}
           onReceipt={() => pdf.mutate(receipt)}
           onFinish={() => void navigate({ to: '/staff/student/$id', params: { id } })}
         />

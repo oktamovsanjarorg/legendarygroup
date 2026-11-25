@@ -1,4 +1,8 @@
-import type { BotStudentLinkResult, TelegramOnboardResult } from '@lg/contracts';
+import type {
+  BotStudentLinkResult,
+  TelegramOnboardResult,
+  TelegramOnboardStatus,
+} from '@lg/contracts';
 import { useWebApp } from '@lg/ui-tg';
 import { useApi } from './deps.js';
 
@@ -7,6 +11,13 @@ export function useOnboard() {
   const api = useApi();
   const { initData } = useWebApp();
   return {
+    /** Ochilganda: avval yuborilgan so'rov holati. */
+    status: () =>
+      api.request<TelegramOnboardStatus>('/auth/telegram/status', {
+        method: 'POST',
+        body: { initData },
+        retry: false,
+      }),
     contact: (contact: string, createRequest: boolean) =>
       api.request<TelegramOnboardResult>('/auth/telegram/contact', {
         method: 'POST',

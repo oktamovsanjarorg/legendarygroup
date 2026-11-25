@@ -20,6 +20,8 @@ export const onboardingMessages = {
     requestedTitle: 'Soʻrov yuborildi',
     requestedHint: 'Markaz xodimi tasdiqlagach, ilova shu yerda ochiladi. Odatda bir kun ichida.',
     refresh: 'Tekshirish',
+    rejected:
+      'Oldingi soʻrov rad etildi: {reason}. Raqamni qayta ulashib, yana urinib koʻrishingiz mumkin.',
     notYet: 'Hali tasdiqlanmagan. Birozdan keyin yana tekshiring.',
     conflict:
       'Bu raqam boshqa Telegram akkauntga ulangan. Markazga qoʻngʻiroq qiling — xodim eski ulanishni uzadi.',

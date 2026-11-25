@@ -15,13 +15,14 @@ export interface PaymentReceiptNotice {
 /**
  * FR-PAY-2: to'lov saqlangach chek ota-onaga botda. Faqat `notify` yoqilgan va botga ulangan
  * ota-onalar (chatId — Telegram ID). Kalit to'lov + ota-ona bo'yicha: qayta chaqiruv — bitta xabar.
+ * Qaytaradi: xabar yuborilgan ota-onalar soni (xodimga «yuborildi» deb yolg'on aytilmasin).
  */
 export async function notifyPaymentReceipt(
   db: Database,
   outbox: TelegramOutbox | undefined,
   n: PaymentReceiptNotice,
-): Promise<void> {
-  if (!outbox) return;
+): Promise<number> {
+  if (!outbox) return 0;
   const rows = await db
     .select({ guardianId: guardians.id, telegramId: users.telegramId, student: students.fullName })
     .from(studentGuardians)
@@ -53,4 +54,5 @@ export async function notifyPaymentReceipt(
       { dedupeKey: `payment-receipt:${n.paymentId}:${r.guardianId}` },
     );
   }
+  return rows.length;
 }

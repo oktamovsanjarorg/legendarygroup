@@ -1,4 +1,4 @@
-import { formatMoney } from '@lg/i18n';
+import { formatMoney, miniappMessages as t } from '@lg/i18n';
 import { TelegramProvider } from '@lg/ui-tg';
 import { createFakeWebApp, type FakeWebApp } from '@lg/ui-tg/testing';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
@@ -82,9 +82,17 @@ describe('MS-07 toʻlov kiritish (T-131, BR-12)', () => {
     const onFinish = vi.fn();
     wrap(wa, <PayDoneView receipt="LG-2026-000123" onReceipt={onReceipt} onFinish={onFinish} />);
     expect(screen.getByText(/LG-2026-000123/)).toBeTruthy();
-    fireEvent.click(screen.getByText('Chekni ochish (PDF)'));
+    fireEvent.click(screen.getByText(t.staffPay.openReceipt));
     expect(onReceipt).toHaveBeenCalledOnce();
     wa.MainButton.click();
     expect(onFinish).toHaveBeenCalledOnce();
+  });
+
+  it('ota-ona botga ulanmagan — «yuborildi» deyilmaydi', () => {
+    const wa = createFakeWebApp();
+    const noop = () => undefined;
+    wrap(wa, <PayDoneView receipt="LG-1" notified={0} onReceipt={noop} onFinish={noop} />);
+    expect(screen.queryByText(/ota-onaga yuborildi/)).toBeNull();
+    expect(screen.getByText(/botga ulanmagan/)).toBeTruthy();
   });
 });

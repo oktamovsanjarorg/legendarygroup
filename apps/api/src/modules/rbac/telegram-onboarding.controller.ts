@@ -3,6 +3,8 @@ import {
   TelegramOnboardRequest,
   type TelegramOnboardResult,
   TelegramStudentOnboardRequest,
+  TelegramStatusRequest,
+  type TelegramOnboardStatus,
 } from '@lg/contracts';
 import type { Clock } from '@lg/domain';
 import { Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
@@ -72,6 +74,18 @@ export class TelegramOnboardingController {
     if (g.result === 'request_created' || g.result === 'pending_approval')
       return { result: g.result };
     return { result: g.result === 'conflict' ? 'conflict' : 'not_found' };
+  }
+
+  @Post('status')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'C-03: ochilganda — soʻrov kutilyaptimi yoki rad etilganmi' })
+  async status(
+    @ZodBody(TelegramStatusRequest) body: TelegramStatusRequest,
+  ): Promise<TelegramOnboardStatus> {
+    const me = verifyInitData(body.initData, this.botToken, this.clock.now().getTime());
+    if (!me.ok) throw new AppException(HttpStatus.UNAUTHORIZED, 'INVALID_INIT_DATA');
+    const s = await this.guardians.checkTelegramStatus(me.user.id);
+    return { status: s.status, ...(s.rejectReason ? { rejectReason: s.rejectReason } : {}) };
   }
 
   @Post('student')

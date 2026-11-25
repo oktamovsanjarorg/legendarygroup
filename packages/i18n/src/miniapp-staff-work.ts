@@ -11,9 +11,9 @@ export const staffWorkMessages = {
   /** MS-11 Bogʻlanish soʻrovlari (T-135, FR-AUTH-1). */
   linkReq: {
     title: 'Bogʻlanish soʻrovlari',
-    hint: 'Raqami bazada yoʻq odam botda soʻrov qoldirgan. Qoʻngʻiroq qilib aniqlang, keyin farzandiga bogʻlang.',
+    hint: 'Raqami bazada yoʻq odam ilovada soʻrov qoldirgan. Qoʻngʻiroq qilib aniqlang, keyin farzandiga bogʻlang.',
     empty: 'Yangi soʻrov yoʻq',
-    emptyHint: 'Nomaʼlum raqam botga yozsa, shu yerda chiqadi va botda xabar beramiz.',
+    emptyHint: 'Nomaʼlum raqam soʻrov yuborsa, shu yerda chiqadi va botda xabar beramiz.',
     link: 'Oʻquvchiga bogʻlash',
     reject: 'Rad etish',
     rejectTitle: 'Rad etish sababi',

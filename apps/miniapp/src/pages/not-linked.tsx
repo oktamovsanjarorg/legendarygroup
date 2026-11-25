@@ -2,7 +2,7 @@ import type { BotStudentLinkResult } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
 import { supports, useHaptic, useWebApp } from '@lg/ui-tg';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useOnboard } from '../data/onboarding.js';
 import { type OnboardPhase, OnboardingView } from '../screens/common/onboarding.js';
 import { useSession } from '../session/session.js';
@@ -33,7 +33,7 @@ function useContactRun(onDeclined: () => void) {
         );
   const run = async (fn: (c: string) => Promise<void>) => {
     const got = await askContact();
-    if (!got) return onDeclined();
+    if (!got) return (setError(c.declined), onDeclined());
     setContact(got);
     setBusy(true);
     setError(null);
@@ -49,6 +49,24 @@ function useContactRun(onDeclined: () => void) {
   return { run, busy, error, setError };
 }
 
+/** Qayta ochilganda: so'rov kutilyapti — kutish ekrani; rad etilgan — sababi bilan. */
+function useResumeRequest(
+  status: ReturnType<typeof useOnboard>['status'],
+  setPhase: (p: OnboardPhase) => void,
+  setError: (e: string) => void,
+) {
+  const [once] = useState(() => status);
+  useEffect(() => {
+    void once()
+      .then((s) => {
+        if (s.status === 'pending_approval') setPhase('requested');
+        if (s.status === 'rejected')
+          setError(c.rejected.replace('{reason}', s.rejectReason ?? '—'));
+      })
+      .catch(() => undefined);
+  }, [once, setPhase, setError]);
+}
+
 function useOnboardFlow() {
   const wa = useWebApp();
   const haptic = useHaptic();
@@ -61,6 +79,7 @@ function useOnboardFlow() {
   const { run, busy, error, setError } = useContactRun(() =>
     setPhase((p) => (p === 'student' ? p : 'declined')),
   );
+  useResumeRequest(onboard.status, setPhase, setError);
 
   const enter = async () => {
     const ok = await relink();

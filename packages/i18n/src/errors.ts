@@ -47,7 +47,7 @@ export const errorMessages = {
   INVALID_INIT_DATA: 'Telegram maʼlumotlari tasdiqlanmadi. Ilovani bot orqali qayta oching.',
   INVALID_CONTACT: 'Raqamni tasdiqlab boʻlmadi. Oʻzingizning raqamingizni qayta ulashing.',
   TELEGRAM_NOT_LINKED:
-    'Telegram akkauntingiz tizimga bogʻlanmagan. Botda /start bosing va telefon raqamingizni ulashing.',
+    'Telegram akkauntingiz hali tizimda yoʻq. Ilovada «📱 Raqamni ulashish»ni bosing.',
   NON_DELEGABLE_PERMISSION: 'Bu ruxsat faqat Direktorga tegishli, uni Adminga berib boʻlmaydi.',
   OVERRIDE_NOT_ALLOWED: 'Bu ruxsatni ushbu xodimga berib yoki olib boʻlmaydi.',
   OWN_ACCESS: 'Oʻz raqamingiz va ruxsatlaringizni oʻzgartirib, oʻzingizni bloklab boʻlmaydi.',
@@ -140,7 +140,7 @@ export const errorMessages = {
   PERIOD_INVALID: 'Davr formati notoʻgʻri (YYYY-MM).',
   EXPENSE_NOT_FOUND: 'Xarajat topilmadi.',
   TELEGRAM_LINK_CONFLICT:
-    'Bu Telegram bogʻlanmaydi: u boshqa profilga ulangan yoki raqam xodimniki. Xodim botda oʻz raqamini ulashsin.',
+    'Bu Telegram bogʻlanmaydi: u boshqa profilga ulangan yoki raqam xodimniki. Xodim ilovada oʻz raqamini ulashsin.',
   REQUEST_NOT_FOUND: 'Bogʻlanish soʻrovi topilmadi.',
   STUDENT_NOT_FOUND: 'Oʻquvchi topilmadi.',
   PAYROLL_NOT_APPROVED: 'Oylik avval tasdiqlanishi kerak, keyin toʻlangan deb belgilanadi.',

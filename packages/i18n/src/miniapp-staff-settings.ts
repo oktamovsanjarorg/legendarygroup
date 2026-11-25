@@ -64,6 +64,6 @@ export const staffSettingsMessages = {
       students: 'Oʻquvchilar',
     },
     invite: 'Ota-onalarni taklif qilish',
-    inviteHint: 'Ota-ona botni ochib, raqamini ulashadi va farzandiga bogʻlanadi.',
+    inviteHint: 'Ota-ona ilovani ochib, raqamini ulashadi va farzandiga bogʻlanadi.',
   },
 } as const;
