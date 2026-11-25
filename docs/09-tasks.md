@@ -573,6 +573,12 @@
 - **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
 - **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Model — DeepSeek'ka almashtirildi (T-173, Q-119).
 
+### ✅ T-174 · Kompyuter qobig'i: yon panel, buyruqlar oynasi, yordamchi paneli
+
+- **Bog'liq:** T-164, T-171 · **Qaror:** Q-120
+- **Sabab (egasi, 2026-11-25):** «katta bo'lgan bilan kompyuterga umuman mos emas — chiroyli qilib yoz».
+- **Bajarildi (2026-11-25):** ≥ 900 px'da `DeskShell`: yon panel (logo, asosiy bo'limlar, yig'iladigan guruhlar — faol guruh doim ochiq, holat qurilmada saqlanadi; yig'ilgan guruhda kutayotganlar soni; pastda foydalanuvchi → sozlamalar), yuqori panel (qidiruv, AI yordamchi), Ctrl/⌘ K — buyruqlar oynasi (barcha bo'limlar, o'quvchi qidiruvi, «yordamchidan so'rash»), Ctrl/⌘ J — o'ng yordamchi paneli (sahifani yopmasdan). Kontent kengroq (`max-w-5xl`), «Bugun» — 4 ustunli KPI, tezkor amallar ixcham tugmalar; ro'yxatlarda hover, chevron yo'q; yonma-yon ko'rinish yangilandi. CSS `desk:` varianti. Testlar: `side-nav.test.tsx`, `command-palette.test.tsx`; Storybook `Navigatsiya (Q-113, T-174)`.
+
 ### ✅ T-173 · AI yordamchi: DeepSeek'ka o'tish
 
 - **Bog'liq:** T-172 · **Qaror:** Q-119 (egasi)

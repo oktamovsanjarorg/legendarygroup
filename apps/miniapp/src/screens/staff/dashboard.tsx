@@ -26,16 +26,18 @@ export function StaffDashboardView({
   onOpen: (target: KpiTarget) => void;
 }) {
   return (
-    <main className="flex flex-col gap-3 p-2 pt-3">
-      <h1 className="px-2 text-2xl font-bold text-text">{t.dashboard.title}</h1>
+    <main className="flex flex-col gap-3 p-2 pt-3 desk:gap-5">
+      <h1 className="px-2 text-2xl font-bold text-text desk:px-0">{t.dashboard.title}</h1>
       <QuickActions items={actions} />
-      <KpiTile
-        label={t.dashboard.revenue}
-        value={formatMoney(k.revenue)}
-        note={t.dashboard.vsYesterday.replace('{v}', formatMoney(k.revenueYesterday))}
-        onClick={() => onOpen('payments')}
-      />
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 desk:grid-cols-4 desk:gap-3">
+        <div className="col-span-2 grid">
+          <KpiTile
+            label={t.dashboard.revenue}
+            value={formatMoney(k.revenue)}
+            note={t.dashboard.vsYesterday.replace('{v}', formatMoney(k.revenueYesterday))}
+            onClick={() => onOpen('payments')}
+          />
+        </div>
         <KpiTile
           label={t.dashboard.attendance}
           value={`${k.attendancePercent}%`}

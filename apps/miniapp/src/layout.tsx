@@ -1,7 +1,6 @@
 import {
   ForbiddenState,
   OfflineBanner,
-  SideNav,
   type SideNavGroup,
   TabBar,
   type TabItem,
@@ -14,6 +13,7 @@ import {
 } from '@lg/ui-tg';
 import { Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router';
 import { useAttendanceQueueFlush } from './data/attendance.js';
+import { DeskShell } from './desk/desk-shell.js';
 import { useNavModel } from './nav-model.js';
 import { SplitView, useSplit } from './split-view.js';
 import { useOnline } from './use-online.js';
@@ -36,7 +36,7 @@ function shellFlags(
 /**
  * Mini App qobig'i: offline chiziq, xavfsiz zona, Telegram BackButton (ichki ekranlarda),
  * menyudagi "Sozlamalar" (C-04), rolga qarab pastki tablar (faqat tab ildizlarida).
- * Keng ekranda (T-164, Q-113) — pastki menyu o'rniga doimiy yon panel, kontent markazda.
+ * Kompyuterda (T-164, T-174) — pastki menyu o'rniga `DeskShell`: yon panel, qidiruv, yordamchi.
  */
 export function AppLayout() {
   const online = useOnline();
@@ -71,18 +71,21 @@ export function AppLayout() {
       }}
     >
       {!online && <OfflineBanner />}
-      <div className={showSide ? 'flex' : ''}>
-        {showSide && <SideNav groups={side} active={path} onSelect={(i) => go(i.to)} />}
-        <div className={`min-w-0 flex-1 ${showTabs ? 'pb-20' : ''}`}>
-          {showSide && split ? (
+      {showSide ? (
+        <DeskShell path={path} side={side}>
+          {split ? (
             <SplitView split={split.split} detail={split.detail} />
           ) : (
-            <div className={showSide ? 'mx-auto max-w-3xl' : ''}>
+            <div className="mx-auto w-full max-w-5xl px-4 py-3">
               <Outlet />
             </div>
           )}
+        </DeskShell>
+      ) : (
+        <div className={showTabs ? 'pb-20' : ''}>
+          <Outlet />
         </div>
-      </div>
+      )}
       {showTabs && <TabBar items={tabs} active={path} onSelect={(item) => go(item.to)} />}
     </div>
   );

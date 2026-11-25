@@ -8,6 +8,21 @@ export const staffMessages = {
     assistant: 'Yordamchi',
     menu: 'Menyu',
   },
+  /** Kompyuter qobigʻi (T-174): yon panel, qidiruv, yordamchi paneli. */
+  desk: {
+    brand: 'Legendary',
+    brandNote: 'Boshqaruv paneli',
+    search: 'Qidirish yoki oʻtish…',
+    palette: 'Boʻlim, oʻquvchi yoki savol yozing…',
+    empty: 'Hech narsa topilmadi',
+    close: 'Yopish',
+    sections: 'Boʻlimlar',
+    students: 'Oʻquvchilar',
+    ask: 'Yordamchidan soʻrash: «{q}»',
+    assistant: 'AI yordamchi',
+    assistantHint: 'Savol bering — maʼlumotni topib, kerakli ekranni ochib beradi.',
+    settings: 'Sozlamalar',
+  },
   /** Keng ekran: roʻyxat + tafsilot (T-164). */
   split: {
     list: 'Roʻyxat',
