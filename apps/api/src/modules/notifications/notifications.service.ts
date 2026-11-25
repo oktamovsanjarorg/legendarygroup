@@ -24,6 +24,8 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { type ManagerRole, StaffDirectoryService } from '../rbac/index.js';
 import { TelegramOutbox } from '../telegram/index.js';
+import { EnvService } from '../../config/env.service.js';
+import { botMessages } from '@lg/i18n';
 import { NotificationsRepository } from './notifications.repository.js';
 
 /** `failedReason`: foydalanuvchida Telegram yo'q. */
@@ -55,6 +57,7 @@ export class NotificationsService {
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(StaffDirectoryService) private readonly staff: StaffDirectoryService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(EnvService) private readonly env: EnvService,
   ) {}
 
   /**
@@ -102,13 +105,22 @@ export class NotificationsService {
    * Navbatga qo'yish: matn va (bo'lsa) fayl alohida xabar — caption 1024 belgi bilan cheklangan.
    * Navbat ishlamasa — `failed`: aks holda `queued` qator dedupe tufayli hech qachon yuborilmasdi.
    */
+  /** Har xabar ostida — Mini App (Q-99: hamma ish ilova ichida, tashqi sayt yo'q). */
+  private withAppButton<T extends object>(message: T) {
+    const button = {
+      text: botMessages.openApp,
+      web_app: { url: this.env.get('TELEGRAM_MINIAPP_URL') },
+    };
+    return { ...message, reply_markup: { inline_keyboard: [[button]] } };
+  }
+
   async enqueue(notif: NotificationRow, chatId: string, dedupeKey?: string): Promise<void> {
     const payload = notif.payload;
     const rendered = renderNotificationTemplate(notif.type, payload);
     const base = { chatId, notificationId: notif.id };
     try {
       await this.telegramOutbox.enqueue(
-        { ...base, method: 'sendMessage', payload: telegramMessage(rendered) },
+        { ...base, method: 'sendMessage', payload: this.withAppButton(telegramMessage(rendered)) },
         { dedupeKey },
       );
       if (typeof payload.fileId === 'string')

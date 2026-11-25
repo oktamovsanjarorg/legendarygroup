@@ -542,6 +542,11 @@
 - **Bog'liq:** T-146, T-009 · **Talablar:** FR-AUTH-3 · **Qaror:** Q-109
 - **Bajarildi (2026-11-25):** C-03 ekranida `requestContact` → bot bog'laydi → ilova o'zi kiradi; topilmasa/voz kechsa — tushuntirish; eski klient — botga qaytish. Testlar: `pages/not-linked.test.tsx`.
 
+### ✅ T-168 · Fayllar va xabarlar Mini App ichida
+
+- **Bog'liq:** T-167, T-205 · **Qaror:** Q-110
+- **Bajarildi (2026-11-25):** chek PDF bot chatiga (blob yuklab olish o'rniga); har bot xabarida «Ilovani ochish» tugmasi.
+
 ### ⬜ T-164 · Mini App: keng ekran (Telegram Desktop)
 
 - **Bog'liq:** T-130 · **Talablar:** 11-ux §3
