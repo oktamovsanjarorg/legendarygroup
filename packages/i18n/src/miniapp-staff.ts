@@ -2,14 +2,14 @@
 export const staffMessages = {
   stabs: {
     today: 'Bugun',
-    queue: 'Navbat',
-    approvals: 'Soʻrovlar',
-    search: 'Qidiruv',
-    more: 'Koʻproq',
+    students: 'Oʻquvchilar',
+    pay: 'Toʻlov',
+    finance: 'Moliya',
+    menu: 'Menyu',
   },
   /** MS-06 Koʻproq (11-ux §2, T-130): ruxsatga qarab boʻlimlar. */
   staffMore: {
-    title: 'Koʻproq',
+    title: 'Menyu',
     sections: {
       students: 'Oʻquvchilar',
       money: 'Pul',

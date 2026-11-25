@@ -13,10 +13,11 @@ import { useApi } from './deps.js';
 import { approvalRequest, queueItem, staffKpi, studentHit } from './staff-map.js';
 
 /** Xodim (Director/Admin) Mini App'i (T-120). */
-export function useStaffKpi(isDirector: boolean) {
+export function useStaffKpi(isDirector: boolean, enabled = true) {
   const api = useApi();
   return useQuery({
     queryKey: ['staff', 'kpi'],
+    enabled,
     queryFn: async () =>
       staffKpi(await api.request<DirectorDashboardKpi>('/dashboard/director'), isDirector),
   });

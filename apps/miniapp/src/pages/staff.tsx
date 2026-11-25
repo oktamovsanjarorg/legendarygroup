@@ -1,6 +1,6 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
-import { useMainButton } from '@lg/ui-tg';
+import type { QuickAction } from '@lg/ui-tg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { QueryView } from '../data/query-view.js';
@@ -14,7 +14,9 @@ import {
   useStudentSearch,
 } from '../data/staff.js';
 import { ApprovalDecisionView, ApprovalsView } from '../screens/staff/approvals.js';
+import type { StaffMenuKey } from '../data/staff-menu.js';
 import { type KpiTarget, StaffDashboardView } from '../screens/staff/dashboard.js';
+import { STAFF_ICONS } from '../screens/staff/menu-icons.js';
 import { ReviewView } from '../screens/staff/review.js';
 import { SearchView } from '../screens/staff/search.js';
 import { useMe } from '../session/session.js';
@@ -35,21 +37,42 @@ const KPI_ROUTES: Record<KpiTarget, string> = {
   approvals: '/staff/approvals',
 };
 
-/** MS-01 xodim bosh sahifasi (T-120). */
+/** Bosh sahifadagi tezkor amallar: eng ko'p ishlar, ruxsatga qarab (Q-113). */
+const QUICK: readonly { key: StaffMenuKey; permission: string; to: string }[] = [
+  { key: 'pay', permission: 'payment.create', to: '/staff/pay' },
+  { key: 'newStudent', permission: 'student.manage', to: '/staff/new' },
+  { key: 'queue', permission: 'payment.review', to: '/staff/queue' },
+  { key: 'approvals', permission: 'approval.decide', to: '/staff/approvals' },
+  { key: 'attendance', permission: 'attendance.edit_past', to: '/staff/attendance' },
+  { key: 'debtors', permission: 'payment.review', to: '/staff/debtors' },
+];
+
+/** MS-01 xodim bosh sahifasi (T-120): KPI va tezkor amallar; MainButton yo'q (Q-113). */
 export function StaffDashboardPage() {
   const me = useMe();
   const navigate = useNavigate();
   const query = useStaffKpi(me.activeRole === 'director');
-  // Eng ko'p amal — to'lov kiritish (FR-PAY-1): bosh sahifadan bir bosishda.
-  useMainButton({
-    text: t.staffMore.items.pay,
-    visible: me.permissions.includes('payment.create'),
-    onClick: () => void navigate({ to: '/staff/pay' }),
-  });
+  const badges: Partial<Record<StaffMenuKey, number>> = {
+    queue: query.data?.queue,
+    approvals: query.data?.approvals,
+  };
+  const actions: QuickAction[] = QUICK.filter((q) => me.permissions.includes(q.permission)).map(
+    (q) => ({
+      key: q.key,
+      label: t.staffMore.items[q.key],
+      icon: STAFF_ICONS[q.key],
+      badge: badges[q.key] || undefined,
+      onClick: () => void navigate({ to: q.to }),
+    }),
+  );
   return (
     <QueryView query={query}>
       {(k) => (
-        <StaffDashboardView k={k} onOpen={(target) => void navigate({ to: KPI_ROUTES[target] })} />
+        <StaffDashboardView
+          k={k}
+          actions={actions}
+          onOpen={(target) => void navigate({ to: KPI_ROUTES[target] })}
+        />
       )}
     </QueryView>
   );

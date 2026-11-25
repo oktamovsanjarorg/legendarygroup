@@ -12,7 +12,7 @@ export function StaffMorePage() {
   const kpi = useStaffKpi(me.activeRole === 'director');
   const groups = staffMenuFor(
     me.permissions,
-    tabsFor(me.activeRole).map((tab) => tab.to),
+    tabsFor(me.activeRole, me.permissions).map((tab) => tab.to),
   );
   return (
     <StaffMoreView

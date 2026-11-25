@@ -1,31 +1,53 @@
 import {
   ForbiddenState,
   OfflineBanner,
+  SideNav,
+  type SideNavGroup,
   TabBar,
+  type TabItem,
   useBackButton,
   useHaptic,
   useSettingsButton,
+  useWide,
 } from '@lg/ui-tg';
 import { Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router';
-import { useMe } from './session/session.js';
-import { tabsFor } from './tabs.js';
 import { useAttendanceQueueFlush } from './data/attendance.js';
+import { useNavModel } from './nav-model.js';
 import { useOnline } from './use-online.js';
+
+/** Qaysi navigatsiya ko'rinadi: telefonda — tab ildizida pastki menyu; keng ekranda — yon panel. */
+function shellFlags(
+  path: string,
+  tabs: readonly TabItem[],
+  side: readonly SideNavGroup[],
+  wide: boolean,
+) {
+  const isRoot = path === '/' || tabs.some((t) => t.to === path);
+  return {
+    isRoot,
+    showTabs: !wide && isRoot && tabs.length > 0,
+    showSide: wide && side.some((g) => g.items.length > 0),
+  };
+}
 
 /**
  * Mini App qobig'i: offline chiziq, xavfsiz zona, Telegram BackButton (ichki ekranlarda),
  * menyudagi "Sozlamalar" (C-04), rolga qarab pastki tablar (faqat tab ildizlarida).
+ * Keng ekranda (T-164, Q-113) — pastki menyu o'rniga doimiy yon panel, kontent markazda.
  */
 export function AppLayout() {
-  const me = useMe();
   const online = useOnline();
   useAttendanceQueueFlush();
   const router = useRouter();
   const navigate = useNavigate();
   const h = useHaptic();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const tabs = tabsFor(me.activeRole);
-  const isRoot = path === '/' || tabs.some((t) => t.to === path);
+  const { tabs, side } = useNavModel();
+  const { isRoot, showTabs, showSide } = shellFlags(path, tabs, side, useWide());
+  const go = (to: string) => {
+    h.selection();
+    void navigate({ to });
+  };
 
   useBackButton(
     isRoot
@@ -44,19 +66,15 @@ export function AppLayout() {
       }}
     >
       {!online && <OfflineBanner />}
-      <div className={isRoot && tabs.length > 0 ? 'pb-20' : ''}>
-        <Outlet />
+      <div className={showSide ? 'flex' : ''}>
+        {showSide && <SideNav groups={side} active={path} onSelect={(i) => go(i.to)} />}
+        <div className={`min-w-0 flex-1 ${showTabs ? 'pb-20' : ''}`}>
+          <div className={showSide ? 'mx-auto max-w-3xl' : ''}>
+            <Outlet />
+          </div>
+        </div>
       </div>
-      {isRoot && tabs.length > 0 && (
-        <TabBar
-          items={tabs}
-          active={path}
-          onSelect={(item) => {
-            h.selection();
-            void navigate({ to: item.to });
-          }}
-        />
-      )}
+      {showTabs && <TabBar items={tabs} active={path} onSelect={(item) => go(item.to)} />}
     </div>
   );
 }

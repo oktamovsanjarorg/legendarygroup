@@ -1,5 +1,5 @@
 import { formatMoney, miniappMessages as t } from '@lg/i18n';
-import { KpiTile } from '@lg/ui-tg';
+import { KpiTile, type QuickAction, QuickActions } from '@lg/ui-tg';
 
 export interface StaffKpi {
   revenue: bigint;
@@ -17,14 +17,18 @@ export type KpiTarget = 'payments' | 'attendance' | 'unmarked' | 'absent' | 'que
 /** MS-01 Bugun (FR-DASH-5): ixcham KPI; har ko'rsatkich — tegishli ro'yxatga. */
 export function StaffDashboardView({
   k,
+  actions = [],
   onOpen,
 }: {
   k: StaffKpi;
+  /** Tezkor amallar (Q-113): MainButton o'rniga — pastki menyuni siljitmaydi. */
+  actions?: readonly QuickAction[];
   onOpen: (target: KpiTarget) => void;
 }) {
   return (
     <main className="flex flex-col gap-3 p-2 pt-3">
       <h1 className="px-2 text-2xl font-bold text-text">{t.dashboard.title}</h1>
+      <QuickActions items={actions} />
       <KpiTile
         label={t.dashboard.revenue}
         value={formatMoney(k.revenue)}

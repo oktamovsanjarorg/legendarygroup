@@ -1,6 +1,6 @@
 import type { ExpenseItem, MonthlyPnLSummary } from '@lg/contracts';
 import { formatYmd, miniappMessages as t } from '@lg/i18n';
-import { InlineButton, KpiTile, ListItem, MoneyText, Section, useMainButton } from '@lg/ui-tg';
+import { InlineButton, KpiTile, ListItem, MoneyText, PrimaryButton, Section } from '@lg/ui-tg';
 import { PeriodBar } from './kit.js';
 
 const c = t.fin;
@@ -51,12 +51,12 @@ function Pnl({ pnl }: { pnl: MonthlyPnLSummary }) {
 
 /** MS-27 Moliya (T-143, T-156, FR-FIN-2/3): oy xulosasi va xarajatlar. */
 export function FinanceView(p: FinanceViewProps) {
-  useMainButton({ text: c.add, onClick: p.onAdd, visible: p.expenses !== null });
   return (
     <main className="flex flex-col gap-4 p-2 pt-3 pb-6">
       <h1 className="px-2 text-2xl font-bold text-text">{c.title}</h1>
       <PeriodBar period={p.period} current={p.current} onStep={p.onPeriod} />
       <Pnl pnl={p.pnl} />
+      {p.expenses && <PrimaryButton onClick={p.onAdd}>{c.add}</PrimaryButton>}
       {p.expenses && (
         <Section title={c.list} footer={c.salaryHint}>
           {p.expenses.length === 0 && <ListItem title={c.listEmpty} />}

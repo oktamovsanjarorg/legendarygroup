@@ -1,5 +1,6 @@
 // UI Telegram: Mini App komponentlari va native boshqaruvlar (11-ux §3–4)
 export * from './action-sheet.js';
+export * from './action-tile.js';
 export * from './attendance-row.js';
 export * from './calendar.js';
 export * from './child-switcher.js';
@@ -15,6 +16,7 @@ export * from './progress-chart.js';
 export * from './provider.js';
 export * from './search-field.js';
 export * from './section.js';
+export * from './side-nav.js';
 export * from './states.js';
 export * from './status-chip.js';
 export * from './tab-bar.js';
