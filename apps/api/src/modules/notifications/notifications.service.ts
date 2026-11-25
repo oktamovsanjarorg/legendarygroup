@@ -22,7 +22,7 @@ import { eq } from 'drizzle-orm';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
-import { StaffDirectoryService } from '../rbac/index.js';
+import { type ManagerRole, StaffDirectoryService } from '../rbac/index.js';
 import { TelegramOutbox } from '../telegram/index.js';
 import { NotificationsRepository } from './notifications.repository.js';
 
@@ -37,6 +37,14 @@ export interface NotifyParams {
   payload: Record<string, unknown>;
   dedupeKey?: string;
   branchId?: string;
+}
+
+export interface StaffTask {
+  title: string;
+  body: string;
+  dedupeKey: string;
+  /** Standart — Admin va Director; pulli xulosa — faqat Director. */
+  roles?: readonly ManagerRole[];
 }
 
 @Injectable()
@@ -128,8 +136,8 @@ export class NotificationsService {
    * Q-99: yangi ish haqida botga ulangan faol Admin/Director'larga. `dedupeKey` — hodisa ID'si
    * (event qayta yetkazilsa ham har xodimga bir marta).
    */
-  async notifyStaff(task: { title: string; body: string; dedupeKey: string }): Promise<void> {
-    for (const userId of await this.staff.linkedManagerIds())
+  async notifyStaff(task: StaffTask): Promise<void> {
+    for (const userId of await this.staff.linkedManagerIds(task.roles))
       await this.notify({
         userId,
         type: 'staff_task',

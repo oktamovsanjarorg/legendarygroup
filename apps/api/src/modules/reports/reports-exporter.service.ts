@@ -4,6 +4,7 @@ import type { Clock } from '@lg/domain';
 import ExcelJS from 'exceljs';
 import { PDFDocument, type PDFFont, type PDFPage, rgb, StandardFonts } from 'pdf-lib';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
+import { SettingsService } from '../settings/index.js';
 import { pdfText } from '../../common/pdf/pdf-text.js';
 import type { Cell, ReportTable } from './reports-table.js';
 
@@ -37,11 +38,14 @@ function fit(text: string, font: PDFFont, width: number): string {
 /** Hisobot fayllari (FR-DASH-4): bitta jadvaldan Excel va PDF. */
 @Injectable()
 export class ReportsExporterService {
-  constructor(@Inject(CLOCK_TOKEN) private readonly clock: Clock) {}
+  constructor(
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
+    @Inject(SettingsService) private readonly settings: SettingsService,
+  ) {}
 
   async exportToExcel(table: ReportTable): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = t.center;
+    workbook.creator = await this.centerName();
     workbook.created = this.clock.now();
     const sheet = workbook.addWorksheet(table.title);
     sheet.addRow([table.title]).font = { bold: true, size: 14 };
@@ -71,7 +75,11 @@ export class ReportsExporterService {
     const bold = await doc.embedFont(StandardFonts.HelveticaBold);
     const widths = columnWidths(table);
     let page = doc.addPage([PAGE.width, PAGE.height]);
-    let y = this.header(page, table, { font, bold });
+    let y = this.header(
+      page,
+      { title: `${await this.centerName()} — ${table.title}`, subtitle: table.subtitle },
+      { font, bold },
+    );
     const line = (cells: readonly Cell[], f: PDFFont) => {
       if (y < PAGE.margin) {
         page = doc.addPage([PAGE.width, PAGE.height]);
@@ -88,11 +96,19 @@ export class ReportsExporterService {
     return Buffer.from(await doc.save());
   }
 
-  private header(page: PDFPage, table: ReportTable, f: { font: PDFFont; bold: PDFFont }): number {
+  private async centerName(): Promise<string> {
+    return (await this.settings.getSettings()).centerInfo.name;
+  }
+
+  private header(
+    page: PDFPage,
+    h: { title: string; subtitle: string },
+    f: { font: PDFFont; bold: PDFFont },
+  ): number {
     const top = PAGE.height - PAGE.margin;
     const x = PAGE.margin;
-    page.drawText(pdfText(`${t.center} — ${table.title}`), { x, y: top, size: 15, font: f.bold });
-    page.drawText(pdfText(table.subtitle), { x, y: top - 18, size: 10, font: f.font });
+    page.drawText(pdfText(h.title), { x, y: top, size: 15, font: f.bold });
+    page.drawText(pdfText(h.subtitle), { x, y: top - 18, size: 10, font: f.font });
     page.drawLine({
       start: { x, y: top - 26 },
       end: { x: PAGE.width - x, y: top - 26 },

@@ -26,6 +26,8 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import { pdfText } from '../../common/pdf/pdf-text.js';
 import { EnvService } from '../../config/env.service.js';
+import { FilesService } from '../files/index.js';
+import { SettingsService } from '../settings/index.js';
 import { BillingRepository } from './billing.repository.js';
 
 function methodLabel(method: string): string {
@@ -33,6 +35,14 @@ function methodLabel(method: string): string {
   if (method === 'card') return 'Karta (terminal)';
   if (method === 'bank') return 'Bank oʻtkazmasi';
   return 'Boshqa';
+}
+
+interface HeaderParams {
+  number: string;
+  center: string;
+  contacts: string;
+  fontBold: PDFFont;
+  fontReg: PDFFont;
 }
 
 interface DrawBodyParams {
@@ -51,6 +61,8 @@ export class ReceiptPdfService {
     @Inject(BillingRepository) private readonly repo: BillingRepository,
     @Inject(DB_TOKEN) private readonly db: Database,
     @Inject(EnvService) private readonly env: EnvService,
+    @Inject(SettingsService) private readonly settings: SettingsService,
+    @Inject(FilesService) private readonly files: FilesService,
   ) {}
 
   /** W-34: Ommaviy tekshirish natijasi — PII yo'q (FR-PAY-8). */
@@ -68,7 +80,7 @@ export class ReceiptPdfService {
       number: receipt.number,
       date: payment.paidAt.toISOString(),
       amount: payment.amount.toString(),
-      center: 'Legendary Group',
+      center: (await this.settings.getSettings()).centerInfo.name,
     };
   }
 
@@ -124,7 +136,15 @@ export class ReceiptPdfService {
     const fontReg = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const qrImg = await pdfDoc.embedPng(qrPng);
 
-    this.drawReceiptHeader(page, receipt.number, fontBold, fontReg);
+    const { centerInfo } = await this.settings.getSettings();
+    this.drawReceiptHeader(page, {
+      number: receipt.number,
+      center: centerInfo.name,
+      contacts: [centerInfo.phone, centerInfo.address].filter(Boolean).join(', '),
+      fontBold,
+      fontReg,
+    });
+    await this.drawLogo(pdfDoc, page, centerInfo.logoFileId);
     this.drawReceiptBody({ page, payment, student, groupName, staffName, fontBold, fontReg });
 
     if (status.isCancelled) {
@@ -136,20 +156,26 @@ export class ReceiptPdfService {
     return Buffer.from(await pdfDoc.save());
   }
 
-  private drawReceiptHeader(
-    page: PDFPage,
-    number: string,
-    fontBold: PDFFont,
-    fontReg: PDFFont,
-  ): void {
-    page.drawText(pdfText('LEGENDARY GROUP'), {
+  /** Markaz logotipi (FR-SYS-1) — o'ng yuqorida, nisbati saqlanadi. */
+  private async drawLogo(doc: PDFDocument, page: PDFPage, fileId: string | null): Promise<void> {
+    const file = fileId && (await this.files.readForDelivery(fileId));
+    if (!file) return;
+    const img =
+      file.mime === 'image/png' ? await doc.embedPng(file.body) : await doc.embedJpg(file.body);
+    const { width, height } = img.scaleToFit(90, 44);
+    page.drawImage(img, { x: 360 - width, y: 532 - height, width, height });
+  }
+
+  private drawReceiptHeader(page: PDFPage, p: HeaderParams): void {
+    const { number, fontBold, fontReg } = p;
+    page.drawText(pdfText(p.center.toUpperCase()), {
       x: 40,
       y: 510,
       size: 18,
       font: fontBold,
       color: rgb(0.08, 0.2, 0.45),
     });
-    page.drawText(pdfText("O'quv markazi rasmiy to'lov cheki"), {
+    page.drawText(pdfText(`Rasmiy to'lov cheki. ${p.contacts}`.slice(0, 62)), {
       x: 40,
       y: 494,
       size: 10,

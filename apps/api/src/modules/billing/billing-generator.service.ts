@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Database, NewInvoiceLineRow, NewLedgerEntryRow } from '@lg/db';
 import { applyDiscounts, calculateMidMonthEnrollmentPrice } from '@lg/domain';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
+import { SettingsService } from '../settings/index.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingRepository } from './billing.repository.js';
 import type { ActiveEnrollmentInfo } from './billing.types.js';
@@ -40,11 +41,12 @@ export class BillingGeneratorService {
     @Inject(BillingRepository) private readonly repo: BillingRepository,
     @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
     @Inject(MonthCloseService) private readonly monthClose: MonthCloseService,
+    @Inject(SettingsService) private readonly settings: SettingsService,
   ) {}
 
   async generateMonthlyInvoices(period: string, customDueDate?: string): Promise<GenerateResult> {
-    const { monthStart, monthEnd, defaultDueDate } = this.calculateMonthDates(period);
-    const dueDate = customDueDate ?? defaultDueDate;
+    const { monthStart, monthEnd } = this.calculateMonthDates(period);
+    const dueDate = customDueDate ?? (await this.settings.dueDateOf(period));
 
     const enrollmentsList = await this.repo.findActiveEnrollmentsForMonth(monthStart, monthEnd);
     const studentLinesMap = await this.prepareLinesByStudent(
@@ -65,13 +67,14 @@ export class BillingGeneratorService {
    * BR-3). Bor bo'lsa — o'tkaziladi. Muddat o'tib ketgan bo'lsa — bugun.
    */
   async generateForStudent(studentId: string, period: string, today: string): Promise<void> {
-    const { monthStart, monthEnd, defaultDueDate } = this.calculateMonthDates(period);
+    const { monthStart, monthEnd } = this.calculateMonthDates(period);
     const list = (await this.repo.findActiveEnrollmentsForMonth(monthStart, monthEnd)).filter(
       (e) => e.studentId === studentId,
     );
     const map = await this.prepareLinesByStudent(list, monthStart, monthEnd, period);
     for (const [id, lines] of map) map.set(id, await this.adjusted(id, period, lines));
-    await this.persistInvoices(period, defaultDueDate < today ? today : defaultDueDate, map);
+    const due = await this.settings.dueDateOf(period);
+    await this.persistInvoices(period, due < today ? today : due, map);
   }
 
   /** BR-2: o'tgan oy (yoki to'xtatishdan oldingi oxirgi oy, Q-102) tuzatishlari bilan. */
@@ -87,8 +90,7 @@ export class BillingGeneratorService {
     const monthStart = `${period}-01`;
     const lastDay = new Date(year, month, 0).getDate();
     const monthEnd = `${period}-${String(lastDay).padStart(2, '0')}`;
-    const defaultDueDate = `${period}-10`;
-    return { monthStart, monthEnd, defaultDueDate };
+    return { monthStart, monthEnd };
   }
 
   private async prepareLinesByStudent(

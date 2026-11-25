@@ -3,6 +3,7 @@ import type { Transaction } from '@lg/db';
 import { applyDiscounts, calculateMidMonthEnrollmentPrice, type Clock } from '@lg/domain';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { EventHandlers } from '../outbox/index.js';
+import { SettingsService } from '../settings/index.js';
 import { BillingBalanceRepository } from './billing-balance.repository.js';
 import { BillingGeneratorService, ledgerFor } from './billing-generator.service.js';
 import { BillingRepository } from './billing.repository.js';
@@ -49,6 +50,7 @@ export class EnrollmentBillingService implements OnModuleInit {
     @Inject(BillingRepository) private readonly repo: BillingRepository,
     @Inject(BillingBalanceRepository) private readonly balance: BillingBalanceRepository,
     @Inject(BillingGeneratorService) private readonly generator: BillingGeneratorService,
+    @Inject(SettingsService) private readonly settings: SettingsService,
   ) {}
 
   onModuleInit(): void {
@@ -121,7 +123,7 @@ export class EnrollmentBillingService implements OnModuleInit {
     if (invoice && (await this.repo.findEnrollmentLine(tx, invoice.id, enrollmentId))) return;
     if (invoice) await this.repo.addToInvoiceTotal(tx, invoice.id, line.amount);
     else {
-      const due = `${period}-10`;
+      const due = await this.settings.dueDateOf(period);
       invoice = await this.repo.insertInvoice(tx, {
         studentId: e.studentId,
         period,

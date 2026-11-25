@@ -5,6 +5,7 @@ import { botMessages } from '@lg/i18n';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import type { RequestUser } from '../auth/index.js';
 import { NotificationsService } from '../notifications/index.js';
+import { SettingsService } from '../settings/index.js';
 import { AttendanceRepository } from './attendance.repository.js';
 
 const texts = botMessages.attendanceReminder;
@@ -13,14 +14,17 @@ const fill = (text: string, vars: Record<string, string>) =>
 
 /** Sanasiz so'rovda belgilanmagan darslar shu kungacha orqaga qaraladi. */
 const UNMARKED_DAYS = 31;
+/** FR-ATT-5: Admin'ga eslatma. */
+const ADMIN_AFTER_MIN = 120;
 
-/** FR-ATT-5: belgilanmagan darslar ro'yxati va eslatmalar (ustoz — 30 daqiqa, Admin — 2 soat). */
+/** FR-ATT-5: belgilanmagan darslar ro'yxati va eslatmalar (ustoz — sozlangan daqiqa, Admin — 2 soat). */
 @Injectable()
 export class UnmarkedLessonsService {
   constructor(
     @Inject(AttendanceRepository) private readonly repo: AttendanceRepository,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Inject(NotificationsService) private readonly notifications: NotificationsService,
+    @Inject(SettingsService) private readonly settings: SettingsService,
   ) {}
 
   async getUnmarkedLessons(
@@ -66,6 +70,9 @@ export class UnmarkedLessonsService {
     const today = this.clock.today();
     const unmarked = await this.repo.findUnmarkedLessons({ from: today, to: today });
 
+    const { notificationTimes } = await this.settings.getSettings();
+    const remindAfter = notificationTimes.attendanceReminderMinutes;
+
     let teacherReminders = 0;
     let adminReminders = 0;
     const admins = await this.repo.findAdminUsers();
@@ -74,7 +81,7 @@ export class UnmarkedLessonsService {
       const lessonStartTime = tashkentInstant(lesson.date, lesson.startTime);
       const minutesPassed = Math.floor((now.getTime() - lessonStartTime.getTime()) / 60000);
 
-      if (lesson.teacherId && minutesPassed >= 30 && minutesPassed < 120) {
+      if (lesson.teacherId && minutesPassed >= remindAfter && minutesPassed < ADMIN_AFTER_MIN) {
         await this.notifications.notify({
           userId: lesson.teacherId,
           type: 'announcement',
@@ -90,7 +97,7 @@ export class UnmarkedLessonsService {
         teacherReminders += 1;
       }
 
-      if (minutesPassed >= 120) {
+      if (minutesPassed >= ADMIN_AFTER_MIN) {
         for (const admin of admins) {
           await this.notifications.notify({
             userId: admin.id,

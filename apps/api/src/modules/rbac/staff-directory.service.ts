@@ -4,6 +4,8 @@ import { type Database, roles, type Transaction, userRoles, users } from '@lg/db
 import { and, asc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
+export type ManagerRole = 'admin' | 'director';
+
 /**
  * Boshqa modullar uchun xodimlar katalogi (03 §4 — `users`/`user_roles` jadvallariga faqat
  * shu public servis orqali): ism, faol ustozmi.
@@ -43,7 +45,7 @@ export class StaffDirectoryService {
   }
 
   /** Botga ulangan faol Admin/Director'lar — xodim xabarnomalari uchun (Q-99). */
-  async linkedManagerIds(): Promise<string[]> {
+  async linkedManagerIds(codes: readonly ManagerRole[] = ['admin', 'director']): Promise<string[]> {
     const rows = await this.db
       .selectDistinct({ id: users.id })
       .from(users)
@@ -53,7 +55,7 @@ export class StaffDirectoryService {
         and(
           eq(users.status, 'active'),
           isNotNull(users.telegramId),
-          inArray(roles.code, ['admin', 'director']),
+          inArray(roles.code, [...codes]),
         ),
       );
     return rows.map((r) => r.id);

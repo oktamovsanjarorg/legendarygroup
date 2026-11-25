@@ -2,6 +2,8 @@ import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { type Clock } from '@lg/domain';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { CronJobs } from '../../common/scheduler/cron-jobs.js';
+import { isSlot, SLOT_PATTERN } from '../../common/scheduler/time-slot.js';
+import { SettingsService } from '../settings/index.js';
 import { BillingGeneratorService } from './billing-generator.service.js';
 import { DebtRemindersService } from './debt-reminders.service.js';
 
@@ -13,6 +15,7 @@ export class BillingCron implements OnModuleInit {
     @Inject(CronJobs) private readonly cron: CronJobs,
     @Inject(BillingGeneratorService) private readonly generator: BillingGeneratorService,
     @Inject(DebtRemindersService) private readonly reminders: DebtRemindersService,
+    @Inject(SettingsService) private readonly settings: SettingsService,
     @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
@@ -31,8 +34,10 @@ export class BillingCron implements OnModuleInit {
 
     this.cron.register({
       id: 'billing.debtor-reminders',
-      pattern: '0 9 * * *', // Har kuni 09:00 da (BR-21)
+      pattern: SLOT_PATTERN, // Sozlangan vaqtda, kuniga bir marta (BR-21, Q-107)
       run: async () => {
+        const { notificationTimes } = await this.settings.getSettings();
+        if (!isSlot(this.clock, notificationTimes.morningReminderTime)) return;
         this.logger.log('BR-21 Eslatmalar yuborish boshlandi');
         await this.reminders.processScheduledReminders();
         this.logger.log('BR-21 Eslatmalar yuborish yakunlandi');
