@@ -221,6 +221,7 @@ export const staffMessages = {
     overdue: '{n} kun kechikdi',
     notDue: 'Muddati oʻtmagan',
     critical: 'Kritik',
+    archived: 'Arxivda',
     reminded: 'Bugun eslatildi',
     call: 'Qoʻngʻiroq qilish',
     pay: 'Toʻlov qabul qilish',

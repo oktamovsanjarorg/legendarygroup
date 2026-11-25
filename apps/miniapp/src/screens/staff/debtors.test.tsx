@@ -20,6 +20,7 @@ const item: DebtorItem = {
   guardian: { name: 'Nodira', phone: '+998901234567' },
   canRemind: true,
   remindedToday: false,
+  archived: false,
 };
 
 function show(d: Partial<DebtorItem> = {}, over: Partial<DebtorsViewProps> = {}) {

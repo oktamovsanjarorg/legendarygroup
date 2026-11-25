@@ -10,7 +10,7 @@ import {
   students,
 } from '@lg/db';
 import { calculateConversionRateBp, classifyDebtAgingBucket } from '@lg/domain';
-import { and, eq, inArray, isNull, lte, sql } from 'drizzle-orm';
+import { and, eq, inArray, lte, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import { ReportsPerformanceRepository } from './reports-performance.repository.js';
 import {
@@ -64,7 +64,8 @@ export class ReportsRepository {
       })
       .from(students)
       .innerJoin(ledgerEntries, eq(ledgerEntries.studentId, students.id))
-      .where(and(eq(students.branchId, branchId), isNull(students.archivedAt)))
+      // T-165: arxivdagi qarzdor ham (qarzdorlar ro'yxati va dashboard jami bilan bir xil).
+      .where(eq(students.branchId, branchId))
       .groupBy(students.id, students.code, students.fullName)
       .having(sql`sum(${ledgerEntries.amount}) > 0`);
 

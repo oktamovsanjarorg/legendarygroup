@@ -14,7 +14,7 @@ import {
 } from '@lg/db';
 import { tashkentDayRange, tashkentMonthRange } from '@lg/domain';
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, gte, isNotNull, isNull, lt, ne, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, isNotNull, lt, ne, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface TodayLessonRow {
@@ -77,7 +77,8 @@ export class DashboardRepository {
       .select({ debt: sql<bigint>`coalesce(sum(${ledgerEntries.amount}), 0)` })
       .from(students)
       .innerJoin(ledgerEntries, eq(ledgerEntries.studentId, students.id))
-      .where(and(eq(students.branchId, branchId), isNull(students.archivedAt)))
+      // T-165: arxivlangan o'quvchining qarzi ham qarz (qarzdorlar ro'yxati bilan bir xil).
+      .where(eq(students.branchId, branchId))
       .groupBy(students.id)
       .having(sql`sum(${ledgerEntries.amount}) > 0`);
 

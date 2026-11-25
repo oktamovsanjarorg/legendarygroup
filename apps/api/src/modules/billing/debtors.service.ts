@@ -70,7 +70,7 @@ export class DebtorsService {
     query: DebtorListQueryInput,
   ): Promise<DebtorItem[]> {
     const today = this.clock.today();
-    const students = await this.repo.findStudentsWithPositiveLedger(branchId);
+    const students = await this.repo.findStudentsWithPositiveLedger(branchId, true);
     if (students.length === 0) return [];
 
     const studentIds = students.map((s) => s.id);
@@ -167,6 +167,7 @@ export class DebtorsService {
       id: student.id,
       name: student.fullName,
       code: `LG-${student.code}`,
+      archived: student.archived,
       group: groups.map((g) => g.groupName).join(', ') || '—',
       debt: student.debt.toString(),
       overdueDays,

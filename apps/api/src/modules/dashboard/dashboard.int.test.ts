@@ -1,5 +1,14 @@
 import type { DirectorDashboardKpi, RoleCode } from '@lg/contracts';
-import { attendance, closeDb, createDb, type Database, lessons, payments, seed } from '@lg/db';
+import {
+  approvalRequests,
+  attendance,
+  closeDb,
+  createDb,
+  type Database,
+  lessons,
+  payments,
+  seed,
+} from '@lg/db';
 import { formatDateToYmd } from '@lg/domain';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
@@ -12,6 +21,7 @@ let tokens: Map<RoleCode, string>;
 
 let directorToken: string;
 let adminToken: string;
+let adminUser: string;
 let parentToken: string;
 
 const call = (url: string, token: string) =>
@@ -34,6 +44,7 @@ beforeAll(async () => {
   parentToken = await tokenFor(t, db, parentUserId, 'guardian');
 
   const adminUserId = await createUserWithRole(db, 'admin', '+998905554422');
+  adminUser = adminUserId;
 
   // Test uchun o'quvchi, guruh va to'lov yaratamiz
   const studentRes = await t.app.inject({
@@ -179,6 +190,20 @@ describe('T-405: Director Dashboard (FR-DASH-1, 5)', () => {
     // Majburiy yangilash (refresh=true)
     const refreshRes = await call('dashboard/director?refresh=true', directorToken);
     expect(refreshRes.statusCode).toBe(200);
+  });
+
+  it('T-165: navbat va soʻrovlar soni keshdan emas — yangi soʻrov darhol koʻrinadi', async () => {
+    const before = (await call('dashboard/director', directorToken)).json<DirectorDashboardKpi>();
+    await db.insert(approvalRequests).values({
+      type: 'refund',
+      payload: {},
+      reason: 'Kesh testi',
+      requestedBy: adminUser,
+      expiresAt: new Date(Date.now() + 86_400_000),
+    });
+    const after = (await call('dashboard/director', directorToken)).json<DirectorDashboardKpi>();
+    expect(after.cachedAt).toBe(before.cachedAt);
+    expect(after.approvals).toBe(before.approvals + 1);
   });
 
   it('21:00 kunlik xulosa cron vazifasi roʻyxatdan oʻtgan va xatoliksiz bajariladi', async () => {

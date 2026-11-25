@@ -30,6 +30,7 @@ function DebtorRow({ d, onOpen }: { d: DebtorItem; onOpen: () => void }) {
         <span className="flex flex-col items-end gap-1">
           <MoneyText amount={-BigInt(d.debt)} />
           {d.critical && <StatusChip tone="danger">{c.critical}</StatusChip>}
+          {d.archived && <StatusChip tone="muted">{c.archived}</StatusChip>}
           {d.remindedToday && <StatusChip tone="muted">{c.reminded}</StatusChip>}
         </span>
       }

@@ -225,6 +225,8 @@ export const DebtorItemSchema = z.object({
   canRemind: z.boolean(),
   /** Bugun qo'lda eslatma yuborilgan (kuniga bitta). */
   remindedToday: z.boolean(),
+  /** Arxivdagi o'quvchi — qarz qoladi (T-165), avtomatik eslatma yo'q. */
+  archived: z.boolean(),
 });
 export type DebtorItem = z.infer<typeof DebtorItemSchema>;
 

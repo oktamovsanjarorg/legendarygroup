@@ -37,7 +37,11 @@ export class DashboardService {
       try {
         const cached = await this.redis.get(cacheKey);
         if (cached) {
-          return JSON.parse(cached) as DirectorDashboardKpi;
+          // T-165: navbat va so'rovlar — amal qilinadigan sonlar, keshdan emas (chek tasdiqlangach
+          // 5 daqiqa eski son ko'rinardi). Og'ir pul yig'indilari keshda qoladi.
+          const counts = await this.repo.getPendingCounts(branchId);
+          const kpi = JSON.parse(cached) as DirectorDashboardKpi;
+          return { ...kpi, queue: counts.queue, approvals: counts.approvals };
         }
       } catch (err) {
         this.logger.warn(`Redis cache get failed: ${err}`);
