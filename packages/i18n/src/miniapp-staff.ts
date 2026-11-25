@@ -43,6 +43,7 @@ export const staffMessages = {
       reports: 'Hisobotlar',
       forecasts: 'Prognozlar',
       people: 'Xodimlar',
+      settings: 'Sozlamalar',
       audit: 'Audit',
     },
     panelHint: 'Hisobotlar, oyliklar, sozlamalar va audit — kompyuterda, boshqaruv panelida.',
