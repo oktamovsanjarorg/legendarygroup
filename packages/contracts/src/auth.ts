@@ -4,28 +4,6 @@ import { ROLES } from './roles.js';
 /** E.164, O'zbekiston va xalqaro (05-data-model.md `users.phone`). */
 export const PhoneSchema = z.string().regex(/^\+[1-9][0-9]{6,14}$/);
 
-/** Parol siyosati: uzunlik — asosiy himoya (NIST 800-63B); murakkablik qoidalari yo'q. */
-export const PasswordSchema = z.string().min(10).max(128);
-
-export const TotpCodeSchema = z.string().regex(/^[0-9]{6}$/);
-/** Zaxira kod: `xxxx-xxxx` (bosh/kichik harf farqsiz). */
-export const BackupCodeSchema = z.string().regex(/^[a-z0-9]{4}-[a-z0-9]{4}$/i);
-
-export const LoginRequest = z.object({ phone: PhoneSchema, password: z.string().min(1).max(128) });
-
-/** MFA bosqichi: qisqa muddatli (5 daq) token, faqat shu bosqich uchun. */
-export const MfaRequest = z.object({ mfaToken: z.string().min(1) });
-export const TotpEnableRequest = MfaRequest.extend({ code: TotpCodeSchema });
-export const TotpVerifyRequest = z.union([
-  MfaRequest.extend({ code: TotpCodeSchema }),
-  MfaRequest.extend({ backupCode: BackupCodeSchema }),
-]);
-
-export const InviteAcceptRequest = z.object({
-  token: z.string().min(20).max(200),
-  password: PasswordSchema,
-});
-
 export const TelegramLoginStartRequest = z.object({ phone: PhoneSchema });
 export const TelegramLoginPollRequest = z.object({ challengeId: z.string().uuid() });
 
@@ -85,21 +63,12 @@ export const AuthUser = z.object({
   telegramLinked: z.boolean(),
 });
 
-/** Login javobi: yoki sessiya, yoki keyingi MFA qadami. */
-export const LoginResult = z.discriminatedUnion('next', [
-  z.object({ next: z.literal('done'), accessToken: z.string(), user: AuthUser }),
-  // T-122: Telegram ulangan bo'lsa — botga tasdiq so'rovi ham yuborildi (`telegram/poll` bilan kutiladi).
-  z.object({
-    next: z.literal('totp'),
-    mfaToken: z.string(),
-    telegramChallengeId: z.string().optional(),
-  }),
-  z.object({
-    next: z.literal('totp_setup'),
-    mfaToken: z.string(),
-    telegramChallengeId: z.string().optional(),
-  }),
-]);
+/** Sessiya berilgan javob (Telegram kirishi, panel-handoff). Parol/TOTP bosqichlari yo'q (T-147). */
+export const LoginResult = z.object({
+  next: z.literal('done'),
+  accessToken: z.string(),
+  user: AuthUser,
+});
 
 /** `GET /api/auth/me` — UI menyusi va tugmalar uchun samarali ruxsatlar (faol rol bo'yicha). */
 export const MeResult = AuthUser.extend({ permissions: z.array(z.string()) });
@@ -109,14 +78,6 @@ export const TelegramAuthResult = z.discriminatedUnion('next', [
   z.object({ next: z.literal('done'), accessToken: z.string(), user: AuthUser }),
   z.object({ next: z.literal('choose_role'), roles: z.array(z.enum(ROLES)) }),
 ]);
-
-export const TotpSetupResult = z.object({ otpauthUrl: z.string(), secret: z.string() });
-export const TotpEnableResult = z.object({
-  accessToken: z.string(),
-  user: AuthUser,
-  /** Faqat bir marta ko'rsatiladi. */
-  backupCodes: z.array(z.string()),
-});
 
 export const TelegramLoginStartResult = z.object({
   challengeId: z.string(),
@@ -145,7 +106,6 @@ export const SessionInfo = z.object({
   current: z.boolean(),
 });
 
-export type LoginRequest = z.infer<typeof LoginRequest>;
 export type LoginResult = z.infer<typeof LoginResult>;
 export type TelegramAuthResult = z.infer<typeof TelegramAuthResult>;
 export type AuthUser = z.infer<typeof AuthUser>;

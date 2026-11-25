@@ -435,10 +435,12 @@
 - **Bog'liq:** T-006, T-101, T-120, T-121 · **Talablar:** FR-AUTH-3 · **Qaror:** Q-98, ADR 0006 §11
 - **Bajarildi (2026-11-24):** botda raqam ulashish → xodim taklifsiz ulanadi; web'da parol/TOTP/taklif ekranlari yo'q; «Telegramni uzish»; CLI `director:relink`; poll poygasi tuzatildi (regressiya testlari); e2e Telegram tasdig'i bilan.
 
-### ⬜ T-147 · API'dan parol, TOTP va taklif kodini o'chirish (contract)
+### 🟡 T-147 · API'dan parol, TOTP va taklif kodini o'chirish (contract)
 
 - **Bog'liq:** T-146 production'da · **Qaror:** Q-98
 - **AC:** shart — production'da barcha faol Direktor/Admin Telegram'i ulangan. `auth/login`, `totp/*`, `invite/accept`, `staff_invites`, `user_backup_codes`, `password_hash`, `totp_secret`, `TOTP_ENCRYPTION_KEY`, seed taklif tokeni olinadi.
+- **1-bosqich — expand (2026-11-25, Q-118):** `auth/login`, `invite/accept`, `totp/setup|enable|verify` olib tashlandi (404); `TotpService`, Argon2/otpauth bog'liqliklari, MFA tokeni, `TOTP_ENCRYPTION_KEY` (env, compose, render/bootstrap skriptlari), seed taklif tokeni — yo'q. Testlar Telegram kirishiga o'tkazildi. Klientlar bu endpoint'larni ishlatmasdi (T-146).
+- **2-bosqich — contract (1-bosqich production'da bo'lgach):** migratsiya — `users.password_hash`, `users.totp_secret`, `staff_invites`, `user_backup_codes` o'chiriladi; Secrets Manager'dagi `TOTP_ENCRYPTION_KEY` — egasi o'chiradi.
 
 ### ⛔ T-148 · Web panelni yopish
 

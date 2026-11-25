@@ -16,7 +16,6 @@ import { TelegramChallenges } from './telegram-challenges.js';
 import { TelegramLoginNotifier } from './telegram-login-notifier.js';
 import { TelegramLoginService } from './telegram-login.service.js';
 import { TokensService } from './tokens.service.js';
-import { TotpService } from './totp.service.js';
 
 /** Xodimlar autentifikatsiyasi (T-006). Global `AccessTokenGuard` — deny by default. */
 @Module({
@@ -32,7 +31,6 @@ import { TotpService } from './totp.service.js';
     PanelHandoffService,
     TelegramAuthService,
     TokensService,
-    TotpService,
     InternalTokenGuard,
     { provide: APP_GUARD, useClass: AccessTokenGuard },
   ],

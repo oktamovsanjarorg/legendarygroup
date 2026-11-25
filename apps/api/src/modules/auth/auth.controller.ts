@@ -1,15 +1,9 @@
 import { Controller, HttpCode, HttpStatus, Inject, Post, Req, Res } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  InviteAcceptRequest,
-  LoginRequest,
-  type LoginResult,
-  MfaRequest,
   TelegramAuthRequest,
   TelegramLoginPollRequest,
   TelegramLoginStartRequest,
-  TotpEnableRequest,
-  TotpVerifyRequest,
 } from '@lg/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
@@ -57,16 +51,6 @@ export class AuthController {
     @Inject(TelegramAuthService) private readonly miniApp: TelegramAuthService,
   ) {}
 
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Telefon + parol → MFA bosqichi' })
-  login(
-    @ZodBody(LoginRequest) body: z.output<typeof LoginRequest>,
-    @Req() req: FastifyRequest,
-  ): Promise<LoginResult> {
-    return this.auth.login(body.phone, body.password, auditContext(req));
-  }
-
   /** Mini App (T-007): initData → access token (sessiyasiz, 15 daq). */
   @Post('telegram')
   @HttpCode(HttpStatus.OK)
@@ -76,55 +60,6 @@ export class AuthController {
     @Req() req: FastifyRequest,
   ) {
     return this.miniApp.exchange(body.initData, body.role, auditContext(req));
-  }
-
-  @Post('invite/accept')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Taklif havolasi: parol o'rnatish" })
-  acceptInvite(
-    @ZodBody(InviteAcceptRequest) body: z.output<typeof InviteAcceptRequest>,
-    @Req() req: FastifyRequest,
-  ) {
-    return this.auth.acceptInvite(body.token, body.password, auditContext(req));
-  }
-
-  @Post('totp/setup')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'TOTP sozlash: otpauth:// URL (QR)' })
-  totpSetup(@ZodBody(MfaRequest) body: z.output<typeof MfaRequest>) {
-    return this.auth.beginTotpSetup(body.mfaToken);
-  }
-
-  @Post('totp/enable')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'TOTP yoqish → sessiya + zaxira kodlar' })
-  async totpEnable(
-    @ZodBody(TotpEnableRequest) body: z.output<typeof TotpEnableRequest>,
-    @Req() req: FastifyRequest,
-    @Res({ passthrough: true }) reply: FastifyReply,
-  ) {
-    const issued = await this.auth.enableTotp(
-      body.mfaToken,
-      body.code,
-      auditContext(req),
-      clientMeta(req),
-    );
-    return { ...done(reply, issued), backupCodes: issued.backupCodes };
-  }
-
-  @Post('totp/verify')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'TOTP yoki zaxira kod → sessiya' })
-  async totpVerify(
-    @ZodBody(TotpVerifyRequest) body: z.output<typeof TotpVerifyRequest>,
-    @Req() req: FastifyRequest,
-    @Res({ passthrough: true }) reply: FastifyReply,
-  ) {
-    const proof = 'code' in body ? { code: body.code } : { backupCode: body.backupCode };
-    return done(
-      reply,
-      await this.auth.verifyTotp(body.mfaToken, proof, auditContext(req), clientMeta(req)),
-    );
   }
 
   @Post('refresh')

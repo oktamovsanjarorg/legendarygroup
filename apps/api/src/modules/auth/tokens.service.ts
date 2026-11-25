@@ -6,7 +6,6 @@ import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { EnvService } from '../../config/env.service.js';
 
 export const ACCESS_TTL_S = 15 * 60; // FR-AUTH-4
-export const MFA_TTL_S = 5 * 60;
 const ISSUER = 'lg-api';
 
 /** Access token: foydalanuvchi, faol rol, sessiya va ruxsatlar versiyasi. */
@@ -17,11 +16,6 @@ export interface AccessClaims {
   sid: string | null;
   /** `users.permissions_version` — o'zgarsa token darhol yaroqsiz (02 §1). */
   pv: number;
-}
-
-export interface MfaClaims {
-  sub: string;
-  step: 'totp' | 'totp_setup';
 }
 
 /** HS256 JWT (`jose`). Vaqt — `Clock`dan (testda muzlatiladi). */
@@ -55,16 +49,6 @@ export class TokensService {
     const sid = p['typ'] === 'access' && typeof p['sid'] === 'string' ? p['sid'] : null;
     if (p['typ'] === 'access' && !sid) return null;
     return { sub: String(p.sub), role: p['role'] as RoleCode, sid, pv: p['pv'] };
-  }
-
-  signMfa(claims: MfaClaims): Promise<string> {
-    return this.sign({ step: claims.step, typ: 'mfa' }, claims.sub, MFA_TTL_S);
-  }
-
-  async verifyMfa(token: string): Promise<MfaClaims | null> {
-    const p = await this.verify(token, 'mfa');
-    const step = p?.['step'];
-    return p && (step === 'totp' || step === 'totp_setup') ? { sub: String(p.sub), step } : null;
   }
 
   private sign(payload: Record<string, unknown>, sub: string, ttl: number): Promise<string> {

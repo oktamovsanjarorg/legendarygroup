@@ -12,8 +12,6 @@ export interface StaffUser {
   fullName: string;
   phone: string;
   status: 'active' | 'blocked';
-  passwordHash: string | null;
-  totpSecret: string | null;
   telegramId: bigint | null;
   permissionsVersion: number;
   roles: RoleCode[];
@@ -66,8 +64,6 @@ export class StaffUsers {
       fullName: u.fullName,
       phone: u.phone,
       status: u.status,
-      passwordHash: u.passwordHash,
-      totpSecret: u.totpSecret,
       telegramId: u.telegramId,
       permissionsVersion: u.permissionsVersion,
       roles: rows.flatMap((r) => (r.role ? [r.role] : [])),
