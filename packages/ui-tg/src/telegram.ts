@@ -59,6 +59,11 @@ export interface WebApp {
   close(): void;
   /** Tashqi havola — tizim brauzerida (Mini App ochiq qoladi). */
   openLink(url: string): void;
+  /**
+   * Telefon raqamni so'rash (6.9+): ulashilsa, kontakt bot chatiga ham boradi — bot bog'laydi.
+   * `shared` — foydalanuvchi rozi bo'ldimi.
+   */
+  requestContact?(cb?: (shared: boolean) => void): void;
   MainButton: BottomButton;
   SecondaryButton: BottomButton;
   BackButton: SimpleButton;
@@ -85,6 +90,7 @@ export const FEATURE_VERSION = {
   closingConfirmation: '6.2',
   headerColor: '6.9',
   cloudStorage: '6.9',
+  requestContact: '6.9',
   settingsButton: '7.0',
   verticalSwipes: '7.7',
   secondaryButton: '7.10',

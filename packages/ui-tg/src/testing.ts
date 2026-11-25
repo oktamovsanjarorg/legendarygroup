@@ -57,6 +57,9 @@ export interface FakeWebApp extends WebApp {
   closed: boolean;
   /** `openLink` bilan ochilgan havolalar. */
   links: string[];
+  /** `requestContact` chaqiruvlari soni va javobi (standart — rozi). */
+  contactRequests: number;
+  contactAnswer: boolean;
   haptics: string[];
   storage: Map<string, string>;
   colors: { header?: string; background?: string; bottomBar?: string };
@@ -101,6 +104,10 @@ export function createFakeWebApp(o: FakeOptions = {}): FakeWebApp {
     expand: () => undefined,
     close: () => void (wa.closed = true),
     openLink: (url) => void wa.links.push(url),
+    requestContact: (cb) => {
+      wa.contactRequests += 1;
+      cb?.(wa.contactAnswer);
+    },
     MainButton: bottomButton(),
     SecondaryButton: bottomButton(),
     BackButton: simpleButton(),
@@ -125,6 +132,8 @@ export function createFakeWebApp(o: FakeOptions = {}): FakeWebApp {
     closingConfirmation: false,
     closed: false,
     links: [],
+    contactRequests: 0,
+    contactAnswer: true,
     haptics: [],
     storage: new Map(),
     colors: {},

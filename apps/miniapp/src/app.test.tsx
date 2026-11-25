@@ -61,9 +61,9 @@ afterEach(() => {
 });
 
 describe('Mini App qobig‘i (T-009)', () => {
-  it("C-03: bog'lanmagan — MainButton «Botga qaytish» ilovani yopadi", async () => {
+  it("C-03: eski klient (requestContact yo'q) — MainButton «Botga qaytish» ilovani yopadi", async () => {
     fakeApi({ roles: null });
-    const wa = appWebApp();
+    const wa = appWebApp({ version: '6.1' });
     render(<App webApp={wa} />);
     await screen.findByText(t.notLinked.title);
     // MainButton — passive effect'da (render'dan keyin): kutiladi.
