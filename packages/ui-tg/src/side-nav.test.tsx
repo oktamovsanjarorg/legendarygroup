@@ -53,3 +53,40 @@ describe('QuickActions (Q-113)', () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 });
+
+describe('PassiveControls va toʻliq ekran (T-164)', () => {
+  it('passiv hududdagi MainButton Telegram tugmasini egallamaydi', async () => {
+    const { createFakeWebApp } = await import('./testing.js');
+    const { TelegramProvider } = await import('./provider.js');
+    const { PassiveControls, useMainButton } = await import('./controls.js');
+    const wa = createFakeWebApp();
+    function Btn({ text }: { text: string }) {
+      useMainButton({ text, onClick: () => undefined });
+      return null;
+    }
+    render(
+      <TelegramProvider webApp={wa}>
+        <PassiveControls>
+          <Btn text="Roʻyxat" />
+        </PassiveControls>
+        <Btn text="Saqlash" />
+      </TelegramProvider>,
+    );
+    expect(wa.MainButton.params.text).toBe('Saqlash');
+  });
+
+  it('kompyuterda bir marta toʻliq ekran soʻraladi; telefonda — yoʻq', async () => {
+    const { createFakeWebApp } = await import('./testing.js');
+    const { useDesktopFullscreen } = await import('./side-nav.js');
+    function Probe({ wa }: { wa: ReturnType<typeof createFakeWebApp> }) {
+      useDesktopFullscreen(wa, true);
+      return null;
+    }
+    const desk = createFakeWebApp();
+    render(<Probe wa={desk} />);
+    expect(desk.fullscreenRequests).toBe(1);
+    const phone = Object.assign(createFakeWebApp(), { platform: 'android' });
+    render(<Probe wa={phone} />);
+    expect(phone.fullscreenRequests).toBe(0);
+  });
+});

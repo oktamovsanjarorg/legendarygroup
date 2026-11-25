@@ -7,12 +7,15 @@ import {
   type TabItem,
   useBackButton,
   useHaptic,
+  useDesktopFullscreen,
   useSettingsButton,
+  useWebApp,
   useWide,
 } from '@lg/ui-tg';
 import { Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router';
 import { useAttendanceQueueFlush } from './data/attendance.js';
 import { useNavModel } from './nav-model.js';
+import { SplitView, useSplit } from './split-view.js';
 import { useOnline } from './use-online.js';
 
 /** Qaysi navigatsiya ko'rinadi: telefonda — tab ildizida pastki menyu; keng ekranda — yon panel. */
@@ -44,6 +47,8 @@ export function AppLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { tabs, side } = useNavModel();
   const { isRoot, showTabs, showSide } = shellFlags(path, tabs, side, useWide());
+  const split = useSplit(path);
+  useDesktopFullscreen(useWebApp(), side.length > 1);
   const go = (to: string) => {
     h.selection();
     void navigate({ to });
@@ -69,9 +74,13 @@ export function AppLayout() {
       <div className={showSide ? 'flex' : ''}>
         {showSide && <SideNav groups={side} active={path} onSelect={(i) => go(i.to)} />}
         <div className={`min-w-0 flex-1 ${showTabs ? 'pb-20' : ''}`}>
-          <div className={showSide ? 'mx-auto max-w-3xl' : ''}>
-            <Outlet />
-          </div>
+          {showSide && split ? (
+            <SplitView split={split.split} detail={split.detail} />
+          ) : (
+            <div className={showSide ? 'mx-auto max-w-3xl' : ''}>
+              <Outlet />
+            </div>
+          )}
         </div>
       </div>
       {showTabs && <TabBar items={tabs} active={path} onSelect={(item) => go(item.to)} />}

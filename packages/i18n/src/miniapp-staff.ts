@@ -8,6 +8,11 @@ export const staffMessages = {
     assistant: 'Yordamchi',
     menu: 'Menyu',
   },
+  /** Keng ekran: roʻyxat + tafsilot (T-164). */
+  split: {
+    list: 'Roʻyxat',
+    pick: 'Chapdagi roʻyxatdan tanlang — tafsilot shu yerda ochiladi.',
+  },
   /** MS-06 Koʻproq (11-ux §2, T-130): ruxsatga qarab boʻlimlar. */
   staffMore: {
     title: 'Menyu',

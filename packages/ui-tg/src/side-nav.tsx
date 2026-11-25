@@ -1,3 +1,4 @@
+import { supports, type WebApp } from './telegram.js';
 import type { LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -92,4 +93,17 @@ export function SideNav({ groups, active, onSelect }: SideNavProps) {
       ))}
     </nav>
   );
+}
+
+const DESKTOP = new Set(['tdesktop', 'macos']);
+
+/**
+ * Xodim kompyuterda (Telegram Desktop/macOS) — to'liq ekran (T-164, Q-115): sukut bo'yicha Mini App
+ * tor oynada ochiladi va yon panel/yonma-yon ko'rinish ko'rinmaydi. Bir marta so'raladi.
+ */
+export function useDesktopFullscreen(wa: WebApp, on: boolean) {
+  useEffect(() => {
+    if (!on || !DESKTOP.has(wa.platform) || !supports(wa, 'fullscreen') || wa.isFullscreen) return;
+    wa.requestFullscreen?.();
+  }, [wa, on]);
 }
