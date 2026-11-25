@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { CircleAlert, House, Receipt, UserPlus, Users, Wallet } from 'lucide-react';
+import { BookOpen, House, Receipt, Sparkles, UserPlus, Users, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { QuickActions } from './action-tile.js';
+import { CommandPalette } from './command-palette.js';
 import { SideNav, type SideNavGroup } from './side-nav.js';
 
-const meta: Meta = { title: 'ui-tg/Navigatsiya (Q-113)' };
+const meta: Meta = { title: 'ui-tg/Navigatsiya (Q-113, T-174)' };
 export default meta;
 type Story = StoryObj<typeof meta>;
 
@@ -12,29 +13,78 @@ const GROUPS: SideNavGroup[] = [
   {
     key: 'main',
     items: [
-      { to: '/', label: 'Bugun', icon: House, badge: 4 },
+      { to: '/', label: 'Bugun', icon: House },
       { to: '/staff/search', label: 'Oʻquvchilar', icon: Users },
-      { to: '/staff/pay', label: 'Toʻlov', icon: Wallet },
+      { to: '/staff/assistant', label: 'Yordamchi', icon: Sparkles },
     ],
   },
   {
     key: 'money',
     title: 'Pul',
     items: [
-      { to: '/staff/queue', label: 'Chek navbati', icon: Receipt, badge: 4 },
-      { to: '/staff/debtors', label: 'Qarzdorlar', icon: CircleAlert },
+      { to: '/staff/pay', label: 'Toʻlov kiritish', icon: Wallet },
+      { to: '/staff/receipts', label: 'Chek navbati', icon: Receipt, badge: 4 },
     ],
+  },
+  {
+    key: 'lessons',
+    title: 'Darslar',
+    items: [{ to: '/staff/groups', label: 'Guruhlar', icon: BookOpen }],
   },
 ];
 
-function SideDemo() {
-  const [active, setActive] = useState('/');
-  return <SideNav groups={GROUPS} active={active} onSelect={(i) => setActive(i.to)} />;
-}
+export const YonPanel: Story = {
+  tags: ['primary'],
+  render: () => {
+    const [path, setPath] = useState('/staff/pay');
+    return (
+      <div className="h-[600px]">
+        <SideNav
+          groups={GROUPS}
+          active={path}
+          onSelect={(i) => setPath(i.to)}
+          brand={<b className="text-text">Legendary</b>}
+          search={{ label: 'Qidirish…', hint: 'Ctrl K', onClick: () => undefined }}
+        />
+      </div>
+    );
+  },
+};
+
+export const BuyruqlarOynasi: Story = {
+  render: () => (
+    <CommandPalette
+      open
+      onClose={() => undefined}
+      commands={GROUPS.flatMap((g) =>
+        g.items.map((i) => ({
+          key: i.to,
+          label: i.label,
+          group: g.title,
+          icon: i.icon,
+          run: () => undefined,
+        })),
+      )}
+      dynamic={(q) => ({
+        before: [],
+        after: [
+          {
+            key: 'ask',
+            label: `Yordamchidan soʻrash: «${q}»`,
+            icon: Sparkles,
+            run: () => undefined,
+          },
+        ],
+      })}
+      placeholder="Boʻlim, oʻquvchi yoki savol yozing…"
+      empty="Hech narsa topilmadi"
+      closeLabel="Yopish"
+    />
+  ),
+};
 
 const noop = () => undefined;
 
-export const YonPanel: Story = { tags: ['primary'], render: () => <SideDemo /> };
 export const TezkorAmallar: Story = {
   render: () => (
     <div className="bg-surface p-2">

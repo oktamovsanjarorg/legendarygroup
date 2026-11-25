@@ -2,6 +2,9 @@
 @import '@lg/ui-core/theme.css';
 @source '../../../packages/ui-web/src';
 @source '../../../packages/ui-tg/src';
+
+/* Kompyuter (Telegram Desktop to'liq ekran, keng oyna) — T-174. `useWide()` bilan bir xil chegara. */
+@custom-variant desk (@media (min-width: 900px));
 @source '../../miniapp/src';
 @source '../../web/src';
 

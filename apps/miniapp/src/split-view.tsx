@@ -68,10 +68,10 @@ export function useSplit(path: string) {
 export function SplitView({ split, detail }: { split: Split; detail: boolean }) {
   const { List } = split;
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-[calc(100vh-3.5rem)]">
       <section
         aria-label={t.split.list}
-        className="sticky top-0 h-screen w-96 shrink-0 overflow-y-auto border-r border-border"
+        className="sticky top-14 h-[calc(100vh-3.5rem)] w-[400px] shrink-0 overflow-y-auto border-r border-border px-2"
       >
         <PassiveControls active={detail}>
           <List key={split.list} />
@@ -79,13 +79,17 @@ export function SplitView({ split, detail }: { split: Split; detail: boolean }) 
       </section>
       <div className="min-w-0 flex-1">
         {detail ? (
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-3xl px-4 py-3">
             <Outlet />
           </div>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center text-text-muted">
-            <MousePointerClick className="size-10" aria-hidden />
-            <p>{t.split.pick}</p>
+          <div className="flex h-full items-center justify-center p-8">
+            <div className="flex max-w-xs flex-col items-center gap-3 text-center">
+              <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <MousePointerClick className="size-7" aria-hidden />
+              </span>
+              <p className="text-sm text-text-muted">{t.split.pick}</p>
+            </div>
           </div>
         )}
       </div>

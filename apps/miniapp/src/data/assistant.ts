@@ -4,7 +4,7 @@ import type {
   AssistantScreen,
   AssistantTurn,
 } from '@lg/contracts';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useIsMutating, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from './deps.js';
 
 export interface ChatEntry extends AssistantTurn {
@@ -41,6 +41,8 @@ export const actionTarget = (a: AssistantAction): { to: string; params?: { id: s
     ? { to: SCREEN_PATH[a.screen], params: { id: a.studentId } }
     : { to: SCREEN_PATH[a.screen] };
 
+const ASK_KEY = ['assistant', 'ask'];
+
 export function useAssistantStatus() {
   const api = useApi();
   return useQuery({
@@ -66,6 +68,7 @@ export function useAssistantChat() {
   const entries = chat.data ?? [];
   const set = (next: ChatEntry[]) => qc.setQueryData(CHAT_KEY, next);
   const ask = useMutation({
+    mutationKey: ASK_KEY,
     mutationFn: async (text: string) => {
       const asked = [
         ...(qc.getQueryData<ChatEntry[]>(CHAT_KEY) ?? []),
@@ -82,7 +85,8 @@ export function useAssistantChat() {
   return {
     entries,
     ask: (text: string) => ask.mutate(text),
-    pending: ask.isPending,
+    // Drawer va buyruqlar oynasi — bitta suhbat: kutish holati ham umumiy.
+    pending: useIsMutating({ mutationKey: ASK_KEY }) > 0,
     error: ask.error,
     clear: () => {
       ask.reset();

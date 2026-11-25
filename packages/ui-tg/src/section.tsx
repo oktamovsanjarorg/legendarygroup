@@ -14,7 +14,9 @@ export function Section({
   return (
     <section className="flex flex-col gap-1.5">
       {title && <h2 className="px-4 text-sm uppercase tracking-wide text-text-muted">{title}</h2>}
-      <ul className="overflow-hidden rounded-xl bg-bg">{children}</ul>
+      <ul className="overflow-hidden rounded-xl bg-bg desk:border desk:border-border">
+        {children}
+      </ul>
       {footer && <div className="px-4 text-sm text-text-muted">{footer}</div>}
     </section>
   );
@@ -50,10 +52,12 @@ export function ListItem({
         {subtitle && <span className="line-clamp-2 text-sm text-text-muted">{subtitle}</span>}
       </span>
       {after && <span className="shrink-0 text-sm text-text-muted">{after}</span>}
-      {chevron && <ChevronRight className="size-5 shrink-0 text-text-muted" aria-hidden />}
+      {chevron && (
+        <ChevronRight className="size-5 shrink-0 text-text-muted desk:hidden" aria-hidden />
+      )}
     </>
   );
-  const cls = 'flex min-h-12 w-full items-center gap-3 px-4 py-2 text-left';
+  const cls = 'flex min-h-12 w-full items-center gap-3 px-4 py-2 text-left desk:min-h-11';
   return (
     <li className="border-b border-border last:border-0">
       {onClick ? (
@@ -61,7 +65,7 @@ export function ListItem({
           type="button"
           onClick={onClick}
           disabled={disabled}
-          className={`${cls} active:bg-surface disabled:opacity-50`}
+          className={`${cls} transition-colors hover:bg-surface active:bg-surface disabled:opacity-50`}
         >
           {body}
         </button>
