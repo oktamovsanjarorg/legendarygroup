@@ -1,4 +1,5 @@
 import type { PaymentMethod } from '@lg/contracts';
+import { ErrorNotice, OkNotice } from './notice.js';
 import { miniappMessages as t } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -21,11 +22,15 @@ function PayForm({ id, student }: { id: string; student: { name: string; code: s
   const receipt = create.data?.receiptNumber;
   if (receipt)
     return (
-      <PayDoneView
-        receipt={receipt}
-        onReceipt={() => pdf.mutate(receipt)}
-        onFinish={() => void navigate({ to: '/staff/student/$id', params: { id } })}
-      />
+      <>
+        <ErrorNotice error={pdf.error} />
+        <OkNotice text={pdf.isSuccess ? t.receiptSent : null} />
+        <PayDoneView
+          receipt={receipt}
+          onReceipt={() => pdf.mutate(receipt)}
+          onFinish={() => void navigate({ to: '/staff/student/$id', params: { id } })}
+        />
+      </>
     );
   return (
     <>

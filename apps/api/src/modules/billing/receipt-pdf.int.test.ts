@@ -1,8 +1,18 @@
 import type { PublicReceipt, ReceiptVerifyResponse, RoleCode } from '@lg/contracts';
-import { closeDb, createDb, type Database, enrollments, receipts, seed, students } from '@lg/db';
+import {
+  closeDb,
+  createDb,
+  type Database,
+  enrollments,
+  notifications,
+  receipts,
+  seed,
+  students,
+  users,
+} from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { tokensForAllRoles } from '../../test/role-tokens.js';
+import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 
 let t: TestApp;
@@ -124,6 +134,25 @@ describe('PDF Chek va Ommaviy Tekshirish (T-205, FR-PAY-8, BR-19)', () => {
       expect((await call('GET', url, 'guardian')).statusCode).toBe(404);
       expect((await call('GET', url, 'teacher')).statusCode).toBe(403);
     }
+  });
+
+  it('Mini App: chek PDF bot chatiga; scope, RBAC, botga ulanmagan — NO_TELEGRAM', async () => {
+    const url = `billing/receipts/${receiptNumber}/send`;
+    expect((await call('POST', url, 'guardian')).statusCode).toBe(404);
+    expect((await call('POST', url, 'teacher')).statusCode).toBe(403);
+    const unlinked = await call('POST', url, 'admin');
+    expect(unlinked.statusCode).toBe(409);
+    expect(unlinked.json<{ code: string }>().code).toBe('NO_TELEGRAM');
+    const linked = await createUserWithRole(db, 'admin');
+    await db.update(users).set({ telegramId: 990002n }).where(eq(users.id, linked));
+    const res = await t.app.inject({
+      method: 'POST',
+      url: `/api/${url}`,
+      headers: { authorization: `Bearer ${await tokenFor(t, db, linked, 'admin')}` },
+    });
+    expect(res.statusCode).toBe(201);
+    const sent = await db.select().from(notifications).where(eq(notifications.userId, linked));
+    expect(sent.map((n) => n.type)).toEqual(['report_file']);
   });
 
   it('chek raqam boʻyicha (xodim) PublicReceipt qaytadi', async () => {

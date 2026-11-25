@@ -1,4 +1,5 @@
 import { miniappMessages as t } from '@lg/i18n';
+import { ErrorNotice, OkNotice } from './notice.js';
 import { useNavigate } from '@tanstack/react-router';
 import {
   useChildPayments,
@@ -126,7 +127,13 @@ export function GuardianReceiptPage({ number }: { number: string }) {
   const pdf = useReceiptPdf();
   return (
     <QueryView query={receipt}>
-      {(r) => <ReceiptView r={r} onPdf={() => pdf.mutate(number)} pdfLoading={pdf.isPending} />}
+      {(r) => (
+        <>
+          <ErrorNotice error={pdf.error} />
+          <OkNotice text={pdf.isSuccess ? t.receiptSent : null} />
+          <ReceiptView r={r} onPdf={() => pdf.mutate(number)} pdfLoading={pdf.isPending} />
+        </>
+      )}
     </QueryView>
   );
 }
