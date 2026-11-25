@@ -16,6 +16,7 @@ export * from './progress-chart.js';
 export * from './provider.js';
 export * from './search-field.js';
 export * from './section.js';
+export * from './command-palette.js';
 export * from './desk.js';
 export * from './side-nav.js';
 export * from './states.js';
