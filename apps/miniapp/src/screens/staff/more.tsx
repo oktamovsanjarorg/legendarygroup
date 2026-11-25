@@ -10,6 +10,7 @@ import {
   DoorOpen,
   FileChartColumn,
   HandCoins,
+  IdCard,
   type LucideIcon,
   Link2,
   MailWarning,
@@ -58,6 +59,7 @@ const ICONS: Record<StaffMenuKey, LucideIcon> = {
   payroll: HandCoins,
   reports: FileChartColumn,
   forecasts: TrendingUp,
+  people: IdCard,
 };
 
 export interface StaffMoreViewProps {

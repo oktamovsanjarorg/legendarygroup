@@ -47,6 +47,13 @@ import {
   StaffPayrollTeacherBonusPage,
   StaffPayrollTeacherPage,
 } from './pages/staff-payroll.js';
+import {
+  StaffPeoplePage,
+  StaffPersonEditPage,
+  StaffPersonNewPage,
+  StaffPersonPage,
+  StaffPersonPermissionsPage,
+} from './pages/staff-people.js';
 import { StaffForecastsPage, StaffReportPage, StaffReportsPage } from './pages/staff-reports.js';
 import { StaffDebtorsPage } from './pages/staff-debtors.js';
 import { StaffExpenseNewPage, StaffExpensePage, StaffFinancePage } from './pages/staff-finance.js';
@@ -134,6 +141,11 @@ export const staffRoutes = [
   route('/staff/payments/$id', StaffPaymentPage),
   route('/staff/payments/$id/reverse', StaffReversePage),
   route('/staff/discounts', StaffDiscountsPage),
+  route('/staff/people', StaffPeoplePage),
+  route('/staff/people/new', StaffPersonNewPage),
+  route('/staff/people/$id', StaffPersonPage),
+  route('/staff/people/$id/edit', StaffPersonEditPage),
+  route('/staff/people/$id/permissions', StaffPersonPermissionsPage),
   route('/staff/reports', StaffReportsPage),
   route('/staff/reports/$type', StaffReportPage),
   route('/staff/forecasts', StaffForecastsPage),

@@ -29,6 +29,7 @@ export type StaffMenuKey =
   | 'payroll'
   | 'reports'
   | 'forecasts'
+  | 'people'
   | 'audit';
 
 export interface StaffMenuItem {
@@ -109,6 +110,7 @@ export const STAFF_MENU: readonly StaffMenuItem[] = [
     permission: 'stats.operational',
     to: '/staff/forecasts',
   },
+  { key: 'people', section: 'director', permission: 'staff.manage', to: '/staff/people' },
   { key: 'audit', section: 'director', permission: 'audit.view', to: '/staff/audit' },
 ];
 

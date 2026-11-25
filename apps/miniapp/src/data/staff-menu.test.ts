@@ -57,6 +57,7 @@ describe('MS-06 Koʻproq (T-130)', () => {
       'payroll',
       'reports',
       'forecasts',
+      'people',
       'audit',
     ]);
   });
