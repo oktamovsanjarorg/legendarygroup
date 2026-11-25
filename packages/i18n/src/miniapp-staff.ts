@@ -142,6 +142,9 @@ export const staffMessages = {
   staffNew: {
     title: 'Yangi oʻquvchi',
     fullName: 'Familiya va ism',
+    birthDate: 'Tugʻilgan sana (ixtiyoriy)',
+    firstMonth: '{month}: {sum} ({left}/{total} dars qolgan).',
+    firstMonthFull: '{month}: {sum} (toʻliq oy).',
     phone: 'Oʻquvchi telefoni (ixtiyoriy)',
     guardianName: 'Ota-ona ismi (ixtiyoriy)',
     guardianPhone: 'Ota-ona telefoni',

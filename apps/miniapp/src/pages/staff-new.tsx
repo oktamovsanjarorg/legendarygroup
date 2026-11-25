@@ -9,6 +9,7 @@ import {
   emptyNewStudent,
   newStudentRequest,
   useCreateStudent,
+  useFirstMonth,
   useOpenGroups,
 } from '../data/staff-new.js';
 import { NewStudentView } from '../screens/staff/new-student.js';
@@ -39,6 +40,7 @@ export function StaffNewPage() {
         }),
     });
   const duplicate = isDuplicate(create.error);
+  const quote = useFirstMonth(form.groupId, form.startDate);
   return (
     <QueryView query={groups}>
       {(list) => (
@@ -55,6 +57,7 @@ export function StaffNewPage() {
             saving={create.isPending}
             onForm={setForm}
             onSave={() => save(false)}
+            quote={quote.data ?? null}
           />
           <ActionSheet
             open={duplicate}

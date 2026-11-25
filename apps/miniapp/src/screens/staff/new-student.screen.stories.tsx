@@ -27,6 +27,13 @@ function Flow(p: { groups: typeof G }) {
       saving={false}
       onForm={setForm}
       onSave={() => undefined}
+      quote={{
+        period: '2026-11',
+        monthlyPrice: '600000',
+        amount: '300000',
+        lessonsLeft: 6,
+        lessonsTotal: 12,
+      }}
     />
   );
 }

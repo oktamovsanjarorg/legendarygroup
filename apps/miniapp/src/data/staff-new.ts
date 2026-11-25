@@ -1,9 +1,16 @@
-import type { CreateStudentRequest, GroupListItem, StudentDetail } from '@lg/contracts';
+import type {
+  CreateStudentRequest,
+  FirstMonthQuote,
+  GroupListItem,
+  StudentDetail,
+} from '@lg/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from './deps.js';
 
 export interface NewStudentForm {
   fullName: string;
+  /** `YYYY-MM-DD` yoki bo'sh (FR-STU-1). */
+  birthDate: string;
   phone: string;
   guardianName: string;
   guardianPhone: string;
@@ -13,6 +20,7 @@ export interface NewStudentForm {
 
 export const emptyNewStudent = (today: string): NewStudentForm => ({
   fullName: '',
+  birthDate: '',
   phone: '',
   guardianName: '',
   guardianPhone: '',
@@ -28,6 +36,7 @@ export function newStudentValid(f: NewStudentForm, today: string, groupOptional 
     (groupOptional || f.groupId !== '') &&
     f.startDate !== '' &&
     f.startDate <= today &&
+    (f.birthDate === '' || f.birthDate < today) &&
     guardianOk
   );
 }
@@ -41,6 +50,7 @@ export function newStudentRequest(
   const gName = f.guardianName.trim() || `${f.fullName.trim()} ota-onasi`;
   return {
     fullName: f.fullName.trim(),
+    ...(f.birthDate ? { birthDate: f.birthDate } : {}),
     phone: f.phone.trim() || null,
     guardians: gPhone
       ? [{ fullName: gName, phone: gPhone, relation: 'guardian', isPrimary: true }]
@@ -56,6 +66,19 @@ export function useOpenGroups() {
   return useQuery({
     queryKey: ['staff', 'groups'],
     queryFn: () => api.request<GroupListItem[]>('/groups'),
+  });
+}
+
+/** BR-3 birinchi oy narxi — guruh va kelgan sana tanlangach (T-134). */
+export function useFirstMonth(groupId: string, startDate: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ['staff', 'first-month', groupId, startDate],
+    queryFn: () =>
+      api.request<FirstMonthQuote>(
+        `/billing/first-month?groupId=${groupId}&startDate=${startDate}`,
+      ),
+    enabled: groupId !== '' && /^\d{4}-\d{2}-\d{2}$/.test(startDate),
   });
 }
 

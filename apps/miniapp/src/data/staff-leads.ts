@@ -47,6 +47,7 @@ export function convertRequest(f: NewStudentForm, allowDuplicate: boolean) {
   return {
     student: {
       fullName: f.fullName.trim(),
+      ...(f.birthDate ? { birthDate: f.birthDate } : {}),
       phone: f.phone.trim() || null,
       guardians: gPhone
         ? [{ fullName: gName, phone: gPhone, relation: 'guardian', isPrimary: true }]

@@ -1,5 +1,5 @@
-import type { GroupListItem } from '@lg/contracts';
-import { miniappMessages as t } from '@lg/i18n';
+import type { FirstMonthQuote, GroupListItem } from '@lg/contracts';
+import { formatMoney, formatPeriod, miniappMessages as t } from '@lg/i18n';
 import { ListItem, Section, TextField, useMainButton } from '@lg/ui-tg';
 import { Check } from 'lucide-react';
 import { type NewStudentForm, newStudentValid } from '../../data/staff-new.js';
@@ -18,7 +18,16 @@ export interface NewStudentViewProps {
   saveText?: string;
   groupTitle?: string;
   groupOptional?: boolean;
+  /** BR-3: tanlangan guruh va sana bo'yicha birinchi oy (T-134). */
+  quote?: FirstMonthQuote | null;
 }
+
+export const quoteText = (q: FirstMonthQuote) =>
+  (q.amount === q.monthlyPrice ? c.firstMonthFull : c.firstMonth)
+    .replace('{month}', formatPeriod(q.period))
+    .replace('{sum}', formatMoney(BigInt(q.amount)))
+    .replace('{left}', String(q.lessonsLeft))
+    .replace('{total}', String(q.lessonsTotal));
 
 function GroupPicker(p: {
   groups: NewStudentViewProps['groups'];
@@ -70,6 +79,7 @@ export function NewStudentView(p: NewStudentViewProps) {
       <Section>
         <li className="flex flex-col gap-3 px-4 py-3">
           <TextField label={c.fullName} autoComplete="off" {...field('fullName')} />
+          <TextField label={c.birthDate} type="date" max={today} {...field('birthDate')} />
           <TextField label={c.phone} type="tel" inputMode="tel" {...field('phone')} />
           <TextField label={c.guardianName} autoComplete="off" {...field('guardianName')} />
           <TextField
@@ -86,7 +96,7 @@ export function NewStudentView(p: NewStudentViewProps) {
         value={form.groupId}
         onPick={(id) => onForm({ ...form, groupId: optional && id === form.groupId ? '' : id })}
       />
-      <Section footer={c.startHint}>
+      <Section footer={p.quote ? `${quoteText(p.quote)} ${c.startHint}` : c.startHint}>
         <li className="px-4 py-3">
           <TextField label={c.startDate} type="date" max={today} {...field('startDate')} />
         </li>

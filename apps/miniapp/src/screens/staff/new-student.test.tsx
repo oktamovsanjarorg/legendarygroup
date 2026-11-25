@@ -10,7 +10,7 @@ import {
   newStudentRequest,
   newStudentValid,
 } from '../../data/staff-new.js';
-import { NewStudentView } from './new-student.js';
+import { NewStudentView, quoteText } from './new-student.js';
 
 afterEach(cleanup);
 const c = t.staffNew;
@@ -53,6 +53,26 @@ describe('MS-04a Yangi oʻquvchi (Q-97)', () => {
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({ fullName: 'Karimov Aziz', groupId: 'g2', startDate: TODAY }),
     );
+  });
+
+  it('BR-3: birinchi oy narxi koʻrinadi; tugʻilgan sana soʻrovga qoʻshiladi', () => {
+    const q = {
+      period: '2026-11',
+      monthlyPrice: '400000',
+      amount: '200000',
+      lessonsLeft: 4,
+      lessonsTotal: 8,
+    };
+    expect(quoteText(q)).toContain('4/8');
+    expect(quoteText({ ...q, amount: '400000' })).toContain(t.staffNew.firstMonthFull.slice(-10));
+    const f = {
+      ...emptyNewStudent(TODAY),
+      fullName: 'Ali Valiyev',
+      groupId: 'g1',
+      birthDate: '2015-03-01',
+    };
+    expect(newStudentRequest(f, false).birthDate).toBe('2015-03-01');
+    expect(newStudentValid({ ...f, birthDate: TODAY }, TODAY)).toBe(false);
   });
 
   it('soʻrov: guruh + kelgan sana; ota-ona ismi boʻsh — nomi avtomatik; kelajak sana — yaroqsiz', () => {
