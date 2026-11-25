@@ -54,6 +54,7 @@ import {
   StaffPersonPage,
   StaffPersonPermissionsPage,
 } from './pages/staff-people.js';
+import { StaffHelpPage, StaffSessionsPage } from './pages/staff-help.js';
 import {
   StaffCardPage,
   StaffCardsPage,
@@ -148,6 +149,8 @@ export const staffRoutes = [
   route('/staff/payments/$id', StaffPaymentPage),
   route('/staff/payments/$id/reverse', StaffReversePage),
   route('/staff/discounts', StaffDiscountsPage),
+  route('/staff/help', StaffHelpPage),
+  route('/staff/sessions', StaffSessionsPage),
   route('/staff/settings', StaffSettingsPage),
   route('/staff/settings/start', StaffStartPage),
   route('/staff/settings/cards', StaffCardsPage),

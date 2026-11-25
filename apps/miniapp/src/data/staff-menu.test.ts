@@ -29,6 +29,8 @@ describe('MS-06 Koʻproq (T-130)', () => {
       'undelivered',
       'reports',
       'forecasts',
+      'help',
+      'sessions',
     ]);
   });
 
@@ -60,11 +62,13 @@ describe('MS-06 Koʻproq (T-130)', () => {
       'people',
       'settings',
       'audit',
+      'help',
+      'sessions',
     ]);
   });
 
-  it('ruxsatsiz band koʻrsatilmaydi, boʻsh boʻlim tushib qoladi', () => {
-    expect(staffMenuFor([], [])).toEqual([]);
+  it('ruxsatsiz — faqat yordam va sessiyalar; boʻsh boʻlim tushib qoladi', () => {
+    expect(keys(staffMenuFor([], []))).toEqual(['help', 'sessions']);
   });
 
   it('har band yoʻli xodim marshruti, kalitlar takrorlanmaydi', () => {

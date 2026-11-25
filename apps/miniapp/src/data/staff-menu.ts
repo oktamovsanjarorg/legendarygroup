@@ -3,7 +3,7 @@
  * (02 matritsa) va yoʻl; tabda turgan ekran Koʻproq'da takrorlanmaydi. Yangi ekran (T-131…T-143)
  * shu roʻyxatga qoʻshiladi — qurilmagan ekran koʻrsatilmaydi.
  */
-export type StaffSection = 'students' | 'money' | 'lessons' | 'comms' | 'director';
+export type StaffSection = 'students' | 'money' | 'lessons' | 'comms' | 'director' | 'self';
 export type StaffMenuKey =
   | 'newStudent'
   | 'leads'
@@ -31,12 +31,15 @@ export type StaffMenuKey =
   | 'forecasts'
   | 'people'
   | 'settings'
-  | 'audit';
+  | 'audit'
+  | 'help'
+  | 'sessions';
 
 export interface StaffMenuItem {
   key: StaffMenuKey;
   section: StaffSection;
-  permission: string;
+  /** `null` — har xodimga. */
+  permission: string | null;
   to: string;
 }
 
@@ -46,6 +49,7 @@ export const STAFF_SECTIONS: readonly StaffSection[] = [
   'lessons',
   'comms',
   'director',
+  'self',
 ];
 
 export const STAFF_MENU: readonly StaffMenuItem[] = [
@@ -114,6 +118,8 @@ export const STAFF_MENU: readonly StaffMenuItem[] = [
   { key: 'people', section: 'director', permission: 'staff.manage', to: '/staff/people' },
   { key: 'settings', section: 'director', permission: 'settings.manage', to: '/staff/settings' },
   { key: 'audit', section: 'director', permission: 'audit.view', to: '/staff/audit' },
+  { key: 'help', section: 'self', permission: null, to: '/staff/help' },
+  { key: 'sessions', section: 'self', permission: null, to: '/staff/sessions' },
 ];
 
 /** Ruxsat bor va tabda yoʻq bandlar, boʻlimlar tartibida. */
@@ -123,7 +129,9 @@ export function staffMenuFor(
   menu: readonly StaffMenuItem[] = STAFF_MENU,
 ): { section: StaffSection; items: StaffMenuItem[] }[] {
   const has = new Set(permissions);
-  const shown = menu.filter((i) => has.has(i.permission) && !tabPaths.includes(i.to));
+  const shown = menu.filter(
+    (i) => (i.permission === null || has.has(i.permission)) && !tabPaths.includes(i.to),
+  );
   return STAFF_SECTIONS.map((section) => ({
     section,
     items: shown.filter((i) => i.section === section),

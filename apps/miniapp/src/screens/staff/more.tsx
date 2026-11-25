@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ChartLine,
   CircleAlert,
+  CircleHelp,
   ClipboardCheck,
   DoorOpen,
   FileChartColumn,
@@ -16,6 +17,7 @@ import {
   MailWarning,
   Megaphone,
   MessageCircleQuestion,
+  MonitorSmartphone,
   PartyPopper,
   Percent,
   Receipt,
@@ -62,6 +64,8 @@ const ICONS: Record<StaffMenuKey, LucideIcon> = {
   forecasts: TrendingUp,
   people: IdCard,
   settings: Settings,
+  help: CircleHelp,
+  sessions: MonitorSmartphone,
 };
 
 export interface StaffMoreViewProps {
