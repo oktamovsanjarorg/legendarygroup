@@ -65,10 +65,13 @@ describe('Mini App qobig‘i (T-009)', () => {
     fakeApi({ roles: null });
     const wa = appWebApp({ version: '6.1' });
     render(<App webApp={wa} />);
-    await screen.findByText(t.notLinked.title);
+    await screen.findByText(t.onboarding.oldClient);
     // MainButton — passive effect'da (render'dan keyin): kutiladi.
     await waitFor(() =>
-      expect(wa.MainButton.params).toMatchObject({ text: t.notLinked.backToBot, is_visible: true }),
+      expect(wa.MainButton.params).toMatchObject({
+        text: t.onboarding.backToBot,
+        is_visible: true,
+      }),
     );
     act(() => wa.MainButton.click());
     expect(wa.closed).toBe(true);

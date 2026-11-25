@@ -20,8 +20,13 @@ export type InitDataResult =
  * `secret = HMAC_SHA256("WebAppData", botToken)`, `hash = HMAC_SHA256(secret, data_check_string)`,
  * `data_check_string` — `hash`dan boshqa juftlar, kalit bo'yicha saralangan, `\n` bilan.
  */
-export function verifyInitData(initData: string, botToken: string, nowMs: number): InitDataResult {
-  const params = new URLSearchParams(initData);
+type Signed =
+  | { ok: true; params: URLSearchParams; authDate: number }
+  | { ok: false; reason: 'MALFORMED' | 'BAD_HASH' | 'EXPIRED' };
+
+/** Imzo va `auth_date` (initData ham, `requestContact` javobi ham shu algoritmda). */
+function verifySigned(raw: string, botToken: string, nowMs: number): Signed {
+  const params = new URLSearchParams(raw);
   const hash = params.get('hash');
   if (!hash || !/^[0-9a-f]{64}$/.test(hash)) return { ok: false, reason: 'MALFORMED' };
   params.delete('hash');
@@ -40,9 +45,44 @@ export function verifyInitData(initData: string, botToken: string, nowMs: number
   if (!Number.isInteger(authDate) || authDate > nowS + CLOCK_SKEW_S)
     return { ok: false, reason: 'MALFORMED' };
   if (nowS - authDate > INIT_DATA_MAX_AGE_S) return { ok: false, reason: 'EXPIRED' };
+  return { ok: true, params, authDate };
+}
 
-  const user = parseUser(params.get('user'));
-  return user ? { ok: true, authDate, user } : { ok: false, reason: 'MALFORMED' };
+/**
+ * Telegram Mini App `initData` tekshiruvi (core.telegram.org/bots/webapps#validating-data):
+ * `secret = HMAC_SHA256("WebAppData", botToken)`, `hash = HMAC_SHA256(secret, data_check_string)`,
+ * `data_check_string` — `hash`dan boshqa juftlar, kalit bo'yicha saralangan, `\n` bilan.
+ */
+export function verifyInitData(initData: string, botToken: string, nowMs: number): InitDataResult {
+  const signed = verifySigned(initData, botToken, nowMs);
+  if (!signed.ok) return signed;
+  const user = parseUser(signed.params.get('user'));
+  return user ? { ok: true, authDate: signed.authDate, user } : { ok: false, reason: 'MALFORMED' };
+}
+
+export type ContactResult =
+  | { ok: true; userId: bigint; phone: string; fullName: string }
+  | { ok: false; reason: 'MALFORMED' | 'BAD_HASH' | 'EXPIRED' };
+
+/**
+ * `WebApp.requestContact` javobi (`response` qatori, Bot API 6.9+): Telegram imzolagan
+ * `contact={phone_number,first_name,last_name,user_id}` — raqamni soxtalashtirib bo'lmaydi (Q-111).
+ */
+export function verifyContactResponse(raw: string, botToken: string, nowMs: number): ContactResult {
+  const signed = verifySigned(raw, botToken, nowMs);
+  if (!signed.ok) return signed;
+  try {
+    const c = JSON.parse(signed.params.get('contact') ?? '') as Record<string, unknown>;
+    const { phone_number: phone, user_id: id } = c;
+    if (typeof phone !== 'string' || typeof id !== 'number' || !Number.isSafeInteger(id))
+      return { ok: false, reason: 'MALFORMED' };
+    const fullName = [c['first_name'], c['last_name']]
+      .filter((x) => typeof x === 'string')
+      .join(' ');
+    return { ok: true, userId: BigInt(id), phone, fullName };
+  } catch {
+    return { ok: false, reason: 'MALFORMED' };
+  }
 }
 
 function parseUser(json: string | null): TelegramInitUser | null {

@@ -61,9 +61,9 @@ export interface WebApp {
   openLink(url: string): void;
   /**
    * Telefon raqamni so'rash (6.9+): ulashilsa, kontakt bot chatiga ham boradi — bot bog'laydi.
-   * `shared` — foydalanuvchi rozi bo'ldimi.
+   * `shared` — rozi bo'ldimi; `res.response` — Telegram imzolagan kontakt (serverda tekshiriladi).
    */
-  requestContact?(cb?: (shared: boolean) => void): void;
+  requestContact?(cb?: (shared: boolean, res?: { response?: string }) => void): void;
   MainButton: BottomButton;
   SecondaryButton: BottomButton;
   BackButton: SimpleButton;

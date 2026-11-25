@@ -60,6 +60,8 @@ export interface FakeWebApp extends WebApp {
   /** `requestContact` chaqiruvlari soni va javobi (standart — rozi). */
   contactRequests: number;
   contactAnswer: boolean;
+  /** Rozi bo'lganda qaytadigan imzoli javob. */
+  contactResponse: string;
   haptics: string[];
   storage: Map<string, string>;
   colors: { header?: string; background?: string; bottomBar?: string };
@@ -106,7 +108,7 @@ export function createFakeWebApp(o: FakeOptions = {}): FakeWebApp {
     openLink: (url) => void wa.links.push(url),
     requestContact: (cb) => {
       wa.contactRequests += 1;
-      cb?.(wa.contactAnswer);
+      cb?.(wa.contactAnswer, wa.contactAnswer ? { response: wa.contactResponse } : undefined);
     },
     MainButton: bottomButton(),
     SecondaryButton: bottomButton(),
@@ -134,6 +136,7 @@ export function createFakeWebApp(o: FakeOptions = {}): FakeWebApp {
     links: [],
     contactRequests: 0,
     contactAnswer: true,
+    contactResponse: 'contact=%7B%7D&auth_date=1&hash=fake',
     haptics: [],
     storage: new Map(),
     colors: {},

@@ -547,6 +547,11 @@
 - **Bog'liq:** T-167, T-205 · **Qaror:** Q-110
 - **Bajarildi (2026-11-25):** chek PDF bot chatiga (blob yuklab olish o'rniga); har bot xabarida «Ilovani ochish» tugmasi.
 
+### ✅ T-169 · «Xush kelibsiz»: roʻyxatdan oʻtish toʻliq Mini App ichida
+
+- **Bog'liq:** T-167, T-126, T-110 · **Qaror:** Q-111
+- **Bajarildi (2026-11-25):** «Akkaunt bogʻlanmagan» ekrani olib tashlandi; raqam ulashish → server imzoni tekshirib darhol bogʻlaydi; oʻquvchi — kod Mini App ichida; nomaʼlum raqam — soʻrov va kutish ekrani. Testlar: `telegram-onboarding.int.test.ts`, `pages/not-linked.test.tsx`.
+
 ### ⬜ T-164 · Mini App: keng ekran (Telegram Desktop)
 
 - **Bog'liq:** T-130 · **Talablar:** 11-ux §3

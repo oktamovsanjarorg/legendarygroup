@@ -1,6 +1,7 @@
 import { introMessages } from './miniapp-intro.js';
 import { auditActionMessages } from './miniapp-audit.js';
 import { staffHelpMessages } from './miniapp-help.js';
+import { onboardingMessages } from './miniapp-onboarding.js';
 import { guardianMessages } from './miniapp-guardian.js';
 import { staffMessages } from './miniapp-staff.js';
 import { staffListMessages } from './miniapp-staff-lists.js';
@@ -29,21 +30,6 @@ export const miniappMessages = {
     hint: 'Tanlovingiz eslab qolinadi. Keyin sozlamalarda almashtirishingiz mumkin.',
   },
   receiptSent: 'Chek PDF bot chatiga yuborildi.',
-  notLinked: {
-    title: 'Akkaunt bogʻlanmagan',
-    share: '📱 Telefon raqamni ulashish',
-    shareHint:
-      'Ota-ona, ustoz va xodimlar — raqamingizni ulashing, tizim oʻzi taniydi. Parol kerak emas.',
-    waiting: 'Raqam tekshirilmoqda…',
-    notFound:
-      'Raqamingiz tizimda topilmadi. Bot chatida savolga javob bering yoki markazga qoʻngʻiroq qiling.',
-    declined: 'Raqam ulashilmadi. Kirish uchun raqamni ulashish kerak.',
-    studentHint:
-      'Oʻquvchi boʻlsangiz — botda «🎓 Men oʻquvchiman» tugmasi orqali kod bilan kiring.',
-    backToBot: 'Botga qaytish',
-    staffHint:
-      'Ustoz va xodimlar ham: botda «Start» → «📱 Telefon raqamni ulashish». Parol kerak emas.',
-  },
   home: {
     greeting: 'Xush kelibsiz, {name}!',
     intro: 'Boʻlimlar shu yerda, pastki menyuda paydo boʻladi.',
@@ -71,6 +57,7 @@ export const miniappMessages = {
   ...staffReportMessages,
   ...staffSettingsMessages,
   ...staffHelpMessages,
+  ...onboardingMessages,
   ...auditActionMessages,
   ...studentMessages,
   ...introMessages,

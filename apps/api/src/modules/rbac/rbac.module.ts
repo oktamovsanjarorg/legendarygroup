@@ -1,3 +1,4 @@
+import { TelegramOnboardingController } from './telegram-onboarding.controller.js';
 import { Global, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { InternalGuardianController } from './internal-guardian.controller.js';
@@ -29,6 +30,7 @@ import { StaffService } from './staff.service.js';
     InternalStaffController,
     InternalGuardianController,
     InternalStudentController,
+    TelegramOnboardingController,
   ],
   providers: [
     PermissionsService,

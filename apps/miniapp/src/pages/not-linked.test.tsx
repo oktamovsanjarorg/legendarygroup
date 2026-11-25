@@ -1,85 +1,113 @@
 import { appWebApp } from '../test-webapp.js';
 import { miniappMessages as t } from '@lg/i18n';
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../app.js';
-import { RELINK_DELAY_MS, RELINK_TRIES } from './not-linked.js';
 
+const c = t.onboarding;
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
-const user = {
+const user = (role: string) => ({
   id: 'u1',
   fullName: 'Ali Valiyev',
   phone: '+998901112233',
-  roles: ['guardian'],
-  activeRole: 'guardian',
-};
+  roles: [role],
+  activeRole: role,
+});
 
-/** Bot kontaktni `linkAfter` urinishdan keyin bog'laydi (`null` — hech qachon). */
-function fakeApi(linkAfter: number | null) {
-  let tries = 0;
-  vi.stubGlobal('fetch', async (url: string) => {
+/** Soxta API: `onboard` — bog'lash javobi; bog'langach `/auth/telegram` kiradi. */
+function fakeApi(onboard: Record<string, unknown>, role = 'guardian') {
+  let linked = false;
+  const calls: { path: string; body: Record<string, unknown> }[] = [];
+  vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
     const path = String(url).replace('/api', '');
-    if (path === '/auth/telegram') {
-      tries += 1;
-      if (linkAfter === null || tries <= linkAfter)
-        return json(401, { code: 'TELEGRAM_NOT_LINKED', message: 'bogʻlanmagan' });
-      return json(200, { next: 'done', accessToken: 't-guardian', user });
+    const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {};
+    calls.push({ path, body });
+    if (path === '/auth/telegram')
+      return linked
+        ? json(200, { next: 'done', accessToken: 't', user: user(role) })
+        : json(401, { code: 'TELEGRAM_NOT_LINKED', message: 'x' });
+    if (path === '/auth/me') return json(200, { ...user(role), permissions: [] });
+    if (path === '/auth/telegram/contact' || path === '/auth/telegram/student') {
+      const key = path.endsWith('student')
+        ? 'student'
+        : body['createRequest']
+          ? 'request'
+          : 'contact';
+      const result = onboard[key];
+      if (result === 'linked') linked = true;
+      return json(200, { result });
     }
-    if (path === '/auth/me') return json(200, { ...user, permissions: [] });
     return json(404, { code: 'NOT_FOUND' });
   });
+  return calls;
 }
 
 afterEach(() => {
   cleanup();
-  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
-const shareButton = async (wa: ReturnType<typeof appWebApp>) =>
-  waitFor(() =>
-    expect(wa.MainButton.params).toMatchObject({ text: t.notLinked.share, is_visible: true }),
-  );
+const main = (wa: ReturnType<typeof appWebApp>, text: string) =>
+  waitFor(() => expect(wa.MainButton.params).toMatchObject({ text, is_visible: true }));
 
-describe('C-03 Mini App ichida bogʻlash (Q-109)', () => {
-  it('raqam ulashiladi → bot bogʻlaydi → ilova oʻzi kiradi (botga chiqmasdan)', async () => {
-    fakeApi(2);
+describe('C-03 Xush kelibsiz — Mini App ichida kirish (Q-111)', () => {
+  it('«bogʻlanmagan» yozuvi yoʻq; raqam ulashiladi → server bogʻlaydi → ilova ochiladi', async () => {
+    const calls = fakeApi({ contact: 'linked' });
     const wa = appWebApp();
     render(<App webApp={wa} />);
-    await screen.findByText(t.notLinked.title);
-    await shareButton(wa);
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+    expect(await screen.findByText(c.title)).toBeTruthy();
+    expect(screen.queryByText(/bogʻlanmagan/i)).toBeNull();
+    await main(wa, c.share);
     act(() => wa.MainButton.click());
-    expect(wa.contactRequests).toBe(1);
-    expect(await screen.findByText(t.notLinked.waiting)).toBeTruthy();
-    await act(() => vi.advanceTimersByTimeAsync(RELINK_DELAY_MS * 2));
-    await waitFor(() => expect(screen.queryByText(t.notLinked.title)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(c.title)).toBeNull());
+    const sent = calls.find((x) => x.path === '/auth/telegram/contact');
+    expect(sent?.body).toMatchObject({ contact: wa.contactResponse, createRequest: false });
     expect(wa.closed).toBe(false);
   });
 
-  it('raqam topilmasa — tushuntirish va «Botga qaytish»', async () => {
-    fakeApi(null);
+  it('nomaʼlum raqam → «Men ota-onaman» soʻrovi → kutish ekrani', async () => {
+    fakeApi({ contact: 'not_found', request: 'request_created' });
     const wa = appWebApp();
     render(<App webApp={wa} />);
-    await shareButton(wa);
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+    await main(wa, c.share);
     act(() => wa.MainButton.click());
-    await act(() => vi.advanceTimersByTimeAsync(RELINK_DELAY_MS * (RELINK_TRIES + 1)));
-    expect(await screen.findByText(t.notLinked.notFound)).toBeTruthy();
-    await waitFor(() =>
-      expect(wa.MainButton.params).toMatchObject({ text: t.notLinked.backToBot }),
-    );
+    expect(await screen.findByText(c.unknownTitle)).toBeTruthy();
+    await main(wa, c.request);
+    act(() => wa.MainButton.click());
+    expect(await screen.findByText(c.requestedTitle)).toBeTruthy();
+    await main(wa, c.refresh);
+    act(() => wa.MainButton.click());
+    expect(await screen.findByText(c.notYet)).toBeTruthy();
   });
 
-  it('ulashishdan voz kechsa — qayta soʻrash mumkin', async () => {
-    fakeApi(null);
+  it('oʻquvchi: kod Mini App ichida; notoʻgʻri — xabar, toʻgʻri — kiradi', async () => {
+    let result = 'invalid';
+    const onboard = {
+      get student() {
+        return result;
+      },
+    };
+    fakeApi(onboard, 'student');
+    const wa = appWebApp();
+    render(<App webApp={wa} />);
+    fireEvent.click(await screen.findByRole('button', { name: c.student }));
+    fireEvent.change(screen.getByLabelText(c.code), { target: { value: '12a3456' } });
+    await main(wa, c.enter);
+    act(() => wa.MainButton.click());
+    expect(await screen.findByText(c.codeInvalid)).toBeTruthy();
+    result = 'linked';
+    act(() => wa.MainButton.click());
+    await waitFor(() => expect(screen.queryByText(c.studentTitle)).toBeNull());
+  });
+
+  it('raqamni ulashmasa — tushuntirish, qayta soʻraydi', async () => {
+    fakeApi({});
     const wa = appWebApp();
     wa.contactAnswer = false;
     render(<App webApp={wa} />);
-    await shareButton(wa);
+    await main(wa, c.share);
     act(() => wa.MainButton.click());
-    expect(await screen.findByText(t.notLinked.declined)).toBeTruthy();
-    await shareButton(wa);
+    expect(await screen.findByText(c.declined)).toBeTruthy();
   });
 });

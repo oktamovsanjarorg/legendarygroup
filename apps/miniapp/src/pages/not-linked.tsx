@@ -1,70 +1,139 @@
+import type { BotStudentLinkResult } from '@lg/contracts';
 import { miniappMessages as t } from '@lg/i18n';
-import { StateShell, supports, useHaptic, useMainButton, useWebApp } from '@lg/ui-tg';
-import { Link2Off } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { errorText } from '@lg/ui-core';
+import { supports, useHaptic, useWebApp } from '@lg/ui-tg';
+import { useState } from 'react';
+import { useOnboard } from '../data/onboarding.js';
+import { type OnboardPhase, OnboardingView } from '../screens/common/onboarding.js';
 import { useSession } from '../session/session.js';
 
-const c = t.notLinked;
-/** Bot kontaktni qayta ishlashi bir necha soniya: 2 s × 10 urinish. */
-export const RELINK_DELAY_MS = 2000;
-export const RELINK_TRIES = 10;
+const c = t.onboarding;
+const STUDENT_ERRORS: Partial<Record<BotStudentLinkResult['result'], string>> = {
+  invalid: c.codeInvalid,
+  in_use: c.codeInUse,
+  rate_limited: c.rateLimited,
+};
 
-type Phase = 'idle' | 'waiting' | 'not_found' | 'declined';
+/**
+ * C-03 Birinchi kirish (Q-111): raqam Telegram'ning o'z oynasida ulashiladi, server imzoni
+ * tekshirib darhol bog'laydi va ilova kiradi — botga chiqish yo'q.
+ */
+/** Raqam (bir marta so'raladi, xotirada) + band holat va xato bilan amal. */
+function useContactRun(onDeclined: () => void) {
+  const wa = useWebApp();
+  const haptic = useHaptic();
+  const [contact, setContact] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const askContact = () =>
+    contact
+      ? Promise.resolve(contact)
+      : new Promise<string | null>((done) =>
+          wa.requestContact?.((ok, r) => done(ok && r?.response ? r.response : null)),
+        );
+  const run = async (fn: (c: string) => Promise<void>) => {
+    const got = await askContact();
+    if (!got) return onDeclined();
+    setContact(got);
+    setBusy(true);
+    setError(null);
+    try {
+      await fn(got);
+    } catch (e) {
+      haptic.error();
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { run, busy, error, setError };
+}
 
-/** Kontakt ulashilgach — bot bog'laguncha qayta kirib ko'riladi (yuklanish ekranisiz). */
-function useRelinkPoll(onDone: (linked: boolean) => void) {
+function useOnboardFlow() {
+  const wa = useWebApp();
+  const haptic = useHaptic();
   const { relink } = useSession();
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => void (timer.current && clearTimeout(timer.current)), []);
-  return (left = RELINK_TRIES) => {
-    const tick = (n: number) => {
-      timer.current = setTimeout(() => {
-        void relink().then((ok) => (ok ? onDone(true) : n > 1 ? tick(n - 1) : onDone(false)));
-      }, RELINK_DELAY_MS);
-    };
-    tick(left);
+  const onboard = useOnboard();
+  const [phase, setPhase] = useState<OnboardPhase>('start');
+  const [prev, setPrev] = useState<OnboardPhase>('start');
+  const [code, setCode] = useState('');
+  const canShare = supports(wa, 'requestContact') && typeof wa.requestContact === 'function';
+  const { run, busy, error, setError } = useContactRun(() =>
+    setPhase((p) => (p === 'student' ? p : 'declined')),
+  );
+
+  const enter = async () => {
+    const ok = await relink();
+    if (ok) haptic.success();
+    return ok;
+  };
+
+  const byPhone = (createRequest: boolean) =>
+    run(async (got) => {
+      if (!createRequest) setPhase('checking');
+      const { result } = await onboard.contact(got, createRequest);
+      if (result === 'linked') return void (await enter());
+      setPhase(
+        result === 'not_found' ? 'unknown' : result === 'conflict' ? 'conflict' : 'requested',
+      );
+    });
+  const byCode = () =>
+    run(async (got) => {
+      const { result } = await onboard.student(got, code);
+      if (result === 'linked' || result === 'already_linked') return void (await enter());
+      setError(STUDENT_ERRORS[result] ?? c.codeInvalid);
+    });
+
+  return {
+    wa,
+    phase,
+    setPhase,
+    prev,
+    setPrev,
+    code,
+    setCode,
+    busy,
+    error,
+    setError,
+    canShare,
+    byPhone,
+    byCode,
+    enter,
   };
 }
 
-/**
- * C-03 Akkaunt bog'lanmagan (Q-109): Mini App ichida raqam ulashish — Telegram kontaktni bot
- * chatiga yuboradi, bot xodim/ota-onani bog'laydi, ilova o'zi qayta kiradi. Eski klientda
- * (`requestContact` yo'q) — botga qaytish.
- */
 export function NotLinkedPage() {
-  const wa = useWebApp();
-  const haptic = useHaptic();
-  const [phase, setPhase] = useState<Phase>('idle');
-  const poll = useRelinkPoll((linked) => {
-    if (linked) haptic.success();
-    else setPhase('not_found');
-  });
-  const canShare = supports(wa, 'requestContact') && typeof wa.requestContact === 'function';
-  const share = () =>
-    wa.requestContact?.((shared) => {
-      if (!shared) return setPhase('declined');
-      setPhase('waiting');
-      poll();
-    });
-  const ask = canShare && phase !== 'not_found';
-  useMainButton({
-    text: ask ? c.share : c.backToBot,
-    loading: phase === 'waiting',
-    onClick: ask ? share : () => wa.close(),
-  });
-  const hint = {
-    idle: c.shareHint,
-    waiting: c.waiting,
-    not_found: c.notFound,
-    declined: c.declined,
-  }[phase];
+  const {
+    wa,
+    phase,
+    setPhase,
+    prev,
+    setPrev,
+    code,
+    setCode,
+    busy,
+    error,
+    setError,
+    canShare,
+    byPhone,
+    byCode,
+    enter,
+  } = useOnboardFlow();
   return (
-    <StateShell
-      icon={<Link2Off className="size-10" aria-hidden />}
-      title={c.title}
-      hint={canShare ? hint : c.staffHint}
-    >
-      <p className="text-sm text-text-muted">{c.studentHint}</p>
-    </StateShell>
+    <OnboardingView
+      phase={phase}
+      canShare={canShare}
+      busy={busy}
+      error={error}
+      code={code}
+      onCode={setCode}
+      onShare={() => void byPhone(false)}
+      onRequest={() => void byPhone(true)}
+      onStudent={() => (setError(null), setPrev(phase), setPhase('student'))}
+      onBack={() => (setError(null), setPhase(prev))}
+      onRefresh={() => void enter().then((ok) => ok || setError(c.notYet))}
+      onSubmitCode={() => void byCode()}
+      onBot={() => wa.close()}
+    />
   );
 }
