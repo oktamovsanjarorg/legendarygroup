@@ -126,6 +126,16 @@ describe('MS-12/MS-20 Guruhlar (T-136, T-149)', () => {
     expect(screen.queryByText(c.actions)).toBeNull();
   });
 
+  it('MS-25: testlar havolasi faqat ruxsat (onTests) boʻlsa', () => {
+    const onTests = vi.fn();
+    wrap(groupView({ onTests }));
+    fireEvent.click(button(c.tests));
+    expect(onTests).toHaveBeenCalled();
+    cleanup();
+    wrap(groupView({}));
+    expect(screen.queryByText(c.tests)).toBeNull();
+  });
+
   it('jadval: kun + vaqt qoʻshiladi, tugash kurs davomiyligidan', () => {
     const onSave = vi.fn();
     const wa = wrap(

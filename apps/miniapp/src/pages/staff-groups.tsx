@@ -106,6 +106,11 @@ export function StaffGroupPage() {
             onStudent={(s) => void navigate({ to: '/staff/student/$id', params: { id: s } })}
             onLesson={(l) => void navigate({ to: '/staff/lessons/$id', params: { id: l } })}
             onAttendance={() => void navigate({ to: '/staff/groups/$id/attendance', params })}
+            onTests={
+              permissions.includes('test.manage')
+                ? () => void navigate({ to: '/staff/groups/$id/tests', params })
+                : undefined
+            }
           />
         </>
       )}

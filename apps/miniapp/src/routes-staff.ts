@@ -54,6 +54,7 @@ import {
   StaffPersonPage,
   StaffPersonPermissionsPage,
 } from './pages/staff-people.js';
+import { StaffTestCreatePage, StaffTestPage, StaffTestsPage } from './pages/staff-tests.js';
 import { StaffHelpPage, StaffSessionsPage } from './pages/staff-help.js';
 import {
   StaffCardPage,
@@ -204,6 +205,9 @@ export const staffRoutes = [
   route('/staff/groups/$id/schedule', StaffGroupSchedulePage),
   route('/staff/groups/$id/teacher', StaffGroupTeacherPage),
   route('/staff/groups/$id/attendance', StaffGroupAttendancePage),
+  route('/staff/groups/$id/tests', StaffTestsPage),
+  route('/staff/groups/$id/tests/new', StaffTestCreatePage),
+  route('/staff/groups/$id/tests/$testId', StaffTestPage),
   route('/staff/calendar', StaffCalendarPage),
   route('/staff/calendar/new', StaffLessonNewPage),
   route('/staff/lessons/$id', StaffLessonPage),

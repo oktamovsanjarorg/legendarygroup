@@ -127,7 +127,8 @@ export const teacherMessages = {
     resolveFirst: 'Avval taklif qilingan moslarni tasdiqlang',
     atomicNote:
       'Import toʻliq bajariladi yoki umuman bajarilmaydi. Qayta import natijalarni yangilaydi.',
-    template: 'Namuna shablonni yuklab olish',
+    template: 'Namuna shablonni botga yuborish',
+    templateSent: 'Shablon bot chatiga yuborildi — toʻldirib, shu yerga yuklang.',
     fileTooLarge: 'Fayl hajmi 5 MB dan oshmasin.',
     fileNotXlsx: 'Faqat Excel (.xlsx) fayl yuklanadi.',
     fileUnreadable: 'Faylni oʻqib boʻlmadi. Qaytadan tanlang.',

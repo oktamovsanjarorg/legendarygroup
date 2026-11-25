@@ -37,6 +37,7 @@ export const staffOrgMessages = {
     upcoming: 'Yaqin darslar',
     noLessons: 'Yaqin 14 kunda dars yoʻq',
     monthAttendance: 'Oylik davomat',
+    tests: 'Testlar va natijalar',
     actions: 'Amallar',
     changeSchedule: 'Jadvalni almashtirish',
     addTeacher: 'Ustoz biriktirish',

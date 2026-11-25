@@ -61,6 +61,7 @@ export const MS12_Card: Story = {
       onStudent={noop}
       onLesson={noop}
       onAttendance={noop}
+      onTests={noop}
     />
   ),
 };

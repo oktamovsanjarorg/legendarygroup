@@ -98,6 +98,8 @@ export interface GroupViewProps {
   onStudent: (id: string) => void;
   onLesson: (id: string) => void;
   onAttendance: () => void;
+  /** MS-25 Testlar — `test.manage` bo'lsa. */
+  onTests?: () => void;
 }
 
 const teacherLine = (x: GroupTeacher, today: string) =>
@@ -235,6 +237,13 @@ export function GroupView(p: GroupViewProps) {
             title={<span className="text-link">{c.monthAttendance}</span>}
             chevron
             onClick={p.onAttendance}
+          />
+        )}
+        {p.onTests && (
+          <ListItem
+            title={<span className="text-link">{c.tests}</span>}
+            chevron
+            onClick={p.onTests}
           />
         )}
       </Section>

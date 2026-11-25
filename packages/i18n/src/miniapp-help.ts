@@ -142,6 +142,17 @@ const helpSections: readonly HelpSection[] = [
         note: 'Bekor qilingan dars puli keyingi oy hisobidan ayriladi; oʻrniga dars qoʻyilsa — ayrilmaydi.',
       },
       {
+        id: 'test',
+        permission: 'test.manage',
+        q: 'Test natijalarini qanday kiritaman?',
+        steps: [
+          '«Guruhlar» → guruh → «Testlar va natijalar» → «Test yaratish».',
+          '«Namuna shablonni botga yuborish» → faylni toʻldiring → «Excel fayl tanlash».',
+          'Mos kelmaganlarni tasdiqlang → «Import qilish» → «Natijalarni eʼlon qilish».',
+        ],
+        note: 'Eʼlondan keyin ota-onalarga natija boradi, ballar oʻzgarmaydi.',
+      },
+      {
         id: 'davomat',
         permission: 'attendance.edit_past',
         q: 'Oʻtgan kun davomatini qanday tuzataman?',
