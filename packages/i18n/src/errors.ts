@@ -45,6 +45,7 @@ export const errorMessages = {
   FILE_CONTENT_MISMATCH: 'Fayl mazmuni koʻrsatilgan turga mos emas. Asl faylni yuklang.',
   UPLOAD_NOT_FOUND: 'Yuklash muddati tugagan. Faylni qayta tanlang.',
   INVALID_INIT_DATA: 'Telegram maʼlumotlari tasdiqlanmadi. Ilovani bot orqali qayta oching.',
+  INVALID_CONTACT: 'Raqamni tasdiqlab boʻlmadi. Oʻzingizning raqamingizni qayta ulashing.',
   TELEGRAM_NOT_LINKED:
     'Telegram akkauntingiz tizimga bogʻlanmagan. Botda /start bosing va telefon raqamingizni ulashing.',
   NON_DELEGABLE_PERMISSION: 'Bu ruxsat faqat Direktorga tegishli, uni Adminga berib boʻlmaydi.',

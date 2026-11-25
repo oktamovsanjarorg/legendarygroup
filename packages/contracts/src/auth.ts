@@ -35,6 +35,36 @@ export const TelegramAuthRequest = z.object({
   role: z.enum(ROLES).optional(),
 });
 
+/**
+ * C-03 Mini App ichida bog'lanish (Q-111): `initData` (kim) + `requestContact` imzoli javobi
+ * (qaysi raqam). Bot oraliq bo'g'in emas.
+ */
+export const TelegramOnboardRequest = z.object({
+  initData: z.string().min(10).max(4096),
+  contact: z.string().min(10).max(4096),
+  /** Raqam topilmasa — ota-ona sifatida bog'lanish so'rovi (foydalanuvchi o'zi tanlaydi). */
+  createRequest: z.boolean().default(false),
+});
+export type TelegramOnboardRequest = z.input<typeof TelegramOnboardRequest>;
+
+export const TELEGRAM_ONBOARD_RESULTS = [
+  'linked',
+  'request_created',
+  'pending_approval',
+  'not_found',
+  'conflict',
+] as const;
+export const TelegramOnboardResult = z.object({ result: z.enum(TELEGRAM_ONBOARD_RESULTS) });
+export type TelegramOnboardResult = z.infer<typeof TelegramOnboardResult>;
+
+/** O'quvchi: raqam (o'zi yoki ota-onasi) + Admin bergan 6 xonali kod (T-126). */
+export const TelegramStudentOnboardRequest = z.object({
+  initData: z.string().min(10).max(4096),
+  contact: z.string().min(10).max(4096),
+  code: z.string().regex(/^\d{6}$/),
+});
+export type TelegramStudentOnboardRequest = z.infer<typeof TelegramStudentOnboardRequest>;
+
 export const SwitchRoleRequest = z.object({ role: z.enum(ROLES) });
 
 export const AuthUser = z.object({
