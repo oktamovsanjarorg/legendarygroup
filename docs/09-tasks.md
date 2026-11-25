@@ -440,12 +440,14 @@
 - **Bog'liq:** T-146 production'da · **Qaror:** Q-98
 - **AC:** shart — production'da barcha faol Direktor/Admin Telegram'i ulangan. `auth/login`, `totp/*`, `invite/accept`, `staff_invites`, `user_backup_codes`, `password_hash`, `totp_secret`, `TOTP_ENCRYPTION_KEY`, seed taklif tokeni olinadi.
 
-### ⬜ T-148 · Web panelni yopish
+### ⛔ T-148 · Web panelni yopish
 
 - **Bog'liq:** T-132…T-143, T-149…T-165 · **Qaror:** Q-98, Q-99, ADR 0008
 - **AC:** tenglik jadvali (`docs/ux/screens.md` MS ↔ W) to'liq; `apps/web`da faqat `/verify/<token>`; panel-handoff va web sessiyalari olinadi; runbook va qo'llanmalar yangilangan; egasi qabul qilgan.
 
 > **T-149…T-164 umumiy AC (ADR 0008):** avval API mantiqi BR/FR bilan solishtiriladi, har xato qizil test bilan; 5 holat, Storybook, faqat Telegram native tugmalar, RBAC; xavfli amalda tasdiq.
+
+- **Bekor qilindi (egasi, 2026-11-25):** web panel yopilmaydi — Mini App bilan birga qoladi (Q-116).
 
 ### ✅ T-149 · Mini App: guruh yaratish va tahrirlash (MS-20)
 
@@ -557,11 +559,11 @@
 - **Bog'liq:** T-169 · **Qaror:** Q-112
 - **Bajarildi (2026-11-25):** soʻrov holati qayta ochilganda; matnlar Mini App oqimiga moslandi; «Chek yuborildi» — faqat haqiqatda yuborilganda.
 
-### 🟡 T-164 · Mini App: keng ekran (Telegram Desktop)
+### ✅ T-164 · Mini App: keng ekran (Telegram Desktop)
 
-- **Bog'liq:** T-130 · **Talablar:** 11-ux §3
+- **Bog'liq:** T-130, T-171 · **Talablar:** 11-ux §3 · **Qaror:** Q-115
 - **AC:** ≥ 768 px da ro'yxat + tafsilot yonma-yon; bitta kod, alohida ekran yo'q.
-- **Qisman (2026-11-25, T-171):** ≥ 900 px da doimiy yon panel (barcha bo'limlar), kontent markazda. Qoldi: ro'yxat + tafsilot yonma-yon.
+- **Bajarildi (2026-11-25):** ≥ 900 px — yon panel (T-171) va ro'yxat + tafsilot: o'quvchilar, qarzdorlar, to'lovlar, lidlar, so'rovlar, guruhlar, murojaatlar, xodimlar, e'lonlar. Chap paneldagi ro'yxat Telegram tugmalarini egallamaydi (`PassiveControls`), qidiruv matni saqlanadi. Xodim Telegram Desktop/macOS'da — to'liq ekran (Bot API 8.0). Testlar: `split-view.test.tsx`, `side-nav.test.tsx`.
 
 ### ✅ T-172 · AI yordamchi (Mini App «Yordamchi» tabi)
 

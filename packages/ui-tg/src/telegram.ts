@@ -64,6 +64,9 @@ export interface WebApp {
    * `shared` — rozi bo'ldimi; `res.response` — Telegram imzolagan kontakt (serverda tekshiriladi).
    */
   requestContact?(cb?: (shared: boolean, res?: { response?: string }) => void): void;
+  /** To'liq ekran (8.0): Telegram Desktop'da tor oyna o'rniga — keng ekran rejimi (T-164). */
+  requestFullscreen?(): void;
+  isFullscreen?: boolean;
   MainButton: BottomButton;
   SecondaryButton: BottomButton;
   BackButton: SimpleButton;
@@ -96,6 +99,7 @@ export const FEATURE_VERSION = {
   secondaryButton: '7.10',
   bottomBarColor: '7.10',
   safeArea: '8.0',
+  fullscreen: '8.0',
 } as const;
 
 export type Feature = keyof typeof FEATURE_VERSION;

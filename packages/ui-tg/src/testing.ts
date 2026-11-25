@@ -59,6 +59,8 @@ export interface FakeWebApp extends WebApp {
   links: string[];
   /** `requestContact` chaqiruvlari soni va javobi (standart — rozi). */
   contactRequests: number;
+  /** `requestFullscreen` chaqiruvlari soni. */
+  fullscreenRequests: number;
   contactAnswer: boolean;
   /** Rozi bo'lganda qaytadigan imzoli javob. */
   contactResponse: string;
@@ -104,6 +106,7 @@ export function createFakeWebApp(o: FakeOptions = {}): FakeWebApp {
     isVersionAtLeast: (v) => cmp(version, v) >= 0,
     ready: () => undefined,
     expand: () => undefined,
+    requestFullscreen: () => void (wa.fullscreenRequests += 1),
     close: () => void (wa.closed = true),
     openLink: (url) => void wa.links.push(url),
     requestContact: (cb) => {
@@ -135,6 +138,7 @@ export function createFakeWebApp(o: FakeOptions = {}): FakeWebApp {
     closed: false,
     links: [],
     contactRequests: 0,
+    fullscreenRequests: 0,
     contactAnswer: true,
     contactResponse: 'contact=%7B%7D&auth_date=1&hash=fake',
     haptics: [],

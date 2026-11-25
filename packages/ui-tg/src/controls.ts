@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { createContext, createElement, type ReactNode, useContext, useEffect, useRef } from 'react';
 import { useWebApp } from './provider.js';
 import { type BottomButton, type SimpleButton, supports, type WebApp } from './telegram.js';
 
@@ -46,15 +46,35 @@ function useBottomButton(button: BottomButton | null, opts: BottomButtonOptions)
   }, [button]);
 }
 
+/**
+ * Passiv hudud (T-164): keng ekranda chap paneldagi ro'yxat Telegram tugmalarini egallamaydi —
+ * MainButton/SecondaryButton/BackButton faqat o'ng paneldagi (asosiy) ekranniki.
+ */
+const PassiveContext = createContext(false);
+
+export function PassiveControls({
+  active = true,
+  children,
+}: {
+  active?: boolean;
+  children: ReactNode;
+}) {
+  // `active` almashsa ham daraxt o'zgarmaydi — ro'yxat holati (qidiruv matni) saqlanadi.
+  return createElement(PassiveContext.Provider, { value: active }, children);
+}
+
 /** Ekranning asosiy amali — pastdagi bitta `MainButton` (11-ux §4.1). */
 export function useMainButton(opts: BottomButtonOptions): void {
-  useBottomButton(useWebApp().MainButton, opts);
+  const passive = useContext(PassiveContext);
+  const wa = useWebApp();
+  useBottomButton(passive ? null : wa.MainButton, opts);
 }
 
 /** Ikkinchi amal — `SecondaryButton` (Bot API 7.10+; eski klientda ko'rinmaydi). */
 export function useSecondaryButton(opts: BottomButtonOptions): void {
   const wa = useWebApp();
-  useBottomButton(supports(wa, 'secondaryButton') ? wa.SecondaryButton : null, opts);
+  const passive = useContext(PassiveContext);
+  useBottomButton(!passive && supports(wa, 'secondaryButton') ? wa.SecondaryButton : null, opts);
 }
 
 function useSimpleButton(button: SimpleButton | null, onClick: (() => void) | null) {
@@ -73,7 +93,8 @@ function useSimpleButton(button: SimpleButton | null, onClick: (() => void) | nu
 /** Orqaga — faqat Telegram `BackButton` (ichki "Orqaga" chizilmaydi). `null` — yashirin. */
 export function useBackButton(onBack: (() => void) | null): void {
   const wa = useWebApp();
-  useSimpleButton(supports(wa, 'backButton') ? wa.BackButton : null, onBack);
+  const passive = useContext(PassiveContext);
+  useSimpleButton(!passive && supports(wa, 'backButton') ? wa.BackButton : null, onBack);
 }
 
 /** Telegram menyusidagi "Sozlamalar" bandi (Bot API 7.0+). */
@@ -85,11 +106,12 @@ export function useSettingsButton(onOpen: (() => void) | null): void {
 /** Saqlanmagan o'zgarish bo'lsa yopishdan oldin so'raladi (11-ux §4.3). */
 export function useClosingConfirmation(enabled: boolean): void {
   const wa = useWebApp();
+  const passive = useContext(PassiveContext);
   useEffect(() => {
-    if (!enabled || !supports(wa, 'closingConfirmation')) return;
+    if (passive || !enabled || !supports(wa, 'closingConfirmation')) return;
     wa.enableClosingConfirmation();
     return () => wa.disableClosingConfirmation();
-  }, [wa, enabled]);
+  }, [wa, enabled, passive]);
 }
 
 export interface Haptic {
