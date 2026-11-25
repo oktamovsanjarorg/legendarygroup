@@ -1,18 +1,11 @@
 import type { RoleCode } from '@lg/contracts';
 import { errorMessages, isErrorCode, miniappMessages as t } from '@lg/i18n';
 import { ApiError, errorText } from '@lg/ui-core';
-import {
-  ErrorState,
-  LoadingState,
-  StateShell,
-  useHaptic,
-  useMainButton,
-  useWebApp,
-} from '@lg/ui-tg';
-import { Link2Off } from 'lucide-react';
+import { ErrorState, LoadingState, useHaptic } from '@lg/ui-tg';
 import { useState } from 'react';
 import { useSession } from '../session/session.js';
 import { IntroGate } from './intro.js';
+import { NotLinkedPage } from './not-linked.js';
 import { RoleList } from './role-list.js';
 
 /** C-02: bir nechta rol — tanlash (eslab qolinadi). */
@@ -39,21 +32,6 @@ export function ChooseRolePage({ roles }: { roles: RoleCode[] }) {
       <RoleList roles={roles} busy={busy} onSelect={(r) => void pick(r)} />
       <p className="px-1 text-sm text-text-muted">{error ?? t.chooseRole.hint}</p>
     </main>
-  );
-}
-
-/** C-03: Telegram akkaunti bog'lanmagan — botga qaytish (`/start` → telefon ulashish). */
-export function NotLinkedPage() {
-  const wa = useWebApp();
-  useMainButton({ text: t.notLinked.backToBot, onClick: () => wa.close() });
-  return (
-    <StateShell
-      icon={<Link2Off className="size-10" aria-hidden />}
-      title={t.notLinked.title}
-      hint={errorMessages.TELEGRAM_NOT_LINKED}
-    >
-      <p className="text-sm text-text-muted">{t.notLinked.staffHint}</p>
-    </StateShell>
   );
 }
 

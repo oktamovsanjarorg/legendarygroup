@@ -30,6 +30,15 @@ export const miniappMessages = {
   },
   notLinked: {
     title: 'Akkaunt bogʻlanmagan',
+    share: '📱 Telefon raqamni ulashish',
+    shareHint:
+      'Ota-ona, ustoz va xodimlar — raqamingizni ulashing, tizim oʻzi taniydi. Parol kerak emas.',
+    waiting: 'Raqam tekshirilmoqda…',
+    notFound:
+      'Raqamingiz tizimda topilmadi. Bot chatida savolga javob bering yoki markazga qoʻngʻiroq qiling.',
+    declined: 'Raqam ulashilmadi. Kirish uchun raqamni ulashish kerak.',
+    studentHint:
+      'Oʻquvchi boʻlsangiz — botda «🎓 Men oʻquvchiman» tugmasi orqali kod bilan kiring.',
     backToBot: 'Botga qaytish',
     staffHint:
       'Ustoz va xodimlar ham: botda «Start» → «📱 Telefon raqamni ulashish». Parol kerak emas.',

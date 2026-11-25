@@ -30,6 +30,11 @@ interface SessionValue {
   /** C-02 / C-04: rolni tanlash yoki almashtirish (eslab qolinadi). */
   selectRole: (role: RoleCode) => Promise<void>;
   retry: () => void;
+  /**
+   * C-03: raqam ulashilgach — yuklanish ekranisiz qayta kirish. Bog'langan bo'lsa `true`
+   * (holat `ready`/`choose_role`ga o'tadi), hali bog'lanmagan — `false`.
+   */
+  relink: () => Promise<boolean>;
 }
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -42,6 +47,21 @@ interface ProviderProps {
   /** API klient eskirgan tokenni yangilashda shu rolni oladi. */
   roleRef: { current: RoleCode | undefined };
   children: ReactNode;
+}
+
+/** C-03 jim qayta kirish: bog'lanmagan — `false`, boshqa xato — `fail`. */
+async function relinkWith(
+  run: () => Promise<TelegramAuthResult>,
+  apply: (r: TelegramAuthResult) => Promise<void>,
+  fail: (e: unknown) => void,
+): Promise<boolean> {
+  try {
+    await apply(await run());
+    return true;
+  } catch (e) {
+    if (!(e instanceof ApiError && e.code === 'TELEGRAM_NOT_LINKED')) fail(e);
+    return false;
+  }
 }
 
 export function SessionProvider({ api, initData, store, link, roleRef, children }: ProviderProps) {
@@ -103,8 +123,9 @@ export function SessionProvider({ api, initData, store, link, roleRef, children 
         await apply(r);
       },
       retry: () => setAttempt((n) => n + 1),
+      relink: () => relinkWith(() => signIn(exchange, store, linkRef.current), apply, fail),
     }),
-    [state, link, exchange, store, apply],
+    [state, link, exchange, store, apply, fail],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

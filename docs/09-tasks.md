@@ -537,6 +537,11 @@
 - **AC:** qidiruvli yordam, web sessiyalarini yopish.
 - **Bajarildi (2026-11-25):** MS-34; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
+### ✅ T-167 · Mini App ichida kirish (raqam ulashish)
+
+- **Bog'liq:** T-146, T-009 · **Talablar:** FR-AUTH-3 · **Qaror:** Q-109
+- **Bajarildi (2026-11-25):** C-03 ekranida `requestContact` → bot bog'laydi → ilova o'zi kiradi; topilmasa/voz kechsa — tushuntirish; eski klient — botga qaytish. Testlar: `pages/not-linked.test.tsx`.
+
 ### ⬜ T-164 · Mini App: keng ekran (Telegram Desktop)
 
 - **Bog'liq:** T-130 · **Talablar:** 11-ux §3
