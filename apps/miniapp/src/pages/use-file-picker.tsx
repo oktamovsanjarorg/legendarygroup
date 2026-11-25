@@ -1,4 +1,4 @@
-import { type FilePurpose, IMAGE_MIMES, PDF_MIME } from '@lg/contracts';
+import { FILE_PURPOSES, type FilePurpose } from '@lg/contracts';
 import { errorText } from '@lg/ui-core';
 import type { FilePickState } from '@lg/ui-tg';
 import { useRef, useState } from 'react';
@@ -30,7 +30,7 @@ export function useFilePicker(purpose: FilePurpose, initial: FilePickState = { k
       ref={ref}
       type="file"
       hidden
-      accept={[...IMAGE_MIMES, PDF_MIME].join(',')}
+      accept={FILE_PURPOSES[purpose].mimes.join(',')}
       onChange={(e) => {
         const f = e.target.files?.[0];
         if (f) void onFile(f);

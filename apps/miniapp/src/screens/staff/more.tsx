@@ -21,6 +21,7 @@ import {
   Receipt,
   ReceiptText,
   ScrollText,
+  Settings,
   ShoppingCart,
   TrendingUp,
   UserCheck,
@@ -60,6 +61,7 @@ const ICONS: Record<StaffMenuKey, LucideIcon> = {
   reports: FileChartColumn,
   forecasts: TrendingUp,
   people: IdCard,
+  settings: Settings,
 };
 
 export interface StaffMoreViewProps {
