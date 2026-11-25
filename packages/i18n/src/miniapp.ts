@@ -2,6 +2,7 @@ import { introMessages } from './miniapp-intro.js';
 import { auditActionMessages } from './miniapp-audit.js';
 import { staffHelpMessages } from './miniapp-help.js';
 import { onboardingMessages } from './miniapp-onboarding.js';
+import { assistantMessages } from './miniapp-assistant.js';
 import { guardianMessages } from './miniapp-guardian.js';
 import { staffMessages } from './miniapp-staff.js';
 import { staffListMessages } from './miniapp-staff-lists.js';
@@ -58,6 +59,7 @@ export const miniappMessages = {
   ...staffSettingsMessages,
   ...staffHelpMessages,
   ...onboardingMessages,
+  ...assistantMessages,
   ...auditActionMessages,
   ...studentMessages,
   ...introMessages,

@@ -9,6 +9,7 @@ import {
   Ellipsis,
   House,
   LayoutGrid,
+  Sparkles,
   UserRound,
   Users,
   Wallet,
@@ -31,6 +32,15 @@ const GUARDIAN_TABS: readonly TabItem[] = [
 /** Ildizda ruxsati bo'lmagan tab ko'rsatilmaydi (masalan, `payment.create`siz Admin). */
 export type RoleTab = TabItem & { permission?: string };
 
+/** AI yordamchi (Q-114): xodim tablarida — boshqaruvni oddiy savol bilan. */
+const ASSISTANT_TAB: RoleTab = {
+  screen: 'MS-35',
+  to: '/staff/assistant',
+  label: t.stabs.assistant,
+  icon: Sparkles,
+  permission: 'student.manage',
+};
+
 /**
  * Admin (Q-113): eng ko'p ishlatiladigan — o'quvchi topish va to'lov kiritish. Chek navbati va
  * so'rovlar «Bugun»da kutayotgan ishlar sifatida (son belgisi bilan).
@@ -45,6 +55,7 @@ const ADMIN_TABS: readonly RoleTab[] = [
     icon: Wallet,
     permission: 'payment.create',
   },
+  ASSISTANT_TAB,
   { screen: 'MS-06', to: '/staff/more', label: t.stabs.menu, icon: LayoutGrid },
 ];
 
@@ -59,6 +70,7 @@ const DIRECTOR_TABS: readonly RoleTab[] = [
     icon: ChartLine,
     permission: 'finance.view',
   },
+  ASSISTANT_TAB,
   { screen: 'MS-06', to: '/staff/more', label: t.stabs.menu, icon: LayoutGrid },
 ];
 
@@ -71,8 +83,8 @@ const STUDENT_TABS: readonly TabItem[] = [
 
 /**
  * Pastki menyu rolga qarab (11-ux §2, Q-113): Ustoz — Bugun/Guruhlarim/Jadval/Profil; Ota-ona —
- * Asosiy/Natijalar/To'lovlar/Ko'proq; Admin — Bugun/O'quvchilar/To'lov/Menyu; Director —
- * Bugun/O'quvchilar/Moliya/Menyu; O'quvchi — Bugun/Jadval/Natijalar/Profil.
+ * Asosiy/Natijalar/To'lovlar/Ko'proq; Admin — Bugun/O'quvchilar/To'lov/Yordamchi/Menyu;
+ * Director — Bugun/O'quvchilar/Moliya/Yordamchi/Menyu; O'quvchi — Bugun/Jadval/Natijalar/Profil.
  */
 export const TABS: Readonly<Record<RoleCode, readonly RoleTab[]>> = {
   director: DIRECTOR_TABS,

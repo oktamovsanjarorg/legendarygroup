@@ -90,6 +90,7 @@ import {
 import { StaffMorePage } from './pages/staff-more.js';
 import { StaffNewPage } from './pages/staff-new.js';
 import { StaffPayPage, StaffPaySearchPage } from './pages/staff-pay.js';
+import { StaffAssistantPage } from './pages/staff-assistant.js';
 import {
   StaffDiscountPage,
   StaffDiscountsPage,
@@ -179,6 +180,7 @@ export const staffRoutes = [
   route('/staff/new', StaffNewPage),
   route('/staff/debtors', StaffDebtorsPage),
   route('/staff/pay', StaffPaySearchPage),
+  route('/staff/assistant', StaffAssistantPage),
   route('/staff/student/$id/pay', StaffPayPage),
   route('/staff/leads', StaffLeadsPage),
   route('/staff/leads/new', StaffLeadNewPage),
