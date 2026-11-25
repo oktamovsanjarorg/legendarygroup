@@ -5,11 +5,10 @@ import {
   BarChart3,
   CalendarCheck,
   CalendarDays,
-  ClipboardCheck,
+  ChartLine,
   Ellipsis,
   House,
-  Receipt,
-  Search,
+  LayoutGrid,
   UserRound,
   Users,
   Wallet,
@@ -29,19 +28,38 @@ const GUARDIAN_TABS: readonly TabItem[] = [
   { screen: 'MG-08', to: '/more', label: t.gtabs.more, icon: Ellipsis },
 ];
 
-const ADMIN_TABS: readonly TabItem[] = [
+/** Ildizda ruxsati bo'lmagan tab ko'rsatilmaydi (masalan, `payment.create`siz Admin). */
+export type RoleTab = TabItem & { permission?: string };
+
+/**
+ * Admin (Q-113): eng ko'p ishlatiladigan — o'quvchi topish va to'lov kiritish. Chek navbati va
+ * so'rovlar «Bugun»da kutayotgan ishlar sifatida (son belgisi bilan).
+ */
+const ADMIN_TABS: readonly RoleTab[] = [
   { screen: 'MS-01', to: '/', label: t.stabs.today, icon: CalendarCheck },
-  { screen: 'MS-02', to: '/staff/queue', label: t.stabs.queue, icon: Receipt },
-  { screen: 'MS-04', to: '/staff/search', label: t.stabs.search, icon: Search },
-  { screen: 'MS-06', to: '/staff/more', label: t.stabs.more, icon: Ellipsis },
+  { screen: 'MS-04', to: '/staff/search', label: t.stabs.students, icon: Users },
+  {
+    screen: 'MS-07',
+    to: '/staff/pay',
+    label: t.stabs.pay,
+    icon: Wallet,
+    permission: 'payment.create',
+  },
+  { screen: 'MS-06', to: '/staff/more', label: t.stabs.menu, icon: LayoutGrid },
 ];
 
-/** Director: chek navbati — Bugun kartochkasi va Koʻproq'da (11-ux §2, 2026-11-22). */
-const DIRECTOR_TABS: readonly TabItem[] = [
+/** Director (Q-113): bosh sahifa, o'quvchilar, moliya, menyu. */
+const DIRECTOR_TABS: readonly RoleTab[] = [
   { screen: 'MS-01', to: '/', label: t.stabs.today, icon: CalendarCheck },
-  { screen: 'MS-03', to: '/staff/approvals', label: t.stabs.approvals, icon: ClipboardCheck },
-  { screen: 'MS-04', to: '/staff/search', label: t.stabs.search, icon: Search },
-  { screen: 'MS-06', to: '/staff/more', label: t.stabs.more, icon: Ellipsis },
+  { screen: 'MS-04', to: '/staff/search', label: t.stabs.students, icon: Users },
+  {
+    screen: 'MS-19',
+    to: '/staff/finance',
+    label: t.stabs.finance,
+    icon: ChartLine,
+    permission: 'finance.view',
+  },
+  { screen: 'MS-06', to: '/staff/more', label: t.stabs.menu, icon: LayoutGrid },
 ];
 
 const STUDENT_TABS: readonly TabItem[] = [
@@ -52,12 +70,11 @@ const STUDENT_TABS: readonly TabItem[] = [
 ];
 
 /**
- * Pastki menyu rolga qarab (11-ux §2: Ustoz — Bugun/Guruhlarim/Jadval/Profil; Ota-ona —
- * Asosiy/Natijalar/To'lovlar/Ko'proq; Admin — Bugun/Navbat/Qidiruv/Ko'proq; Director —
- * Bugun/So'rovlar/Qidiruv/Ko'proq; Oʻquvchi —
- * Bugun/Jadval/Natijalar/Profil).
+ * Pastki menyu rolga qarab (11-ux §2, Q-113): Ustoz — Bugun/Guruhlarim/Jadval/Profil; Ota-ona —
+ * Asosiy/Natijalar/To'lovlar/Ko'proq; Admin — Bugun/O'quvchilar/To'lov/Menyu; Director —
+ * Bugun/O'quvchilar/Moliya/Menyu; O'quvchi — Bugun/Jadval/Natijalar/Profil.
  */
-export const TABS: Readonly<Record<RoleCode, readonly TabItem[]>> = {
+export const TABS: Readonly<Record<RoleCode, readonly RoleTab[]>> = {
   director: DIRECTOR_TABS,
   admin: ADMIN_TABS,
   teacher: TEACHER_TABS,
@@ -67,5 +84,11 @@ export const TABS: Readonly<Record<RoleCode, readonly TabItem[]>> = {
 
 export const tabsFor = (
   role: RoleCode,
-  table: Readonly<Record<RoleCode, readonly TabItem[]>> = TABS,
-): readonly TabItem[] => (table[role]?.length >= 2 ? table[role] : []);
+  permissions: readonly string[] = [],
+  table: Readonly<Record<RoleCode, readonly RoleTab[]>> = TABS,
+): readonly RoleTab[] => {
+  const list = (table[role] ?? []).filter(
+    (x) => !x.permission || permissions.includes(x.permission),
+  );
+  return list.length >= 2 ? list : [];
+};

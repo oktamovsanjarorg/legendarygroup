@@ -6,7 +6,7 @@ import {
   ListItem,
   MoneyText,
   Section,
-  useMainButton,
+  PrimaryButton,
 } from '@lg/ui-tg';
 import { CalendarClock, CheckCircle2, Clock4, FileText, XCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -90,10 +90,9 @@ interface Props {
   onPay: () => void;
 }
 
-/** MG-01 Asosiy: farzand holati bir qarashda; qarz bo'lsa — MainButton "To'lash" → MG-06. */
+/** MG-01 Asosiy: farzand holati bir qarashda; qarz bo'lsa — «To'lash» (tab ildizi, Q-113) → MG-06. */
 export function GuardianHomeView({ items, selected, onSelect, onPay }: Props) {
   const child = items.find((c) => c.id === selected) ?? items[0];
-  useMainButton({ text: t.childHome.pay, onClick: onPay, visible: (child?.debt ?? 0n) > 0n });
   if (!child)
     return <EmptyState title={t.childHome.noChildren} hint={t.childHome.noChildrenHint} />;
   const tabs: ChildTab[] = items.map((c) => ({ id: c.id, name: c.name.split(' ')[1] ?? c.name }));
@@ -115,6 +114,7 @@ export function GuardianHomeView({ items, selected, onSelect, onPay }: Props) {
         </Section>
       )}
       <BalanceCard debt={child.debt} dueDate={child.dueDate} />
+      {child.debt > 0n && <PrimaryButton onClick={onPay}>{t.childHome.pay}</PrimaryButton>}
     </main>
   );
 }

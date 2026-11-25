@@ -1,5 +1,5 @@
 import { formatDateShort, formatMoney, miniappMessages as t } from '@lg/i18n';
-import { ListItem, MoneyText, Section, StatusChip, useMainButton } from '@lg/ui-tg';
+import { ListItem, MoneyText, PrimaryButton, Section, StatusChip } from '@lg/ui-tg';
 import { FileText } from 'lucide-react';
 
 export interface Invoice {
@@ -43,7 +43,6 @@ interface Props {
 
 /** MG-05 To'lovlar (FR-PAY-7): balans, hisoblar, tarix + PDF cheklar. */
 export function PaymentsView({ childName, debt, invoices, payments, onPay, onReceipt }: Props) {
-  useMainButton({ text: t.payments.makePayment, onClick: onPay });
   return (
     <main className="flex flex-col gap-4 p-2 pt-3 pb-6">
       <header className="px-2">
@@ -60,6 +59,7 @@ export function PaymentsView({ childName, debt, invoices, payments, onPay, onRec
           <MoneyText amount={-debt} className="text-2xl font-bold" />
         )}
       </div>
+      <PrimaryButton onClick={onPay}>{t.payments.makePayment}</PrimaryButton>
       <Section title={t.payments.invoices}>
         {invoices.length === 0 ? (
           <ListItem title={<span className="text-text-muted">{t.payments.empty}</span>} />

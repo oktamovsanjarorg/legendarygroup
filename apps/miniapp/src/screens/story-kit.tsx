@@ -11,10 +11,10 @@ import {
   BarChart3,
   CalendarCheck,
   CalendarDays,
-  ClipboardCheck,
+  ChartLine,
   Ellipsis,
   House,
-  Search,
+  LayoutGrid,
   UserRound,
   Users,
   Wallet,
@@ -46,12 +46,12 @@ export const STUDENT_TABS: TabItem[] = [
   { screen: 'M-STU-04', to: '/profile', label: t.tabs.profile, icon: UserRound },
 ];
 
-/** Xodim rejimi (11-ux §2): navbatda badge; "So'rovlar" — faqat Director. */
+/** Xodim rejimi (Q-113): «Bugun»da kutayotgan ishlar soni. */
 export const STAFF_TABS: TabItem[] = [
-  { screen: 'MS-01', to: '/', label: t.stabs.today, icon: CalendarCheck },
-  { screen: 'MS-03', to: '/approvals', label: t.stabs.approvals, icon: ClipboardCheck, badge: 2 },
-  { screen: 'MS-04', to: '/search', label: t.stabs.search, icon: Search },
-  { screen: 'MS-06', to: '/more', label: t.stabs.more, icon: Ellipsis },
+  { screen: 'MS-01', to: '/', label: t.stabs.today, icon: CalendarCheck, badge: 2 },
+  { screen: 'MS-04', to: '/search', label: t.stabs.students, icon: Users },
+  { screen: 'MS-19', to: '/finance', label: t.stabs.finance, icon: ChartLine },
+  { screen: 'MS-06', to: '/more', label: t.stabs.menu, icon: LayoutGrid },
 ];
 
 /** Tab ildiz ekrani: pastda rol menyusi (standart — Ustoz). */

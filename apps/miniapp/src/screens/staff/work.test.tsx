@@ -218,10 +218,12 @@ describe('MS-18 / MS-27 Moliya (T-142, T-143, T-156)', () => {
       />
     );
     const wa = wrap(view(null));
-    expect(wa.MainButton.params.is_visible).toBe(false);
+    expect(wa.MainButton.params.is_visible).toBeFalsy();
+    expect(screen.queryByRole('button', { name: t.fin.add })).toBeNull();
     expect(screen.queryByText(t.fin.list)).toBeNull();
     expect(button(t.staffKit.nextMonth)).toHaveProperty('disabled', true);
     cleanup();
-    expect(wrap(view([expense])).MainButton.params.is_visible).toBe(true);
+    wrap(view([expense]));
+    expect(screen.getByRole('button', { name: t.fin.add })).toBeTruthy();
   });
 });

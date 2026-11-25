@@ -3,20 +3,21 @@ import { describe, expect, it } from 'vitest';
 import { tabsFor } from '../tabs.js';
 import { STAFF_MENU, staffMenuFor } from './staff-menu.js';
 
-const tabPaths = (role: 'admin' | 'director') => tabsFor(role).map((t) => t.to);
+const tabPaths = (role: 'admin' | 'director') =>
+  tabsFor(role, ROLE_PERMISSIONS[role]).map((t) => t.to);
 const keys = (groups: ReturnType<typeof staffMenuFor>) =>
   groups.flatMap((g) => g.items.map((i) => i.key));
 
 describe('MS-06 Koʻproq (T-130)', () => {
-  it('Admin: toʻlov kiritish bor; navbat tabda — takrorlanmaydi; soʻrovlar — ruxsat yoʻq', () => {
+  it('Admin: toʻlov tabda — takrorlanmaydi; navbat menyuda; soʻrovlar — ruxsat yoʻq (Q-113)', () => {
     expect(keys(staffMenuFor(ROLE_PERMISSIONS.admin, tabPaths('admin')))).toEqual([
       'newStudent',
       'leads',
       'linkRequests',
-      'pay',
       'debtors',
       'payments',
       'discounts',
+      'queue',
       'cash',
       'groups',
       'calendar',
@@ -34,7 +35,7 @@ describe('MS-06 Koʻproq (T-130)', () => {
     ]);
   });
 
-  it('Director: navbat Koʻproq’da (tabda yoʻq), soʻrovlar — tabda', () => {
+  it('Director: navbat va soʻrovlar menyuda; moliya — tabda (Q-113)', () => {
     expect(keys(staffMenuFor(ROLE_PERMISSIONS.director, tabPaths('director')))).toEqual([
       'newStudent',
       'leads',
@@ -55,7 +56,7 @@ describe('MS-06 Koʻproq (T-130)', () => {
       'tickets',
       'announcements',
       'undelivered',
-      'finance',
+      'approvals',
       'payroll',
       'reports',
       'forecasts',
@@ -76,10 +77,12 @@ describe('MS-06 Koʻproq (T-130)', () => {
     expect(new Set(STAFF_MENU.map((i) => i.key)).size).toBe(STAFF_MENU.length);
   });
 
-  it('xodim tablari: 4 ta, oxirgisi — Koʻproq', () => {
-    for (const role of ['admin', 'director'] as const) {
-      expect(tabsFor(role)).toHaveLength(4);
-      expect(tabsFor(role).at(-1)?.to).toBe('/staff/more');
-    }
+  it('xodim tablari: Bugun, Oʻquvchilar, …, Menyu (Q-113)', () => {
+    expect(tabPaths('admin')).toEqual(['/', '/staff/search', '/staff/pay', '/staff/more']);
+    expect(tabPaths('director')).toEqual(['/', '/staff/search', '/staff/finance', '/staff/more']);
+  });
+
+  it('ruxsati yoʻq tab koʻrsatilmaydi', () => {
+    expect(tabsFor('admin', []).map((t) => t.to)).toEqual(['/', '/staff/search', '/staff/more']);
   });
 });

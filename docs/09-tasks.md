@@ -557,10 +557,16 @@
 - **Bog'liq:** T-169 · **Qaror:** Q-112
 - **Bajarildi (2026-11-25):** soʻrov holati qayta ochilganda; matnlar Mini App oqimiga moslandi; «Chek yuborildi» — faqat haqiqatda yuborilganda.
 
-### ⬜ T-164 · Mini App: keng ekran (Telegram Desktop)
+### 🟡 T-164 · Mini App: keng ekran (Telegram Desktop)
 
 - **Bog'liq:** T-130 · **Talablar:** 11-ux §3
 - **AC:** ≥ 768 px da ro'yxat + tafsilot yonma-yon; bitta kod, alohida ekran yo'q.
+- **Qisman (2026-11-25, T-171):** ≥ 900 px da doimiy yon panel (barcha bo'limlar), kontent markazda. Qoldi: ro'yxat + tafsilot yonma-yon.
+
+### ✅ T-171 · Navigatsiya: asosiy tablar, menyuni siljitmaslik, yon panel
+
+- **Bog'liq:** T-130, T-164 · **Qaror:** Q-113
+- **Bajarildi (2026-11-25):** xodim tablari qayta tanlandi; «Bugun»da tezkor amallar va kutayotgan ishlar soni; tab ildizlarida MainButton yo'q; keng ekranda yon panel. Testlar: `staff-menu.test.ts`, `staff-home.test.tsx`, `side-nav.test.tsx`.
 
 ### ⬜ T-165 · Pul mantiqining to'liq auditi
 

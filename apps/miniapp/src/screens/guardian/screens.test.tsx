@@ -63,15 +63,15 @@ describe('MG-01 / MG-07 MainButton', () => {
       wa,
       <GuardianHomeView items={CHILDREN} selected="c1" onSelect={noop} onPay={noop} />,
     );
-    await waitFor(() =>
-      expect(wa.MainButton.params).toMatchObject({ text: 'Toʻlash', is_visible: true }),
-    );
+    // Tab ildizi (Q-113): MainButton emas — kontentdagi tugma, pastki menyu siljimaydi.
+    expect(screen.getByRole('button', { name: 'Toʻlash' })).toBeTruthy();
+    expect(wa.MainButton.params.is_visible).toBeFalsy();
     r.rerender(
       <TelegramProvider webApp={wa}>
         <GuardianHomeView items={CHILDREN} selected="c2" onSelect={noop} onPay={noop} />
       </TelegramProvider>,
     );
-    await waitFor(() => expect(wa.MainButton.params.is_visible).toBe(false));
+    expect(screen.queryByRole('button', { name: 'Toʻlash' })).toBeNull();
   });
 
   it('«Qayta yuborish» faqat rad etilgan chekda (BR-13)', async () => {

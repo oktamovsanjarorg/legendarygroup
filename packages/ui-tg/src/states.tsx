@@ -33,6 +33,22 @@ export function InlineButton({ onClick, children }: { onClick: () => void; child
   );
 }
 
+/**
+ * Kontent ichidagi asosiy tugma (Q-113): faqat tab ildiz ekranlarida, MainButton o'rniga —
+ * MainButton u yerda pastki menyu ostida chiqib, menyuni siljitadi. Ichki ekranlarda — MainButton.
+ */
+export function PrimaryButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="min-h-12 w-full rounded-xl bg-primary px-4 text-base font-semibold text-primary-text active:opacity-80"
+    >
+      {children}
+    </button>
+  );
+}
+
 interface ShellProps {
   icon: ReactNode;
   title: string;
