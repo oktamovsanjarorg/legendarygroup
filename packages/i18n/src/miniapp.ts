@@ -5,6 +5,7 @@ import { staffMessages } from './miniapp-staff.js';
 import { staffListMessages } from './miniapp-staff-lists.js';
 import { staffOrgMessages } from './miniapp-staff-org.js';
 import { staffPayrollMessages } from './miniapp-staff-payroll.js';
+import { staffPeopleMessages } from './miniapp-staff-people.js';
 import { staffReportMessages } from './miniapp-staff-reports.js';
 import { staffStudentMessages } from './miniapp-staff-students.js';
 import { staffWorkMessages } from './miniapp-staff-work.js';
@@ -16,6 +17,7 @@ import { webMessages } from './web.js';
 export const miniappMessages = {
   appTitle: 'Legendary Group',
   roles: webMessages.roles,
+  permissions: webMessages.permissions,
   openInTelegram: {
     title: 'Ilovani Telegram orqali oching',
     hint: 'Bu sahifa faqat Legendary Group boti ichida ishlaydi.',
@@ -53,6 +55,7 @@ export const miniappMessages = {
   ...staffOrgMessages,
   ...staffStudentMessages,
   ...staffPayrollMessages,
+  ...staffPeopleMessages,
   ...staffReportMessages,
   ...auditActionMessages,
   ...studentMessages,
