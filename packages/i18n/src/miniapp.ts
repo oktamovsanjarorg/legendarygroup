@@ -1,5 +1,6 @@
 import { introMessages } from './miniapp-intro.js';
 import { auditActionMessages } from './miniapp-audit.js';
+import { staffHelpMessages } from './miniapp-help.js';
 import { guardianMessages } from './miniapp-guardian.js';
 import { staffMessages } from './miniapp-staff.js';
 import { staffListMessages } from './miniapp-staff-lists.js';
@@ -59,6 +60,7 @@ export const miniappMessages = {
   ...staffPeopleMessages,
   ...staffReportMessages,
   ...staffSettingsMessages,
+  ...staffHelpMessages,
   ...auditActionMessages,
   ...studentMessages,
   ...introMessages,

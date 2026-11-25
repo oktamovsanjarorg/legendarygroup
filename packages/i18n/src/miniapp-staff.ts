@@ -16,6 +16,7 @@ export const staffMessages = {
       lessons: 'Darslar',
       comms: 'Aloqa',
       director: 'Boshqaruv',
+      self: 'Yordam va kirish',
     },
     items: {
       newStudent: 'Yangi oʻquvchi',
@@ -44,6 +45,8 @@ export const staffMessages = {
       forecasts: 'Prognozlar',
       people: 'Xodimlar',
       settings: 'Sozlamalar',
+      help: 'Yordam',
+      sessions: 'Kompyuterdagi kirishlar',
       audit: 'Audit',
     },
     panelHint: 'Hisobotlar, oyliklar, sozlamalar va audit — kompyuterda, boshqaruv panelida.',
