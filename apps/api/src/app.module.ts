@@ -31,6 +31,7 @@ import { NotificationsModule } from './modules/notifications/index.js';
 import { AnnouncementsModule } from './modules/announcements/index.js';
 import { TicketsModule } from './modules/tickets/index.js';
 import { FeedbackModule } from './modules/feedback/index.js';
+import { AssistantModule } from './modules/assistant/index.js';
 import { OrgModule } from './modules/org/org.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
 import { RbacModule } from './modules/rbac/rbac.module.js';
@@ -83,6 +84,7 @@ export class AppModule {
         AnnouncementsModule,
         TicketsModule,
         FeedbackModule,
+        AssistantModule,
         HealthModule,
         InternalModule,
         ...(opts.role === 'worker' ? [WorkerModule] : []),

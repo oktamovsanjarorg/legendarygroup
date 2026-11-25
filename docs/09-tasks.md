@@ -563,6 +563,12 @@
 - **AC:** ≥ 768 px da ro'yxat + tafsilot yonma-yon; bitta kod, alohida ekran yo'q.
 - **Qisman (2026-11-25, T-171):** ≥ 900 px da doimiy yon panel (barcha bo'limlar), kontent markazda. Qoldi: ro'yxat + tafsilot yonma-yon.
 
+### ✅ T-172 · AI yordamchi (Mini App «Yordamchi» tabi)
+
+- **Bog'liq:** T-171 · **Qaror:** Q-114
+- **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
+- **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Production'da yoqish: `ANTHROPIC_API_KEY` sirlar omboriga.
+
 ### ✅ T-171 · Navigatsiya: asosiy tablar, menyuni siljitmaslik, yon panel
 
 - **Bog'liq:** T-130, T-164 · **Qaror:** Q-113

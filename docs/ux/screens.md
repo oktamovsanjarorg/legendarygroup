@@ -112,6 +112,7 @@ service'da (o'z guruhi/farzandi). `auth` — faqat tizimga kirgan bo'lish (`@Aut
 | MS-32  | Sozlamalar, usta        | W-29/33 (T-161)                       | tizim sozlamalari                                   | saqlash                                                                                                                                                                      | settings.manage                 |
 | MS-33  | Audit                   | W-30 (T-162)                          | jurnal, diff                                        | filtr                                                                                                                                                                        | audit.view                      |
 | MS-34  | Yordam, sessiyalar      | W-32/36 (T-163)                       | savol-javob, qurilmalar                             | sessiyani yopish                                                                                                                                                             | auth                            |
+| MS-35  | Yordamchi (AI)          | Q-114 (T-172)                         | savol, javob, ekran tugmalari                       |
 
 ### 1.5 Oʻquvchi (M-STU) — pastki menyu: Bugun · Dars jadvali · Natijalar · Profil
 

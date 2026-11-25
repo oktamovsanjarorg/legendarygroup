@@ -46,6 +46,10 @@ export const errorMessages = {
   UPLOAD_NOT_FOUND: 'Yuklash muddati tugagan. Faylni qayta tanlang.',
   INVALID_INIT_DATA: 'Telegram maʼlumotlari tasdiqlanmadi. Ilovani bot orqali qayta oching.',
   INVALID_CONTACT: 'Raqamni tasdiqlab boʻlmadi. Oʻzingizning raqamingizni qayta ulashing.',
+  ASSISTANT_DISABLED: 'Yordamchi hali yoqilmagan. Direktor tizim sozlamasida yoqishi kerak.',
+  ASSISTANT_UNAVAILABLE: 'Yordamchi hozir javob bera olmadi. Birozdan keyin qayta soʻrang.',
+  ASSISTANT_REFUSED: 'Bu savolga javob bera olmayman. Markaz boshqaruvi boʻyicha soʻrang.',
+  ASSISTANT_TOO_COMPLEX: 'Savol juda murakkab chiqdi. Uni qisqaroq, bitta ishga boʻlib soʻrang.',
   TELEGRAM_NOT_LINKED:
     'Telegram akkauntingiz hali tizimda yoʻq. Ilovada «📱 Raqamni ulashish»ni bosing.',
   NON_DELEGABLE_PERMISSION: 'Bu ruxsat faqat Direktorga tegishli, uni Adminga berib boʻlmaydi.',
