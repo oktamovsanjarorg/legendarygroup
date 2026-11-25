@@ -2,7 +2,7 @@ import type { Permission } from '@lg/contracts';
 import { describe, expect, it } from 'vitest';
 import type { RequestUser } from '../auth/index.js';
 import type { AssistantDeps } from './assistant.deps.js';
-import type { AssistantLlm, LlmMessage, LlmParams } from './assistant.llm.js';
+import type { AssistantLlm, LlmReply, LlmRequest, LlmToolCall } from './assistant.llm.js';
 import { AssistantService } from './assistant.service.js';
 import { maskPhone } from './assistant.tools.js';
 
@@ -37,21 +37,15 @@ const deps = {
   debtors: { getDebtors: async () => ({}) },
 } as unknown as AssistantDeps;
 
-const msg = (stop: string, content: unknown[]): LlmMessage =>
-  ({
-    id: 'm',
-    type: 'message',
-    role: 'assistant',
-    model: 'x',
-    content,
-    stop_reason: stop,
-  }) as LlmMessage;
+const calls = (...c: LlmToolCall[]): LlmReply => ({ text: '', toolCalls: c, finish: 'tool_calls' });
+const say = (text: string): LlmReply => ({ text, toolCalls: [], finish: 'stop' });
+const call = (id: string, name: string, input: unknown): LlmToolCall => ({ id, name, input });
 
 /** Ssenariy bo'yicha javob beradigan soxta model; so'rovlarni yozib boradi. */
-function fakeLlm(script: LlmMessage[]) {
-  const seen: LlmParams[] = [];
+function fakeLlm(script: LlmReply[]) {
+  const seen: LlmRequest[] = [];
   const llm: AssistantLlm = {
-    create: async (p) => {
+    chat: async (p) => {
       seen.push(structuredClone(p));
       const next = script.shift();
       if (!next) throw new Error('ssenariy tugadi');
@@ -66,19 +60,12 @@ const perms = (...p: Permission[]) => new Set<Permission>(p);
 describe('AI yordamchi (Q-114)', () => {
   it('vosita → natija → javob; ekran tugmasi faqat ruxsat bilan', async () => {
     const { llm, seen } = fakeLlm([
-      msg('tool_use', [
-        { type: 'tool_use', id: 't1', name: 'search_students', input: { query: 'Ali' } },
-      ]),
-      msg('tool_use', [
-        {
-          type: 'tool_use',
-          id: 't2',
-          name: 'open_screen',
-          input: { screen: 'pay', student_id: SID },
-        },
-        { type: 'tool_use', id: 't3', name: 'open_screen', input: { screen: 'finance' } },
-      ]),
-      msg('end_turn', [{ type: 'text', text: 'Ali Valiyev (1042) topildi.' }]),
+      calls(call('t1', 'search_students', { query: 'Ali' })),
+      calls(
+        call('t2', 'open_screen', { screen: 'pay', student_id: SID }),
+        call('t3', 'open_screen', { screen: 'finance' }),
+      ),
+      say('Ali Valiyev (1042) topildi.'),
     ]);
     const svc = new AssistantService(deps, llm);
     const r = await svc.chat(user, perms('student.view', 'payment.create'), {
@@ -88,14 +75,13 @@ describe('AI yordamchi (Q-114)', () => {
       reply: 'Ali Valiyev (1042) topildi.',
       actions: [{ screen: 'pay', studentId: SID }],
     });
-    // Parallel natijalar bitta xabarda; ruxsatsiz ekran — xato natija.
-    const third = seen[2]?.messages.at(-1);
-    expect(third?.role).toBe('user');
-    expect(JSON.stringify(third?.content)).toContain('"is_error":true');
+    // Har chaqiruvga o'z `tool` xabari (id bo'yicha); ruxsatsiz ekran — xato natija.
+    const last = seen[2]?.messages.slice(-2);
+    expect(last?.map((m) => (m.role === 'tool' ? m.toolCallId : m.role))).toEqual(['t2', 't3']);
+    expect(JSON.stringify(last?.[1])).toContain('error');
     // Telefon modelga ketmaydi (birinchi natijada telefon maydoni yo'q).
     expect(JSON.stringify(seen[1]?.messages)).not.toContain('+998901112233');
-    expect(seen[0]?.model).toBe('claude-opus-5-5');
-    expect(seen[0]?.fallbacks).toBe('default');
+    expect(seen[0]?.tools.map((t) => t.name)).toContain('open_screen');
   });
 
   it('kalit yoʻq — 503 ASSISTANT_DISABLED', async () => {
@@ -107,13 +93,14 @@ describe('AI yordamchi (Q-114)', () => {
   });
 
   it('rad etish (refusal) — 422; cheksiz sikl yoʻq — 6 qadamda toʻxtaydi', async () => {
-    const refused = new AssistantService(deps, fakeLlm([msg('refusal', [])]).llm);
+    const refused = new AssistantService(
+      deps,
+      fakeLlm([{ text: '', toolCalls: [], finish: 'refused' }]).llm,
+    );
     await expect(
       refused.chat(user, perms(), { messages: [{ role: 'user', text: 'x' }] }),
     ).rejects.toMatchObject({ code: 'ASSISTANT_REFUSED' });
-    const loop = Array.from({ length: 6 }, () =>
-      msg('tool_use', [{ type: 'tool_use', id: 't', name: 'today_summary', input: {} }]),
-    );
+    const loop = Array.from({ length: 6 }, () => calls(call('t', 'today_summary', {})));
     const looping = new AssistantService(deps, fakeLlm(loop).llm);
     await expect(
       looping.chat(user, perms(), { messages: [{ role: 'user', text: 'x' }] }),
@@ -122,17 +109,14 @@ describe('AI yordamchi (Q-114)', () => {
 
   it('notoʻgʻri kirish va nomaʼlum vosita — xato natija, ilova yiqilmaydi', async () => {
     const { llm, seen } = fakeLlm([
-      msg('tool_use', [
-        { type: 'tool_use', id: 'a', name: 'search_students', input: { query: 'x' } },
-        { type: 'tool_use', id: 'b', name: 'delete_all', input: {} },
-      ]),
-      msg('end_turn', [{ type: 'text', text: 'ok' }]),
+      calls(call('a', 'search_students', { query: 'x' }), call('b', 'delete_all', {})),
+      say('ok'),
     ]);
     const r = await new AssistantService(deps, llm).chat(user, perms('student.view'), {
       messages: [{ role: 'user', text: 'x' }],
     });
     expect(r.reply).toBe('ok');
-    const results = JSON.stringify(seen[1]?.messages.at(-1)?.content);
+    const results = JSON.stringify(seen[1]?.messages.slice(-2));
     expect(results).toContain('Notoʻgʻri kirish');
     expect(results).toContain('Nomaʼlum vosita');
   });

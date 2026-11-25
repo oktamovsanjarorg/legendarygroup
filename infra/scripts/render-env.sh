@@ -53,6 +53,9 @@ env = {k: params[k] for k in required if k not in ('DB_HOST', 'DB_NAME')}
 # Ixtiyoriy: texnik alertlar chati (T-016, monitor.sh). Yo'q bo'lsa — alert faqat jurnalga.
 if params.get('ALERTS_TELEGRAM_CHAT_ID'):
     env['ALERTS_TELEGRAM_CHAT_ID'] = params['ALERTS_TELEGRAM_CHAT_ID']
+# Ixtiyoriy: AI yordamchi (Q-114, Q-119 — DeepSeek). Yo'q bo'lsa — yordamchi o'chiq (503).
+if params.get('DEEPSEEK_API_KEY'):
+    env['DEEPSEEK_API_KEY'] = params['DEEPSEEK_API_KEY']
 env['DATABASE_URL'] = url(params['APP_DB_LOGIN'], params['APP_DB_PASSWORD'])
 env['MIGRATION_DATABASE_URL'] = url(owner['username'], owner['password'])
 

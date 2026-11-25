@@ -571,7 +571,12 @@
 
 - **Bog'liq:** T-171 · **Qaror:** Q-114
 - **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
-- **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Production'da yoqish: `ANTHROPIC_API_KEY` sirlar omboriga.
+- **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Model — DeepSeek'ka almashtirildi (T-173, Q-119).
+
+### ✅ T-173 · AI yordamchi: DeepSeek'ka o'tish
+
+- **Bog'liq:** T-172 · **Qaror:** Q-119 (egasi)
+- **Bajarildi (2026-11-25):** model qatlami provayderdan mustaqil (`assistant.llm.ts`); DeepSeek Chat Completions adapteri (`deepseek.llm.ts`, `deepseek-chat`, function calling, 429/5xx — 2 marta qayta urinish, 60 s). `@anthropic-ai/sdk` olib tashlandi; env — `DEEPSEEK_API_KEY` (ixtiyoriy). Tuzatildi: `render-env.sh` AI kalitini SSM'dan `prod.env`ga o'tkazmasdi — kalit qo'shilsa ham yordamchi o'chiq qolardi. Testlar: `deepseek.llm.test.ts`, `assistant.service.test.ts`.
 
 ### ✅ T-171 · Navigatsiya: asosiy tablar, menyuni siljitmaslik, yon panel
 

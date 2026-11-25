@@ -35,8 +35,8 @@ x-api-env: &api-env
   TELEGRAM_MINIAPP_URL: https://${APP_DOMAIN:?}/app/
   CORS_ORIGINS: https://${APP_DOMAIN:?}
   JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?}
-  # AI yordamchi (Q-114): bo'sh — yordamchi o'chiq, qolgani ishlaydi.
-  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  # AI yordamchi (Q-114, Q-119 — DeepSeek): bo'sh — yordamchi o'chiq, qolgani ishlaydi.
+  DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
   S3_REGION: ${S3_REGION:?}
   S3_BUCKET_FILES: ${S3_BUCKET_FILES:?}
 
