@@ -24,8 +24,6 @@ export const envSchema = z.object({
   TELEGRAM_API_URL: z.url().default('https://api.telegram.org'),
   /** Access JWT imzosi (HS256). */
   JWT_ACCESS_SECRET: z.string().min(32, 'kamida 32 belgi'),
-  /** TOTP sirlarini shifrlash (AES-256-GCM): 32 bayt, hex. */
-  TOTP_ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/i, '64 belgili hex (32 bayt)'),
   /** AI yordamchi (Q-114). Berilmasa — yordamchi o'chiq, ilova ishlayveradi (ochiq holat). */
   ANTHROPIC_API_KEY: z.preprocess(
     (v) => (v === '' ? undefined : v),
