@@ -350,55 +350,65 @@
 - **AC:** ro'yxat (qarz, kun), qo'ng'iroq `tel:`, eslatma — `notifications` orqali; → MS-07. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
 - **Bajarildi (2026-11-24):** `pages/staff-debtors.tsx`, `screens/staff/debtors.tsx`; API `DebtRemindersService` (Q-100). Yo'lda tuzatilgan mantiq xatolari: yetib bormagan eslatma «yuborildi» deb sanalardi; bir kunda bir nechta xabar; to'langan hisob kechikish kuniga kirardi; `criticalOnly=false`; qidiruvda apostrof; bot xabarlarida `_`/`*` (T-109). Qolgan: haqiqiy Telegram'da qo'lda sinov.
 
-### ⬜ T-133 · Mini App: lidlar (MS-09)
+### ✅ T-133 · Mini App: lidlar (MS-09)
 
 - **Bog'liq:** T-130, T-107 · **Talablar:** FR-STU-4, Q-87
 - **AC:** holat segmentlari, yangi lid, holat o'tishlari (Q-87 oqimi), qo'ng'iroq, o'quvchiga aylantirish. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-09; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-134 · Mini App: yangi o'quvchi va guruhga yozish (MS-10)
+### ✅ T-134 · Mini App: yangi o'quvchi va guruhga yozish (MS-10)
 
 - **Bog'liq:** T-130, T-105, T-106 · **Talablar:** FR-STU-1, BR-3
 - **AC:** qisqa forma, dublikat ogohlantirishi, guruh tanlash va BR-3 birinchi oy narxi. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-10 (+tugʻilgan sana, BR-3 narxi — Q-108); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-135 · Mini App: bog'lanish so'rovlari (MS-11)
+### ✅ T-135 · Mini App: bog'lanish so'rovlari (MS-11)
 
 - **Bog'liq:** T-130 · **Talablar:** FR-AUTH-1
 - **AC:** ro'yxat, o'quvchiga bog'lash / rad etish (web W-07 bilan bitta API). Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-11; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-136 · Mini App: guruhlar ko'rinishi (MS-12)
+### ✅ T-136 · Mini App: guruhlar ko'rinishi (MS-12)
 
 - **Bog'liq:** T-130, T-103 · **Talablar:** FR-ORG-3
 - **AC:** ro'yxat, tarkib, to'lganlik; o'quvchi → MS-05. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-12; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-137 · Mini App: davomat nazorati (MS-13)
+### ✅ T-137 · Mini App: davomat nazorati (MS-13)
 
 - **Bog'liq:** T-130, T-112 · **Talablar:** FR-ATT-4/5, BR-30
 - **AC:** bugungi darslar holati, belgilanmaganlar; darsni ochish (MT-02), o'tgan kun — sabab majburiy. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-13; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-138 · Mini App: murojaatlar (MS-14)
+### ✅ T-138 · Mini App: murojaatlar (MS-14)
 
 - **Bog'liq:** T-130, T-306 · **Talablar:** FR-RPT-7
 - **AC:** ochiq murojaatlar, javob, yopish. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-14; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-139 · Mini App: e'lon yuborish (MS-15)
+### ✅ T-139 · Mini App: e'lon yuborish (MS-15)
 
 - **Bog'liq:** T-130, T-305 · **Talablar:** FR-RPT-5
 - **AC:** auditoriya tanlash, ko'rib chiqish, MainButton Yuborish (navbat orqali). Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-15; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-140 · Mini App: kassa (MS-16)
+### ✅ T-140 · Mini App: kassa (MS-16)
 
 - **Bog'liq:** T-130, T-209 · **Talablar:** FR-PAY-10
 - **AC:** bugungi tushum usul bo'yicha, kunni yopish (haqiqiy naqd), qayta yopish yo'q. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-16; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-141 · Mini App: chegirma berish (MS-17)
+### ✅ T-141 · Mini App: chegirma berish (MS-17)
 
 - **Bog'liq:** T-130, T-203 · **Talablar:** BR-18
 - **AC:** limit ichida — darhol, yuqori — Director'ga so'rov; MS-05'dan. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-17; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-142 · Mini App: xarajat qo'shish (MS-18)
+### ✅ T-142 · Mini App: xarajat qo'shish (MS-18)
 
 - **Bog'liq:** T-130, T-403 · **Talablar:** FR-FIN-1
 - **AC:** turkum, summa (bigint), sana, izoh. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-18; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
 ### ✅ T-144 · Mini App: oʻquvchini guruhdan chiqarish va arxivlash (MS-05a)
 
@@ -414,10 +424,11 @@
 - **AC:** `POST /billing/students/:id/setup` — har aʼzolik uchun haqiqiy kelgan sana (guruh ochilishidan oldin ham), tizimdan oldingi toʻlanmagan oylar (oy + summa); keyin joriy oy hisobi (BR-3 kelgan sana boʻyicha). Bir marta: joriy oy hisobi bor boʻlsa — 409 `BILLING_ALREADY_SET`. Toʻlov — oddiy yoʻl, FIFO. UI: Mini App MS-05b va web W-06.
 - **Bajarildi (2026-11-22):** server — `student-setup.{service,controller}.ts`, `EnrollmentsService.correctStartDate`, `BillingGeneratorService.generateForStudent`; int testlar. Mini App MS-05b (`screens/staff/setup.tsx`, `pages/staff-setup.tsx`) — kartochkada hisob boshlanmagan boʻlsa «Toʻlov holatini sozlash». Qolgan: web W-06.
 
-### ⬜ T-143 · Mini App: moliya xulosasi (MS-19, Director)
+### ✅ T-143 · Mini App: moliya xulosasi (MS-19, Director)
 
 - **Bog'liq:** T-130, T-403, T-502 · **Talablar:** FR-FIN-2, FR-DASH-3
 - **AC:** oy tushumi, xarajat, foyda, prognoz, qarz jami; tafsilot — web. Har ekranda 5 holat, Storybook ekran story'si, faqat Telegram native tugmalar, RBAC (ruxsatsiz — «Ruxsat yo'q»).
+- **Bajarildi (2026-11-25):** MS-19; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
 ### ✅ T-146 · Kirish faqat Telegram orqali (parolsiz)
 
@@ -436,80 +447,95 @@
 
 > **T-149…T-164 umumiy AC (ADR 0008):** avval API mantiqi BR/FR bilan solishtiriladi, har xato qizil test bilan; 5 holat, Storybook, faqat Telegram native tugmalar, RBAC; xavfli amalda tasdiq.
 
-### ⬜ T-149 · Mini App: guruh yaratish va tahrirlash (MS-20)
+### ✅ T-149 · Mini App: guruh yaratish va tahrirlash (MS-20)
 
 - **Bog'liq:** T-130, T-136, T-103 · **Talablar:** FR-ORG-3/4/6, Q-69
 - **AC:** yaratish, holat, jadval, ustoz biriktirish (sana), sig'im; to'qnashuv xabari.
+- **Bajarildi (2026-11-25):** MS-20 (Q-102); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-150 · Mini App: kurslar va xonalar (MS-21)
+### ✅ T-150 · Mini App: kurslar va xonalar (MS-21)
 
 - **Bog'liq:** T-130, T-102 · **Talablar:** FR-ORG-1/2, Q-66
 - **AC:** ro'yxat, forma, arxivlash/tiklash.
+- **Bajarildi (2026-11-25):** MS-21 (Q-102); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-151 · Mini App: darslar kalendari (MS-22)
+### ✅ T-151 · Mini App: darslar kalendari (MS-22)
 
 - **Bog'liq:** T-130, T-104 · **Talablar:** FR-ORG-5, Q-86, BR-5
 - **AC:** hafta/kun; bekor qilish (sabab), ko'chirish, qo'shimcha dars, o'rinbosar, bayramlar.
+- **Bajarildi (2026-11-25):** MS-22 (Q-102); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-152 · Mini App: o'quvchining to'liq kartochkasi (MS-23)
+### ✅ T-152 · Mini App: o'quvchining to'liq kartochkasi (MS-23)
 
 - **Bog'liq:** T-130, T-105, T-106, T-126 · **Talablar:** FR-STU-1/2/3, BR-9
 - **AC:** tahrir, ota-onalar, boshqa guruhga o'tkazish, muzlatish, kirish kodi, Telegram uzish, hisob tarixi.
+- **Bajarildi (2026-11-25):** MS-23 (Q-103); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-153 · Mini App: to'lovlar tarixi, storno va refund (MS-24)
+### ✅ T-153 · Mini App: to'lovlar tarixi, storno va refund (MS-24)
 
 - **Bog'liq:** T-130, T-209 · **Talablar:** FR-PAY-6/8/9, BR-16/17
 - **AC:** ro'yxat, to'lov tafsiloti, storno (shu kun / so'rov), refund (Director / so'rov).
+- **Bajarildi (2026-11-25):** MS-24 (Q-103); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-154 · Mini App: testlar va import (MS-25)
+### ✅ T-154 · Mini App: testlar va import (MS-25)
 
 - **Bog'liq:** T-130, T-302 · **Talablar:** FR-GRD-3/4/6, BR-35
 - **AC:** Admin ro'yxati; import — ustoz MT-08 oqimi bilan bir xil.
+- **Bajarildi (2026-11-25):** MS-25 (Q-108); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-155 · Mini App: yetib bormagan xabarlar (MS-26)
+### ✅ T-155 · Mini App: yetib bormagan xabarlar (MS-26)
 
 - **Bog'liq:** T-130, T-109 · **Talablar:** FR-RPT-6
 - **AC:** sabab, qayta yuborish, qo'ng'iroq.
+- **Bajarildi (2026-11-25):** MS-26 (Q-101); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-156 · Mini App: xarajatlar va foyda-zarar (MS-27)
+### ✅ T-156 · Mini App: xarajatlar va foyda-zarar (MS-27)
 
 - **Bog'liq:** T-130, T-142, T-143, T-403 · **Talablar:** FR-FIN-1/2/3
 - **AC:** xarajat ro'yxati, tahrir, oylik P&L tafsiloti.
+- **Bajarildi (2026-11-25):** MS-27; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-157 · Mini App: oyliklar (MS-28)
+### ✅ T-157 · Mini App: oyliklar (MS-28)
 
 - **Bog'liq:** T-130, T-402 · **Talablar:** FR-SAL-1…5, BR-23…28
 - **AC:** shartnoma, avans, qoralama, bonus/jarima, tasdiqlash, to'landi.
+- **Bajarildi (2026-11-25):** MS-28 (Q-104); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-158 · Mini App: hisobotlar; fayl bot chatiga (MS-29)
+### ✅ T-158 · Mini App: hisobotlar; fayl bot chatiga (MS-29)
 
 - **Bog'liq:** T-130, T-501, T-109 · **Talablar:** FR-DASH-2/4
 - **AC:** hisobotlar ro'yxat ko'rinishida; Excel/PDF navbat orqali so'ragan xodim chatiga, 10 daq ichida takror bosish — bitta fayl.
+- **Bajarildi (2026-11-25):** MS-29 (Q-104); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-159 · Mini App: prognoz va xavfli o'quvchilar (MS-30)
+### ✅ T-159 · Mini App: prognoz va xavfli o'quvchilar (MS-30)
 
 - **Bog'liq:** T-130, T-502 · **Talablar:** FR-DASH-3, BR-36
 - **AC:** tushum oralig'i, churn ro'yxati «nega» bilan → MS-05.
+- **Bajarildi (2026-11-25):** MS-30 (Q-105); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-160 · Mini App: xodimlar va ruxsatlar (MS-31)
+### ✅ T-160 · Mini App: xodimlar va ruxsatlar (MS-31)
 
 - **Bog'liq:** T-130, T-101 · **Talablar:** FR-ORG, 02 §4
 - **AC:** qo'shish, rol, override, bloklash, Telegram uzish; oxirgi Director himoyasi.
+- **Bajarildi (2026-11-25):** MS-31 (Q-106); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-161 · Mini App: sozlamalar va boshlash ustasi (MS-32)
+### ✅ T-161 · Mini App: sozlamalar va boshlash ustasi (MS-32)
 
 - **Bog'liq:** T-130, T-115, T-117 · **Talablar:** FR-SYS-1
 - **AC:** markaz, rekvizit, muddat, jarima, chegirma limiti; usta qadamlari.
+- **Bajarildi (2026-11-25):** MS-32 (Q-107); API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-162 · Mini App: audit (MS-33)
+### ✅ T-162 · Mini App: audit (MS-33)
 
 - **Bog'liq:** T-130, T-404 · **Talablar:** FR-AUD-1/2/3
 - **AC:** filtr, diff, shubhali harakatlar, xodim faolligi.
+- **Bajarildi (2026-11-25):** MS-33; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
-### ⬜ T-163 · Mini App: yordam va sessiyalar (MS-34)
+### ✅ T-163 · Mini App: yordam va sessiyalar (MS-34)
 
 - **Bog'liq:** T-130, T-123 · **Talablar:** FR-AUTH-7
 - **AC:** qidiruvli yordam, web sessiyalarini yopish.
+- **Bajarildi (2026-11-25):** MS-34; API mantiqi qayta tekshirildi (ADR 0008), testlar bilan.
 
 ### ⬜ T-164 · Mini App: keng ekran (Telegram Desktop)
 
