@@ -7,12 +7,10 @@ import {
   DEBTOR_BUCKETS,
   type Permission,
 } from '@lg/contracts';
-import type Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import type { RequestUser } from '../auth/index.js';
 import type { AssistantDeps } from './assistant.deps.js';
-
-type Tool = Anthropic.Beta.Messages.BetaTool;
+import type { LlmTool } from './assistant.llm.js';
 
 /** Telefon — faqat oxirgi 4 raqam (PII modelga to'liq ketmaydi). */
 export const maskPhone = (p: string | null | undefined) =>
@@ -38,45 +36,41 @@ const obj = (properties: Record<string, unknown>, required: string[]) => ({
 });
 
 /** Yordamchi vositalari: hammasi o'qish; `open_screen` — faqat tugma taklif qiladi. */
-export const ASSISTANT_TOOLS: Tool[] = [
+export const ASSISTANT_TOOLS: LlmTool[] = [
   {
     name: 'search_students',
     description:
       "O'quvchini ism, familiya, kod yoki telefon bo'yicha qidiradi. Natija: id, kod, ism, guruhlar, holat.",
-    input_schema: obj({ query: { type: 'string', description: 'Kamida 2 belgi' } }, ['query']),
-    strict: true,
+    parameters: obj({ query: { type: 'string', description: 'Kamida 2 belgi' } }, ['query']),
   },
   {
     name: 'student_overview',
     description:
       "Bitta o'quvchi: guruhlari, qarzi/avansi (so'mda), ota-onalari (telefon yashirin). Avval search_students bilan id toping.",
-    input_schema: obj({ student_id: { type: 'string' } }, ['student_id']),
-    strict: true,
+    parameters: obj({ student_id: { type: 'string' } }, ['student_id']),
   },
   {
     name: 'today_summary',
     description:
       "Bugungi ko'rsatkichlar: tushum (bugun/kecha, so'm), davomat %, belgilanmagan darslar, kelmaganlar, chek navbati, tasdiqlash so'rovlari, umumiy qarz, faol o'quvchilar.",
-    input_schema: obj({}, []),
-    strict: true,
+    parameters: obj({}, []),
   },
   {
     name: 'list_debtors',
     description: "Qarzdorlar ro'yxati (eng katta qarz birinchi). bucket: muddati bo'yicha filtr.",
-    input_schema: obj(
+    parameters: obj(
       {
         bucket: { type: 'string', enum: [...DEBTOR_BUCKETS] },
         limit: { type: 'integer', minimum: 1, maximum: 20 },
       },
       [],
     ),
-    strict: true,
   },
   {
     name: 'open_screen',
     description:
       "Foydalanuvchiga ilova ekranini ochadigan tugma qo'shadi. Har qanday o'zgartirish (to'lov kiritish, yangi o'quvchi, davomat, xarajat) faqat shu yo'l bilan: foydalanuvchi formani o'zi to'ldirib tasdiqlaydi. 'student' va 'pay' uchun student_id shart.",
-    input_schema: obj(
+    parameters: obj(
       {
         screen: { type: 'string', enum: [...ASSISTANT_SCREENS] },
         student_id: { type: 'string' },
@@ -84,7 +78,6 @@ export const ASSISTANT_TOOLS: Tool[] = [
       },
       ['screen'],
     ),
-    strict: true,
   },
 ];
 

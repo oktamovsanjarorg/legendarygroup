@@ -1,17 +1,41 @@
-import Anthropic from '@anthropic-ai/sdk';
+/**
+ * Model chaqiruvi — provayderdan mustaqil (Q-119: DeepSeek). Servis faqat shu turlarni biladi;
+ * testda soxta model. `null` — kalit berilmagan, yordamchi o'chiq.
+ */
+export interface LlmToolCall {
+  id: string;
+  name: string;
+  /** Model yuborgan argumentlar (tekshirilmagan — vosita Zod bilan tekshiradi). */
+  input: unknown;
+}
 
-export type LlmParams = Anthropic.Beta.Messages.MessageCreateParamsNonStreaming;
-export type LlmMessage = Anthropic.Beta.Messages.BetaMessage;
+export type LlmTurn =
+  | { role: 'user'; content: string }
+  | { role: 'assistant'; content: string; toolCalls: LlmToolCall[] }
+  | { role: 'tool'; toolCallId: string; content: string };
 
-/** Model chaqiruvi (testda soxta). `null` — kalit berilmagan, yordamchi o'chiq. */
+export interface LlmTool {
+  name: string;
+  description: string;
+  /** JSON Schema (object). */
+  parameters: Record<string, unknown>;
+}
+
+export interface LlmRequest {
+  system: string;
+  tools: readonly LlmTool[];
+  messages: readonly LlmTurn[];
+}
+
+export interface LlmReply {
+  text: string;
+  toolCalls: LlmToolCall[];
+  /** `refused` — kontent filtri; `length` — javob uzunlik chegarasiga yetdi. */
+  finish: 'stop' | 'tool_calls' | 'length' | 'refused';
+}
+
 export interface AssistantLlm {
-  create(params: LlmParams): Promise<LlmMessage>;
+  chat(req: LlmRequest): Promise<LlmReply>;
 }
 
 export const ASSISTANT_LLM = Symbol('ASSISTANT_LLM');
-
-/** Claude Messages API (SDK). Rad etishda — server tomonidagi zaxira model (`fallbacks`). */
-export function anthropicLlm(apiKey: string): AssistantLlm {
-  const client = new Anthropic({ apiKey, maxRetries: 2, timeout: 60_000 });
-  return { create: (params) => client.beta.messages.create(params) };
-}
