@@ -272,4 +272,11 @@ describe('T-158: fayl bot chatiga', () => {
     await send('attendance', { ...body, to: '2026-06-29' }, token);
     expect(await mine()).toHaveLength(2);
   });
+
+  it('botga ulanmagan xodim — NO_TELEGRAM (fayl "yuborildi" deb yolgʻon aytilmaydi)', async () => {
+    const bare = await createUserWithRole(db, 'admin');
+    const res = await send('attendance', { format: 'excel' }, await tokenFor(t, db, bare, 'admin'));
+    expect(res.statusCode).toBe(409);
+    expect(res.json<{ code: string }>().code).toBe('NO_TELEGRAM');
+  });
 });

@@ -136,6 +136,15 @@ export class NotificationsService {
    * Q-99: yangi ish haqida botga ulangan faol Admin/Director'larga. `dedupeKey` — hodisa ID'si
    * (event qayta yetkazilsa ham har xodimga bir marta).
    */
+  /** Fayl so'ragan foydalanuvchi botga ulanganmi (ulanmagan — `notify` faqat `failed` yozadi). */
+  async hasTelegram(userId: string): Promise<boolean> {
+    const [user] = await this.db
+      .select({ telegramId: users.telegramId })
+      .from(users)
+      .where(eq(users.id, userId));
+    return Boolean(user?.telegramId);
+  }
+
   async notifyStaff(task: StaffTask): Promise<void> {
     for (const userId of await this.staff.linkedManagerIds(task.roles))
       await this.notify({

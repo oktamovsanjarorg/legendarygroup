@@ -57,12 +57,14 @@ export class ReportsDeliveryService {
     ctx: AuditContext,
   ): Promise<void> {
     const file = await this.reports.exportReport(r.type, r.format, actor, r.filter);
+    if (!(await this.notifications.hasTelegram(actor.id)))
+      throw new AppException(HttpStatus.CONFLICT, 'NO_TELEGRAM');
     const stored = await this.files.ingest(
       file.buffer,
       { purpose: 'report_export', declaredMime: file.mimeType, uploadedBy: actor.id },
       ctx,
     );
-    const sent = await this.notifications.notify({
+    await this.notifications.notify({
       userId: actor.id,
       type: 'report_file',
       dedupeKey: `report-${uuidv7()}`,
@@ -74,6 +76,5 @@ export class ReportsDeliveryService {
         fileType: 'document',
       },
     });
-    if (!sent) throw new AppException(HttpStatus.CONFLICT, 'NO_TELEGRAM');
   }
 }
