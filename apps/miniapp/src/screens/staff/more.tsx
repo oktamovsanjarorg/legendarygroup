@@ -102,7 +102,6 @@ export function StaffMoreView({ groups, counts = {}, onOpen }: StaffMoreViewProp
           })}
         </Section>
       ))}
-      <p className="px-4 text-sm text-text-muted">{m.panelHint}</p>
     </main>
   );
 }

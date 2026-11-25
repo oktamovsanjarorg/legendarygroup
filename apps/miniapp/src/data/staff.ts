@@ -2,7 +2,6 @@ import type {
   ApprovalRequest as ApiApproval,
   DirectorDashboardKpi,
   EnrollmentDto,
-  PanelHandoffResult,
   PaymentSubmission,
   StudentDetail,
   StudentLedgerSummary,
@@ -20,14 +19,6 @@ export function useStaffKpi(isDirector: boolean) {
     queryKey: ['staff', 'kpi'],
     queryFn: async () =>
       staffKpi(await api.request<DirectorDashboardKpi>('/dashboard/director'), isDirector),
-  });
-}
-
-/** Web panelga o'tish (T-121): bir martalik kalitli havola — har bosishda yangisi (60 s). */
-export function usePanelHandoff() {
-  const api = useApi();
-  return useMutation({
-    mutationFn: () => api.request<PanelHandoffResult>('/auth/panel-handoff', { method: 'POST' }),
   });
 }
 

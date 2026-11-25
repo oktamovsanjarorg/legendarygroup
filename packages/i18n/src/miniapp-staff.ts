@@ -49,7 +49,6 @@ export const staffMessages = {
       sessions: 'Kompyuterdagi kirishlar',
       audit: 'Audit',
     },
-    panelHint: 'Hisobotlar, oyliklar, sozlamalar va audit — kompyuterda, boshqaruv panelida.',
   },
   dashboard: {
     title: 'Bugun',
@@ -60,7 +59,6 @@ export const staffMessages = {
     approvals: 'Tasdiqlash soʻrovlari',
     absentToday: 'Bugun kelmaganlar',
     vsYesterday: 'kecha: {v}',
-    openPanel: 'Boshqaruv panelini ochish',
   },
   review: {
     title: 'Chek navbati',
@@ -127,7 +125,6 @@ export const staffMessages = {
     noTelegram: 'Botga ulanmagan',
     relations: { father: 'Otasi', mother: 'Onasi', guardian: 'Vasiysi', other: 'Boshqa' },
     pay: 'Toʻlov qabul qilish',
-    leaveHint: 'Guruhdan chiqarish uchun guruhni bosing.',
     archive: 'Arxivlash',
     archiveBlocked: 'Avval barcha guruhlardan chiqaring.',
     archiveTitle: 'Oʻquvchini arxivlaysizmi?',
