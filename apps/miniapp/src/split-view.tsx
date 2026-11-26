@@ -71,7 +71,7 @@ export function SplitView({ split, detail }: { split: Split; detail: boolean }) 
     <div className="flex min-h-[calc(100vh-3.5rem)]">
       <section
         aria-label={t.split.list}
-        className="sticky top-14 h-[calc(100vh-3.5rem)] w-[400px] shrink-0 overflow-y-auto border-r border-border px-2"
+        className="sticky top-14 h-[calc(100vh-3.5rem)] w-[420px] shrink-0 overflow-y-auto border-r border-border px-2"
       >
         <PassiveControls active={detail}>
           <List key={split.list} />

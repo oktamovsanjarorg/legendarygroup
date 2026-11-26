@@ -17,11 +17,8 @@ import type { StaffMenuKey } from '../data/staff-menu.js';
 import { type KpiTarget, StaffDashboardView } from '../screens/staff/dashboard.js';
 import { STAFF_ICONS } from '../screens/staff/menu-icons.js';
 import { ReviewView } from '../screens/staff/review.js';
-import { StudentListView } from '../screens/staff/student-list.js';
-import { DEFAULT_FILTERS, useStudentList } from '../data/staff-students.js';
-import { useCourses } from '../data/staff-org.js';
-import { ErrorNotice } from './notice.js';
 import { useMe } from '../session/session.js';
+import { StudentListScreen } from './student-list-screen.js';
 
 const Alert = ({ error }: { error: unknown }) => (
   <p role="alert" className="mx-4 mt-3 rounded-xl bg-danger-bg p-3 text-sm text-danger">
@@ -153,23 +150,9 @@ export function StaffApprovalPage() {
 /** MS-04 qidiruv (kamida 2 belgi; oʻ/o' bir xil — server normalizatsiyasi). */
 export function StaffSearchPage() {
   const navigate = useNavigate();
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const list = useStudentList(filters);
-  const courses = useCourses();
   return (
-    <>
-      <ErrorNotice error={list.error ?? courses.error} />
-      <StudentListView
-        filters={filters}
-        courses={courses.data ?? []}
-        items={list.data ?? []}
-        loading={list.isPending}
-        hasMore={list.hasNextPage}
-        loadingMore={list.isFetchingNextPage}
-        onFilters={setFilters}
-        onMore={() => void list.fetchNextPage()}
-        onOpen={(s) => void navigate({ to: '/staff/student/$id', params: { id: s.id } })}
-      />
-    </>
+    <StudentListScreen
+      onOpen={(s) => void navigate({ to: '/staff/student/$id', params: { id: s.id } })}
+    />
   );
 }

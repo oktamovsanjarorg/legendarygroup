@@ -23,18 +23,17 @@ export function useLinkRequests() {
   });
 }
 
-/** Farzandni tanlash: ism/ID (qarzsiz — faqat ro'yxat). */
+/** Farzandni tanlash: qidirmasdan — A–Z ro'yxat, yozilsa — ism/ID (qarzsiz; T-178). */
 export function useStudentPick(q: string) {
   const api = useApi();
   const query = q.trim();
   return useQuery({
     queryKey: ['staff', 'pick', query],
-    enabled: query.length >= 2,
     placeholderData: keepPreviousData,
     queryFn: async () =>
       (
         await api.request<{ items: StudentListRow[] }>(
-          `/students?q=${encodeURIComponent(query)}&limit=10`,
+          `/students?sort=name&limit=20${query.length >= 2 ? `&q=${encodeURIComponent(query)}` : ''}`,
         )
       ).items,
   });

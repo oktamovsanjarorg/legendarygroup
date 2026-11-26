@@ -1,7 +1,16 @@
 import type { StudentSort } from '@lg/contracts';
 import { formatMoney, miniappMessages as t } from '@lg/i18n';
-import { EmptyState, ListItem, SearchField, Section, Segmented, StatusChip } from '@lg/ui-tg';
-import { Users } from 'lucide-react';
+import {
+  EmptyState,
+  FilterBar,
+  FilterSelect,
+  FilterToggle,
+  ListItem,
+  SearchField,
+  Section,
+  StatusChip,
+} from '@lg/ui-tg';
+import { ArrowDownAZ, BookOpen, Users } from 'lucide-react';
 import type { StudentFilters } from '../../data/staff-students.js';
 import type { StudentHit } from './search.js';
 
@@ -9,6 +18,8 @@ const c = t.students;
 const SORTS: readonly StudentSort[] = ['name', 'code', 'newest'];
 
 export interface StudentListViewProps {
+  /** Sarlavha (sukut — «O'quvchilar»; to'lov uchun — «Kimdan to'lov?»). */
+  title?: string;
   filters: StudentFilters;
   courses: readonly { id: string; name: string }[];
   items: readonly StudentHit[];
@@ -20,42 +31,40 @@ export interface StudentListViewProps {
   onOpen: (s: StudentHit) => void;
 }
 
-function Chip(p: { on: boolean; label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={p.on}
-      onClick={p.onClick}
-      className={`min-h-9 shrink-0 rounded-full px-4 text-sm transition-colors ${
-        p.on ? 'bg-primary/15 font-semibold text-primary' : 'bg-bg text-text hover:bg-surface-alt'
-      }`}
-    >
-      {p.label}
-    </button>
-  );
-}
+const ALL = 'all';
 
-/** Fan (kurs) bo'yicha: gorizontal tugmalar — telefonda suriladi. */
-function CourseChips(p: Pick<StudentListViewProps, 'filters' | 'courses' | 'onFilters'>) {
-  const set = (courseId: string | null) => p.onFilters({ ...p.filters, courseId });
-  if (p.courses.length === 0) return null;
+/** Fan, tartib, arxiv — bitta ixcham qator (T-178). */
+function Filters(p: Pick<StudentListViewProps, 'filters' | 'courses' | 'onFilters'>) {
+  const f = p.filters;
   return (
-    <div
-      role="radiogroup"
-      aria-label={c.course}
-      className="-mx-2 flex gap-2 overflow-x-auto px-2 pb-1"
-    >
-      <Chip on={p.filters.courseId === null} label={c.allCourses} onClick={() => set(null)} />
-      {p.courses.map((x) => (
-        <Chip
-          key={x.id}
-          on={p.filters.courseId === x.id}
-          label={x.name}
-          onClick={() => set(x.id)}
+    <FilterBar label={c.filters}>
+      {p.courses.length > 0 && (
+        <FilterSelect
+          label={c.course}
+          icon={BookOpen}
+          value={f.courseId ?? ALL}
+          defaultValue={ALL}
+          options={[
+            { value: ALL, label: c.allCourses },
+            ...p.courses.map((x) => ({ value: x.id, label: x.name })),
+          ]}
+          onChange={(v) => p.onFilters({ ...f, courseId: v === ALL ? null : v })}
         />
-      ))}
-    </div>
+      )}
+      <FilterSelect
+        label={c.sort}
+        icon={ArrowDownAZ}
+        value={f.sort}
+        defaultValue="name"
+        options={SORTS.map((v) => ({ value: v, label: c.sorts[v] }))}
+        onChange={(sort) => p.onFilters({ ...f, sort })}
+      />
+      <FilterToggle
+        label={c.archived}
+        on={f.status === 'archived'}
+        onChange={(on) => p.onFilters({ ...f, status: on ? 'archived' : 'active' })}
+      />
+    </FilterBar>
   );
 }
 
@@ -87,31 +96,14 @@ export function StudentListView(p: StudentListViewProps) {
   const empty = !p.loading && p.items.length === 0;
   return (
     <main className="flex flex-col gap-3 p-2 pt-3">
-      <h1 className="px-2 text-2xl font-bold text-text">{c.title}</h1>
+      <h1 className="px-2 text-2xl font-bold text-text">{p.title ?? c.title}</h1>
       <SearchField
         value={f.q}
         placeholder={t.search.placeholder}
         clearLabel={t.attendance.cancel}
         onChange={(q) => p.onFilters({ ...f, q })}
       />
-      <CourseChips filters={f} courses={p.courses} onFilters={p.onFilters} />
-      <div className="grid grid-cols-2 gap-2 desk:flex desk:justify-between">
-        <Segmented
-          label={c.sort}
-          value={f.sort}
-          options={SORTS.map((v) => ({ value: v, label: c.sorts[v] }))}
-          onChange={(sort) => p.onFilters({ ...f, sort })}
-        />
-        <Segmented
-          label={c.status}
-          value={f.status}
-          options={(['active', 'archived'] as const).map((v) => ({
-            value: v,
-            label: c.statuses[v],
-          }))}
-          onChange={(status) => p.onFilters({ ...f, status })}
-        />
-      </div>
+      <Filters filters={f} courses={p.courses} onFilters={p.onFilters} />
       {empty ? (
         <EmptyState
           title={f.q.trim().length >= 2 ? t.search.notFound : c.empty}

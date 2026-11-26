@@ -7,6 +7,7 @@ export * from './child-switcher.js';
 export * from './controls.js';
 export * from './copy-field.js';
 export * from './file-picker.js';
+export * from './filter.js';
 export * from './image-viewer.js';
 export * from './inputs.js';
 export * from './kpi-tile.js';

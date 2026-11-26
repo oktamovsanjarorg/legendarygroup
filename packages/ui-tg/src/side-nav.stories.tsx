@@ -1,7 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { BookOpen, House, Receipt, Sparkles, UserPlus, Users, Wallet } from 'lucide-react';
+import {
+  ArrowDownAZ,
+  BookOpen,
+  House,
+  Receipt,
+  Sparkles,
+  UserPlus,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import { useState } from 'react';
 import { QuickActions } from './action-tile.js';
+import { FilterBar, FilterSelect, FilterToggle } from './filter.js';
 import { CommandPalette } from './command-palette.js';
 import { SideNav, type SideNavGroup } from './side-nav.js';
 
@@ -97,4 +107,43 @@ export const TezkorAmallar: Story = {
       />
     </div>
   ),
+};
+
+export const Filtrlar: Story = {
+  render: () => {
+    const [course, setCourse] = useState('all');
+    const [sort, setSort] = useState('name');
+    const [archived, setArchived] = useState(false);
+    return (
+      <div className="bg-surface p-3">
+        <FilterBar label="Filtrlar">
+          <FilterSelect
+            label="Fan"
+            icon={BookOpen}
+            value={course}
+            defaultValue="all"
+            options={[
+              { value: 'all', label: 'Barcha fanlar' },
+              { value: 'math', label: 'Matematika' },
+              { value: 'eng', label: 'Ingliz tili' },
+            ]}
+            onChange={setCourse}
+          />
+          <FilterSelect
+            label="Tartib"
+            icon={ArrowDownAZ}
+            value={sort}
+            defaultValue="name"
+            options={[
+              { value: 'name', label: 'Ism (A–Z)' },
+              { value: 'code', label: 'Kod' },
+              { value: 'newest', label: 'Yangi qoʻshilgan' },
+            ]}
+            onChange={setSort}
+          />
+          <FilterToggle label="Arxiv" on={archived} onChange={setArchived} />
+        </FilterBar>
+      </div>
+    );
+  },
 };

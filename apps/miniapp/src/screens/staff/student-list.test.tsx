@@ -46,18 +46,24 @@ describe('MS-04 Oʻquvchilar roʻyxati (T-177)', () => {
     expect(studentListUrl({ ...DEFAULT_FILTERS, q: 'A' }, null)).not.toContain('q=');
   });
 
-  it('fan, tartib va holat tugmalari filtrni oʻzgartiradi; «Yana koʻrsatish» — keyingi sahifa', () => {
+  it('fan, tartib va arxiv filtrlari; «Yana koʻrsatish» — keyingi sahifa; bosilsa — ochiladi', () => {
     const p = view();
-    fireEvent.click(screen.getByRole('radio', { name: 'Robototexnika' }));
+    fireEvent.change(screen.getByLabelText(c.course), { target: { value: C1 } });
     expect(p.onFilters).toHaveBeenCalledWith({ ...DEFAULT_FILTERS, courseId: C1 });
-    fireEvent.click(screen.getByRole('radio', { name: c.sorts.newest }));
+    fireEvent.change(screen.getByLabelText(c.sort), { target: { value: 'newest' } });
     expect(p.onFilters).toHaveBeenCalledWith({ ...DEFAULT_FILTERS, sort: 'newest' });
-    fireEvent.click(screen.getByRole('radio', { name: c.statuses.archived }));
+    fireEvent.click(screen.getByRole('button', { name: c.archived }));
     expect(p.onFilters).toHaveBeenCalledWith({ ...DEFAULT_FILTERS, status: 'archived' });
     fireEvent.click(screen.getByRole('button', { name: c.more }));
     expect(p.onMore).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByText('Ali Valiyev'));
     expect(p.onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 's1' }));
+  });
+
+  it('fan tanlangan boʻlsa — «Barcha fanlar» qaytaradi', () => {
+    const p = view({ filters: { ...DEFAULT_FILTERS, courseId: C1 } });
+    fireEvent.change(screen.getByLabelText(c.course), { target: { value: 'all' } });
+    expect(p.onFilters).toHaveBeenCalledWith(DEFAULT_FILTERS);
   });
 
   it('boʻsh: filtr boʻyicha — «Oʻquvchi yoʻq»; qidiruvda — «topilmadi»', () => {
