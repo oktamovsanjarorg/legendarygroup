@@ -8,6 +8,8 @@ import { staffMenuFor } from '../../data/staff-menu.js';
 import { APPROVALS, GUARDIANS, KPI, QUEUE, STUDENTS } from './mock.js';
 import { ReviewView } from './review.js';
 import { matchStudents, SearchView } from './search.js';
+import { StudentListView } from './student-list.js';
+import { DEFAULT_FILTERS } from '../../data/staff-students.js';
 import { StudentCardView } from './student-card.js';
 
 const noop = () => undefined;
@@ -95,6 +97,34 @@ export const MS04_Start: Story = {
 export const MS04_NotFound: Story = {
   render: () =>
     root('/search', <SearchView query="Rustamov" results={[]} onQuery={noop} onOpen={noop} />),
+};
+const listProps = {
+  filters: DEFAULT_FILTERS,
+  courses: [
+    { id: 'c1', name: 'Robototexnika' },
+    { id: 'c2', name: 'Ingliz tili' },
+    { id: 'c3', name: 'Matematika' },
+  ],
+  loading: false,
+  loadingMore: false,
+  onFilters: noop,
+  onMore: noop,
+  onOpen: noop,
+};
+export const MS04_List: Story = {
+  render: () => root('/search', <StudentListView {...listProps} items={STUDENTS} hasMore />),
+};
+export const MS04_ListEmpty: Story = {
+  render: () =>
+    root(
+      '/search',
+      <StudentListView
+        {...listProps}
+        filters={{ ...DEFAULT_FILTERS, courseId: 'c3' }}
+        items={[]}
+        hasMore={false}
+      />,
+    ),
 };
 export const MS05_Card: Story = {
   tags: ['primary'],
