@@ -10,6 +10,7 @@ const pnl = (period: string): MonthlyPnLSummary => ({
   revenue: '10000000',
   expenses: '3200000',
   payroll: '4000000',
+  payrollPending: false,
   totalCosts: '7200000',
   netProfit: '2800000',
   profitMarginBp: 2800,

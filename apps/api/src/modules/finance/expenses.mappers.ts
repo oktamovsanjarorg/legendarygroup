@@ -27,6 +27,7 @@ export function buildMonthlyPnLSummary(params: {
   payments: { method: string; amount: bigint }[];
   expenses: ExpenseRow[];
   payrollTotal: bigint;
+  payrollApproved: boolean;
 }): MonthlyPnLSummary {
   const revByMethod = aggregateRevenueByMethod(params.payments);
   let totalRevenue = 0n;
@@ -54,6 +55,7 @@ export function buildMonthlyPnLSummary(params: {
     revenue: totalRevenue.toString(),
     expenses: totalExpenses.toString(),
     payroll: params.payrollTotal.toString(),
+    payrollPending: !params.payrollApproved,
     totalCosts: (totalExpenses + params.payrollTotal).toString(),
     netProfit: netProfit.toString(),
     profitMarginBp: marginBp,

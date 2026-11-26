@@ -840,11 +840,12 @@
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 - **Biznes mantiqi ko'rib chiqildi (2026-11-26, T-401/T-402 review):** BR-23…BR-28, Q-88, Q-104 bo'yicha domen, generator, oynalar, baza (yig'ilgan/hisoblangan), avans, holatlar, RBAC va audit tekshirildi. Tuzatildi: hisoblangan (accrued) baza oy o'rtasida shartnoma almashsa faqat oxirgisiga berilardi — eski shartnoma o'z kunlari uchun 0 olardi; endi har oyna kunlariga mutanosib (int test). Ishlatilmagan `calculateNetSalary` (manfiy netni jimgina 0 qilardi — Q-88 ga zid) olib tashlandi.
 
-### 🟨 T-403 · Xarajatlar va P&L
+### ✅ T-403 · Xarajatlar va P&L
 
 - **Bog'liq:** T-202 · **Talablar:** FR-FIN-1…3
 - **AC:** xarajat CRUD (chek rasmi), kategoriyalar, oylik P&L (tushum − xarajat − oylik), `finance.view` ruxsati.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+- **Biznes mantiqi ko'rib chiqildi (2026-11-26):** FR-FIN-1…3, Q-104: tushum — sof (storno/qaytarish manfiy yozuv sifatida ayriladi), oylik — tasdiqlangan hisob + ushlangan avans, «Boshqa xodim oyligi» toifasi ustoz oyligi bilan ikki marta sanalmaydi, RBAC (`expense.manage`, `finance.view`) va audit (oldin/keyin). Tuzatildi: oylik hali tasdiqlanmagan oyda P&L «Ustozlar oyligi 0» va oyliksiz foydani izohsiz ko'rsatardi — `payrollPending` va Mini App'da «Hali tasdiqlanmagan» izohi (int + UI test).
 
 ### 🟨 T-404 · Audit UI va shubhali harakatlar
 

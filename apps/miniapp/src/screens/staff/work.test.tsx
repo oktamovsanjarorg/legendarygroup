@@ -226,4 +226,20 @@ describe('MS-18 / MS-27 Moliya (T-142, T-143, T-156)', () => {
     wrap(view([expense]));
     expect(screen.getByRole('button', { name: t.fin.add })).toBeTruthy();
   });
+
+  it('T-403 review: oylik tasdiqlanmagan — foyda oyliksiz ekani yoziladi', () => {
+    wrap(
+      <FinanceView
+        pnl={{ ...pnl, payroll: '0', payrollPending: true }}
+        period="2026-11"
+        current="2026-11"
+        expenses={null}
+        onPeriod={noop}
+        onAdd={noop}
+        onExpense={noop}
+      />,
+    );
+    expect(screen.getByText(t.fin.payrollPending)).toBeTruthy();
+    expect(screen.getByText(t.fin.netNoPayroll)).toBeTruthy();
+  });
 });

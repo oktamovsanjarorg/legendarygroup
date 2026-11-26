@@ -129,9 +129,13 @@ export class ExpensesRepository {
   }
 
   /** Oylik xarajati — ishlangan summa: ushlangan avans ham (pul oldin berilgan) xarajat (Q-104). */
-  async findApprovedPayrollTotal(branchId: string, period: string): Promise<bigint> {
+  async findApprovedPayroll(
+    branchId: string,
+    period: string,
+  ): Promise<{ total: bigint; approved: boolean }> {
     const [row] = await this.db
       .select({
+        runs: sql<number>`count(*)::int`,
         total: sql<string>`coalesce(sum(payroll_runs.total_amount + coalesce((
           select -sum(i.amount) from payroll_items i
           where i.run_id = payroll_runs.id and i.kind = 'advance'), 0)), 0)`,
@@ -145,6 +149,6 @@ export class ExpensesRepository {
         ),
       );
 
-    return BigInt(row?.total ?? '0');
+    return { total: BigInt(row?.total ?? '0'), approved: (row?.runs ?? 0) > 0 };
   }
 }
