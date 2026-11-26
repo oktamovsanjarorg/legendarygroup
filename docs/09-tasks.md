@@ -765,7 +765,7 @@
 
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### 🟨 T-301 · Baholar va izohlar
+### ✅ T-301 · Baholar va izohlar
 
 - **Bog'liq:** T-111 · **Talablar:** FR-GRD-1, 2, BR-33
 - **AC:** guruh baholash sozlamasi; davomat ekranida baho qo'yish (bir oqimda); izoh (ko'rinish turi bilan); ota-onaga baho xabari (sozlamaga ko'ra).
@@ -778,6 +778,7 @@
     - Scope & IDOR: Ustoz faqat o'z darsiga baho qo'yadi; ota-ona faqat o'z farzandini va faqat `guardian` ko'rinishidagi izohlarni ko'radi (`internal` izohlar yashiriladi).
   - Integratsiya testlari: `grades.int.test.ts` (6 ta test: RBAC, baholash, izohlar, BR-33 shkala cheklovi, ustoz scope himoyasi, ota-ona IDOR himoyasi).
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+- **Biznes mantiqi ko'rib chiqildi (2026-11-26):** API — BR-37 muddat serverda (ustoz: dars kuni + 3 kun; keyin Admin/Director sabab bilan), faqat guruhdagi o'quvchi (BR-32), bitta tranzaksiya va bitta audit yozuvi (#108). Mini App'da baho qo'yish ekrani yo'q edi (web yopilgan) — MT-02b: davomat saqlangach «Baho qo'yish», 0–5 tugmalar / 0–100 maydon, tur tanlash, kelmaganlar belgili, muddat tugasa faqat ko'rish, offline navbat (`lesson-queue.ts`, davomat bilan umumiy). Testlar: `grades.test.tsx`, e2e `attendance.spec.ts` (davomat → baho), Storybook «MT-02b Baholar».
 
 ### 🟨 T-302 · Testlar va Excel import
 
