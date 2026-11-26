@@ -130,6 +130,9 @@ export const errorMessages = {
   LESSON_CANCELLED: 'Bekor qilingan dars uchun davomat kiritilmaydi.',
   GRADE_SCALE_EXCEEDED: 'Kiritilgan baho guruh baholash shkalasidan oshib ketdi.',
   GRADE_KIND_NOT_ALLOWED: 'Ushbu guruhda bu baho turi yoqilmagan.',
+  GRADE_WINDOW_CLOSED:
+    'Baho va izohni dars kunidan keyin 3 kun ichida qoʻyish mumkin. Endi — faqat administrator, sabab bilan.',
+  GRADE_REASON_REQUIRED: 'Muddat oʻtgan darsdagi bahoni oʻzgartirish sababini yozing.',
   TEST_NOT_FOUND: 'Test topilmadi.',
   TEST_ALREADY_PUBLISHED: 'Eʼlon qilingan testni tahrirlab boʻlmaydi.',
   TEST_SCORE_INVALID: 'Test bali 0 va maksimal ball oraligʻida boʻlishi kerak.',

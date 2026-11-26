@@ -21,6 +21,8 @@ export type LessonCommentItemInput = z.infer<typeof LessonCommentItemSchema>;
 export const SetLessonGradesRequest = z.object({
   grades: z.array(GradeItemSchema),
   comments: z.array(LessonCommentItemSchema).default([]),
+  /** BR-37: muddatdan keyin (dars kuni + 3 kun) Admin/Director tuzatishi — sabab majburiy. */
+  reason: z.string().trim().min(3).max(500).optional(),
 });
 export type SetLessonGradesInput = z.infer<typeof SetLessonGradesRequest>;
 

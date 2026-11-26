@@ -10,7 +10,7 @@ import {
   type StudentGradesQueryInput,
 } from '@lg/contracts';
 import type { FastifyRequest } from 'fastify';
-import { Audit, NoAudit } from '../../common/audit/audit.decorator.js';
+import { NoAudit } from '../../common/audit/audit.decorator.js';
 import { auditContext } from '../../common/audit/request-context.js';
 import { RequirePermission } from '../../common/decorators/access.decorators.js';
 import { ZodBody, ZodQuery } from '../../common/decorators/zod.decorators.js';
@@ -40,8 +40,8 @@ export class GradesController {
 
   @Post('lessons/:lessonId')
   @RequirePermission('grade.write')
-  @Audit({ action: 'grade.write', entity: 'grade' })
-  @ApiOperation({ summary: 'FR-GRD-1, 2, BR-33 Baholar va izohlarni saqlash' })
+  @NoAudit('GradesService ichida — baholar va BR-37 sababi bilan, bitta tranzaksiyada')
+  @ApiOperation({ summary: 'FR-GRD-1, 2, BR-33, BR-37 Baholar va izohlarni saqlash' })
   async setLessonGrades(
     @CurrentUser() user: RequestUser,
     @Param('lessonId', ParseUUIDPipe) lessonId: string,

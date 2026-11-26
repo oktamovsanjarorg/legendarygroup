@@ -3,17 +3,22 @@ import {
   closeDb,
   createDb,
   type Database,
+  auditLogs,
   grades,
   guardians,
   lessons,
   seed,
   teacherComments,
 } from '@lg/db';
-import { eq } from 'drizzle-orm';
+import { addDays, formatDateToYmd } from '@lg/domain';
+import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createUserWithRole, tokenFor, tokensForAllRoles } from '../../test/role-tokens.js';
 import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 
+// BR-37 oynasi haqiqiy bugungi kunga nisbatan: dars — bugun, 3 va 4 kun oldin.
+const today = formatDateToYmd(new Date());
+let roomIdShared: string;
 let t: TestApp;
 let db: Database;
 let tokens: Map<RoleCode, string>;
@@ -61,6 +66,7 @@ beforeAll(async () => {
 
   const roomRes = await call('POST', 'rooms', adminToken, { name: 'Laboratoriya 1', capacity: 15 });
   const roomId = roomRes.json<{ id: string }>().id;
+  roomIdShared = roomId;
 
   // Guruh baholash sozlamasi: 0_5 shkala, homework va activity
   const groupRes = await call('POST', 'groups', adminToken, {
@@ -68,7 +74,7 @@ beforeAll(async () => {
     roomId,
     name: 'PHYS-101',
     maxStudents: 15,
-    startDate: '2026-11-01',
+    startDate: addDays(today, -30),
     monthlyPrice: '650000',
     gradingConfig: {
       scale: '0_5',
@@ -97,12 +103,12 @@ beforeAll(async () => {
   await call('POST', 'enrollments', adminToken, {
     studentId: student1Id,
     groupId,
-    startDate: '2026-11-01',
+    startDate: addDays(today, -30),
   });
   await call('POST', 'enrollments', adminToken, {
     studentId: student2Id,
     groupId,
-    startDate: '2026-11-01',
+    startDate: addDays(today, -30),
   });
 
   parentUserId = await createUserWithRole(db, 'guardian', '+998909876501');
@@ -116,7 +122,7 @@ beforeAll(async () => {
     .insert(lessons)
     .values({
       groupId,
-      date: '2026-11-13',
+      date: today,
       startTime: '10:00',
       endTime: '11:00',
       roomId,
@@ -265,5 +271,69 @@ describe('T-301 Baholar va ustoz izohlari (FR-GRD-1, 2, BR-33)', () => {
       const res = await call('GET', `grades/students/${foreignStudentId}/progress`, parentToken);
       expect(res.statusCode).toBe(404);
     });
+  });
+});
+
+describe('T-301 review: BR-37 muddat, roʻyxat va audit', () => {
+  const grade = (studentId: string, value = 4) => ({
+    grades: [{ studentId, kind: 'homework', value }],
+  });
+  const lessonOn = async (date: string) => {
+    const [l] = await db
+      .insert(lessons)
+      .values({
+        groupId,
+        date,
+        startTime: '12:00',
+        endTime: '13:00',
+        roomId: roomIdShared,
+        teacherId: teacherUserId,
+        status: 'done',
+      })
+      .returning();
+    return l!.id;
+  };
+
+  it('BR-37: ustoz — dars kuni + 3 kun mumkin, 4-kuni 403 GRADE_WINDOW_CLOSED', async () => {
+    const edge = await lessonOn(addDays(today, -3));
+    expect(
+      (await call('POST', `grades/lessons/${edge}`, teacherToken, grade(student1Id))).statusCode,
+    ).toBe(201);
+    const old = await lessonOn(addDays(today, -4));
+    const res = await call('POST', `grades/lessons/${old}`, teacherToken, grade(student1Id, 5));
+    expect(res.statusCode).toBe(403);
+    expect(res.json<{ code: string }>().code).toBe('GRADE_WINDOW_CLOSED');
+  });
+
+  it('BR-37: muddatdan keyin Admin — faqat sabab bilan; sabab bitta audit yozuvida', async () => {
+    const old = await lessonOn(addDays(today, -5));
+    const admin = tokens.get('admin')!;
+    const noReason = await call('POST', `grades/lessons/${old}`, admin, grade(student1Id, 3));
+    expect(noReason.statusCode).toBe(400);
+    expect(noReason.json<{ code: string }>().code).toBe('GRADE_REASON_REQUIRED');
+    const ok = await call('POST', `grades/lessons/${old}`, admin, {
+      ...grade(student1Id, 3),
+      reason: 'Ustoz xato kiritgan',
+    });
+    expect(ok.statusCode).toBe(201);
+    const logs = await db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.entityId, old), eq(auditLogs.action, 'grade.write')));
+    expect(logs).toHaveLength(1);
+    expect(JSON.stringify(logs[0]?.after)).toContain('Ustoz xato kiritgan');
+  });
+
+  it('guruhda boʻlmagan oʻquvchiga baho qoʻyib boʻlmaydi (400 STUDENT_NOT_ENROLLED)', async () => {
+    const res = await call(
+      'POST',
+      `grades/lessons/${lessonId}`,
+      teacherToken,
+      grade(foreignStudentId),
+    );
+    expect(res.statusCode).toBe(400);
+    expect(res.json<{ code: string }>().code).toBe('STUDENT_NOT_ENROLLED');
+    const rows = await db.select().from(grades).where(eq(grades.studentId, foreignStudentId));
+    expect(rows).toHaveLength(0);
   });
 });
