@@ -56,14 +56,3 @@ export function calculateSubstituteSalary(
   if (substituteLessonsCount <= 0 || perLessonRate <= 0n) return 0n;
   return BigInt(substituteLessonsCount) * perLessonRate;
 }
-
-/**
- * BR-27 & BR-28: Jami to'lanadigan oylikni hisoblash (Net salary).
- */
-export function calculateNetSalary(items: Array<{ kind: string; amount: bigint }>): bigint {
-  let total = 0n;
-  for (const item of items) {
-    total += item.amount;
-  }
-  return total > 0n ? total : 0n;
-}

@@ -827,17 +827,18 @@
 
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### 🟨 T-401 · Payroll domen mantiqi
+### ✅ T-401 · Payroll domen mantiqi
 
 - **Bog'liq:** T-201 · **Talablar:** BR-23…BR-28
 - **AC:** `packages/domain/payroll`: fixed/percent/mixed/per-lesson, foiz bazasi (collected/accrued), o'rinbosar, avans ushlash; unit + property testlar.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 
-### 🟨 T-402 · Ustoz shartnomalari va oylik hisob
+### ✅ T-402 · Ustoz shartnomalari va oylik hisob
 
 - **Bog'liq:** T-401, T-202 · **Talablar:** FR-SAL-1…5
 - **AC:** shartnoma UI (Director), oylik hisob qoralamasi (tafsilot: qaysi o'quvchidan qancha), bonus/jarima, tasdiqlash, "to'landi", avans; Ustoz Mini App'da o'zining hisobini ko'radi; tasdiqlangandan keyin o'zgartirish faqat tuzatish yozuvi bilan.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+- **Biznes mantiqi ko'rib chiqildi (2026-11-26, T-401/T-402 review):** BR-23…BR-28, Q-88, Q-104 bo'yicha domen, generator, oynalar, baza (yig'ilgan/hisoblangan), avans, holatlar, RBAC va audit tekshirildi. Tuzatildi: hisoblangan (accrued) baza oy o'rtasida shartnoma almashsa faqat oxirgisiga berilardi — eski shartnoma o'z kunlari uchun 0 olardi; endi har oyna kunlariga mutanosib (int test). Ishlatilmagan `calculateNetSalary` (manfiy netni jimgina 0 qilardi — Q-88 ga zid) olib tashlandi.
 
 ### 🟨 T-403 · Xarajatlar va P&L
 

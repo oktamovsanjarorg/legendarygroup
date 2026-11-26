@@ -128,9 +128,15 @@ export class PayrollGenerator {
   private async percentBase(w: ContractWindow, period: string): Promise<bigint> {
     const { contract: c } = w;
     if (c.base === 'accrued') {
-      const last = w.segments.at(-1);
-      if (!w.latest || !last) return 0n;
-      return this.metrics.accruedBase(c.teacherId, period, last.scope);
+      // Q-104: oylik hisob summasi shartnomalar orasida amal qilgan kunlariga mutanosib bo'linadi
+      // (oy o'rtasida almashsa — eskisi ham o'z kunlari uchun oladi, ikki marta sanalmaydi).
+      let accrued = 0n;
+      for (const seg of w.segments) {
+        const { days, total } = windowDays([seg], period);
+        const full = await this.metrics.accruedBase(c.teacherId, period, seg.scope);
+        accrued += (full * BigInt(days)) / BigInt(total);
+      }
+      return accrued;
     }
     let base = 0n;
     for (const seg of w.segments)
