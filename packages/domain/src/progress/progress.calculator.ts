@@ -1,29 +1,38 @@
 import type { StudentRankingItem } from '@lg/contracts';
 
 export interface ScoreInputs {
-  averageGrade: number;
-  averageTestScorePercent: number;
+  /** Baho 0..100 ga keltirilgan; `null` — guruhda hali baho yo'q (komponent tashlanadi). */
+  averageGradePercent: number | null;
+  /** `null` — guruhda hali test yo'q. */
+  averageTestScorePercent: number | null;
   attendanceRatePercent: number;
 }
 
+const WEIGHTS = { grade: 45, test: 35, attendance: 20 } as const;
+
 /**
- * FR-GRD-5 O'quvchining kompozit reyting balini hisoblaydi (0..100).
- * - 45% Baholar (uyga vazifa, darsdagi faollik)
- * - 35% Test natijalari (nazorat ishlari, oraliq testlar)
- * - 20% Davomat ko'rsatkichi
+ * FR-GRD-5 O'quvchining kompozit reyting balini hisoblaydi (0..100): 45% baho, 35% test,
+ * 20% davomat. Guruhda ma'lumoti yo'q komponent tashlanadi va qolganlari ulushiga qarab
+ * qayta taqsimlanadi (aks holda testsiz guruhda hamma balli 35% ga past chiqardi).
  */
 export function calculateStudentCompositeScore(input: ScoreInputs): number {
-  const gradeWeight = 0.45;
-  const testWeight = 0.35;
-  const attWeight = 0.2;
-
-  const raw =
-    input.averageGrade * gradeWeight +
-    input.averageTestScorePercent * testWeight +
-    input.attendanceRatePercent * attWeight;
-
+  const parts: [number, number][] = [[input.attendanceRatePercent, WEIGHTS.attendance]];
+  if (input.averageGradePercent !== null) parts.push([input.averageGradePercent, WEIGHTS.grade]);
+  if (input.averageTestScorePercent !== null)
+    parts.push([input.averageTestScorePercent, WEIGHTS.test]);
+  const weight = parts.reduce((s, [, w]) => s + w, 0);
+  const raw = parts.reduce((s, [v, w]) => s + v * w, 0) / weight;
   const rounded = Math.round(raw * 10) / 10;
   return Math.min(100, Math.max(0, rounded));
+}
+
+/** Guruh baho shkalasi (0–5 → 5, 0–100 → 100) va qaysi ma'lumot borligi. */
+export interface LeaderboardOptions {
+  gradeMax: number;
+  /** Guruhda kamida bitta baho bor (sukut — ha). */
+  hasGrades?: boolean;
+  /** Guruhda kamida bitta test natijasi bor (sukut — ha). */
+  hasTests?: boolean;
 }
 
 export interface RawStudentRankingItem {
@@ -39,12 +48,17 @@ export interface RawStudentRankingItem {
 
 /**
  * Guruh o'quvchilarini kompozit ball bo'yicha saralab reyting (rank) o'rinlarini belgilaydi.
+ * `averageGrade` — guruh shkalasida (ko'rsatish uchun), ballda — 0..100 ga keltiriladi.
  */
-export function calculateLeaderboardRankings(items: RawStudentRankingItem[]): StudentRankingItem[] {
+export function calculateLeaderboardRankings(
+  items: RawStudentRankingItem[],
+  opts: LeaderboardOptions,
+): StudentRankingItem[] {
   const withScores = items.map((item) => {
     const compositeScore = calculateStudentCompositeScore({
-      averageGrade: item.averageGrade,
-      averageTestScorePercent: item.averageTestScorePercent,
+      averageGradePercent:
+        opts.hasGrades === false ? null : (item.averageGrade * 100) / opts.gradeMax,
+      averageTestScorePercent: opts.hasTests === false ? null : item.averageTestScorePercent,
       attendanceRatePercent: item.attendanceRatePercent,
     });
     return { ...item, compositeScore };

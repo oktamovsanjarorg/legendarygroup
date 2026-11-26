@@ -794,12 +794,13 @@
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 - **Mini App ulandi (2026-11-16, A4, #46):** MT-07 ro'yxat (holat: kiritilmagan / kiritilgan — `resultsCount` / e'lon qilingan), MT-07a yaratish formasi (nom, sana, maks. ball), MT-08 import (preview → fuzzy qaror → confirm → tasdiq bilan e'lon); yordamchi ustoz faqat ko'radi (Q-62). Qolgan: bo'limli test yaratish UI'da yo'q (web W-19 da ham), Excel'ni botga yuborish (B-04).
 
-### 🟨 T-303 · O'quvchi progressi va reyting
+### ✅ T-303 · O'quvchi progressi va reyting
 
 - **Bog'liq:** T-302 · **Talablar:** FR-GRD-5
 - **AC:** o'quvchi profilida grafiklar (davomat, baho, test), guruh reytingi (Ustoz/Admin), ota-ona Mini App'da farzand progressi.
 - **Bajarildi (2026-11-13):** `packages/contracts/src/progress.ts` (`GroupLeaderboardResponse`, `StudentProgressResponse` DTOlari); `packages/domain/src/progress/progress.calculator.ts` (`calculateStudentCompositeScore` 45% baho, 35% test, 20% davomat, `calculateLeaderboardRankings`); `apps/api/src/modules/grades/` (`ProgressRepository`, `ProgressService`, `GET /api/grades/groups/:groupId/leaderboard`, `GET /api/grades/students/:studentId/progress`); 9 ta integratsiya testi yashil.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+- **Biznes mantiqi ko'rib chiqildi (2026-11-26):** reyting ko'rinishi (ota-ona/o'quvchi — faqat o'z o'rni, T-126), davomat, test foizi tekshirildi. Tuzatildi: 0–5 shkalali guruhda o'rtacha baho (4,8) foiz deb olinib reytingga ~2 ball qo'shardi — baho deyarli ta'sir qilmasdi; endi guruh shkalasiga qarab 0..100 ga keltiriladi. Guruhda hali test/baho bo'lmasa — o'sha komponent tashlanib, ulushlar qayta taqsimlanadi (aks holda hamma ball 35% past chiqardi). Domen + int test.
 
 ### 🟨 T-304 · Haftalik va oylik ota-ona hisobotlari
 
