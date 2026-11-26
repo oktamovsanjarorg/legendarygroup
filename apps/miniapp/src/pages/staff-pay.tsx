@@ -1,9 +1,10 @@
 import type { PaymentMethod } from '@lg/contracts';
-import { ErrorNotice, OkNotice } from './notice.js';
+import { DraftNotice, ErrorNotice, OkNotice } from './notice.js';
 import { miniappMessages as t } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
+import { useAssistantDraft } from '../data/assistant.js';
 import { useReceiptPdf } from '../data/guardian.js';
 import { QueryView } from '../data/query-view.js';
 import { useCreatePayment, usePayPreview } from '../data/staff-pay.js';
@@ -14,7 +15,10 @@ import { SearchView } from '../screens/staff/search.js';
 function PayForm({ id, student }: { id: string; student: { name: string; code: string } }) {
   const navigate = useNavigate();
   const [key] = useState(() => crypto.randomUUID());
-  const [amount, setAmount] = useState<bigint | null>(null);
+  const draft = useAssistantDraft('pay', id);
+  const [amount, setAmount] = useState<bigint | null>(() =>
+    draft?.amount ? BigInt(draft.amount) : null,
+  );
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const preview = usePayPreview(id, amount);
   const create = useCreatePayment(key);
@@ -35,6 +39,7 @@ function PayForm({ id, student }: { id: string; student: { name: string; code: s
     );
   return (
     <>
+      <DraftNotice on={!!draft} text={t.assistant.draftNote} />
       {create.isError && (
         <p role="alert" className="mx-4 mt-3 rounded-xl bg-danger-bg p-3 text-sm text-danger">
           {errorText(create.error)}

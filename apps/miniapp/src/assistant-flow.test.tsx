@@ -16,7 +16,7 @@ const admin = {
 };
 const c = t.assistant;
 
-function fakeApi(opts: { enabled: boolean; chat?: (body: unknown) => Response }) {
+function fakeApi(opts: { enabled: boolean; chat?: (body: unknown) => Response; perms?: string[] }) {
   const asked: unknown[] = [];
   const paths: string[] = [];
   vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
@@ -27,7 +27,7 @@ function fakeApi(opts: { enabled: boolean; chat?: (body: unknown) => Response })
     if (path === '/auth/me')
       return json(200, {
         ...admin,
-        permissions: ['student.manage', 'student.view', 'payment.create'],
+        permissions: opts.perms ?? ['student.manage', 'student.view', 'payment.create'],
       });
     if (path === '/assistant/status') return json(200, { enabled: opts.enabled });
     if (path === '/assistant/chat') {
@@ -95,6 +95,32 @@ describe('MS-35 AI yordamchi (Q-114)', () => {
         { role: 'user', text: 'Qayta' },
       ],
     });
+  });
+
+  it('T-175: toʻldirilgan forma — xarajat summasi va izohi tayyor, tekshirish eslatmasi', async () => {
+    fakeApi({
+      enabled: true,
+      perms: ['student.manage', 'student.view', 'expense.manage'],
+      chat: () =>
+        json(200, {
+          reply: 'Ijara 3 000 000 soʻm — formani tekshirib tasdiqlang.',
+          actions: [
+            {
+              screen: 'addExpense',
+              prefill: { amount: '3000000', category: 'rent', note: 'Noyabr ijarasi' },
+            },
+          ],
+        }),
+    });
+    render(<App webApp={appWebApp()} />);
+    await openAssistant();
+    fireEvent.click(await screen.findByRole('button', { name: c.suggestions[3] }));
+    const open = await screen.findByRole('button', { name: new RegExp(c.open.addExpense) });
+    expect(open.textContent).toContain(c.prefilled);
+    fireEvent.click(open);
+    expect(await screen.findByText(c.draftNote)).toBeTruthy();
+    expect(screen.getByDisplayValue('Noyabr ijarasi')).toBeTruthy();
+    expect(screen.getByDisplayValue(/3\s000\s000/)).toBeTruthy();
   });
 
   it('kalit sozlanmagan — tushuntirish, yuborish maydoni yoʻq', async () => {

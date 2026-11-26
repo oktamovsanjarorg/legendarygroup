@@ -573,6 +573,17 @@
 - **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
 - **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Model — DeepSeek'ka almashtirildi (T-173, Q-119).
 
+### ✅ T-175 · Navigatsiya tuzatishlari va yordamchi bilan boshqarish
+
+- **Bog'liq:** T-172, T-174 · **Qaror:** Q-121, Q-122
+- **Sabab (egasi, 2026-11-25):** «asosiy navigatsiya tugmalaridagi funksiyalar haqiqatan asosiymi; navigatsiyani o'zgartirib yuboradigan beo'xshov narsalar; sidebar yo'q; platformani AI yordamchi bilan oson boshqarish».
+- **Bajarildi (2026-11-26):**
+  - Telefon: matn maydonida yozilayotganda (klaviatura ochiq) pastki menyu yashiriladi — klaviatura ustiga sakrab chiqmaydi (`useTyping`).
+  - Kompyuter: Telegram to'liq ekranni bermasa yoki tor oyna bo'lsa — «Kompyuter ko'rinishi · Kengaytirish» chizig'i (bosilganda to'liq ekran, yon panel ochiladi); brauzerdagi Telegram (web.telegram.org) ham kompyuter mijozi.
+  - Asosiy tablar qayta ko'rib chiqildi — o'zgarishsiz qoldi (Q-121).
+  - Yordamchi: yangi vositalar `list_groups` (guruh, ustoz, narx, jadval), `day_lessons` (kun darslari); `open_screen` endi formani **oldindan to'ldiradi** (`prefill`: to'lov summasi; yangi o'quvchi ismi/telefoni; xarajat summasi, turi, izohi) — foydalanuvchi faqat tekshirib tasdiqlaydi. Tizim ko'rsatmasi qayta yozildi (avval harakat, qisqa javob, misollar). Tez savollar yangilandi.
+- **Testlar:** `desk.test.tsx`, `assistant.toolbox.test.ts`, `assistant-flow.test.tsx` (to'ldirilgan xarajat formasi).
+
 ### ✅ T-174 · Kompyuter qobig'i: yon panel, buyruqlar oynasi, yordamchi paneli
 
 - **Bog'liq:** T-164, T-171 · **Qaror:** Q-120

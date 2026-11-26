@@ -14,3 +14,11 @@ export const OkNotice = ({ text }: { text: string | null }) =>
       {text}
     </p>
   ) : null;
+
+/** Forma yordamchi tomonidan to'ldirilgan (T-175): foydalanuvchi tekshirib o'zi tasdiqlaydi. */
+export const DraftNotice = ({ on, text }: { on: boolean; text: string }) =>
+  on ? (
+    <p role="status" className="mx-4 mt-3 rounded-xl bg-primary/10 p-3 text-sm text-primary">
+      {text}
+    </p>
+  ) : null;
