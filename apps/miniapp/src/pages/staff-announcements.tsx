@@ -1,6 +1,8 @@
+import { miniappMessages as t } from '@lg/i18n';
 import { useHaptic } from '@lg/ui-tg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
+import { useAssistantDraft } from '../data/assistant.js';
 import { QueryView } from '../data/query-view.js';
 import {
   emptyAnn,
@@ -16,7 +18,7 @@ import {
   AnnouncementsView,
   AnnouncementView,
 } from '../screens/staff/announcements.js';
-import { ErrorNotice } from './notice.js';
+import { DraftNotice, ErrorNotice } from './notice.js';
 import { useFilePicker } from './use-file-picker.js';
 
 /** MS-15 Eʼlonlar (T-139). */
@@ -49,7 +51,12 @@ export function StaffAnnouncementNewPage() {
   const haptic = useHaptic();
   const groups = useOpenGroups();
   const courses = useCourses();
-  const [form, setForm] = useState(emptyAnn);
+  const draft = useAssistantDraft('newAnnouncement');
+  const [form, setForm] = useState(() => ({
+    ...emptyAnn,
+    title: draft?.title ?? '',
+    body: draft?.body ?? '',
+  }));
   const audience = useAudience(form);
   const picker = useFilePicker('announcement');
   const send = useSendStaffAnnouncement();
@@ -57,6 +64,7 @@ export function StaffAnnouncementNewPage() {
     <QueryView query={groups}>
       {(list) => (
         <>
+          <DraftNotice on={!!draft} text={t.assistant.draftNote} />
           <ErrorNotice error={send.error ?? audience.error ?? courses.error} />
           {picker.input}
           <AnnFormView

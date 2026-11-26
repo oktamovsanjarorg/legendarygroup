@@ -573,6 +573,11 @@
 - **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
 - **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Model — DeepSeek'ka almashtirildi (T-173, Q-119).
 
+### ✅ T-176 · Yordamchi: barcha bo'limlar va e'lon matni
+
+- **Bog'liq:** T-175 · **Qaror:** Q-122
+- **Bajarildi (2026-11-26):** yordamchi endi menyudagi barcha bo'limlarni ochadi (chegirmalar, kurslar, xonalar, bayramlar, oyliklar, prognozlar, xodimlar, sozlamalar, audit, yetib bormagan xabarlar, bog'lanish so'rovlari) — har biri o'z ruxsati bilan. E'lon: «ota-onalarga ertaga dars yo'qligini e'lon qil» → e'lon formasi sarlavha va matn bilan to'ldirilib ochiladi; kimga yuborishni xodim tanlaydi va tasdiqlaydi. Testlar: `assistant.toolbox.test.ts`.
+
 ### ✅ T-175 · Navigatsiya tuzatishlari va yordamchi bilan boshqarish
 
 - **Bog'liq:** T-172, T-174 · **Qaror:** Q-121, Q-122

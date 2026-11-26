@@ -26,6 +26,19 @@ export const ASSISTANT_SCREENS = [
   'reports',
   'announcements',
   'tickets',
+  // T-176: yordamchi istalgan bo'limni ocha oladi.
+  'newAnnouncement',
+  'linkRequests',
+  'discounts',
+  'courses',
+  'rooms',
+  'holidays',
+  'undelivered',
+  'payroll',
+  'forecasts',
+  'people',
+  'settings',
+  'audit',
 ] as const;
 export type AssistantScreen = (typeof ASSISTANT_SCREENS)[number];
 
@@ -48,6 +61,18 @@ export const ASSISTANT_SCREEN_PERMISSION: Record<AssistantScreen, Permission> = 
   reports: 'stats.operational',
   announcements: 'announcement.send',
   tickets: 'ticket.handle',
+  newAnnouncement: 'announcement.send',
+  linkRequests: 'student.manage',
+  discounts: 'discount.grant',
+  courses: 'course.manage',
+  rooms: 'course.manage',
+  holidays: 'lesson.manage',
+  undelivered: 'student.manage',
+  payroll: 'payroll.manage',
+  forecasts: 'stats.operational',
+  people: 'staff.manage',
+  settings: 'settings.manage',
+  audit: 'audit.view',
 };
 
 /** O'quvchi tanlanishi shart bo'lgan ekranlar. */
@@ -69,11 +94,12 @@ export const AssistantChatRequest = z.object({
 });
 export type AssistantChatRequest = z.infer<typeof AssistantChatRequest>;
 
-/** Formani oldindan to'ldirish (T-175): faqat `pay`, `newStudent`, `addExpense`. */
+/** Formani oldindan to'ldirish (T-175, T-176): to'lov, yangi o'quvchi, xarajat, e'lon. */
 export const ASSISTANT_PREFILL_SCREENS: readonly AssistantScreen[] = [
   'pay',
   'newStudent',
   'addExpense',
+  'newAnnouncement',
 ];
 
 export const AssistantPrefill = z
@@ -86,6 +112,9 @@ export const AssistantPrefill = z
     guardianPhone: z.string().trim().max(20),
     category: z.enum(EXPENSE_CATEGORIES),
     note: z.string().trim().max(200),
+    /** E'lon sarlavhasi va matni (yuborishdan oldin xodim tekshiradi). */
+    title: z.string().trim().max(120),
+    body: z.string().trim().max(2000),
   })
   .partial();
 export type AssistantPrefill = z.infer<typeof AssistantPrefill>;

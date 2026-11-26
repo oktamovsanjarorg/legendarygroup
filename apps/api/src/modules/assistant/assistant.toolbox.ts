@@ -26,6 +26,7 @@ const PREFILL_FIELDS: Partial<Record<AssistantScreen, readonly (keyof AssistantP
   pay: ['amount'],
   newStudent: ['fullName', 'phone', 'guardianName', 'guardianPhone'],
   addExpense: ['amount', 'category', 'note'],
+  newAnnouncement: ['title', 'body'],
 };
 
 export function prefillFor(
