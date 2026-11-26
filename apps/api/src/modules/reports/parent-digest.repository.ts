@@ -14,7 +14,7 @@ import {
   testResults,
   tests,
 } from '@lg/db';
-import { and, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface GuardianStudentLink {
@@ -42,7 +42,8 @@ export class ParentDigestRepository {
       .from(studentGuardians)
       .innerJoin(guardians, eq(guardians.id, studentGuardians.guardianId))
       .innerJoin(students, eq(students.id, studentGuardians.studentId))
-      .where(sql`${guardians.userId} IS NOT NULL`);
+      // Arxivlangan (ketgan) o'quvchi — hisobot yuborilmaydi.
+      .where(and(isNotNull(guardians.userId), isNull(students.archivedAt)));
 
     return rows
       .filter((r): r is typeof r & { guardianUserId: string } => Boolean(r.guardianUserId))
@@ -89,6 +90,8 @@ export class ParentDigestRepository {
 
   /** O'quvchining davr ichidagi ustoz izohlari (faqat guardian ko'rinishidagilari) */
   async getStudentComments(studentId: string, from: string, to: string): Promise<string[]> {
+    // Izoh kuni — Toshkent vaqtida (UTC bo'yicha kechki izohlar keyingi kunga o'tib ketardi).
+    const tashkentDay = sql`(${teacherComments.createdAt} AT TIME ZONE 'Asia/Tashkent')::date`;
     const rows = await this.db
       .select({ text: teacherComments.text })
       .from(teacherComments)
@@ -97,8 +100,8 @@ export class ParentDigestRepository {
         and(
           eq(teacherComments.studentId, studentId),
           eq(teacherComments.visibility, 'guardian'),
-          gte(sql`to_char(${teacherComments.createdAt}, 'YYYY-MM-DD')`, from),
-          lte(sql`to_char(${teacherComments.createdAt}, 'YYYY-MM-DD')`, to),
+          gte(tashkentDay, from),
+          lte(tashkentDay, to),
         ),
       )
       .orderBy(desc(teacherComments.createdAt))
@@ -172,12 +175,19 @@ export class ParentDigestRepository {
     }));
   }
 
-  /** O'quvchining asosiy guruh ID sini topish */
-  async findStudentGroupId(studentId: string): Promise<string | null> {
+  /** O'quvchining joriy guruhi (tugagan eski guruh emas; bir nechta bo'lsa — eng so'nggisi). */
+  async findStudentGroupId(studentId: string, today: string): Promise<string | null> {
     const [row] = await this.db
       .select({ groupId: enrollments.groupId })
       .from(enrollments)
-      .where(eq(enrollments.studentId, studentId))
+      .where(
+        and(
+          eq(enrollments.studentId, studentId),
+          lte(enrollments.startDate, today),
+          or(isNull(enrollments.endDate), gte(enrollments.endDate, today)),
+        ),
+      )
+      .orderBy(desc(enrollments.startDate))
       .limit(1);
     return row?.groupId ?? null;
   }
