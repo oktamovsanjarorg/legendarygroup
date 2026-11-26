@@ -6,7 +6,7 @@ import { createRealTestApp, type TestApp } from '../../test/test-app.js';
 import type { RequestUser } from '../auth/index.js';
 import { ASSISTANT_DEPS } from './assistant.service.js';
 import type { AssistantDeps } from './assistant.deps.js';
-import { AssistantToolbox } from './assistant.tools.js';
+import { AssistantToolbox } from './assistant.toolbox.js';
 
 let t: TestApp;
 let db: Database;
