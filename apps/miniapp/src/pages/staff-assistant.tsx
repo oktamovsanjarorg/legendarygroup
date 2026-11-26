@@ -1,12 +1,11 @@
 import { errorText } from '@lg/ui-core';
-import { useNavigate } from '@tanstack/react-router';
-import { actionTarget, useAssistantChat, useAssistantStatus } from '../data/assistant.js';
+import { useAssistantChat, useAssistantStatus, useRunAction } from '../data/assistant.js';
 import { QueryView } from '../data/query-view.js';
 import { AssistantView } from '../screens/staff/assistant.js';
 
 /** MS-35 AI yordamchi (Q-114). */
 export function StaffAssistantPage() {
-  const navigate = useNavigate();
+  const run = useRunAction();
   const status = useAssistantStatus();
   const chat = useAssistantChat();
   return (
@@ -18,7 +17,7 @@ export function StaffAssistantPage() {
           pending={chat.pending}
           error={chat.error ? errorText(chat.error) : null}
           onAsk={chat.ask}
-          onAction={(a) => void navigate(actionTarget(a))}
+          onAction={run}
           onClear={chat.clear}
         />
       )}

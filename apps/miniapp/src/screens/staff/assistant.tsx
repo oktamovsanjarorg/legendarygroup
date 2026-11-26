@@ -37,6 +37,11 @@ function Bubble({ e, onAction }: { e: ChatEntry; onAction: (a: AssistantAction) 
           <ArrowUpRight className="size-4" aria-hidden />
           {c.open[a.screen]}
           {a.label ? <span className="font-normal text-text-muted">· {a.label}</span> : null}
+          {a.prefill ? (
+            <span className="rounded-full bg-primary/10 px-2 text-xs font-medium text-primary">
+              {c.prefilled}
+            </span>
+          ) : null}
         </button>
       ))}
     </div>

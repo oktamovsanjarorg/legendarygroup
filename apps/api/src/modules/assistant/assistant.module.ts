@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { EnvService } from '../../config/env.service.js';
 import { BillingModule } from '../billing/index.js';
 import { DashboardModule } from '../dashboard/index.js';
+import { OrgModule } from '../org/index.js';
 import { RbacModule } from '../rbac/index.js';
 import { StudentsModule } from '../students/index.js';
 import { AssistantController } from './assistant.controller.js';
@@ -12,7 +13,7 @@ import { deepseekLlm } from './deepseek.llm.js';
 
 /** AI yordamchi (Q-114). `DEEPSEEK_API_KEY` bo'lmasa (Q-119) — o'chiq (503 ASSISTANT_DISABLED). */
 @Module({
-  imports: [StudentsModule, BillingModule, DashboardModule, RbacModule],
+  imports: [StudentsModule, BillingModule, DashboardModule, OrgModule, RbacModule],
   controllers: [AssistantController],
   providers: [
     AssistantService,

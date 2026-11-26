@@ -1,23 +1,26 @@
-/** MS-35 AI yordamchi (Q-114). */
+/** MS-35 AI yordamchi (Q-114, Q-122). */
 export const assistantMessages = {
   assistant: {
     title: 'Yordamchi',
-    hint: 'Savolingizni oddiy soʻz bilan yozing — men maʼlumotni topib, kerakli ekranni ochib beraman.',
-    placeholder: 'Masalan: Ali Valiyevning qarzi qancha?',
+    hint: 'Oddiy soʻz bilan yozing: maʼlumotni topaman yoki formani toʻldirib ochaman — siz faqat tasdiqlaysiz.',
+    placeholder: 'Masalan: Ali Valiyevdan 500 ming toʻlov',
     send: 'Yuborish',
     thinking: 'Oʻylayapman…',
     clear: 'Yangi suhbat',
     safety:
-      'Yordamchi hech narsani oʻzi oʻzgartirmaydi: toʻlov, oʻquvchi va boshqa amallarni ochilgan ekranda siz tasdiqlaysiz.',
+      'Yordamchi hech narsani oʻzi saqlamaydi: formani toʻldirib ochadi, siz tekshirib tasdiqlaysiz.',
+    draftNote: 'Yordamchi toʻldirdi — maʼlumotni tekshirib, tasdiqlang.',
+    prefilled: 'toʻldirilgan',
     disabledTitle: 'Yordamchi hali yoqilmagan',
     disabledHint: 'Uni yoqish uchun tizimga AI kaliti sozlanishi kerak.',
     you: 'Siz',
     suggestionsTitle: 'Tez savollar',
     suggestions: [
       'Bugun nima holat?',
+      'Ertaga qaysi darslar bor?',
       'Eng katta qarzdorlar kimlar?',
-      'Chek navbatida nechta chek bor?',
-      'Toʻlov kiritmoqchiman',
+      'Ijara uchun 3 mln xarajat',
+      'Yangi oʻquvchi qoʻshmoqchiman',
     ],
     open: {
       student: 'Kartochkani ochish',

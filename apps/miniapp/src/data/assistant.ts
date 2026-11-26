@@ -1,10 +1,13 @@
 import type {
   AssistantAction,
+  AssistantPrefill,
   AssistantChatResponse,
   AssistantScreen,
   AssistantTurn,
 } from '@lg/contracts';
 import { useIsMutating, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 import { useApi } from './deps.js';
 
 export interface ChatEntry extends AssistantTurn {
@@ -93,4 +96,45 @@ export function useAssistantChat() {
       set([]);
     },
   };
+}
+
+/** Yordamchi to'ldirgan forma qoralamasi (T-175, Q-122): bitta, oxirgi bosilgan tugmaniki. */
+const DRAFT_KEY = ['assistant', 'draft'] as const;
+
+interface Draft {
+  screen: AssistantScreen;
+  studentId?: string;
+  prefill: AssistantPrefill;
+}
+
+/** Tugma: qoralamani saqlab (yoki eskisini o'chirib) ekranni ochadi. */
+export function useRunAction() {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  return (a: AssistantAction) => {
+    const draft: Draft | null = a.prefill
+      ? { screen: a.screen, ...(a.studentId ? { studentId: a.studentId } : {}), prefill: a.prefill }
+      : null;
+    qc.setQueryData(DRAFT_KEY, draft);
+    void navigate(actionTarget(a));
+  };
+}
+
+/**
+ * Forma ochilganda — shu ekran (va o'quvchi) uchun qoralama bo'lsa, bir marta oladi va o'chiradi:
+ * orqaga qaytib qayta ochilsa, forma bo'sh bo'ladi.
+ */
+export function useAssistantDraft(
+  screen: AssistantScreen,
+  studentId?: string,
+): AssistantPrefill | null {
+  const qc = useQueryClient();
+  const [draft] = useState(() => {
+    const d = qc.getQueryData<Draft | null>(DRAFT_KEY);
+    return d && d.screen === screen && d.studentId === studentId ? d.prefill : null;
+  });
+  useEffect(() => {
+    if (draft) qc.setQueryData(DRAFT_KEY, null);
+  }, [draft, qc]);
+  return draft;
 }

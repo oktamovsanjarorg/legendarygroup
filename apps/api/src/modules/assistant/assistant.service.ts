@@ -5,7 +5,8 @@ import type { RequestUser } from '../auth/index.js';
 import type { AssistantDeps } from './assistant.deps.js';
 import { ASSISTANT_LLM, type AssistantLlm, type LlmReply, type LlmTurn } from './assistant.llm.js';
 import { ASSISTANT_SYSTEM } from './assistant.prompt.js';
-import { ASSISTANT_TOOLS, AssistantToolbox } from './assistant.tools.js';
+import { AssistantToolbox } from './assistant.toolbox.js';
+import { ASSISTANT_TOOLS } from './assistant.tools.js';
 
 export const ASSISTANT_DEPS = Symbol('ASSISTANT_DEPS');
 /** Bir savolga ko'pi bilan shuncha model chaqiruvi (vosita sikli cheklangan). */

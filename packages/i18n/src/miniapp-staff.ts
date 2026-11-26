@@ -22,6 +22,10 @@ export const staffMessages = {
     assistant: 'AI yordamchi',
     assistantHint: 'Savol bering — maʼlumotni topib, kerakli ekranni ochib beradi.',
     settings: 'Sozlamalar',
+    expandTitle: 'Kompyuter koʻrinishi',
+    expandHint: 'Yon panel, tezkor qidiruv va yordamchi paneli — toʻliq ekranda.',
+    expand: 'Kengaytirish',
+    expandManual: 'Oynani kattalashtiring yoki toʻliq ekranga oʻting.',
   },
   /** Keng ekran: roʻyxat + tafsilot (T-164). */
   split: {

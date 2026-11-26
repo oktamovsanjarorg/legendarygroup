@@ -1,9 +1,11 @@
 import { z } from 'zod';
+import { EXPENSE_CATEGORIES } from './expenses.js';
 import type { Permission } from './permissions.js';
 
 /**
- * AI yordamchi (Q-114): yordamchi faqat **o'qiydi** va kerakli ekranni ochib beradi. Yozish
- * (to'lov, o'quvchi, davomat) — doim odatdagi forma orqali, foydalanuvchi o'zi tasdiqlaydi.
+ * AI yordamchi (Q-114, Q-122): yordamchi faqat **o'qiydi**, kerakli ekranni ochib beradi va
+ * formani oldindan to'ldirishi mumkin (`prefill`). Saqlash — doim odatdagi forma orqali,
+ * foydalanuvchi o'zi tekshirib tasdiqlaydi (ledger, RBAC, audit o'zgarmaydi).
  * Ekranlar ro'yxati yopiq: model yo'l o'ylab topa olmaydi.
  */
 export const ASSISTANT_SCREENS = [
@@ -67,8 +69,30 @@ export const AssistantChatRequest = z.object({
 });
 export type AssistantChatRequest = z.infer<typeof AssistantChatRequest>;
 
+/** Formani oldindan to'ldirish (T-175): faqat `pay`, `newStudent`, `addExpense`. */
+export const ASSISTANT_PREFILL_SCREENS: readonly AssistantScreen[] = [
+  'pay',
+  'newStudent',
+  'addExpense',
+];
+
+export const AssistantPrefill = z
+  .object({
+    /** So'm, butun son satr (pul — faqat bigint). */
+    amount: z.string().regex(/^[1-9]\d{0,11}$/),
+    fullName: z.string().trim().min(3).max(120),
+    phone: z.string().trim().max(20),
+    guardianName: z.string().trim().max(120),
+    guardianPhone: z.string().trim().max(20),
+    category: z.enum(EXPENSE_CATEGORIES),
+    note: z.string().trim().max(200),
+  })
+  .partial();
+export type AssistantPrefill = z.infer<typeof AssistantPrefill>;
+
 export const AssistantAction = z.object({
   screen: z.enum(ASSISTANT_SCREENS),
+  prefill: AssistantPrefill.optional(),
   studentId: z.uuid().optional(),
   /** Tugmada ko'rinadigan qisqa izoh (masalan, o'quvchi ismi). */
   label: z.string().max(80).optional(),

@@ -3,6 +3,7 @@ import { miniappMessages as t } from '@lg/i18n';
 import { useHaptic } from '@lg/ui-tg';
 import { useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
+import { useAssistantDraft } from '../data/assistant.js';
 import { useClock } from '../data/deps.js';
 import { QueryView } from '../data/query-view.js';
 import {
@@ -20,7 +21,7 @@ import { ExpenseView } from '../screens/staff/expense.js';
 import { FinanceView } from '../screens/staff/finance.js';
 import { useOpenFile } from '../data/open-file.js';
 import { useMe } from '../session/session.js';
-import { ErrorNotice } from './notice.js';
+import { DraftNotice, ErrorNotice } from './notice.js';
 import { useFilePicker } from './use-file-picker.js';
 
 /** MS-27 Moliya (T-143, T-156): `finance.view`; xarajatlar ro'yxati — `expense.manage`. */
@@ -70,12 +71,22 @@ function useDone() {
 /** MS-18 Yangi xarajat (T-142). */
 export function StaffExpenseNewPage() {
   const today = useClock().today();
-  const [form, setForm] = useState(() => emptyExpense(today));
+  const draft = useAssistantDraft('addExpense');
+  const [form, setForm] = useState(() => {
+    const f = emptyExpense(today);
+    return {
+      ...f,
+      amount: draft?.amount ? BigInt(draft.amount) : f.amount,
+      category: draft?.category ?? f.category,
+      note: draft?.note ?? f.note,
+    };
+  });
   const save = useSaveExpense();
   const file = useFilePicker('expense_receipt');
   const done = useDone();
   return (
     <>
+      <DraftNotice on={!!draft} text={t.assistant.draftNote} />
       <ErrorNotice error={save.error} />
       {file.input}
       <ExpenseView
