@@ -80,7 +80,7 @@ export const ASSISTANT_TOOLS: LlmTool[] = [
   {
     name: 'open_screen',
     description:
-      "Foydalanuvchiga ilova ekranini ochadigan tugma qo'shadi. Har qanday o'zgartirish faqat shu yo'l bilan: forma ochiladi, foydalanuvchi tekshirib o'zi tasdiqlaydi. 'student' va 'pay' uchun student_id shart. prefill — formani oldindan to'ldirish: pay → amount; newStudent → fullName, phone, guardianName, guardianPhone; addExpense → amount, category, note. amount — so'mda faqat raqamlar («500 ming» → \"500000\"). Foydalanuvchi aytmagan qiymatni to'ldirmang.",
+      "Foydalanuvchiga ilova ekranini ochadigan tugma qo'shadi. Har qanday o'zgartirish faqat shu yo'l bilan: forma ochiladi, foydalanuvchi tekshirib o'zi tasdiqlaydi. 'student' va 'pay' uchun student_id shart. prefill — formani oldindan to'ldirish: pay → amount; newStudent → fullName, phone, guardianName, guardianPhone; addExpense → amount, category, note; newAnnouncement → title, body (auditoriyani xodim o'zi tanlaydi). amount — so'mda faqat raqamlar («500 ming» → \"500000\"). Foydalanuvchi aytmagan qiymatni to'ldirmang.",
     parameters: obj(
       {
         screen: { type: 'string', enum: [...ASSISTANT_SCREENS] },
@@ -96,6 +96,8 @@ export const ASSISTANT_TOOLS: LlmTool[] = [
             guardianPhone: { type: 'string' },
             category: { type: 'string', enum: [...EXPENSE_CATEGORIES] },
             note: { type: 'string' },
+            title: { type: 'string' },
+            body: { type: 'string' },
           },
           additionalProperties: false,
         },

@@ -72,6 +72,16 @@ describe('Yordamchi vositalari (T-175, Q-122)', () => {
         note: 'Noyabr',
       },
     );
+    expect(
+      prefillFor('newAnnouncement', {
+        title: 'Dars yoʻq',
+        body: 'Ertaga dars boʻlmaydi.',
+        amount: '5',
+      }),
+    ).toEqual({
+      title: 'Dars yoʻq',
+      body: 'Ertaga dars boʻlmaydi.',
+    });
     expect(prefillFor('debtors', { amount: '1' })).toBeUndefined();
     expect(prefillFor('pay', {})).toBeUndefined();
   });

@@ -37,6 +37,18 @@ const SCREEN_PATH: Record<AssistantScreen, string> = {
   reports: '/staff/reports',
   announcements: '/staff/announcements',
   tickets: '/staff/tickets',
+  newAnnouncement: '/staff/announcements/new',
+  linkRequests: '/staff/link-requests',
+  discounts: '/staff/discounts',
+  courses: '/staff/courses',
+  rooms: '/staff/rooms',
+  holidays: '/staff/holidays',
+  undelivered: '/staff/undelivered',
+  payroll: '/staff/payroll',
+  forecasts: '/staff/forecasts',
+  people: '/staff/people',
+  settings: '/staff/settings',
+  audit: '/staff/audit',
 };
 
 export const actionTarget = (a: AssistantAction): { to: string; params?: { id: string } } =>
