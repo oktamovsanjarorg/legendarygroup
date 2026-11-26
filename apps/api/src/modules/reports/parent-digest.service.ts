@@ -15,6 +15,9 @@ import { NotificationsService } from '../notifications/index.js';
 import { ProgressService } from '../grades/index.js';
 import { ParentDigestRepository } from './parent-digest.repository.js';
 
+/** FR-RPT-3: oylik hisobot — oyning oxirgi kuni (cron 28–31 da uyg'onadi, qolganlari o'tkaziladi). */
+export const isMonthEnd = (ymd: string): boolean => addDays(ymd, 1).endsWith('-01');
+
 @Injectable()
 export class ParentDigestService {
   private readonly logger = new Logger(ParentDigestService.name);
@@ -47,7 +50,7 @@ export class ParentDigestService {
       this.repo.getStudentComments(studentId, from, to),
       this.repo.getStudentBillingStatus(studentId, to),
       this.repo.getStudentTestResults(studentId, from, to),
-      this.repo.findStudentGroupId(studentId),
+      this.repo.findStudentGroupId(studentId, to),
     ]);
 
     const { rank, totalStudents } = await this.resolveRankInfo(studentId, groupId);
@@ -252,7 +255,8 @@ export class ParentDigestService {
 
   private resolveDateRange(period: 'weekly' | 'monthly'): { from: string; to: string } {
     const to = this.clock.today();
-    if (period === 'weekly') return { from: addDays(to, -7), to };
+    // Haftalik — 7 kun (dushanba…yakshanba), ikki chekka ham kiradi.
+    if (period === 'weekly') return { from: addDays(to, -6), to };
 
     // monthly: oyning 1-kunidan
     const from = `${to.slice(0, 7)}-01`;

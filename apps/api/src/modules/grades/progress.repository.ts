@@ -10,7 +10,7 @@ import {
   testResults,
   tests,
 } from '@lg/db';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, isNull, lte, or, sql } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 
 export interface GroupStudentRow {
@@ -54,16 +54,23 @@ export class ProgressRepository {
   }
 
   /** Guruhning faol o'quvchilari */
-  async findGroupStudents(groupId: string): Promise<GroupStudentRow[]> {
+  async findGroupStudents(groupId: string, today: string): Promise<GroupStudentRow[]> {
+    // Faqat hozir guruhda (ketgan yoki boshqa guruhga o'tgan — reytingda emas).
     const rows = await this.db
-      .select({
+      .selectDistinct({
         studentId: students.id,
         studentName: students.fullName,
         studentCode: students.code,
       })
       .from(enrollments)
       .innerJoin(students, eq(students.id, enrollments.studentId))
-      .where(eq(enrollments.groupId, groupId))
+      .where(
+        and(
+          eq(enrollments.groupId, groupId),
+          lte(enrollments.startDate, today),
+          or(isNull(enrollments.endDate), gte(enrollments.endDate, today)),
+        ),
+      )
       .orderBy(students.fullName);
 
     return rows.map((r) => ({

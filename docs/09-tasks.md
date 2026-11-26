@@ -802,12 +802,13 @@
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
 - **Biznes mantiqi ko'rib chiqildi (2026-11-26):** reyting ko'rinishi (ota-ona/o'quvchi — faqat o'z o'rni, T-126), davomat, test foizi tekshirildi. Tuzatildi: 0–5 shkalali guruhda o'rtacha baho (4,8) foiz deb olinib reytingga ~2 ball qo'shardi — baho deyarli ta'sir qilmasdi; endi guruh shkalasiga qarab 0..100 ga keltiriladi. Guruhda hali test/baho bo'lmasa — o'sha komponent tashlanib, ulushlar qayta taqsimlanadi (aks holda hamma ball 35% past chiqardi). Domen + int test.
 
-### 🟨 T-304 · Haftalik va oylik ota-ona hisobotlari
+### ✅ T-304 · Haftalik va oylik ota-ona hisobotlari
 
 - **Bog'liq:** T-303, T-208 · **Talablar:** FR-RPT-2, 3
 - **AC:** yakshanba 19:00 haftalik, oy oxiri oylik (PDF + Mini App havolasi); har farzand alohida; navbat orqali (yuzlab ota-ona — rate limit); oldindan ko'rish (Admin uchun namunaviy hisobot).
 - **Bajarildi (2026-11-13):** `@lg/contracts` da `ParentDigestReportSchema`, `ParentDigestQuerySchema`, `weekly_parent_report`, `monthly_parent_report`; `@lg/domain` da shablon generatorlari; `0029_notifications.sql` check constraintlari; `ParentDigestRepository`, `ParentDigestService` (pdf-lib bilan A4 hisobot, preview, avtomatik navbatga qo'yish); `reports.cron.ts` (yakshanba 19:00, oy oxiri 20:00); `reports.controller.ts` (`GET /api/reports/parent-digest/preview`, `GET /api/reports/parent-digest/:studentId/pdf`, `POST /api/reports/parent-digest/dispatch`); 10 ta integratsiya testi yashil.
 - **Tekshiruv (2026-11-14):** agy (Antigravity) yozgan, bitta katta commit; testlar yashil, vaqt zonasi va scope xatolari tuzatildi (ea538fd, 7323af0). Qolgan: biznes mantiqini to'liq ko'rib chiqish.
+- **Biznes mantiqi ko'rib chiqildi (2026-11-26):** FR-RPT-2/3: navbat (`notifications`, dedupe), faqat ota-onaga ko'rinadigan izohlar, scope (IDOR), PDF tekshirildi. Tuzatildi: arxivlangan (ketgan) o'quvchilarning ota-onasiga ham hisobot ketardi; oylik hisobot 28-sanada ketardi (cron 28–31, dedupe birinchisini qoldirardi) — endi faqat oyning oxirgi kuni (`isMonthEnd`); haftalik davr 8 kun edi — 7 kun; reyting tugagan eski guruhdan olinardi — joriy guruh; izoh kuni UTC bo'yicha edi — Toshkent. Guruh reytingi (T-303) guruhdan ketgan o'quvchilarni ham sanardi — endi faqat hozir guruhdagilar. Int test: `parent-digest.int.test.ts`.
 
 ### 🟨 T-305 · Ommaviy e'lonlar
 

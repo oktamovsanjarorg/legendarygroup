@@ -5,7 +5,8 @@ import type {
   StudentProgressResponse,
   StudentRankingItem,
 } from '@lg/contracts';
-import { calculateLeaderboardRankings } from '@lg/domain';
+import { calculateLeaderboardRankings, type Clock } from '@lg/domain';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { students } from '@lg/db';
 import { eq } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
@@ -35,6 +36,7 @@ export class ProgressService {
     @Inject(GroupScopeService) private readonly groupScope: GroupScopeService,
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(DB_TOKEN) private readonly db: Database,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
   /** Guruh reytingi (FR-GRD-5) */
@@ -108,7 +110,7 @@ export class ProgressService {
     groupId: string,
     scale: GradingConfig['scale'],
   ): Promise<StudentRankingItem[]> {
-    const groupStudents = await this.repo.findGroupStudents(groupId);
+    const groupStudents = await this.repo.findGroupStudents(groupId, this.clock.today());
     if (groupStudents.length === 0) return [];
 
     const [attStats, gradesStats, testStats] = await Promise.all([

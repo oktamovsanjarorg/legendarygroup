@@ -1,6 +1,8 @@
 import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { CronJobs } from '../../common/scheduler/cron-jobs.js';
-import { ParentDigestService } from './parent-digest.service.js';
+import { isMonthEnd, ParentDigestService } from './parent-digest.service.js';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
+import type { Clock } from '@lg/domain';
 import { ReportsService } from './reports.service.js';
 
 @Injectable()
@@ -11,6 +13,7 @@ export class ReportsCron implements OnModuleInit {
     @Inject(CronJobs) private readonly cron: CronJobs,
     @Inject(ReportsService) private readonly service: ReportsService,
     @Inject(ParentDigestService) private readonly parentDigest: ParentDigestService,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
   ) {}
 
   onModuleInit(): void {
@@ -40,8 +43,9 @@ export class ReportsCron implements OnModuleInit {
 
     this.cron.register({
       id: 'reports.parent-digest-monthly',
-      pattern: '0 20 28-31 * *', // FR-RPT-3: Oy oxiri 20:00 da oylik batafsil hisobot
+      pattern: '0 20 28-31 * *', // FR-RPT-3: oyning oxirgi kuni 20:00 (`isMonthEnd`)
       run: async () => {
+        if (!isMonthEnd(this.clock.today())) return;
         this.logger.log('Ota-onalarga oylik hisobot yuborilmoqda...');
         const count = await this.parentDigest.dispatchMonthlyDigest();
         this.logger.log(`Oylik hisobot: ${count} ta ota-onaga yuborildi.`);
