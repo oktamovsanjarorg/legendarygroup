@@ -108,9 +108,7 @@ function StudentSearch({
           ))}
         </Section>
       ) : (
-        <p className="px-2 text-sm text-text-muted">
-          {query.trim().length < 2 ? t.search.hint : t.search.notFound}
-        </p>
+        <p className="px-2 text-sm text-text-muted">{t.search.notFound}</p>
       )}
     </>
   );

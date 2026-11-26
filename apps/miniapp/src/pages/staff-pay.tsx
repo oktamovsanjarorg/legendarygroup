@@ -8,9 +8,9 @@ import { useAssistantDraft } from '../data/assistant.js';
 import { useReceiptPdf } from '../data/guardian.js';
 import { QueryView } from '../data/query-view.js';
 import { useCreatePayment, usePayPreview } from '../data/staff-pay.js';
-import { useStudentCard, useStudentSearch } from '../data/staff.js';
+import { useStudentCard } from '../data/staff.js';
 import { PayDoneView, PayView } from '../screens/staff/pay.js';
-import { SearchView } from '../screens/staff/search.js';
+import { StudentListScreen } from './student-list-screen.js';
 
 function PayForm({ id, student }: { id: string; student: { name: string; code: string } }) {
   const navigate = useNavigate();
@@ -73,14 +73,9 @@ export function StaffPayPage() {
 /** Koʻproq → «Toʻlov kiritish»: avval o'quvchini topish. */
 export function StaffPaySearchPage() {
   const navigate = useNavigate();
-  const [q, setQ] = useState('');
-  const query = useStudentSearch(q);
   return (
-    <SearchView
+    <StudentListScreen
       title={t.staffPay.searchTitle}
-      query={q}
-      results={query.data ?? []}
-      onQuery={setQ}
       onOpen={(s) => void navigate({ to: '/staff/student/$id/pay', params: { id: s.id } })}
     />
   );

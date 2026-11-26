@@ -573,6 +573,12 @@
 - **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
 - **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Model — DeepSeek'ka almashtirildi (T-173, Q-119).
 
+### ✅ T-178 · Ro'yxatlar qidirmasdan ham ko'rinadi; ixcham filtrlar
+
+- **Bog'liq:** T-177
+- **Sabab (egasi, 2026-11-26):** «faqat o'quvchilar bo'limida to'g'rilangan, boshqa bo'limlarda qidirmasa chiqmaydi; sort'ni beo'xshov qilib qo'shibsan».
+- **Bajarildi (2026-11-26):** «To'lov kiritish» — o'quvchilar ro'yxati bilan bir xil (`StudentListScreen`): qidirmasdan hammasi, fan, tartib, arxiv; «Bog'lanish so'rovlari»da farzand tanlash — qidirmasdan A–Z ro'yxat. Filtrlar ixcham pill'lar (`FilterSelect`, `FilterToggle`, `FilterBar` — ui-tg): ichida tizim tanlovi (telefonda native ro'yxat), sukutdan farqli qiymat ajralib turadi; kompyuterda ro'yxat ustuni 420 px — filtrlar bir qatorda. Testlar: `filter.test.tsx`, `student-list.test.tsx`; Storybook «Filtrlar».
+
 ### ✅ T-177 · Ranglar (to'q ko'k emas) va o'quvchilar ro'yxati: fan, tartib, holat
 
 - **Bog'liq:** T-174 · **Qaror:** Q-123

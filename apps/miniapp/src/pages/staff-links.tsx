@@ -73,7 +73,7 @@ export function StaffLinkApprovePage() {
               <LinkStudentView
                 req={req}
                 query={q}
-                found={q.trim().length < 2 ? [] : (found.data ?? [])}
+                found={found.data ?? []}
                 saving={decide.isPending}
                 onQuery={setQ}
                 onSave={(studentId, relation) => run({ kind: 'approve', req, studentId, relation })}
