@@ -72,6 +72,7 @@ export function useMarkAttendance(lessonId: string) {
       }
     },
     onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['attendance', lessonId] });
       await qc.invalidateQueries({ queryKey: ['teacher', 'today'] });
       await qc.invalidateQueries({ queryKey: ['staff'] });
     },
