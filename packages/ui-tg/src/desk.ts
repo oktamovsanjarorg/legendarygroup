@@ -18,7 +18,14 @@ export function useWide(query = WIDE_QUERY): boolean {
   return wide;
 }
 
-const DESKTOP = new Set(['tdesktop', 'macos']);
+/** Kompyuter mijozlari: Telegram Desktop, macOS va brauzerdagi Telegram (web.telegram.org). */
+const DESKTOP = new Set(['tdesktop', 'macos', 'weba', 'webk', 'web']);
+
+export const isDesktopClient = (wa: WebApp) => DESKTOP.has(wa.platform);
+
+/** To'liq ekranni foydalanuvchi bosganda so'rash mumkinmi (tor oynadagi «Kengaytirish» tugmasi). */
+export const canGoFullscreen = (wa: WebApp) =>
+  isDesktopClient(wa) && supports(wa, 'fullscreen') && !wa.isFullscreen;
 
 /**
  * Xodim kompyuterda (Telegram Desktop/macOS) — to'liq ekran (T-164, Q-115): sukut bo'yicha Mini App
@@ -26,7 +33,7 @@ const DESKTOP = new Set(['tdesktop', 'macos']);
  */
 export function useDesktopFullscreen(wa: WebApp, on: boolean) {
   useEffect(() => {
-    if (!on || !DESKTOP.has(wa.platform) || !supports(wa, 'fullscreen') || wa.isFullscreen) return;
+    if (!on || !canGoFullscreen(wa)) return;
     wa.requestFullscreen?.();
   }, [wa, on]);
 }
@@ -47,4 +54,26 @@ export function useHotkey(key: string, run: () => void, on = true) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [key, run, on]);
+}
+
+const TYPING =
+  'input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select, [contenteditable=true]';
+
+/**
+ * Telefon klaviaturasi ochiqmi (matn maydonida fokus). Ochiq bo'lsa pastki menyu yashiriladi —
+ * aks holda u klaviatura ustiga sakrab chiqib, yozish joyini yopadi (T-175).
+ */
+export function useTyping(): boolean {
+  const [typing, setTyping] = useState(false);
+  useEffect(() => {
+    const check = () => setTyping(!!document.activeElement?.matches(TYPING));
+    const later = () => setTimeout(check, 0);
+    document.addEventListener('focusin', check);
+    document.addEventListener('focusout', later);
+    return () => {
+      document.removeEventListener('focusin', check);
+      document.removeEventListener('focusout', later);
+    };
+  }, []);
+  return typing;
 }

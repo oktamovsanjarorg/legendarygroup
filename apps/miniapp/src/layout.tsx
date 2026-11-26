@@ -8,27 +8,32 @@ import {
   useHaptic,
   useDesktopFullscreen,
   useSettingsButton,
+  useTyping,
   useWebApp,
   useWide,
 } from '@lg/ui-tg';
 import { Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router';
 import { useAttendanceQueueFlush } from './data/attendance.js';
 import { DeskShell } from './desk/desk-shell.js';
+import { ExpandBanner } from './desk/expand-banner.js';
 import { useNavModel } from './nav-model.js';
 import { SplitView, useSplit } from './split-view.js';
 import { useOnline } from './use-online.js';
 
 /** Qaysi navigatsiya ko'rinadi: telefonda — tab ildizida pastki menyu; keng ekranda — yon panel. */
-function shellFlags(
-  path: string,
-  tabs: readonly TabItem[],
-  side: readonly SideNavGroup[],
-  wide: boolean,
-) {
+function shellFlags(o: {
+  path: string;
+  tabs: readonly TabItem[];
+  side: readonly SideNavGroup[];
+  wide: boolean;
+  typing: boolean;
+}) {
+  const { path, tabs, side, wide, typing } = o;
   const isRoot = path === '/' || tabs.some((t) => t.to === path);
   return {
     isRoot,
-    showTabs: !wide && isRoot && tabs.length > 0,
+    // Klaviatura ochiq — menyu yashirinadi (aks holda klaviatura ustiga sakraydi, T-175).
+    showTabs: !wide && !typing && isRoot && tabs.length > 0,
     showSide: wide && side.some((g) => g.items.length > 0),
   };
 }
@@ -46,7 +51,14 @@ export function AppLayout() {
   const h = useHaptic();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { tabs, side } = useNavModel();
-  const { isRoot, showTabs, showSide } = shellFlags(path, tabs, side, useWide());
+  const wide = useWide();
+  const { isRoot, showTabs, showSide } = shellFlags({
+    path,
+    tabs,
+    side,
+    wide,
+    typing: useTyping(),
+  });
   const split = useSplit(path);
   useDesktopFullscreen(useWebApp(), side.length > 1);
   const go = (to: string) => {
@@ -71,6 +83,7 @@ export function AppLayout() {
       }}
     >
       {!online && <OfflineBanner />}
+      <ExpandBanner on={!wide && side.length > 1} />
       {showSide ? (
         <DeskShell path={path} side={side}>
           {split ? (

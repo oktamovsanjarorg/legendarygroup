@@ -73,6 +73,8 @@ export interface FakeWebApp extends WebApp {
 
 export interface FakeOptions {
   version?: string;
+  /** Sukut — `tdesktop`. */
+  platform?: string;
   initData?: string;
   startParam?: string;
   colorScheme?: 'light' | 'dark';
@@ -98,7 +100,7 @@ export function createFakeWebApp(o: FakeOptions = {}): FakeWebApp {
     initData: o.initData ?? 'query_id=fake&user=%7B%22id%22%3A1%7D&hash=fake',
     initDataUnsafe: { start_param: o.startParam },
     version,
-    platform: 'tdesktop',
+    platform: o.platform ?? 'tdesktop',
     colorScheme: o.colorScheme ?? 'light',
     themeParams: o.themeParams ?? {},
     safeAreaInset: o.safeAreaInset,
