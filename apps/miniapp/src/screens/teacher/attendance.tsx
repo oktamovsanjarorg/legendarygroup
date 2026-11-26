@@ -3,13 +3,14 @@ import {
   AttendanceRow,
   type AttendanceMark,
   EmptyState,
+  ListItem,
   Section,
   TextArea,
   useClosingConfirmation,
   useHaptic,
   useMainButton,
 } from '@lg/ui-tg';
-import { CheckCircle2, WifiOff } from 'lucide-react';
+import { CheckCircle2, Star, WifiOff } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   cameCount,
@@ -40,6 +41,32 @@ export interface AttendanceViewProps {
   /** Xodim, o'tgan kun (BR-30): sabab majburiy. */
   reason?: { value: string; onChange: (v: string) => void };
   onSave: (marks: Marks) => void;
+  /** Davomat saqlangach — baho qo'yish (FR-GRD-1, bir oqimda). */
+  onGrades?: () => void;
+}
+
+/** Davomat saqlangan (yoki hozirgina saqlandi / navbatga tushdi) — baho qo'yishga havola. */
+function GradesLink(
+  p: Pick<AttendanceViewProps, 'saved' | 'quietUntil' | 'queuedOffline' | 'onGrades'> & {
+    dirty: boolean;
+  },
+) {
+  const { onGrades } = p;
+  const done = (Boolean(p.saved) && !p.dirty) || Boolean(p.quietUntil ?? p.queuedOffline);
+  if (!done || !onGrades) return null;
+  return (
+    <div className="px-2">
+      <Section>
+        <ListItem
+          title={t.grades.open}
+          subtitle={t.grades.openHint}
+          before={<Star className="size-5 text-primary" aria-hidden />}
+          chevron
+          onClick={onGrades}
+        />
+      </Section>
+    </div>
+  );
 }
 
 function SaveNotice({
@@ -84,7 +111,7 @@ function ReasonBlock(p: { reason: AttendanceViewProps['reason']; lockedText?: st
 
 /**
  * MT-02 Davomat (FR-ATT-1/2/7, BR-30/31). Mezon: 20 kishi, 2 kelmagan — ≤ 4 teginish
- * (darsni ochish + 2 qator + MainButton), 11-ux §5. Baho ustuni — T-301 maketida.
+ * (darsni ochish + 2 qator + MainButton), 11-ux §5. Saqlangach — «Baho qo'yish» (MT-02b).
  */
 export function AttendanceView(props: AttendanceViewProps) {
   const { lesson, students, saved, saving, onSave, readOnly = false, reason } = props;
@@ -134,6 +161,7 @@ export function AttendanceView(props: AttendanceViewProps) {
           ))}
         </Section>
       </div>
+      <GradesLink {...props} dirty={dirty} />
       <MarkSheet
         name={sheetFor?.name ?? null}
         onClose={() => setSheetFor(null)}

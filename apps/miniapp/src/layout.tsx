@@ -14,6 +14,7 @@ import {
 } from '@lg/ui-tg';
 import { Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router';
 import { useAttendanceQueueFlush } from './data/attendance.js';
+import { useGradesQueueFlush } from './data/grades.js';
 import { DeskShell } from './desk/desk-shell.js';
 import { ExpandBanner } from './desk/expand-banner.js';
 import { useNavModel } from './nav-model.js';
@@ -46,6 +47,7 @@ function shellFlags(o: {
 export function AppLayout() {
   const online = useOnline();
   useAttendanceQueueFlush();
+  useGradesQueueFlush();
   const router = useRouter();
   const navigate = useNavigate();
   const h = useHaptic();

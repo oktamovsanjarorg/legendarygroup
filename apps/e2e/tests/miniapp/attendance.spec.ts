@@ -35,6 +35,19 @@ test.describe('Mini App: davomat (MT-02, FR-ATT-1, BR-30)', () => {
     await clickMainButton(page);
     expect((await saved).ok()).toBe(true);
     await expect(page.getByRole('status')).toContainText(a.saved.split('{time}')[0] ?? '');
+
+    // FR-GRD-1: davomatdan keyin bir oqimda — baho (guruh: 0–100, uy vazifasi).
+    await page.getByText(m.grades.open).click();
+    await page.getByLabel(m.grades.pick.replace('{name}', first)).fill('87');
+    await expect.poll(() => mainButtonText(page)).toBe(m.grades.save.replace('{n}', '1'));
+    const graded = page.waitForResponse(
+      (r) =>
+        r.url().endsWith(`/grades/lessons/${attendance.lessonId}`) &&
+        r.request().method() === 'POST',
+    );
+    await clickMainButton(page);
+    expect((await graded).ok()).toBe(true);
+    await expect(page.getByRole('status')).toContainText(m.grades.saved);
   });
 });
 

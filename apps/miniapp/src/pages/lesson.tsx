@@ -1,6 +1,6 @@
 import { errorMessages } from '@lg/i18n';
 import { errorText } from '@lg/ui-core';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { type SaveResult, useLessonAttendance, useMarkAttendance } from '../data/attendance.js';
 import { QueryView } from '../data/query-view.js';
@@ -12,6 +12,7 @@ export function LessonAttendancePage() {
   const query = useLessonAttendance(id);
   const mark = useMarkAttendance(id);
   const [result, setResult] = useState<SaveResult | null>(null);
+  const navigate = useNavigate();
   return (
     <QueryView query={query} rows={8}>
       {(d) => (
@@ -31,6 +32,7 @@ export function LessonAttendancePage() {
             readOnly={!d.canEdit}
             readOnlyText={errorMessages.ATTENDANCE_LOCKED_PAST}
             onSave={(marks) => mark.mutate({ marks }, { onSuccess: setResult })}
+            onGrades={() => void navigate({ to: '/lesson/$id/grades', params: { id } })}
           />
         </>
       )}
