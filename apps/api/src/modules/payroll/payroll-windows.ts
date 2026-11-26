@@ -5,7 +5,7 @@ import { type DayRange, periodDays } from './payroll-metrics.repository.js';
 export interface ContractWindow {
   contract: TeacherContractRow;
   segments: DayRange[];
-  /** Shu doirada oydagi eng so'nggi shartnoma — hisoblangan (accrued) baza faqat unga. */
+  /** Shu doirada oydagi eng so'nggi shartnoma — o'rinbosar dars stavkasi undan olinadi. */
   latest: boolean;
 }
 

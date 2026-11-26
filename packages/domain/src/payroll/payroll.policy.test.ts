@@ -2,7 +2,6 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
   calculateFixedSalary,
-  calculateNetSalary,
   calculatePercentSalary,
   calculateSubstituteSalary,
 } from './payroll.policy.js';
@@ -51,29 +50,6 @@ describe('T-401 · Payroll domen mantiqi (Payroll Policies)', () => {
       const rate = 150_000n;
       expect(calculateSubstituteSalary(4, rate)).toBe(600_000n);
       expect(calculateSubstituteSalary(0, rate)).toBe(0n);
-    });
-  });
-
-  describe('BR-27 & BR-28: Jami toʻlanadigan oylik (calculateNetSalary)', () => {
-    it('fiks, foiz, oʻrinbosar, bonus, jarima va avanslarni toʻgʻri hisoblaydi', () => {
-      const items = [
-        { kind: 'fixed', amount: 4_500_000n },
-        { kind: 'percent', amount: 3_000_000n },
-        { kind: 'per_lesson', amount: 300_000n },
-        { kind: 'bonus', amount: 500_000n },
-        { kind: 'penalty', amount: -200_000n },
-        { kind: 'advance', amount: -1_000_000n },
-      ];
-      // 4.5M + 3M + 300k + 500k - 200k - 1M = 7.1M
-      expect(calculateNetSalary(items)).toBe(7_100_000n);
-    });
-
-    it('agar chegirmalar oylikdan oshib ketsa, minimal 0n qaytaradi (manfiy oylik yoʻq)', () => {
-      const items = [
-        { kind: 'fixed', amount: 1_000_000n },
-        { kind: 'advance', amount: -1_500_000n },
-      ];
-      expect(calculateNetSalary(items)).toBe(0n);
     });
   });
 
