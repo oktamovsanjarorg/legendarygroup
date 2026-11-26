@@ -1,7 +1,7 @@
 /**
  * Dizayn tokenlari (T-017b). Semantik nomlar — komponentlar faqat shularni ishlatadi
- * (`--lg-bg`, `--lg-text` ...), xom rang emas. Web — o'z palitramiz; Mini App — Telegram
- * `themeParams`dan (`telegram-theme.ts`), kontrast yetmasa shu palitra.
+ * (`--lg-bg`, `--lg-text` ...), xom rang emas. Web ham, Mini App ham — shu palitra (Q-123):
+ * Telegram'dan faqat yorug'/tungi rejim olinadi (Telegram Desktop tungi mavzusi — to'q ko'k, xira).
  */
 export interface ColorTokens {
   bg: string;
@@ -32,9 +32,9 @@ export const PALETTE: Record<ColorScheme, ColorTokens> = {
     text: '#111827',
     textMuted: '#4b5563',
     border: '#d1d5db',
-    primary: '#1d4ed8',
+    primary: '#2563eb',
     primaryText: '#ffffff',
-    link: '#1d4ed8',
+    link: '#2563eb',
     success: '#166534',
     warning: '#92400e',
     danger: '#b91c1c',
@@ -43,15 +43,16 @@ export const PALETTE: Record<ColorScheme, ColorTokens> = {
     dangerBg: '#fee2e2',
   },
   dark: {
-    bg: '#0f172a',
-    surface: '#1e293b',
-    surfaceAlt: '#273449',
-    text: '#f1f5f9',
-    textMuted: '#a7b2c3',
-    border: '#3b4a61',
+    // Neytral grafit (to'q ko'k emas, Q-123): kartochka — fondan ochroq.
+    bg: '#1f2023',
+    surface: '#141517',
+    surfaceAlt: '#2a2c30',
+    text: '#f4f4f5',
+    textMuted: '#a1a1aa',
+    border: '#3a3c42',
     primary: '#60a5fa',
     primaryText: '#0b1220',
-    link: '#93c5fd',
+    link: '#7cb4fb',
     success: '#4ade80',
     warning: '#fbbf24',
     danger: '#f87171',

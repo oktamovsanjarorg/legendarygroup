@@ -49,7 +49,7 @@ export function AuditLogList(p: {
             key={f}
             type="button"
             aria-pressed={p.filter === f}
-            className={`min-h-11 shrink-0 rounded-full px-4 text-sm ${p.filter === f ? 'bg-primary text-primary-text' : 'bg-bg text-text'}`}
+            className={`min-h-11 shrink-0 rounded-full px-4 text-sm ${p.filter === f ? 'bg-primary/15 font-semibold text-primary' : 'bg-bg text-text'}`}
             onClick={() => p.onFilter(f)}
           >
             {c.filters[f]}

@@ -24,7 +24,7 @@ export function ChildSwitcher({ items, selected, onSelect, label }: Props) {
             role="tab"
             aria-selected={on}
             onClick={() => onSelect(c.id)}
-            className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-medium ${on ? 'bg-primary text-primary-text' : 'bg-bg text-text'}`}
+            className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-medium ${on ? 'bg-primary/15 font-semibold text-primary' : 'bg-bg text-text'}`}
           >
             {c.name}
           </button>

@@ -47,7 +47,7 @@ function WeekdayPicker(p: { value: readonly number[]; onToggle: (d: number) => v
             type="button"
             aria-pressed={on}
             onClick={() => p.onToggle(i + 1)}
-            className={`min-h-11 rounded-lg text-sm font-medium ${on ? 'bg-primary text-primary-text' : 'bg-surface-alt text-text'}`}
+            className={`min-h-11 rounded-lg text-sm font-medium ${on ? 'bg-primary/15 font-semibold text-primary' : 'bg-surface-alt text-text'}`}
           >
             {label}
           </button>

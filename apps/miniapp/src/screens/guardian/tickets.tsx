@@ -19,7 +19,7 @@ function Bubble({ m }: { m: TicketMessage }) {
   const mine = m.from === 'me';
   return (
     <div
-      className={`flex max-w-[85%] flex-col gap-0.5 rounded-2xl px-4 py-2 ${mine ? 'self-end rounded-br-sm bg-primary text-primary-text' : 'self-start rounded-bl-sm bg-bg text-text'}`}
+      className={`flex max-w-[85%] flex-col gap-0.5 rounded-2xl px-4 py-2 ${mine ? 'self-end rounded-br-sm bg-primary/15 text-text' : 'self-start rounded-bl-sm bg-bg text-text'}`}
     >
       {!mine && <span className="text-xs font-semibold text-link">{t.tickets.center}</span>}
       <p className="whitespace-pre-wrap text-base">{m.text}</p>

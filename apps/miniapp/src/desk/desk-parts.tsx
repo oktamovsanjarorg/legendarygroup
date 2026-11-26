@@ -76,7 +76,7 @@ export function TopBar(p: {
         aria-pressed={p.assistant}
         className={`flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition-colors ${
           p.assistant
-            ? 'bg-primary text-primary-text'
+            ? 'bg-primary/15 text-primary ring-1 ring-primary/40'
             : 'bg-primary/10 text-primary hover:bg-primary/15'
         }`}
       >
