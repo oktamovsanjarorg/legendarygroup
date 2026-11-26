@@ -8,8 +8,15 @@ import type {
   TeacherComment,
   TeacherCommentVisibility,
 } from '@lg/contracts';
-import { validateGradeKind, validateGradeValue } from '@lg/domain';
+import {
+  addDays,
+  canWriteGrade,
+  type Clock,
+  validateGradeKind,
+  validateGradeValue,
+} from '@lg/domain';
 import { type AuditContext, AuditService } from '../../common/audit/audit.service.js';
+import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
 import { AppException } from '../../common/errors/app.exception.js';
 import type { RequestUser } from '../auth/index.js';
 import { GroupScopeService } from '../org/index.js';
@@ -34,6 +41,7 @@ export class GradesService {
     @Inject(GroupScopeService) private readonly groupScope: GroupScopeService,
     @Inject(StudentScopeService) private readonly studentScope: StudentScopeService,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(CLOCK_TOKEN) private readonly clock: Clock,
     @Optional() @Inject(TelegramOutbox) private readonly telegramOutbox?: TelegramOutbox,
   ) {}
 
@@ -78,48 +86,50 @@ export class GradesService {
       throw new AppException(HttpStatus.CONFLICT, 'LESSON_CANCELLED');
 
     await this.assertCanManageLesson(user, lesson);
+    this.assertWindow(user, lesson.date, input.reason);
+    this.assertValues(lesson.gradingConfig, input);
+    await this.assertEnrolled(lesson, input);
 
-    const { scale, kinds } = lesson.gradingConfig;
-
-    // BR-33: Har bir bahoning turi va qiymatini tekshiramiz
-    for (const item of input.grades) {
-      if (!validateGradeKind(kinds, item.kind)) {
-        throw new AppException(HttpStatus.BAD_REQUEST, 'GRADE_KIND_NOT_ALLOWED');
-      }
-      if (!validateGradeValue(scale, item.value)) {
-        throw new AppException(HttpStatus.BAD_REQUEST, 'GRADE_SCALE_EXCEEDED');
-      }
-    }
-
-    const rowsToUpsert = input.grades.map((item) => ({
-      lessonId,
-      studentId: item.studentId,
-      kind: item.kind,
-      value: item.value,
-      createdBy: user.id,
-    }));
-    await this.repo.upsertGradesBatch(rowsToUpsert);
-
-    if (input.comments.length > 0) {
-      const commentRows = input.comments.map((c) => ({
-        studentId: c.studentId,
-        groupId: lesson.groupId,
-        lessonId: lesson.id,
-        text: c.text,
-        visibility: c.visibility,
-        createdBy: user.id,
-      }));
-      await this.repo.insertCommentsBatch(commentRows);
-    }
-
-    await this.audit.record(ctx, {
-      action: 'grade.write',
-      entity: 'grade',
-      entityId: lessonId,
-      after: {
-        gradesCount: input.grades.length,
-        commentsCount: input.comments.length,
-      },
+    await this.repo.transaction(async (tx) => {
+      await this.repo.upsertGradesBatch(
+        tx,
+        input.grades.map((item) => ({
+          lessonId,
+          studentId: item.studentId,
+          kind: item.kind,
+          value: item.value,
+          createdBy: user.id,
+        })),
+      );
+      await this.repo.insertCommentsBatch(
+        tx,
+        input.comments.map((c) => ({
+          studentId: c.studentId,
+          groupId: lesson.groupId,
+          lessonId: lesson.id,
+          text: c.text,
+          visibility: c.visibility,
+          createdBy: user.id,
+        })),
+      );
+      await this.audit.record(
+        ctx,
+        {
+          action: 'grade.write',
+          entity: 'grade',
+          entityId: lessonId,
+          after: {
+            grades: input.grades.map((g) => ({
+              studentId: g.studentId,
+              kind: g.kind,
+              value: g.value,
+            })),
+            commentsCount: input.comments.length,
+            ...(input.reason ? { reason: input.reason } : {}),
+          },
+        },
+        tx,
+      );
     });
 
     return this.getLessonGrades(user, lessonId);
@@ -143,6 +153,46 @@ export class GradesService {
       grades: gradesHistory,
       comments: commentsHistory,
     };
+  }
+
+  /**
+   * BR-37: ustoz — dars kuni + 3 kun (oxirgi kun 23:59 gacha); keyin — faqat Admin/Director,
+   * sabab bilan (auditga yoziladi).
+   */
+  private assertWindow(user: RequestUser, lessonDate: string, reason?: string): void {
+    const role = user.role === 'teacher' ? 'teacher' : 'admin';
+    if (!canWriteGrade({ role, lessonDate }, this.clock.now()).allowed)
+      throw new AppException(HttpStatus.FORBIDDEN, 'GRADE_WINDOW_CLOSED');
+    const late = this.clock.today() > addDays(lessonDate, 3);
+    if (role !== 'teacher' && late && !reason)
+      throw new AppException(HttpStatus.BAD_REQUEST, 'GRADE_REASON_REQUIRED');
+  }
+
+  /** BR-33: tur guruh sozlamasida yoqilgan, qiymat shkala ichida. */
+  private assertValues(
+    config: {
+      scale: Parameters<typeof validateGradeValue>[0];
+      kinds: Parameters<typeof validateGradeKind>[0];
+    },
+    input: SetLessonGradesInput,
+  ): void {
+    for (const item of input.grades) {
+      if (!validateGradeKind(config.kinds, item.kind))
+        throw new AppException(HttpStatus.BAD_REQUEST, 'GRADE_KIND_NOT_ALLOWED');
+      if (!validateGradeValue(config.scale, item.value))
+        throw new AppException(HttpStatus.BAD_REQUEST, 'GRADE_SCALE_EXCEEDED');
+    }
+  }
+
+  /** BR-32: baho va izoh — faqat dars sanasida guruhda bo'lgan o'quvchiga. */
+  private async assertEnrolled(
+    lesson: { groupId: string; date: string },
+    input: SetLessonGradesInput,
+  ): Promise<void> {
+    const ids = [...new Set([...input.grades, ...input.comments].map((x) => x.studentId))];
+    const enrolled = await this.repo.enrolledOn(lesson.groupId, lesson.date, ids);
+    if (ids.some((id) => !enrolled.has(id)))
+      throw new AppException(HttpStatus.BAD_REQUEST, 'STUDENT_NOT_ENROLLED');
   }
 
   private async assertCanViewLesson(

@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   type Database,
+  enrollments,
   grades,
   type GradeRow,
   groups,
@@ -10,9 +11,10 @@ import {
   students,
   teacherComments,
   type TeacherCommentRow,
+  type Transaction,
   users,
 } from '@lg/db';
-import { and, desc, eq, gte, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
 import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import type { Clock } from '@lg/domain';
 import { CLOCK_TOKEN } from '../../common/clock/clock.tokens.js';
@@ -99,28 +101,42 @@ export class GradesRepository {
     }));
   }
 
-  async upsertGradesBatch(records: NewGradeRow[]): Promise<void> {
-    if (records.length === 0) return;
-    await this.db.transaction(async (tx) => {
-      for (const rec of records) {
-        await tx
-          .insert(grades)
-          .values(rec)
-          .onConflictDoUpdate({
-            target: [grades.lessonId, grades.studentId, grades.kind],
-            set: {
-              value: rec.value,
-              createdBy: rec.createdBy,
-              updatedAt: this.clock.now(),
-            },
-          });
-      }
-    });
+  transaction<T>(fn: (tx: Transaction) => Promise<T>): Promise<T> {
+    return this.db.transaction(fn);
   }
 
-  async insertCommentsBatch(records: NewTeacherCommentRow[]): Promise<void> {
+  /** BR-32: dars sanasida guruhda bo'lgan o'quvchilar (berilganlar ichidan). */
+  async enrolledOn(groupId: string, date: string, studentIds: string[]): Promise<Set<string>> {
+    if (studentIds.length === 0) return new Set();
+    const rows = await this.db
+      .selectDistinct({ id: enrollments.studentId })
+      .from(enrollments)
+      .where(
+        and(
+          eq(enrollments.groupId, groupId),
+          inArray(enrollments.studentId, studentIds),
+          lte(enrollments.startDate, date),
+          or(isNull(enrollments.endDate), gte(enrollments.endDate, date)),
+        ),
+      );
+    return new Set(rows.map((r) => r.id));
+  }
+
+  async upsertGradesBatch(tx: Transaction, records: NewGradeRow[]): Promise<void> {
+    for (const rec of records) {
+      await tx
+        .insert(grades)
+        .values(rec)
+        .onConflictDoUpdate({
+          target: [grades.lessonId, grades.studentId, grades.kind],
+          set: { value: rec.value, createdBy: rec.createdBy, updatedAt: this.clock.now() },
+        });
+    }
+  }
+
+  async insertCommentsBatch(tx: Transaction, records: NewTeacherCommentRow[]): Promise<void> {
     if (records.length === 0) return;
-    await this.db.insert(teacherComments).values(records);
+    await tx.insert(teacherComments).values(records);
   }
 
   async findStudentGrades(studentId: string, groupId?: string, from?: string, to?: string) {
