@@ -33,10 +33,14 @@ function Pnl({ pnl }: { pnl: MonthlyPnLSummary }) {
           label={c.net}
           value={<MoneyText amount={net} />}
           tone={net < 0n ? 'danger' : 'default'}
-          note={marginText(pnl.profitMarginBp)}
+          note={pnl.payrollPending ? c.netNoPayroll : marginText(pnl.profitMarginBp)}
         />
         <KpiTile label={c.expenses} value={<MoneyText amount={BigInt(pnl.expenses)} />} />
-        <KpiTile label={c.payroll} value={<MoneyText amount={BigInt(pnl.payroll)} />} />
+        <KpiTile
+          label={c.payroll}
+          value={<MoneyText amount={BigInt(pnl.payroll)} />}
+          {...(pnl.payrollPending ? { note: c.payrollPending } : {})}
+        />
       </div>
       {Object.keys(pnl.revenueByMethod).length > 0 && (
         <Section title={c.byMethod}>

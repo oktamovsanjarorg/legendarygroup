@@ -136,17 +136,18 @@ export class ExpensesService {
   }
 
   async getMonthlyPnL(period: string): Promise<MonthlyPnLSummary> {
-    const [payments, expenses, payrollTotal] = await Promise.all([
+    const [payments, expenses, payroll] = await Promise.all([
       this.repo.findPeriodPayments(DEFAULT_BRANCH_ID, period),
       this.repo.findExpensesForPeriod(DEFAULT_BRANCH_ID, period),
-      this.repo.findApprovedPayrollTotal(DEFAULT_BRANCH_ID, period),
+      this.repo.findApprovedPayroll(DEFAULT_BRANCH_ID, period),
     ]);
 
     return buildMonthlyPnLSummary({
       period,
       payments,
       expenses,
-      payrollTotal,
+      payrollTotal: payroll.total,
+      payrollApproved: payroll.approved,
     });
   }
 }

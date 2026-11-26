@@ -12,6 +12,7 @@ const pnl = (expenses: string, byCat: Record<string, string>): MonthlyPnLSummary
   revenue: '0',
   expenses,
   payroll: '0',
+  payrollPending: false,
   totalCosts: expenses,
   netProfit: '0',
   profitMarginBp: 0,

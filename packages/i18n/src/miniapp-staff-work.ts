@@ -72,6 +72,8 @@ export const staffWorkMessages = {
     revenue: 'Tushum',
     expenses: 'Xarajat',
     payroll: 'Ustozlar oyligi',
+    payrollPending: 'Hali tasdiqlanmagan',
+    netNoPayroll: 'Oyliksiz — oylik tasdiqlanmagan',
     net: 'Sof foyda',
     margin: 'Rentabellik {n}%',
     byMethod: 'Tushum usullari',

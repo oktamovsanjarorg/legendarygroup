@@ -227,6 +227,15 @@ describe('T-403: Xarajatlar va P&L (Expenses & P&L)', () => {
 
     // 5) Profit Margin: 2 800 000 / 10 000 000 = 28% = 2800 bp
     expect(pnl.profitMarginBp).toBe(2800);
+    expect(pnl.payrollPending).toBe(false);
+  });
+
+  it('T-403 review: oylik tasdiqlanmagan oy — foyda oyliksiz ekanini bildiradi', async () => {
+    const pnl = (
+      await call('GET', 'finance/pnl?period=2026-10', directorToken)
+    ).json<MonthlyPnLSummary>();
+    expect(pnl.payroll).toBe('0');
+    expect(pnl.payrollPending).toBe(true);
   });
 
   it('Xarajatni oʻchirish (DELETE) va 404 tekshiruvi', async () => {
