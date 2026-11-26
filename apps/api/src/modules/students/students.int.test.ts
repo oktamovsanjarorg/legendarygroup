@@ -184,6 +184,36 @@ describe('Qidiruv va pagination (FR-STU-5)', () => {
     expect(seen).toEqual(all);
     expect((await call('GET', 'students?cursor=buzuq')).statusCode).toBe(400);
   });
+
+  it.each(['name', 'code'] as const)(
+    'T-177 tartib %s: toʻgʻri tartib, cursor sahifalari ham shu tartibda',
+    async (sort) => {
+      const all = (await call('GET', `students?limit=100&sort=${sort}`)).json<Page>().items;
+      const key = (i: Page['items'][number]) => (sort === 'name' ? i.fullName : i.code);
+      const sorted = [...all].sort((a, b) => {
+        const [x, y] = [key(a), key(b)];
+        return x < y ? -1 : x > y ? 1 : a.id < b.id ? -1 : 1;
+      });
+      if (sort === 'code') expect(all.map((i) => i.id)).toEqual(sorted.map((i) => i.id));
+      else expect(all.map(key)).toEqual(sorted.map(key));
+      const seen: string[] = [];
+      let cursor: string | null = null;
+      do {
+        const url: string = `students?limit=2&sort=${sort}${cursor ? `&cursor=${cursor}` : ''}`;
+        const page: Page = (await call('GET', url)).json<Page>();
+        seen.push(...page.items.map((i) => i.id));
+        cursor = page.nextCursor;
+      } while (cursor);
+      expect(seen).toEqual(all.map((i) => i.id));
+    },
+  );
+
+  it('T-177 kurs filtri: guruhi yoʻq kurs — boʻsh; notoʻgʻri tartib — 400', async () => {
+    const none = await call('GET', 'students?courseId=00000000-0000-4000-8000-000000000000');
+    expect(none.statusCode).toBe(200);
+    expect(none.json<Page>().items).toEqual([]);
+    expect((await call('GET', 'students?sort=qarz')).statusCode).toBe(400);
+  });
 });
 
 describe('Arxiv (FR-STU-6) va tahrir', () => {

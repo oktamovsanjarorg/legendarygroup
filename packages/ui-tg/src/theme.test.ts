@@ -5,37 +5,33 @@ import { applyTelegramTheme, safeAreaCss } from './theme.js';
 
 const css = () => document.getElementById('lg-theme')?.textContent ?? '';
 
-describe('applyTelegramTheme (11-ux §3)', () => {
-  it('foydalanuvchi temasi tokenlarga; sarlavha/fon/pastki panel sahifa foniga', () => {
+describe('applyTelegramTheme (11-ux §3, Q-123)', () => {
+  it('Telegram ranglari emas — oʻz palitramiz; faqat rejim (tungi) olinadi', () => {
     const wa = createFakeWebApp({
       colorScheme: 'dark',
       themeParams: { bg_color: '#17212b', secondary_bg_color: '#232e3c', text_color: '#ffffff' },
     });
     const off = applyTelegramTheme(wa);
-    expect(css()).toContain('--lg-bg: #17212b;');
+    expect(css()).toContain(`--lg-bg: ${PALETTE.dark.bg};`);
+    expect(css()).not.toContain('#17212b');
     expect(css()).toContain('color-scheme:dark');
-    expect(wa.colors).toEqual({ header: '#232e3c', background: '#232e3c', bottomBar: '#232e3c' });
+    const s = PALETTE.dark.surface;
+    expect(wa.colors).toEqual({ header: s, background: s, bottomBar: s });
     off();
     expect(document.getElementById('lg-theme')).toBeNull();
   });
 
-  it("kontrast past custom tema — o'sha juft xavfsiz palitradan", () => {
-    const wa = createFakeWebApp({ themeParams: { bg_color: '#ffffff', text_color: '#eeeeee' } });
+  it("themeChanged (rejim almashdi) — qayta qo'llanadi; bekor qilingach — tinglamaydi", () => {
+    const wa = createFakeWebApp({ colorScheme: 'light' });
     const off = applyTelegramTheme(wa);
-    expect(css()).toContain(`--lg-text: ${PALETTE.light.text};`);
-    off();
-  });
-
-  it("themeChanged — qayta qo'llanadi; bekor qilingach — tinglamaydi", () => {
-    const wa = createFakeWebApp({ themeParams: { bg_color: '#ffffff' } });
-    const off = applyTelegramTheme(wa);
-    wa.themeParams = { bg_color: '#fafafa' };
+    expect(css()).toContain(`--lg-bg: ${PALETTE.light.bg};`);
+    wa.colorScheme = 'dark';
     wa.emit('themeChanged');
-    expect(css()).toContain('--lg-bg: #fafafa;');
+    expect(css()).toContain(`--lg-bg: ${PALETTE.dark.bg};`);
     off();
-    wa.themeParams = { bg_color: '#f0f0f0' };
+    wa.colorScheme = 'light';
     wa.emit('themeChanged');
-    expect(css()).not.toContain('#f0f0f0');
+    expect(document.getElementById('lg-theme')).toBeNull();
   });
 
   it('eski klient (6.0): rang metodlari chaqirilmaydi', () => {

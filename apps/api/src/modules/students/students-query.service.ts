@@ -5,6 +5,7 @@ import {
   type OrgListFilter,
   type StudentDetail,
   type StudentListResult,
+  type StudentSort,
 } from '@lg/contracts';
 import { type Database, guardians, studentGuardians, students, type Transaction } from '@lg/db';
 import type { Clock } from '@lg/domain';
@@ -16,6 +17,7 @@ import { DB_TOKEN } from '../../common/db/db.tokens.js';
 import type { RequestUser } from '../auth/index.js';
 import { archivedFilter } from '../../common/db/archive.js';
 import { GroupsQueryService } from '../org/index.js';
+import { STUDENT_ORDER } from './student-list-order.js';
 import { studentListExtras } from './student-list-extras.js';
 import { StudentScopeService } from './student-scope.service.js';
 import { type GuardianLink, toDetail, toListItem } from './students.serializer.js';
@@ -59,6 +61,8 @@ function decodeCursor(raw: string): string {
 export interface StudentListParams {
   q?: string | undefined;
   groupId?: string | undefined;
+  courseId?: string | undefined;
+  sort?: StudentSort | undefined;
   status: OrgListFilter;
   cursor?: string | undefined;
   limit: number;
@@ -78,6 +82,10 @@ export class StudentsQueryService {
   async list(user: RequestUser, p: StudentListParams): Promise<StudentListResult> {
     const scope = this.scope.scopeFor(user);
     const after = p.cursor ? decodeCursor(p.cursor) : null;
+    const order = STUDENT_ORDER[p.sort ?? 'newest'];
+    const courseGroups = p.courseId
+      ? (await this.groups.list(user, { status: 'current', courseId: p.courseId })).map((g) => g.id)
+      : null;
     const rows = await this.db
       .select()
       .from(students)
@@ -87,12 +95,11 @@ export class StudentsQueryService {
           archivedFilter(students.archivedAt, p.status),
           searchCondition(this.db, p.q),
           p.groupId ? inArray(students.id, this.scope.enrolledOn([p.groupId])) : undefined,
-          after
-            ? sql`(${students.createdAt}, ${students.id}) < (select s.created_at, s.id from ${students} s where s.id = ${after}::uuid)`
-            : undefined,
+          courseGroups ? inArray(students.id, this.scope.enrolledOn(courseGroups)) : undefined,
+          after ? order.after(after) : undefined,
         ),
       )
-      .orderBy(desc(students.createdAt), desc(students.id))
+      .orderBy(...order.by)
       .limit(p.limit + 1);
     const page = rows.slice(0, p.limit);
     const last = page.at(-1);

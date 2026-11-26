@@ -73,7 +73,7 @@ export function StaffTicketsView({ items, filter, onFilter, onOpen }: ListProps)
 function Bubble({ m }: { m: TicketDetail['messages'][number] }) {
   const mine = m.authorRole === 'staff';
   const side = mine
-    ? 'self-end rounded-br-sm bg-primary text-primary-text'
+    ? 'self-end rounded-br-sm bg-primary/15 text-text'
     : 'self-start rounded-bl-sm bg-bg text-text';
   return (
     <li className={`flex max-w-[85%] flex-col gap-0.5 rounded-2xl px-4 py-2 ${side}`}>

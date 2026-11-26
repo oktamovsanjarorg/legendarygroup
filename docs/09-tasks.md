@@ -573,6 +573,16 @@
 - **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
 - **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Model — DeepSeek'ka almashtirildi (T-173, Q-119).
 
+### ✅ T-177 · Ranglar (to'q ko'k emas) va o'quvchilar ro'yxati: fan, tartib, holat
+
+- **Bog'liq:** T-174 · **Qaror:** Q-123
+- **Sabab (egasi, 2026-11-26):** «ba'zi qismlarda to'q ko'k background halaqit beradi, juda bo'g'iq»; «ustoz fanlar bo'yicha o'quvchilarni saralash kerak dedi — hamma joyda sort, qidiruv; o'quvchilar ko'payadi».
+- **Bajarildi (2026-11-26):**
+  - Mini App ranglari o'z palitramizdan (Telegram'dan faqat yorug'/tungi rejim): Telegram Desktop'ning to'q ko'k tungi mavzusi endi ta'sir qilmaydi; tungi palitra — neytral grafit; asosiy ko'k yengilroq (`#2563eb`). Tanlangan kun, filtr tugmalari, chat xabarlari, yordamchi tugmasi — to'liq ko'k o'rniga och fon + ko'k matn.
+  - API `GET /students`: `courseId` (fan — shu kursning amaldagi guruhlariga yozilganlar) va `sort` (`name`, `code`, `newest`; keyset cursor har tartibda).
+  - MS-04 «O'quvchilar» — endi ro'yxat: qidiruv, fan tugmalari, tartib (A–Z / Kod / Yangi), holat (Faol / Arxiv), «Yana ko'rsatish».
+- **Testlar:** `students.int.test.ts` (tartib + cursor), `enrollments.int.test.ts` (fan filtri), `student-list.test.tsx`, `theme.test.ts`; Storybook MS04_List.
+
 ### ✅ T-176 · Yordamchi: barcha bo'limlar va e'lon matni
 
 - **Bog'liq:** T-175 · **Qaror:** Q-122

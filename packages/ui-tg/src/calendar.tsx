@@ -27,15 +27,13 @@ export function DayStrip({ days, selected, onSelect }: StripProps) {
             type="button"
             aria-pressed={on}
             onClick={() => onSelect(d.date)}
-            className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-lg ${on ? 'bg-primary text-primary-text' : 'text-text'}`}
+            className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-lg ${on ? 'bg-primary/15 font-semibold text-primary' : 'text-text'}`}
           >
             <span className={`text-xs ${on ? '' : 'text-text-muted'}`}>
               {t.schedule.weekdays[i]}
             </span>
             <span className="text-base font-semibold tabular-nums">{d.day}</span>
-            <span
-              className={`size-1 rounded-full ${d.busy ? (on ? 'bg-primary-text' : 'bg-primary') : ''}`}
-            />
+            <span className={`size-1 rounded-full ${d.busy ? 'bg-primary' : ''}`} />
           </button>
         );
       })}

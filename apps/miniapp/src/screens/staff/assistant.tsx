@@ -23,7 +23,7 @@ function Bubble({ e, onAction }: { e: ChatEntry; onAction: (a: AssistantAction) 
   return (
     <div className={`flex flex-col gap-2 ${mine ? 'items-end' : 'items-start'}`}>
       <p
-        className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-base ${mine ? 'bg-primary text-primary-text' : 'bg-bg text-text'}`}
+        className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-base ${mine ? 'bg-primary/15 text-text' : 'bg-bg text-text'}`}
       >
         {e.text}
       </p>

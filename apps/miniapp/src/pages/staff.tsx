@@ -11,14 +11,16 @@ import {
   useReviewDecision,
   useReviewQueue,
   useStaffKpi,
-  useStudentSearch,
 } from '../data/staff.js';
 import { ApprovalDecisionView, ApprovalsView } from '../screens/staff/approvals.js';
 import type { StaffMenuKey } from '../data/staff-menu.js';
 import { type KpiTarget, StaffDashboardView } from '../screens/staff/dashboard.js';
 import { STAFF_ICONS } from '../screens/staff/menu-icons.js';
 import { ReviewView } from '../screens/staff/review.js';
-import { SearchView } from '../screens/staff/search.js';
+import { StudentListView } from '../screens/staff/student-list.js';
+import { DEFAULT_FILTERS, useStudentList } from '../data/staff-students.js';
+import { useCourses } from '../data/staff-org.js';
+import { ErrorNotice } from './notice.js';
 import { useMe } from '../session/session.js';
 
 const Alert = ({ error }: { error: unknown }) => (
@@ -151,14 +153,23 @@ export function StaffApprovalPage() {
 /** MS-04 qidiruv (kamida 2 belgi; oʻ/o' bir xil — server normalizatsiyasi). */
 export function StaffSearchPage() {
   const navigate = useNavigate();
-  const [q, setQ] = useState('');
-  const query = useStudentSearch(q);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const list = useStudentList(filters);
+  const courses = useCourses();
   return (
-    <SearchView
-      query={q}
-      results={query.data ?? []}
-      onQuery={setQ}
-      onOpen={(s) => void navigate({ to: '/staff/student/$id', params: { id: s.id } })}
-    />
+    <>
+      <ErrorNotice error={list.error ?? courses.error} />
+      <StudentListView
+        filters={filters}
+        courses={courses.data ?? []}
+        items={list.data ?? []}
+        loading={list.isPending}
+        hasMore={list.hasNextPage}
+        loadingMore={list.isFetchingNextPage}
+        onFilters={setFilters}
+        onMore={() => void list.fetchNextPage()}
+        onOpen={(s) => void navigate({ to: '/staff/student/$id', params: { id: s.id } })}
+      />
+    </>
   );
 }

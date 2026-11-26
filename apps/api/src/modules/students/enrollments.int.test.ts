@@ -37,6 +37,8 @@ interface Enr {
 const ids = (res: { json: <T>() => T }) =>
   res.json<{ items: { studentId?: string; id?: string }[] }>().items;
 
+let course = '';
+
 beforeAll(async () => {
   t = await createRealTestApp();
   await seed(t.db.url, { withTestDirector: false });
@@ -46,7 +48,7 @@ beforeAll(async () => {
   teacherToken = await tokenFor(t, db, teacher, 'teacher');
   const idOf = async (url: string, body: object) =>
     (await call('POST', url, body)).json<{ id: string }>().id;
-  const course = await idOf('courses', {
+  course = await idOf('courses', {
     name: 'IELTS',
     defaultMonthlyPrice: '650000',
     lessonDurationMin: 90,
@@ -280,5 +282,18 @@ describe('Oʻquvchilar roʻyxati qatori (W-05): guruhlar, asosiy ota-ona, muzlat
     expect(res.statusCode).toBe(201);
     const rows = (await call('GET', `students?groupId=${g.big}`)).json<{ items: Row[] }>().items;
     expect(rows.find((r) => r.id === id)?.frozen).toBe(true);
+  });
+});
+
+describe('T-177: oʻquvchilar roʻyxati kurs (fan) boʻyicha', () => {
+  it('shu kurs guruhiga yozilgan — bor; hech qayerga yozilmagan — yoʻq', async () => {
+    const free = (await call('POST', 'students', { fullName: 'Boʻsh Testov' })).json<{
+      id: string;
+    }>().id;
+    const res = await call('GET', `students?courseId=${course}&limit=100`);
+    expect(res.statusCode).toBe(200);
+    const found = res.json<{ items: { id: string }[] }>().items.map((i) => i.id);
+    expect(found).toContain(s['Ali']);
+    expect(found).not.toContain(free);
   });
 });

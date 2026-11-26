@@ -84,11 +84,18 @@ export const UpdateGuardianLinkRequest = z
   .refine((v) => Object.keys(v).length > 0, { message: 'EMPTY_PATCH' });
 
 /** Qidiruv (FR-STU-5): `q` — ism (normalizatsiya bilan), kod yoki telefon (o'quvchi/ota-ona). */
+/** Ro'yxat tartibi (T-177): yangi qo'shilgan, ism (A–Z), kod. */
+export const STUDENT_SORTS = ['newest', 'name', 'code'] as const;
+export type StudentSort = (typeof STUDENT_SORTS)[number];
+
 export const StudentListQuery = z.object({
   q: z.string().trim().max(100).optional(),
   status: z.enum(ORG_LIST_FILTERS).default('active'),
   /** Guruhga bugun yozilganlar (T-106). */
   groupId: z.uuid().optional(),
+  /** Kurs (fan) bo'yicha: shu kursning amaldagi guruhlariga bugun yozilganlar (T-177). */
+  courseId: z.uuid().optional(),
+  sort: z.enum(STUDENT_SORTS).default('newest'),
   cursor: z.string().max(200).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });

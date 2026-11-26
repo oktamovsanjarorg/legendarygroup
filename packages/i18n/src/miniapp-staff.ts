@@ -142,6 +142,19 @@ export const staffMessages = {
     notFound: 'Hech narsa topilmadi',
     notFoundHint: 'Imloni tekshiring: oʻ, gʻ va tutuq belgisi farq qilmaydi.',
   },
+  /** MS-04 Oʻquvchilar roʻyxati (T-177): filtr va tartib. */
+  students: {
+    title: 'Oʻquvchilar',
+    course: 'Fan',
+    allCourses: 'Barcha fanlar',
+    sort: 'Tartib',
+    sorts: { name: 'A–Z', code: 'Kod', newest: 'Yangi' },
+    status: 'Holat',
+    statuses: { active: 'Faol', archived: 'Arxiv' },
+    more: 'Yana koʻrsatish',
+    empty: 'Oʻquvchi yoʻq',
+    emptyHint: 'Filtrni oʻzgartiring yoki yangi oʻquvchi qoʻshing.',
+  },
   studentCard: {
     groups: 'Guruhlar',
     debt: 'Qarz',
