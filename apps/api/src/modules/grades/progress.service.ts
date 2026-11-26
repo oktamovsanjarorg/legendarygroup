@@ -1,5 +1,6 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type {
+  GradingConfig,
   GroupLeaderboardResponse,
   StudentProgressResponse,
   StudentRankingItem,
@@ -14,6 +15,18 @@ import type { RequestUser } from '../auth/index.js';
 import { GroupScopeService } from '../org/index.js';
 import { StudentScopeService } from '../students/index.js';
 import { ProgressRepository } from './progress.repository.js';
+
+/** O'quvchining reytingdagi o'rni va ko'rsatkichlari (reytingda yo'q bo'lsa — nol). */
+function rankFields(mine: StudentRankingItem | undefined, total: number) {
+  return {
+    rank: mine?.rank ?? null,
+    totalStudents: total > 0 ? total : null,
+    averageGrade: mine?.averageGrade ?? 0,
+    attendanceRatePercent: mine?.attendanceRatePercent ?? 0,
+    averageTestScorePercent: mine?.averageTestScorePercent ?? 0,
+    compositeScore: mine?.compositeScore ?? 0,
+  };
+}
 
 @Injectable()
 export class ProgressService {
@@ -31,7 +44,7 @@ export class ProgressService {
 
     await this.assertCanViewGroup(user, groupId);
 
-    const rankedStudents = await this.computeLeaderboard(groupId);
+    const rankedStudents = await this.computeLeaderboard(groupId, group.gradingConfig.scale);
 
     return {
       groupId: group.id,
@@ -65,7 +78,11 @@ export class ProgressService {
     const groupId = 'id' in groupInfo ? groupInfo.id : groupInfo.groupId;
     const groupName = 'name' in groupInfo ? groupInfo.name : groupInfo.groupName;
 
-    const leaderboard = await this.computeLeaderboard(groupId);
+    const config = await this.repo.findGroupById(groupId);
+    const leaderboard = await this.computeLeaderboard(
+      groupId,
+      config?.gradingConfig.scale ?? '0_5',
+    );
     const myRankItem = leaderboard.find((s) => s.studentId === studentId);
 
     const [attendanceTrend, gradesTrend, testResults] = await Promise.all([
@@ -79,19 +96,18 @@ export class ProgressService {
       studentName: student.fullName,
       groupId,
       groupName,
-      rank: myRankItem ? myRankItem.rank : null,
-      totalStudents: leaderboard.length > 0 ? leaderboard.length : null,
-      averageGrade: myRankItem ? myRankItem.averageGrade : 0,
-      attendanceRatePercent: myRankItem ? myRankItem.attendanceRatePercent : 0,
-      averageTestScorePercent: myRankItem ? myRankItem.averageTestScorePercent : 0,
-      compositeScore: myRankItem ? myRankItem.compositeScore : 0,
+      ...rankFields(myRankItem, leaderboard.length),
       attendanceTrend,
       gradesTrend,
       testResults,
     };
   }
 
-  private async computeLeaderboard(groupId: string): Promise<StudentRankingItem[]> {
+  /** FR-GRD-5: baho guruh shkalasida (0–5 yoki 0–100) — ballga 0..100 qilib qo'shiladi. */
+  private async computeLeaderboard(
+    groupId: string,
+    scale: GradingConfig['scale'],
+  ): Promise<StudentRankingItem[]> {
     const groupStudents = await this.repo.findGroupStudents(groupId);
     if (groupStudents.length === 0) return [];
 
@@ -123,7 +139,11 @@ export class ProgressService {
       };
     });
 
-    return calculateLeaderboardRankings(rawItems);
+    return calculateLeaderboardRankings(rawItems, {
+      gradeMax: scale === '0_5' ? 5 : 100,
+      hasGrades: gradesStats.size > 0,
+      hasTests: testStats.size > 0,
+    });
   }
 
   private async assertCanViewGroup(user: RequestUser, groupId: string): Promise<void> {

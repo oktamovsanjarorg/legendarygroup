@@ -42,7 +42,12 @@ export class ProgressRepository {
   /** Guruh ma'lumotlarini topish */
   async findGroupById(groupId: string) {
     const [row] = await this.db
-      .select({ id: groups.id, name: groups.name, branchId: groups.branchId })
+      .select({
+        id: groups.id,
+        name: groups.name,
+        branchId: groups.branchId,
+        gradingConfig: groups.gradingConfig,
+      })
       .from(groups)
       .where(eq(groups.id, groupId));
     return row ?? null;

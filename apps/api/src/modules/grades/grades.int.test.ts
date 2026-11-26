@@ -246,6 +246,10 @@ describe('T-301 Baholar va ustoz izohlari (FR-GRD-1, 2, BR-33)', () => {
       expect(data.students[0]?.averageGrade).toBeGreaterThan(data.students[1]!.averageGrade);
       expect(data.students[1]?.studentId).toBe(student2Id);
       expect(data.students[1]?.rank).toBe(2);
+      // T-303 review: 0–5 shkala — baho 100 ballga keltiriladi; testsiz guruhda ball
+      // (baho×45 + davomat×20)/65; avval baho foiz deb olinib, ball ~20 chiqardi.
+      const top = data.students[0]!;
+      expect(top.compositeScore).toBeGreaterThan(top.averageGrade * 10);
     });
 
     it('ota-ona oʻz farzandining toʻliq progress dinamikasini oladi (FR-GRD-5)', async () => {
