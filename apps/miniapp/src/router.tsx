@@ -23,6 +23,7 @@ import {
   GuardianTicketsPage,
 } from './pages/guardian-actions.js';
 import { LessonAttendancePage } from './pages/lesson.js';
+import { LessonGradesPage } from './pages/lesson-grades.js';
 import { TeacherCommentPage, TeacherStudentPage } from './pages/student.js';
 import {
   TeacherGroupPage,
@@ -82,6 +83,11 @@ const teacherLesson = createRoute({
   getParentRoute: () => root,
   path: '/lesson/$id',
   component: LessonAttendancePage,
+});
+const teacherLessonGrades = createRoute({
+  getParentRoute: () => root,
+  path: '/lesson/$id/grades',
+  component: LessonGradesPage,
 });
 const teacherGroup = createRoute({
   getParentRoute: () => root,
@@ -190,6 +196,7 @@ const routeTree = root.addChildren([
   teacherGroups,
   teacherSchedule,
   teacherLesson,
+  teacherLessonGrades,
   teacherGroup,
   teacherTests,
   teacherTestCreate,
