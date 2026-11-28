@@ -573,6 +573,12 @@
 - **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
 - **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Model — DeepSeek'ka almashtirildi (T-173, Q-119).
 
+### ✅ T-179 · Arxivlangan o'quvchining ochiq qolgan a'zoligi
+
+- **Bog'liq:** T-105 · **Talablar:** FR-STU-6 · **Qaror:** Q-93
+- **Sabab (egasi, 2026-11-28):** arxivlangan o'quvchi ustozga hamon ko'rinadi. Prod'da o'quvchi Q-93 tekshiruvi deploy qilinishidan oldin arxivlangan — a'zoligi ochiq qolgan: guruh ro'yxati, davomat, baholashda chiqadi, oy boshida hisob yozilardi.
+- **Bajarildi (2026-11-28):** migratsiya `0045_archived_open_enrollments` — bunday a'zolik arxiv kuni (Asia/Tashkent) bilan `left` holatida yopiladi, muzlatishlar kesiladi, audit `enrollment.end` (`via: migration`); arxivdan keyingi oyga hisob qatori bo'lsa — tegilmaydi. Idempotent. Prod'da quruq yurgizish (ROLLBACK): 1 ta a'zolik. Test: `packages/db/src/migration-0045.int.test.ts`.
+
 ### ✅ T-178 · Ro'yxatlar qidirmasdan ham ko'rinadi; ixcham filtrlar
 
 - **Bog'liq:** T-177
