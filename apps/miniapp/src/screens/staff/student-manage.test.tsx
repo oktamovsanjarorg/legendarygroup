@@ -59,6 +59,27 @@ describe('MS-05 boshqaruv: guruhdan chiqarish va arxiv (T-144, FR-STU-6, Q-93)',
     expect(fns.onRestore).toHaveBeenCalledOnce();
   });
 
+  it('arxivda, «student.delete» yoʻq — «Butunlay oʻchirish» koʻrinmaydi (Q-124)', () => {
+    card({ groups: [], past: [], canArchive: true, archived: true });
+    expect(screen.queryByText(c.delete)).toBeNull();
+  });
+
+  it('arxivda, Director — «Butunlay oʻchirish» → ogohlantirish → bir marta oʻchiradi (Q-124)', () => {
+    const onDelete = vi.fn();
+    card({ groups: [], past: [], canArchive: true, archived: true }, { onDelete });
+    fireEvent.click(screen.getByText(c.delete));
+    const dialog = screen.getByRole('dialog', { name: c.deleteTitle });
+    expect(dialog.textContent).toContain(c.deleteText);
+    fireEvent.click(within(dialog).getByText(c.deleteConfirm));
+    expect(onDelete).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('faol oʻquvchida «Butunlay oʻchirish» yoʻq — avval arxivlanadi', () => {
+    card({ groups: [], past: [], canArchive: true, archived: false }, { onDelete: vi.fn() });
+    expect(screen.queryByText(c.delete)).toBeNull();
+  });
+
   it('ruxsat yoʻq (manage yoʻq) — arxiv amallari koʻrinmaydi', () => {
     wrap(<StudentCardView s={S} guardians={[]} />);
     expect(screen.queryByText(c.archive)).toBeNull();

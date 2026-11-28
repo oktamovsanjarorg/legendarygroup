@@ -1,6 +1,6 @@
 import { miniappMessages as t } from '@lg/i18n';
 import { ActionSheet, ListItem, Section } from '@lg/ui-tg';
-import { Archive, ArchiveRestore, Plus } from 'lucide-react';
+import { Archive, ArchiveRestore, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { StudentManage } from '../../data/staff-student.js';
 
@@ -16,6 +16,8 @@ export interface StudentManageProps {
   onAddGuardian?: () => void;
   onArchive: () => void;
   onRestore: () => void;
+  /** Q-124: faqat `student.delete` (Director) — arxivdagi o'quvchini butunlay o'chirish. */
+  onDelete?: () => void;
 }
 
 /** MS-05 guruhlar (`student.manage` bo'lsa): guruhni bosish — a'zolik amallari. */
@@ -66,8 +68,40 @@ export function PastGroups({ m, onOpen }: Pick<StudentManageProps, 'm' | 'onOpen
   );
 }
 
-/** FR-STU-6: arxivlash (tasdiq — ActionSheet) yoki arxivdan chiqarish; o'chirish yo'q. */
-export function ArchiveSection({ m, busy, onArchive, onRestore }: StudentManageProps) {
+/** Q-124: arxivdagi o'quvchini butunlay o'chirish — qaytarib bo'lmaydi, shuning uchun ogohlantirish. */
+function DeleteAction({ busy, onDelete }: { busy: boolean; onDelete: () => void }) {
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <>
+      <ListItem
+        before={<Trash2 className="size-5 text-danger" aria-hidden />}
+        title={<span className="text-danger">{c.delete}</span>}
+        onClick={busy ? undefined : () => setConfirm(true)}
+      />
+      <ActionSheet
+        open={confirm}
+        title={c.deleteTitle}
+        cancelLabel={c.cancel}
+        onClose={() => setConfirm(false)}
+        actions={[
+          {
+            label: c.deleteConfirm,
+            tone: 'danger',
+            onSelect: () => {
+              setConfirm(false);
+              onDelete();
+            },
+          },
+        ]}
+      >
+        <p className="px-4 pb-2 text-sm text-text-muted">{c.deleteText}</p>
+      </ActionSheet>
+    </>
+  );
+}
+
+/** FR-STU-6: arxivlash (tasdiq — ActionSheet) yoki arxivdan chiqarish / butunlay o'chirish (Q-124). */
+export function ArchiveSection({ m, busy, onArchive, onRestore, onDelete }: StudentManageProps) {
   const [confirm, setConfirm] = useState(false);
   if (m.archived)
     return (
@@ -77,6 +111,7 @@ export function ArchiveSection({ m, busy, onArchive, onRestore }: StudentManageP
           title={c.restore}
           onClick={busy ? undefined : onRestore}
         />
+        {onDelete && <DeleteAction busy={busy} onDelete={onDelete} />}
       </Section>
     );
   return (

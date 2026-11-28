@@ -171,6 +171,11 @@ export const staffMessages = {
     archived: 'Arxivda',
     archivedHint: 'Maʼlumotlar faqat koʻrish uchun.',
     restore: 'Arxivdan chiqarish',
+    delete: 'Butunlay oʻchirish',
+    deleteTitle: 'Oʻquvchi butunlay oʻchirilsinmi?',
+    deleteText:
+      'Oʻquvchi, uning guruh tarixi, davomati va baholari oʻchadi. Qaytarib boʻlmaydi. Toʻlov tarixi boʻlsa — oʻchirilmaydi, arxivda qoladi.',
+    deleteConfirm: 'Ha, oʻchirish',
     cancel: 'Bekor qilish',
   },
   /** MS-04a Yangi oʻquvchi (Q-97): bitta ekran — oʻquvchi, ota-ona, guruh, kelgan sana. */

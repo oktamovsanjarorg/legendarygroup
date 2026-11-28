@@ -9,6 +9,7 @@ import {
   type LeaveInput,
   studentManage,
   useArchiveStudent,
+  useDeleteStudent,
   useEndEnrollment,
   useRemoveEnrollment,
 } from '../data/staff-student.js';
@@ -73,6 +74,8 @@ export function StaffStudentPage() {
   const today = useClock().today();
   const query = useStudentCard(id);
   const archive = useArchiveStudent(id);
+  const remove = useDeleteStudent(id);
+  const canDelete = me.permissions.includes('student.delete');
   const canManage = me.permissions.includes('student.manage');
   const canPay = me.permissions.includes('payment.create');
   const setupState = useBillingSetupState(id, canManage);
@@ -85,6 +88,7 @@ export function StaffStudentPage() {
         return (
           <>
             {archive.isError && <Alert error={archive.error} />}
+            {remove.isError && <Alert error={remove.error} />}
             <StudentCardView
               s={d.hit}
               guardians={d.guardians}
@@ -103,10 +107,16 @@ export function StaffStudentPage() {
                 canManage
                   ? {
                       m,
-                      busy: archive.isPending,
+                      busy: archive.isPending || remove.isPending,
                       ...open,
                       onArchive: () => archive.mutate('archive'),
                       onRestore: () => archive.mutate('restore'),
+                      ...(canDelete && {
+                        onDelete: () =>
+                          remove.mutate(undefined, {
+                            onSuccess: () => void navigate({ to: '/staff/search', replace: true }),
+                          }),
+                      }),
                     }
                   : undefined
               }

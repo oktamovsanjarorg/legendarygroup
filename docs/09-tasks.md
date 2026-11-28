@@ -573,6 +573,12 @@
 - **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
 - **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Model — DeepSeek'ka almashtirildi (T-173, Q-119).
 
+### ✅ T-181 · Mini App: arxivdagi o'quvchini o'chirish tugmasi
+
+- **Bog'liq:** T-180, T-144 · **Talablar:** FR-STU-6, 11-ux MS-05a · **Qaror:** Q-124
+- **AC:** arxivdagi o'quvchi kartochkasida (faqat `student.delete`) «Butunlay o'chirish» → ogohlantirish (ActionSheet) → o'chirilgach o'quvchilar ro'yxatiga (MS-04); pul tarixi bo'lsa — tushunarli xato; faol o'quvchida tugma yo'q.
+- **Bajarildi (2026-11-28):** `ArchiveSection` → `DeleteAction`, `useDeleteStudent` (kartochka keshi olib tashlanadi). Testlar: `student-manage.test.tsx` (yo'q/bor/faol); Storybook «MS05_ArchivedDirector».
+
 ### ✅ T-180 · Arxivdagi o'quvchini o'chirish (API)
 
 - **Bog'liq:** T-179, T-105 · **Talablar:** FR-STU-6 · **Qaror:** Q-124
