@@ -12,12 +12,20 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const s = must(STUDENTS[0]);
-const card = (m: StudentManage) => (
+const card = (m: StudentManage, onDelete?: () => void) => (
   <StudentCardView
     s={s}
     guardians={GUARDIANS}
     onPay={m.archived ? undefined : noop}
-    manage={{ m, busy: false, onOpen: noop, onEnroll: noop, onArchive: noop, onRestore: noop }}
+    manage={{
+      m,
+      busy: false,
+      onOpen: noop,
+      onEnroll: noop,
+      onArchive: noop,
+      onRestore: noop,
+      ...(onDelete && { onDelete }),
+    }}
   />
 );
 
@@ -36,6 +44,10 @@ export const MS05_CanArchive: Story = {
 };
 export const MS05_Archived: Story = {
   render: () => card({ groups: [], past: [], canArchive: true, archived: true }),
+};
+/** Q-124: Director — arxivdagi o'quvchini butunlay o'chirish (ogohlantirish oynasi bilan). */
+export const MS05_ArchivedDirector: Story = {
+  render: () => card({ groups: [], past: [], canArchive: true, archived: true }, noop),
 };
 
 function Leave() {

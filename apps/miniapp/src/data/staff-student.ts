@@ -90,7 +90,7 @@ export function useRemoveEnrollment(enrollmentId: string) {
   });
 }
 
-/** FR-STU-6: arxivlash / arxivdan chiqarish (o'chirish yo'q). */
+/** FR-STU-6: arxivlash / arxivdan chiqarish. */
 export function useArchiveStudent(studentId: string) {
   const api = useApi();
   const invalidate = useInvalidateStudent();
@@ -98,5 +98,22 @@ export function useArchiveStudent(studentId: string) {
     mutationFn: (verb: 'archive' | 'restore') =>
       api.request<StudentDetail>(`/students/${studentId}/${verb}`, { method: 'POST' }),
     onSuccess: invalidate,
+  });
+}
+
+/**
+ * Q-124: arxivdagi, pul tarixi yo'q o'quvchini butunlay o'chirish (faqat Director). Kartochka
+ * keshi olib tashlanadi — qayta so'ralsa 404 bo'lardi; ro'yxatlar yangilanadi.
+ */
+export function useDeleteStudent(studentId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.request<undefined>(`/students/${studentId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      qc.removeQueries({ queryKey: ['staff', 'student', studentId] });
+      void qc.invalidateQueries({ queryKey: ['staff'] });
+      void qc.invalidateQueries({ queryKey: ['billing'] });
+    },
   });
 }
