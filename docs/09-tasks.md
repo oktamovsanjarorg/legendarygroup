@@ -573,6 +573,13 @@
 - **AC:** savol → qisqa javob va ekran tugmasi; faqat o'qish; RBAC chaqiruvchiniki; yozish — forma orqali; forbidden testi; kalitsiz — tushuntirish.
 - **Bajarildi (2026-11-25):** API `assistant` moduli (`assistant.service.test.ts`, `assistant.int.test.ts`), Mini App MS-35 (`assistant-flow.test.tsx`, Storybook). Model — DeepSeek'ka almashtirildi (T-173, Q-119).
 
+### ✅ T-180 · Arxivdagi o'quvchini o'chirish (API)
+
+- **Bog'liq:** T-179, T-105 · **Talablar:** FR-STU-6 · **Qaror:** Q-124
+- **Sabab (egasi, 2026-11-28):** «arxivlangan o'quvchi ustozga yoqmapti — o'chirish imkoni ham bo'lsin».
+- **AC:** `DELETE /students/:id` — faqat Director (`student.delete`); arxivda emas — 409 `STUDENT_NOT_ARCHIVED`; pul tarixi bor — 409 `STUDENT_HAS_FINANCE`; bog'liq yozuvlar Q-124 bo'yicha; audit `student.delete`; forbidden testi.
+- **Bajarildi (2026-11-28):** `StudentPurgeService` (students — o'z jadvallari), `StudentDeleteService` + controller (billing — pul tekshiruvi, qulf). Test: `billing/student-delete.int.test.ts` (happy, forbidden: admin/teacher/guardian, arxivda emas, to'lovli, 400/404). Ruxsat matritsasi (02) va seed yangilandi.
+
 ### ✅ T-179 · Arxivlangan o'quvchining ochiq qolgan a'zoligi
 
 - **Bog'liq:** T-105 · **Talablar:** FR-STU-6 · **Qaror:** Q-93

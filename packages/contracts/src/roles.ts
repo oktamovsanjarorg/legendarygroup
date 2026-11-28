@@ -19,6 +19,7 @@ export const NON_DELEGABLE_PERMISSIONS = [
   'payroll.manage',
   'approval.decide',
   'payment.refund',
+  'student.delete',
 ] as const satisfies readonly Permission[];
 
 /**

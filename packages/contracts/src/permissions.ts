@@ -14,6 +14,7 @@ export const PERMISSIONS = [
   // Students
   'student.manage',
   'student.view',
+  'student.delete',
   'lead.manage',
 
   // Attendance & grading

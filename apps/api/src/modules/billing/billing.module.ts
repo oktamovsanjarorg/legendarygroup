@@ -43,6 +43,8 @@ import { StudentBillingSetupService } from './student-setup.service.js';
 import { EnrollmentBillingService } from './enrollment-billing.service.js';
 import { EnrollmentRemoveController } from './enrollment-remove.controller.js';
 import { EnrollmentRemoveService } from './enrollment-remove.service.js';
+import { StudentDeleteController } from './student-delete.controller.js';
+import { StudentDeleteService } from './student-delete.service.js';
 
 @Module({
   imports: [
@@ -63,6 +65,7 @@ import { EnrollmentRemoveService } from './enrollment-remove.service.js';
     SubmissionsController,
     StudentBillingSetupController,
     EnrollmentRemoveController,
+    StudentDeleteController,
     ReceiptSendController,
   ],
   providers: [
@@ -94,6 +97,7 @@ import { EnrollmentRemoveService } from './enrollment-remove.service.js';
     StudentBillingSetupService,
     EnrollmentBillingService,
     EnrollmentRemoveService,
+    StudentDeleteService,
   ],
   exports: [
     BillingService,

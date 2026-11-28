@@ -30,7 +30,7 @@ Har bir talab ID'ga ega (`FR-<modul>-<raqam>`). Vazifalar ([09-tasks.md](09-task
 - **FR-STU-3** Guruhga qo'shish (enrollment) sanasi bilan; guruhdan chiqarish sababi bilan (ketdi / ko'chirildi / tugatdi). Tarix saqlanadi.
 - **FR-STU-4** Lid (potensial o'quvchi) ro'yxati: sinov darsi, holat (yangi / qo'ng'iroq qilindi / sinovga keldi / yozildi / rad etdi). Konversiya statistikasi.
 - **FR-STU-5** Qidiruv: ism, telefon, guruh bo'yicha; filtrlar (qarzdor, faol, arxiv).
-- **FR-STU-6** O'quvchi o'chirilmaydi — faqat arxivlanadi (soft delete).
+- **FR-STU-6** O'quvchi odatda arxivlanadi (soft delete); arxivlangan o'quvchi ro'yxatlarda ko'rinmaydi (faqat «Arxiv» filtri). ⚠️ Arxivdagi, pul tarixi (hisob, to'lov, ledger, chek so'rovi, eslatma) yo'q o'quvchini Director butunlay o'chira oladi (`student.delete`, Q-124); pul tarixi bo'lsa — o'chirilmaydi, arxivda qoladi.
   Guruhda turgan (chiqish sanasi bugundan keyin yoki yoʻq) oʻquvchi arxivlanmaydi — avval guruhdan chiqariladi (Q-93).
 
 ## ATT — Davomat

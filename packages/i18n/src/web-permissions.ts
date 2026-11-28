@@ -14,6 +14,7 @@ export const permissionLabels = {
   'lesson.manage': 'Darsni bekor qilish, koʻchirish, oʻrinbosar',
   'student.manage': 'Oʻquvchi, ota-ona, guruhga yozish, muzlatish',
   'student.view': 'Oʻquvchi kartochkasi',
+  'student.delete': 'Arxivdagi oʻquvchini oʻchirish',
   'lead.manage': 'Lidlar',
   'attendance.mark': 'Davomat belgilash',
   'attendance.edit_past': 'Oʻtgan davomatni oʻzgartirish',
