@@ -316,6 +316,13 @@
       "when": 1795545741029,
       "tag": "0044_notification_report_file",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1795885500120,
+      "tag": "0045_archived_open_enrollments",
+      "breakpoints": true
     }
   ]
 }
