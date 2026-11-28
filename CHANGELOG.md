@@ -1,5 +1,50 @@
 # Changelog
 
+## [0.3.0](https://github.com/oktamovsanjarorg/legendarygroup/compare/legendarygroup-v0.2.0...legendarygroup-v0.3.0) (2026-11-28)
+
+
+### Features
+
+* **api:** T-172 AI yordamchi — oʻqish vositalari, RBAC chaqiruvchiniki (Q-114) ([#94](https://github.com/oktamovsanjarorg/legendarygroup/issues/94)) ([9a03a87](https://github.com/oktamovsanjarorg/legendarygroup/commit/9a03a8726df96bd0e5a7ce065e24ca5d405534bf))
+* **api:** T-173 AI yordamchi DeepSeek'ka oʻtkazildi (Q-119) ([#99](https://github.com/oktamovsanjarorg/legendarygroup/issues/99)) ([0194748](https://github.com/oktamovsanjarorg/legendarygroup/commit/019474837d31da07153677666cfcfc446d5b5020))
+* **assistant:** T-176 yordamchi barcha boʻlimlarni ochadi va eʼlon matnini tayyorlaydi (Q-122) ([#102](https://github.com/oktamovsanjarorg/legendarygroup/issues/102)) ([b232fe1](https://github.com/oktamovsanjarorg/legendarygroup/commit/b232fe13036b90d176b5eabd5b01de49baf172bb))
+* **auth:** T-146 kirish faqat Telegram orqali, parolsiz (Q-98) ([#86](https://github.com/oktamovsanjarorg/legendarygroup/issues/86)) ([c896d12](https://github.com/oktamovsanjarorg/legendarygroup/commit/c896d12c12d18202b369e53bfeb712be7e264c2f))
+* **auth:** T-147 parol, TOTP va taklif API'si olib tashlandi — kirish faqat Telegram (Q-118) ([#98](https://github.com/oktamovsanjarorg/legendarygroup/issues/98)) ([ef86766](https://github.com/oktamovsanjarorg/legendarygroup/commit/ef8676615de7b66582ade292a1c9d4dda3897a9a))
+* **billing:** xato yozilgan aʼzolikni olib tashlash (Q-96) ([559792b](https://github.com/oktamovsanjarorg/legendarygroup/commit/559792b7a586a72fe60b63bb4afac3897e3176a3))
+* **miniapp:** «Yangi oʻquvchi» — bitta ekranda qoʻshish (Q-97) ([0c4fa7e](https://github.com/oktamovsanjarorg/legendarygroup/commit/0c4fa7e08947e0f05ffad59e425e279ef252e9c1))
+* **miniapp:** T-132 qarzdorlar, billing mantiq xatolari (Q-99, ADR 0008) ([#87](https://github.com/oktamovsanjarorg/legendarygroup/issues/87)) ([1d24bd1](https://github.com/oktamovsanjarorg/legendarygroup/commit/1d24bd198587c4b3eb8f94a7e8be877616f373ba))
+* **miniapp:** T-133…T-163 xodim ishlari toʻliq Mini App'da (Q-99) ([#88](https://github.com/oktamovsanjarorg/legendarygroup/issues/88)) ([b67c7c4](https://github.com/oktamovsanjarorg/legendarygroup/commit/b67c7c4ebbd165800091e11f5a5456e866129861))
+* **miniapp:** T-164 keng ekran — roʻyxat + tafsilot, Desktop'da toʻliq ekran (Q-115) ([#96](https://github.com/oktamovsanjarorg/legendarygroup/issues/96)) ([8cb0923](https://github.com/oktamovsanjarorg/legendarygroup/commit/8cb09236d679b543584994f1651b402ff22a374e))
+* **miniapp:** T-167 Mini App ichida raqam ulashib kirish (Q-109) ([#89](https://github.com/oktamovsanjarorg/legendarygroup/issues/89)) ([60255d2](https://github.com/oktamovsanjarorg/legendarygroup/commit/60255d274f690662248ca7b25253e212bf737393))
+* **miniapp:** T-169 «Xush kelibsiz» — Mini App ichida roʻyxatdan oʻtish (Q-111) ([#91](https://github.com/oktamovsanjarorg/legendarygroup/issues/91)) ([da49c16](https://github.com/oktamovsanjarorg/legendarygroup/commit/da49c1658c8fbe27bfda7ec8709855da75f356bc))
+* **miniapp:** T-171 asosiy tablar, menyuni siljitmaslik, yon panel (Q-113) ([#93](https://github.com/oktamovsanjarorg/legendarygroup/issues/93)) ([810ec4f](https://github.com/oktamovsanjarorg/legendarygroup/commit/810ec4f8267bc1b3a3e4e4b4cda759440d246f55))
+* **miniapp:** T-172 «Yordamchi» tabi — savol, javob, ekran tugmalari (Q-114) ([#95](https://github.com/oktamovsanjarorg/legendarygroup/issues/95)) ([709c579](https://github.com/oktamovsanjarorg/legendarygroup/commit/709c5795d1230bda0f9fbce00a797345c0b236fb))
+* **miniapp:** T-174 kompyuter qobigʻi — yon panel, Ctrl/⌘ K, yordamchi paneli ([#100](https://github.com/oktamovsanjarorg/legendarygroup/issues/100)) ([a0d0c4e](https://github.com/oktamovsanjarorg/legendarygroup/commit/a0d0c4eeb6b1f0547aa4ce1e40a9a6b2c34e66f1))
+* **miniapp:** T-181 arxivdagi oʻquvchini oʻchirish tugmasi (Q-124) ([#115](https://github.com/oktamovsanjarorg/legendarygroup/issues/115)) ([cc5f189](https://github.com/oktamovsanjarorg/legendarygroup/commit/cc5f189ef424f73aa0dbcad6da0bb0a514106c6e))
+* **miniapp:** T-301 ustoz davomatdan keyin baho qoʻyadi (MT-02b) ([#110](https://github.com/oktamovsanjarorg/legendarygroup/issues/110)) ([10dbf35](https://github.com/oktamovsanjarorg/legendarygroup/commit/10dbf35ba0a7af488e35a526211c4e51dff49ec3))
+* **miniapp:** xato kiritilganni guruhdan butunlay olib tashlash (Q-96) ([30714c0](https://github.com/oktamovsanjarorg/legendarygroup/commit/30714c042d5ca5d186ca68d4bce676af79030306))
+* **students:** oʻquvchi + guruh bitta soʻrovda (Q-97) ([b84ffbf](https://github.com/oktamovsanjarorg/legendarygroup/commit/b84ffbf7db1d4b5c86c9966582e907513086a94b))
+* **students:** T-180 arxivdagi oʻquvchini butunlay oʻchirish (Q-124) ([#114](https://github.com/oktamovsanjarorg/legendarygroup/issues/114)) ([6518a3c](https://github.com/oktamovsanjarorg/legendarygroup/commit/6518a3c9f1dc34e3c6a2100cc0ace3cc1bf1540b))
+* T-168 chek PDF va bot xabarlari Mini App bilan (Q-110) ([#90](https://github.com/oktamovsanjarorg/legendarygroup/issues/90)) ([a1c33ba](https://github.com/oktamovsanjarorg/legendarygroup/commit/a1c33ba00dd63bbe0ce9c70186b2e70bd0c1a879))
+* T-175 navigatsiya tuzatishlari va yordamchi bilan boshqarish (Q-121, Q-122) ([#101](https://github.com/oktamovsanjarorg/legendarygroup/issues/101)) ([29c9c15](https://github.com/oktamovsanjarorg/legendarygroup/commit/29c9c1538dfca2e72f6ad9c53e3ec2d8232709b7))
+* T-177 yengil ranglar va oʻquvchilar roʻyxati — fan, tartib, holat (Q-123) ([#103](https://github.com/oktamovsanjarorg/legendarygroup/issues/103)) ([d0b0445](https://github.com/oktamovsanjarorg/legendarygroup/commit/d0b04450ab8405dce26d19e4dc36f95186ab75d1))
+
+
+### Bug Fixes
+
+* **billing:** guruhga yozilganda birinchi oy hisobi darhol (BR-3, Q-95) ([24d70e8](https://github.com/oktamovsanjarorg/legendarygroup/commit/24d70e8fb67d96964db78bd2418085e802da367e))
+* **billing:** T-145 sozlash Q-95 hisobidan keyin ham ishlaydi ([41b46ba](https://github.com/oktamovsanjarorg/legendarygroup/commit/41b46ba6034c923949449125a5522097939c76de))
+* **billing:** T-165 pul auditi — invariantlar, storno/refund, arxivdagi qarz ([#97](https://github.com/oktamovsanjarorg/legendarygroup/issues/97)) ([e986eeb](https://github.com/oktamovsanjarorg/legendarygroup/commit/e986eeb0a73eee00d0fd462df872c19cec1518e6))
+* **ci:** CHANGELOG.md Prettier tekshiruvidan chiqarildi (Release Please) ([746f075](https://github.com/oktamovsanjarorg/legendarygroup/commit/746f075f09194f0288d2624666935a5fbdf48941))
+* **db:** T-179 arxivlangan oʻquvchining ochiq qolgan aʼzoligi yopiladi ([#113](https://github.com/oktamovsanjarorg/legendarygroup/issues/113)) ([e8525a8](https://github.com/oktamovsanjarorg/legendarygroup/commit/e8525a86b5de879919b6d2a2c73dd2b7df26ba9d))
+* **finance:** T-403 P&L oylik tasdiqlanmaganini bildiradi ([#107](https://github.com/oktamovsanjarorg/legendarygroup/issues/107)) ([de1f06f](https://github.com/oktamovsanjarorg/legendarygroup/commit/de1f06f088494fceaba5a92385057b10be3ffc68))
+* **grades:** T-301 BR-37 muddat, guruhdan tashqari oʻquvchi va ikki marta audit ([#108](https://github.com/oktamovsanjarorg/legendarygroup/issues/108)) ([ef5c5e1](https://github.com/oktamovsanjarorg/legendarygroup/commit/ef5c5e1b92a55975d957804b1349536d2d230600))
+* **miniapp:** T-178 roʻyxatlar qidirmasdan koʻrinadi, ixcham filtrlar ([#104](https://github.com/oktamovsanjarorg/legendarygroup/issues/104)) ([16077eb](https://github.com/oktamovsanjarorg/legendarygroup/commit/16077eb69de27c2ce125041956a1cfcbc1df2a9b))
+* **payroll:** T-401 hisoblangan baza oy oʻrtasida shartnoma almashsa kunlarga boʻlinadi ([#106](https://github.com/oktamovsanjarorg/legendarygroup/issues/106)) ([d11471e](https://github.com/oktamovsanjarorg/legendarygroup/commit/d11471e6166f913898df0e0031c2447403a0b345))
+* **progress:** T-303 reytingda baho guruh shkalasiga keltiriladi ([#111](https://github.com/oktamovsanjarorg/legendarygroup/issues/111)) ([ea83c43](https://github.com/oktamovsanjarorg/legendarygroup/commit/ea83c43d8730dd9c16c0bca4216ea5b77919f4b8))
+* T-170 kirish va chek xabaridagi nomuvofiqliklar (Q-112) ([#92](https://github.com/oktamovsanjarorg/legendarygroup/issues/92)) ([a3c5f7a](https://github.com/oktamovsanjarorg/legendarygroup/commit/a3c5f7acf848d31f38526a5389a894a0ae162f20))
+* **test:** «bugun» UTC emas, Asia/Tashkent — dashboard va kassa testlari ([f20c661](https://github.com/oktamovsanjarorg/legendarygroup/commit/f20c661116ee345397120f64c763a0703f8291a7))
+
 ## [0.2.0](https://github.com/oktamovsanjarorg/legendarygroup/compare/legendarygroup-v0.1.0...legendarygroup-v0.2.0) (2026-11-22)
 
 
