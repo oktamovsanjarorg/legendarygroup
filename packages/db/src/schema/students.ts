@@ -29,7 +29,7 @@ const E164 = (col: unknown) => sql`${col} ~ '^\\+[1-9][0-9]{6,14}$'`;
  * O'quvchilar (FR-STU-1, T-105). `code` — inson o'qiy oladigan raqam: yaratuvchi kiritadi (titul,
  * Excel importi — T-127) yoki bo'sh bo'lsa identity (10001 dan). Noyob.
  * `search_name` — `normalizeUz(full_name)` (ilova yozadi), ustida `pg_trgm` GIN indeks.
- * O'chirilmaydi — faqat arxivlanadi (FR-STU-6).
+ * Odatda arxivlanadi; arxivdagi, pul tarixi yo'q o'quvchi — butunlay o'chiriladi (FR-STU-6, Q-124).
  */
 export const students = pgTable(
   'students',

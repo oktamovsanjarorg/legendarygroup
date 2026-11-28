@@ -23,6 +23,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'lesson.manage': 'Dars bekor qilish/koʻchirish, oʻrinbosar tayinlash',
   'student.manage': 'Oʻquvchi, ota-ona, enrollment, muzlatish',
   'student.view': 'Oʻquvchi kartochkasi',
+  'student.delete': 'Arxivdagi oʻquvchini butunlay oʻchirish (pul tarixi yoʻq boʻlsa)',
   'lead.manage': 'Lidlar',
   'attendance.mark': 'Davomat belgilash',
   'attendance.edit_past': 'Oʻtgan davomatni oʻzgartirish (sabab bilan)',

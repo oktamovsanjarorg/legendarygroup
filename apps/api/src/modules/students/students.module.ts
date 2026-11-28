@@ -24,6 +24,7 @@ import { StudentsQueryService } from './students-query.service.js';
 import { StudentsController } from './students.controller.js';
 import { StudentIntakeService } from './student-intake.service.js';
 import { StudentsService } from './students.service.js';
+import { StudentPurgeService } from './student-purge.service.js';
 import { TeacherCodesController } from './teacher-codes/teacher-codes.controller.js';
 import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
 
@@ -48,6 +49,7 @@ import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
     EnrollmentsQueryService,
     FreezesService,
     StudentsService,
+    StudentPurgeService,
     StudentIntakeService,
     StudentsQueryService,
     StudentGuardiansService,
@@ -66,6 +68,7 @@ import { TeacherCodesService } from './teacher-codes/teacher-codes.service.js';
     StudentsQueryService,
     EnrollmentsQueryService,
     EnrollmentsService,
+    StudentPurgeService,
     TeacherCodesService,
   ],
 })

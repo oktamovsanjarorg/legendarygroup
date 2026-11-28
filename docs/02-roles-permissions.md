@@ -71,6 +71,7 @@ RBAC qatlamida ✅/🔸/🟡 = rolda **bor**; ❌/—/D/faqat ⬆️ = rolda **y
 | **O'quvchilar**          |                                                    |          |                              |                                    |                                        |          |
 | `student.manage`         | O'quvchi, ota-ona, enrollment, muzlatish           |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
 | `student.view`           | O'quvchi kartochkasi                               |    ✅    |              ✅              |                 🔸                 |                   🔸                   |    🔸    |
+| `student.delete`         | Arxivdagi, pul tarixi yo'q o'quvchini o'chirish ⚠️ |    ✅    |              ❌              |                 ❌                 |                   ❌                   |    ❌    |
 | `lead.manage`            | Lidlar                                             |    ✅    |              ✅              |                 ❌                 |                   ❌                   |    ❌    |
 | **Davomat va natijalar** |                                                    |          |                              |                                    |                                        |          |
 | `attendance.mark`        | Davomat belgilash                                  |    ✅    |              ✅              |                🔸🟡                |                   ❌                   |    ❌    |
@@ -102,7 +103,7 @@ RBAC qatlamida ✅/🔸/🟡 = rolda **bor**; ❌/—/D/faqat ⬆️ = rolda **y
 | `stats.operational`      | Davomat/natija statistikasi                        |    ✅    |              ✅              |                 🔸                 |                   🔸                   |    ❌    |
 | `approval.decide`        | Tasdiqlash so'rovlarini hal qilish                 |    ✅    |              ❌              |                 ❌                 |                   ❌                   |    ❌    |
 
-**Delegatsiya qilinmaydi (hech qachon Admin'ga berilmaydi):** `staff.*`, `settings.manage`, `audit.view`, `payroll.manage`, `approval.decide`, `payment.refund`.
+**Delegatsiya qilinmaydi (hech qachon Admin'ga berilmaydi):** `staff.*`, `settings.manage`, `audit.view`, `payroll.manage`, `approval.decide`, `payment.refund`, `student.delete` (Q-124 — qaytarib bo'lmaydigan amal).
 
 **Override qoidasi (`user_permission_overrides`):** `granted = true` — faqat `DELEGABLE_PERMISSIONS` (`expense.manage`, `finance.view`) va faqat Admin'ga; `granted = false` — rolning istalgan standart ruxsatini shu foydalanuvchidan olib qo'yish (cheklash). O'zgarish → `permissions_version + 1`.
 

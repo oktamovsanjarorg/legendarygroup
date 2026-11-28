@@ -94,6 +94,9 @@ export const errorMessages = {
   COURSE_ARCHIVED: 'Kurs arxivda. Avval kursni arxivdan chiqaring.',
   ROOM_ARCHIVED: 'Xona arxivda. Boshqa xona tanlang.',
   HAS_ACTIVE_GROUPS: 'Bunga bogʻliq faol guruhlar bor. Avval guruhlarni yakunlang yoki koʻchiring.',
+  STUDENT_NOT_ARCHIVED: 'Avval oʻquvchini arxivlang, keyin oʻchiring.',
+  STUDENT_HAS_FINANCE:
+    'Bu oʻquvchida toʻlov yoki hisob tarixi bor — oʻchirib boʻlmaydi (moliya hisobotlari buziladi). U arxivda qoladi va roʻyxatlarda koʻrinmaydi.',
   STUDENT_HAS_ACTIVE_GROUPS:
     'Oʻquvchi hali guruhda. Avval uni guruhdan chiqaring (sana bilan), keyin arxivlang.',
   GROUP_NAME_TAKEN: 'Bu nomdagi joriy guruh allaqachon bor. Boshqa nom tanlang.',
